@@ -30,6 +30,18 @@ class Thumbnail(gtk.gdk.Pixbuf):
         color = (r << 24) + (g << 16) + (b << 8) + 0xff
         gtk.gdk.Pixbuf.fill(self, color)
             
+            
+    def add_rect(self, x, y, w, h, r, g, b, a = 0xff):
+    
+        color = (r << 24) + (g << 16) + (b << 8) + a
+        subpbuf = self.subpixbuf(x, y, w, h)
+        
+        rect = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
+        rect.fill(color)
+        rect.composite(subpbuf, 0, 0, w, h, x, y, 1, 1,
+                       gtk.gdk.INTERP_NEAREST, 0xff)
+        del rect
+                
     
     def add_text(self, text, x, y, font, color):
     
