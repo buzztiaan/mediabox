@@ -101,6 +101,9 @@ class KineticScroller(gtk.EventBox, Observable):
             
             if (dx < 30 and dy < 30):
                 self.update_observer(self.OBS_CLICKED, px, py)
+                self.__delta_s = (0, 0)
+                self.__scrolling = False                
+            #end if
         #end if
                 
         
@@ -132,9 +135,9 @@ class KineticScroller(gtk.EventBox, Observable):
         self.__scrolling = False
 
         if (self.__may_click):
-            self.__check_for_click()
+            self.__check_for_click()            
         
-        # start up impulse handler if not running
+        # start up impulse handler if not running        
         if (not self.__impulse_handler_running):
             gobject.timeout_add(5, self.__impulse_handler)
             self.__impulse_handler_running = True
