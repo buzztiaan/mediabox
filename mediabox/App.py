@@ -4,6 +4,7 @@ from ui.ImageStrip import ImageStrip
 from ui.KineticScroller import KineticScroller
 from ui import dialogs
 from ControlBar import ControlBar
+import panel_actions
 from Thumbnailer import Thumbnailer
 import config
 import viewers
@@ -270,14 +271,14 @@ class App(object):
 
     def __on_observe_ctrlbar(self, src, cmd, *args):
     
-        if (cmd == src.OBS_PLAY_PAUSE):
+        if (cmd == panel_actions.PLAY_PAUSE):
             self.__current_viewer.play_pause()
     
-        elif (cmd == src.OBS_SET_POSITION):
+        elif (cmd == panel_actions.SET_POSITION):
             pos = args[0]
             self.__current_viewer.set_position(pos)
             
-        elif (cmd == src.OBS_TAB_SELECTED):
+        elif (cmd == panel_actions.TAB_SELECTED):
             idx = args[0]
             self.__select_viewer(idx)
                                                
