@@ -289,15 +289,14 @@ class _MPlayer(Observable):
                     
             elif (state == LOADING):
                 if (out.startswith("Failed to open ")):
-                    print "Failed to open"
                     raise FileNotFoundError()
                 elif (out.endswith(" failed\n")):
-                    print "cannot play"
                     raise InvalidFileError()
-                elif (out.startswith("\n")):
-                    pass
-                    #print "cannot play"
-                    #raise InvalidFileError()
+                elif (out.endswith("No stream found.\n")):
+                    raise InvalidFileError()
+                elif (out.startswith("\n")):                
+                    #pass
+                    raise InvalidFileError()                    
                 elif (out.startswith("AUDIO: ")):
                     self.__has_audio = True
                 elif (out.startswith("VIDEO: ")):

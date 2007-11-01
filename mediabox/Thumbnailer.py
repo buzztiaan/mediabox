@@ -48,11 +48,12 @@ class Thumbnailer(gtk.Window):
         
         # progress label
         self.__progress_label = gtk.Label("")
-        self.__progress_label.modify_font(pango.FontDescription("Sans bold 20"))
-        self.__progress_label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse("black"))
-        self.__progress_label.set_size_request(800, -1)
+        self.__progress_label.modify_font(pango.FontDescription("Sans bold 16"))
+        self.__progress_label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#aaaaaa"))
+        self.__progress_label.set_size_request(200, -1)
+        self.__progress_label.set_alignment(1.0, 0.0)
         self.__progress_label.show()
-        #fixed.put(self.__progress_label, 0, 350)
+        fixed.put(self.__progress_label, 580, 10)
         
         # thumbnail
         self.__thumbnail = gtk.Image()
@@ -129,6 +130,11 @@ class Thumbnailer(gtk.Window):
         tn = os.path.join(config.thumbdir(), md5sum + ".jpg")
 
         return tn    
+
+
+    def set_progress(self, n, total):
+    
+        self.__progress_label.set_text("%d of %d" % (n, total))
 
 
 

@@ -114,7 +114,7 @@ class VideoViewer(Viewer):
             # make video thumbnail
             self.__mplayer.set_window(-1)
             self.__mplayer.set_options("-vf scale=134:-3,screenshot -vo null "
-                                       "-nosound")
+                                       "-nosound -speed 10")
             try:
                 self.__mplayer.load(uri)
             except:
@@ -122,20 +122,10 @@ class VideoViewer(Viewer):
         
             # not all videos support seeking, but try it for those that do
             self.__mplayer.seek(20)            
-
-            self.__mplayer.stop()
-            #time.sleep(0.3)
+            time.sleep(0.1)
             os.system("rm -f /tmp/shot*.png")
             self.__mplayer.screenshot()
-
-            # wait for screenshot but don't wait too long
-            now = time.time()
-            while (time.time() < now + 1 and
-                   not [ f for f in os.listdir("/tmp") if f.startswith("shot") ]):
-                time.sleep(0.001)
-                
-            # wait for screenshot to be written
-            time.sleep(0.01)
+            time.sleep(0.1)
                 
             thumbs = [ os.path.join("/tmp", f) for f in os.listdir("/tmp")
                        if f.startswith("shot") ]
@@ -143,19 +133,8 @@ class VideoViewer(Viewer):
             thumbs.sort()
             thumb = thumbs[-1]
             
-            container = os.path.join(self.PATH, "film.png")
-            
-            thumbnailer.set_thumbnail_for_uri(uri, thumb)
-            
-            #tn = VideoThumbnail(thumb)
-            #thumbnailer.set_thumbnail(item, tn)
-            #del tn
-            #import gc; gc.collect()
-            #thumbnailer.make_image_thumb(item, thumb, container, 134, 112)
+            thumbnailer.set_thumbnail_for_uri(uri, thumb)            
             os.system("rm -f /tmp/shot*.png")
-            #self.__mplayer.close()
-        #else:
-        #    thumbnailer.load_thumbnail(item)
         #end if
         
         tn = VideoThumbnail(thumbnailer.get_thumbnail(uri),

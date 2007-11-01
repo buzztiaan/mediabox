@@ -115,6 +115,10 @@ class App(object):
             self.__current_mediaroots = mediaroots
 
 
+        thumbnailer = Thumbnailer(self.__window)
+        thumbnailer.show()
+        while (gtk.events_pending()): gtk.main_iteration()
+
         collection = []
         thumbdir = os.path.abspath(config.thumbdir())
         for mediaroot in mediaroots:
@@ -133,13 +137,15 @@ class App(object):
             #end for
         #end for
         
-        thumbnailer = Thumbnailer(self.__window)
-        thumbnailer.show()
-
+        total = len(collection)
+        
         for v in self.__viewers:
             v.clear_items()
 
+        cnt = 0
         for uri in collection:
+            cnt += 1
+            thumbnailer.set_progress(cnt, total)
             for v in self.__viewers:
                 v.make_item_for(uri, thumbnailer)
             #end for
@@ -213,7 +219,7 @@ class App(object):
             self.__ctrlbar.set_capabilities(caps)
     
         elif (cmd == src.OBS_SCAN_MEDIA):
-            gobject.idle_add(self.__scan_media)
+            self.__scan_media() #gobject.idle_add(self.__scan_media)
 
         elif (cmd == src.OBS_TITLE):
             title = args[0]
