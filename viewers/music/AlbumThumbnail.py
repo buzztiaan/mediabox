@@ -16,4 +16,4 @@ class AlbumThumbnail(Thumbnail):
             self.add_image(theme.viewer_music_unknown, 0, 0, 160, 120)
         self.add_rect(0, 104, 160, 16, 0x44, 0x44, 0xff, 0xa0)
         self.add_text(title, 2, 103, theme.font_tiny, "#ffffff")            
-        self.add_image(theme.btn_load, 136, 96)
+        self.add_image(theme.btn_load, 128, 88)
