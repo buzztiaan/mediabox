@@ -2,6 +2,9 @@ import gtk
 import gobject
 
 
+_BPP = gtk.gdk.get_default_root_window().get_depth()
+
+
 class ImageStrip(gtk.DrawingArea):
     """
     Class for rendering a scrollable strip of images.
@@ -10,6 +13,8 @@ class ImageStrip(gtk.DrawingArea):
     def __init__(self, width, itemsize, gapsize):
     
         self.__pbuf_cache = {}
+        self.__arrows = None
+        self.__arrows_save_under = None
     
         gtk.DrawingArea.__init__(self)
         self.connect("expose-event", self.__on_expose)
@@ -136,6 +141,26 @@ class ImageStrip(gtk.DrawingArea):
         """
     
         self.__bg = self.__to_pixbuf(bg)
+        
+        
+    def set_arrows(self, arrows):
+        """
+        Sets arrow graphics from the given pixbuf.
+        """
+    
+        if (arrows):
+            w, h = arrows.get_width(), arrows.get_height()
+            h2 = h / 2
+            arrow_up = arrows.subpixbuf(0, 0, w, h2)
+            arrow_down = arrows.subpixbuf(0, h2, w, h2)
+            self.__arrows = (arrow_up, arrow_down)
+            
+            pmap1 = gtk.gdk.Pixmap(None, w, h2, _BPP)
+            pmap2 = gtk.gdk.Pixmap(None, w, h2, _BPP)
+            self.__arrows_save_under = (pmap1, pmap2)
+        else:
+            self.__arrows = None
+
 
 
     def get_image(self, idx):
@@ -245,7 +270,7 @@ class ImageStrip(gtk.DrawingArea):
         """
     
         blocksize = self.__itemsize + self.__gapsize
-        pos = self.__offset + self.__selection_offset + self.__itemsize / 2 #  self.__height / 2
+        pos = self.__offset + self.__selection_offset + self.__itemsize / 2
         try:
             index = (pos / blocksize) % len(self.__images)
         except:
@@ -274,6 +299,45 @@ class ImageStrip(gtk.DrawingArea):
         self.__offset = offset
         
         
+    def __render_arrows(self):
+    
+        arrow_up, arrow_down = self.__arrows
+        arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
+        w, h = self.get_size()
+        
+        pmap1, pmap2 = self.__arrows_save_under
+        pmap1.draw_drawable(pmap1.new_gc(), self.__canvas,
+                            (w - arrow_width) / 2, 0, 0, 0,
+                            arrow_width, arrow_height)
+        pmap2.draw_drawable(pmap2.new_gc(), self.__canvas,
+                            (w - arrow_width) / 2, h - arrow_height, 0, 0,
+                            arrow_width, arrow_height)
+
+        if (self.__offset > 0):        
+            self.__canvas.draw_pixbuf(self.__gc, arrow_up,
+                                      0, 0, (w - arrow_width) / 2, 0,
+                                      arrow_width, arrow_height)
+
+        if (self.__offset < self.__totalsize - h):
+            self.__canvas.draw_pixbuf(self.__gc, arrow_down,
+                                  0, 0, (w - arrow_width) / 2, h - arrow_height,
+                                      arrow_width, arrow_height)
+
+
+    def __unrender_arrows(self):
+    
+        arrow_up, arrow_down = self.__arrows
+        arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
+        w, h = self.get_size()
+
+        pmap1, pmap2 = self.__arrows_save_under
+        self.__canvas.draw_drawable(self.__gc, pmap1,
+                                    0, 0, (w - arrow_width) / 2, 0,
+                                   arrow_width, arrow_height)
+        self.__canvas.draw_drawable(self.__gc, pmap2,
+                                  0, 0, (w - arrow_width) / 2, h - arrow_height,
+                                    arrow_width, arrow_height)
+        
         
     def render_full(self):
         """
@@ -282,6 +346,9 @@ class ImageStrip(gtk.DrawingArea):
     
         w, h = self.get_size()
         self.__render(0, h)
+        if (self.__arrows):
+            self.__render_arrows()
+        
         
         
     def __render(self, render_offset, render_height):
@@ -371,6 +438,10 @@ class ImageStrip(gtk.DrawingArea):
             
         if (not self.__canvas): return
 
+
+        if (self.__arrows):
+            self.__unrender_arrows()
+            
         if (delta > 0):
             self.__canvas.draw_drawable(self.__gc, self.__canvas,
                                         0, delta, 0, 0,
@@ -384,4 +455,7 @@ class ImageStrip(gtk.DrawingArea):
                                         self.__itemwidth, h - abs(delta))
                                         
             self.__render(0, abs(delta))
+            
+        if (self.__arrows):
+            self.__render_arrows()
 
