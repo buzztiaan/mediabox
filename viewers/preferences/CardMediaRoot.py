@@ -26,6 +26,7 @@ class CardMediaRoot(PrefsCard):
     
         self.__list = ItemList(600, 80)
         self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 368))
+        self.__list.set_arrows(theme.arrows)
         self.__list.set_wrap_around(False)
         self.__list.show()
         

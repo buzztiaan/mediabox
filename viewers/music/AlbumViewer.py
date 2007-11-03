@@ -6,9 +6,6 @@ from ui.ImageStrip import ImageStrip
 from mediabox.MPlayer import MPlayer
 from mediabox import caps
 import theme
-#import mutagen
-#from utils.ID3 import ID3
-#from utils import id3reader
 import idtags
 
 
@@ -63,6 +60,7 @@ class AlbumViewer(Viewer):
         self.__strip.set_selection_offset(0)
         self.__strip.set_wrap_around(False)
         self.__strip.set_background(theme.background.subpixbuf(185, 0, 600, 400))
+        self.__strip.set_arrows(theme.arrows)
         self.__strip.show()
         kscr = KineticScroller(self.__strip)
         kscr.add_observer(self.__on_observe_scroller)
@@ -112,14 +110,6 @@ class AlbumViewer(Viewer):
         tn = AlbumThumbnail(thumbnailer.get_thumbnail(uri),
                             os.path.basename(uri))
         item.set_thumbnail(tn)
-        
-        #    tn = AlbumThumbnail(cover)
-        #    thumbnailer.set_thumbnail(item, tn)
-        #    del tn
-        #    import gc; gc.collect()
-        #else:
-        #    thumbnailer.load_thumbnail(item)
-            
         self.__items.append(item)
        
        
@@ -133,7 +123,8 @@ class AlbumViewer(Viewer):
         elif (cmd == src.OBS_KILLED):
             self.__current_uri = ""
             print "Killed MPlayer"
-            self.set_title("")            
+            self.set_title("")
+            self.__hilight(-1)        
             
         elif (cmd == src.OBS_PLAYING):
             print "Playing"
