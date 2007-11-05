@@ -221,6 +221,12 @@ class App(object):
         elif (cmd == src.OBS_SCAN_MEDIA):
             self.__scan_media() #gobject.idle_add(self.__scan_media)
 
+        elif (cmd == src.OBS_STATE_PLAYING):
+            self.__ctrlbar.set_playing(True)
+        
+        elif (cmd == src.OBS_STATE_PAUSED):
+            self.__ctrlbar.set_playing(False)
+
         elif (cmd == src.OBS_TITLE):
             title = args[0]
             self.__ctrlbar.set_title(title)

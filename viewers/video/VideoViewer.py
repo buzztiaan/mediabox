@@ -75,16 +75,20 @@ class VideoViewer(Viewer):
             
         if (cmd == src.OBS_STARTED):
             print "Started MPlayer"
+            self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_KILLED):
             print "Killed MPlayer"
             self.set_title("")
+            self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_PLAYING):
             print "Playing"
+            self.update_observer(self.OBS_STATE_PLAYING)
             
         elif (cmd == src.OBS_STOPPED):
             print "Stopped"
+            self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_POSITION):
             ctx, pos, total = args

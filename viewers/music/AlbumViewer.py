@@ -2,12 +2,11 @@ from viewers.Viewer import Viewer
 from MusicItem import MusicItem
 from AlbumThumbnail import AlbumThumbnail
 from ui.KineticScroller import KineticScroller
-from ui.ImageStrip import ImageStrip
+from ui.ItemList import ItemList
 from mediabox.MPlayer import MPlayer
 from mediabox import caps
 import theme
 import idtags
-
 
 import gtk
 import gobject
@@ -38,31 +37,24 @@ class AlbumViewer(Viewer):
         self.__mplayer.add_observer(self.__on_observe_mplayer)
         self.__volume = 50
                 
-        self.__tracks = []        
-        self.__list_items = []
-        self.__playing_items = []
+        self.__tracks = []
         self.__current_index = -1
         self.__current_uri = ""
         
-        self.__context_id = 0
-        
-        self.__render_pixmap = gtk.gdk.Pixmap(None, 600, 80,
-                                  gtk.gdk.get_default_root_window().get_depth())
-        self.__item_pbuf = theme.item
-        self.__item_act_pbuf = theme.item_active
+        self.__context_id = 0       
     
         Viewer.__init__(self)
     
         box = gtk.HBox()
         self.set_widget(box)
         
-        self.__strip = ImageStrip(600, 80, 10)
-        self.__strip.set_selection_offset(0)
-        self.__strip.set_wrap_around(False)
-        self.__strip.set_background(theme.background.subpixbuf(185, 0, 600, 400))
-        self.__strip.set_arrows(theme.arrows)
-        self.__strip.show()
-        kscr = KineticScroller(self.__strip)
+        self.__list = ItemList(600, 80)
+        self.__list.set_background(theme.background.subpixbuf(185, 0, 600, 400))
+        self.__list.set_graphics(theme.item, theme.item_active)
+        self.__list.set_font(theme.font_plain)
+        self.__list.set_arrows(theme.arrows)
+        self.__list.show()
+        kscr = KineticScroller(self.__list)
         kscr.add_observer(self.__on_observe_scroller)
         kscr.show()
         box.pack_start(kscr, True, True, 10)
@@ -119,20 +111,24 @@ class AlbumViewer(Viewer):
     
         if (cmd == src.OBS_STARTED):
             print "Started MPlayer"
+            self.update_observer(self.OBS_STATE_PAUSED)            
             
         elif (cmd == src.OBS_KILLED):
             self.__current_uri = ""
             print "Killed MPlayer"
             self.set_title("")
-            self.__hilight(-1)        
+            self.__list.hilight(-1)
+            self.update_observer(self.OBS_STATE_PAUSED)           
             
         elif (cmd == src.OBS_PLAYING):
             print "Playing"
+            self.update_observer(self.OBS_STATE_PLAYING)
             
         elif (cmd == src.OBS_STOPPED):
             self.__current_uri = ""
-            print "Stopped"
+            print "Stopped"            
             #self.__next_track()
+            self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_POSITION):
             ctx, pos, total = args
@@ -154,62 +150,9 @@ class AlbumViewer(Viewer):
     
         if (cmd == src.OBS_CLICKED):                       
             x, y = args
-            if (x > 400):
-                idx = self.__strip.get_index_at(y)
+            if (x > 520):
+                idx = self.__list.get_index_at(y)
                 self.__play_track(idx)
-              
-
-            
-            
-            
-    def __create_item(self, idx, title, is_playing):
-
-        pc = self.get_widget().get_pango_context()
-        layout = pango.Layout(pc)
-        layout.set_font_description(theme.font_plain)
-        layout.set_text(`idx` + " - " + title)
-        layout.set_width(580 * pango.SCALE)        
-            
-        pmap = self.__render_pixmap
-        cmap = self.get_widget().get_colormap()
-        gc = pmap.new_gc()
-
-        if (is_playing):
-            fgcolor = "#444466"
-            bgcolor = "#ffffff"
-            pmap.draw_pixbuf(gc, self.__item_act_pbuf, 0, 0, 0, 0, 600, 80)
-        else:
-            fgcolor = "#444466"
-            bgcolor = "#aaaacc"
-            pmap.draw_pixbuf(gc, self.__item_pbuf, 0, 0, 0, 0, 600, 80)
-            
-        #pmap.draw_pixbuf(gc, self.__item_pbuf, 0, 0, 0, 0, 600, 80)
-        
-        #gc.set_foreground(cmap.alloc_color(bgcolor))
-        #pmap.draw_rectangle(gc, True, 0, 0, 600, 80)
-        
-        #gc.set_foreground(cmap.alloc_color("#222244"))
-        #pmap.draw_rectangle(gc, False, 0, 0, 599, 79)
-        
-            
-        gc.set_foreground(theme.item_foreground)
-        pmap.draw_layout(gc, 8, 16, layout)
-
-        pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, 600, 80)
-        pbuf.get_from_drawable(pmap, cmap, 0, 0, 0, 0, 600, 80)
-    
-        return pbuf
-        
-        
-        
-    def __hilight(self, idx):
-    
-        if (self.__current_index >= 0):
-            self.__strip.replace_image(self.__current_index,
-                                       self.__list_items[self.__current_index])
-        if (idx >= 0):                                 
-            self.__strip.replace_image(idx, self.__playing_items[idx])
-            self.__current_index = idx
         
         
     def __next_track(self):
@@ -229,7 +172,7 @@ class AlbumViewer(Viewer):
         self.__mplayer.set_window(-1)
         self.__mplayer.set_options("")
     
-        self.__hilight(idx)
+        self.__list.hilight(idx)
         
         def f():    
             track = self.__tracks[idx]
@@ -243,12 +186,13 @@ class AlbumViewer(Viewer):
                 self.set_title(title)
                 
             except:
-                self.__hilight(-1)
+                self.__list.hilight(-1)
         gobject.idle_add(f)
         
+
     def __stop_current_track(self):
     
-        self.__hilight(-1)          
+        self.__list.hilight(-1)          
             
         
         
@@ -259,18 +203,15 @@ class AlbumViewer(Viewer):
 
         self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
 
-        def f():        
-            #self.__strip.push_out()                
+        def f():             
             uri = item.get_uri()
         
             self.__tracks = []
-            self.__list_items = []
-            self.__playing_items = []
+            self.__list.clear_items()
             self.__current_index = -1
         
             files = os.listdir(uri)
             files.sort()
-            idx = 1
             for f in files:
                 filepath = os.path.join(uri, f)
                 ext = os.path.splitext(f)[-1].lower()
@@ -300,16 +241,13 @@ class AlbumViewer(Viewer):
                     #title = f
                     self.__tracks.append(filepath)
                     #if (artist): title += " - " + artist
-                    self.__list_items.append(self.__create_item(idx, title, False))
-                    self.__playing_items.append(self.__create_item(idx, title, True))
-                    idx += 1
+                    idx = self.__list.append_item(title, None)
+                    self.__list.overlay_image(idx, theme.btn_load, 540, 16)
             #end for
 
-            self.__strip.set_images(self.__list_items)
-            
             if (self.__current_uri in self.__tracks):
                 idx = self.__tracks.index(self.__current_uri)
-                self.__hilight(idx)
+                self.__list.hilight(idx)
             
             import gc; gc.collect()
             self.update_observer(self.OBS_SHOW_PANEL)

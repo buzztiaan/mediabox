@@ -66,7 +66,7 @@ class ControlBar(gtk.HBox, Observable):
         """
         Switches to the next panel.
         """
-    
+            
         panel1 = self.__panels[self.__current_panel]
         idx = (self.__current_panel + 1) % len(self.__panels)
         panel2 = self.__panels[idx]
@@ -100,6 +100,11 @@ class ControlBar(gtk.HBox, Observable):
         """
     
         self.__menu_panel.add_tab(icon, name)
+        
+        
+    def set_playing(self, value):
+            
+        self.__control_panel.set_playing(value)
         
         
     def set_position(self, pos, total):
