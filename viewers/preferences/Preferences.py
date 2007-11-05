@@ -30,8 +30,8 @@ class Preferences(Viewer):
         self.__box = gtk.HBox()
         self.set_widget(self.__box)                
                         
-        self.__add_card(CardMediaRoot("Location of Media"), theme.prefs_folder)
-        #self.__add_card(CardMediaRoot("Current Theme"), theme.prefs_theme)
+        self.__add_card(CardMediaRoot("Location of Media"), "Media", theme.prefs_folder)
+        self.__add_card(CardThemeSelector("Current Theme"), "Themes", theme.prefs_theme)
         self.__show_card(0)
 
 
@@ -46,11 +46,13 @@ class Preferences(Viewer):
 
         
         
-    def __add_card(self, card, icon):
+    def __add_card(self, card, label, icon):
             
         tn = Thumbnail()
         tn.fill(0xff, 0xff, 0xff)
         tn.add_image(icon, 0, 0, 160, 120)
+        tn.add_rect(0, 104, 160, 16, 0x44, 0x44, 0xff, 0xa0)
+        tn.add_text(label, 2, 103, theme.font_tiny, "#ffffff")
         item = PrefsItem()
         item.set_thumbnail(tn)
         self.__items.append(item)

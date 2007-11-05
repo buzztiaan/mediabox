@@ -18,16 +18,13 @@ class CardMediaRoot(PrefsCard):
     
         self.__mediaroots = config.mediaroot()
     
-        PrefsCard.__init__(self, title)
-    
-        #box = gtk.HBox()
-        #box.show()
-        #self.pack_start(box, True, True)                
+        PrefsCard.__init__(self, title)          
     
         self.__list = ItemList(600, 80)
         self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 368))
+        self.__list.set_graphics(theme.item, theme.item_active)        
+        self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)
-        self.__list.set_wrap_around(False)
         self.__list.show()
         
         box = gtk.HBox()
@@ -63,9 +60,12 @@ class CardMediaRoot(PrefsCard):
     
         self.__list.clear_items()
         for mroot in self.__mediaroots:
-            idx = self.__list.append_item(mroot, theme.mmc, theme.item)
+            if (mroot.startswith("/media/mmc")):
+                idx = self.__list.append_item(mroot, theme.mmc)
+            else:
+                idx = self.__list.append_item(mroot, theme.device)
             self.__list.overlay_image(idx, theme.remove, 540, 16)
-                    
+
         
     def __on_add_folder(self, src):
     
@@ -87,7 +87,10 @@ class CardMediaRoot(PrefsCard):
             dirpath = dirchooser.get_filename()       
             self.__mediaroots.append(dirpath)
             config.set_mediaroot(self.__mediaroots)
-            idx = self.__list.append_item(dirpath, theme.mmc, theme.item)
+            if (dirpath.startswith("/media/mmc")):
+                idx = self.__list.append_item(dirpath, theme.mmc)
+            else:
+                idx = self.__list.append_item(dirpath, theme.device)
             self.__list.overlay_image(idx, theme.remove, 540, 16)            
 
         dirchooser.destroy()            

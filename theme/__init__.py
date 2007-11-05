@@ -12,6 +12,7 @@ _THEMES_DIR = os.path.dirname(__file__)
 
 
 # TODO: make these themable, too
+font_headline = pango.FontDescription("Nokia Sans bold 24")
 font_plain = pango.FontDescription("Nokia Sans Cn 16")
 font_tiny = pango.FontDescription("Nokia Sans Cn 9")
 panel_foreground = gtk.gdk.color_parse("#ffffff")
@@ -21,9 +22,11 @@ item_foreground = gtk.gdk.color_parse("#444466")
 def list_themes():
 
     themes = []
-    for d in os.listdir(_THEMES_DIR):
+    files = os.listdir(_THEMES_DIR)
+    files.sort()
+    for d in files:
         path = os.path.join(_THEMES_DIR, d)
-        if (os.path.isdir(path)):
+        if (os.path.isdir(path) and not d.startswith(".")):
             preview = os.path.join(path, "PREVIEW.png")
             themes.append((d, preview))
     #end for
