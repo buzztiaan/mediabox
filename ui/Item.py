@@ -2,14 +2,12 @@ import gtk
 import pango
 
 
-_FONT = pango.FontDescription("Sans bold 16")
-
 class Item(gtk.gdk.Pixbuf):
     """
     Class for rendering a list item.
     """
 
-    def __init__(self, widget, width, height, icon, label, background):
+    def __init__(self, widget, width, height, icon, label, font, background = None):
     
         gtk.gdk.Pixbuf.__init__(self, gtk.gdk.COLORSPACE_RGB, False, 8,
                                 width, height)
@@ -37,7 +35,7 @@ class Item(gtk.gdk.Pixbuf):
 
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)
-        layout.set_font_description(_FONT)
+        layout.set_font_description(font)
         layout.set_text(label)
         layout.set_width(width * pango.SCALE)        
         pmap.draw_layout(gc, x, 16, layout)
