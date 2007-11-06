@@ -179,6 +179,7 @@ class AlbumViewer(Viewer):
             try:
                 self.__context_id = self.__mplayer.load(track)            
                 self.__current_uri = track
+                self.__current_index = idx
                 self.__mplayer.set_volume(self.__volume)
 
                 tags = idtags.read(track)
