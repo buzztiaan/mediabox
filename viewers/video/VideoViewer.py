@@ -96,6 +96,9 @@ class VideoViewer(Viewer):
                 self.update_observer(self.OBS_POSITION, pos, total)
                 if (pos < 0.01): return
 
+        elif (cmd == src.OBS_EOF):
+            self.update_observer(self.OBS_STATE_PAUSED)
+
 
     def __is_video(self, uri):
         

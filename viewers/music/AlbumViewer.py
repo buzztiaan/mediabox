@@ -141,7 +141,8 @@ class AlbumViewer(Viewer):
             if (ctx == self.__context_id):
                 self.__current_uri = ""        
                 print "End of Track"
-                self.set_title("")                
+                self.set_title("")
+                self.update_observer(self.OBS_STATE_PAUSED)
                 self.__next_track()
        
         
