@@ -9,5 +9,5 @@ class ImageThumbnail(Thumbnail):
         Thumbnail.__init__(self, 160, 120)
         self.fill(0xff, 0xff, 0xff)
         self.add_image(thumb, 3, 3, 154, 114)
-        self.add_image(theme.btn_load, 136, 48)
+        self.add_image(theme.btn_load, 128, 48)
         

@@ -301,6 +301,8 @@ class ImageStrip(gtk.DrawingArea):
         
     def __render_arrows(self):
     
+        if (not self.__canvas): return
+    
         arrow_up, arrow_down = self.__arrows
         arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
         w, h = self.get_size()
@@ -325,7 +327,9 @@ class ImageStrip(gtk.DrawingArea):
 
 
     def __unrender_arrows(self):
-    
+
+        if (not self.__canvas): return
+            
         arrow_up, arrow_down = self.__arrows
         arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
         w, h = self.get_size()
