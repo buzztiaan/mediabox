@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Name=MediaBox Media Center
+Exec=/usr/bin/MediaBox
+Icon=mediabox-mc
+X-Window-Icon=mediabox-mc
+X-HildonDesk-ShowInToolbar=true
+X-Osso-Service=de.pycage.mediabox
+X-Osso-Type=application/x-executable
+Terminal=false
