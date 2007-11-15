@@ -1,4 +1,5 @@
 import gtk
+import gobject
 import pango
 
 
@@ -7,11 +8,50 @@ class Item(gtk.gdk.Pixbuf):
     Class for rendering a list item.
     """
 
+    __defer_list = []   # this is a static variable shared by all instances
+
+
     def __init__(self, widget, width, height, icon, label, font, background = None):
+
+        self.__initialized = False
+        self.__args = (widget, width, height, icon, label, font, background)
     
         gtk.gdk.Pixbuf.__init__(self, gtk.gdk.COLORSPACE_RGB, False, 8,
                                 width, height)
 
+        #if (not self.__defer_list):
+        #    gobject.idle_add(self.__defer_handler)            
+        #self.__defer_list.append(self)
+        
+        
+    def __defer_handler(self):
+    
+        i = self.__defer_list.pop(0)
+        i.get_width()
+        if (self.__defer_list):
+            return True
+        else:
+            return False
+
+
+    def get_width(self):
+    
+        if (not self.__initialized): self.__initialize()
+        return gtk.gdk.Pixbuf.get_width(self)
+
+
+    def subpixbuf(self, *args):
+    
+        if (not self.__initialized): self.__initialize()
+        return gtk.gdk.Pixbuf.subpixbuf(self, *args)
+
+
+    def __initialize(self):
+    
+        self.__initialized = True
+        
+        widget, width, height, icon, label, font, background = self.__args
+    
         pmap = gtk.gdk.Pixmap(None, width, height,
                               gtk.gdk.get_default_root_window().get_depth())
         cmap = widget.get_colormap()
