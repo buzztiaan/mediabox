@@ -4,7 +4,7 @@ from AlbumThumbnail import AlbumThumbnail
 from ui.KineticScroller import KineticScroller
 from ui.ItemList import ItemList
 from mediabox.MPlayer import MPlayer
-from mediabox import caps
+from mediabox import caps, config
 import theme
 import idtags
 
@@ -172,9 +172,8 @@ class AlbumViewer(Viewer):
     
         self.__mplayer.set_window(-1)
         self.__mplayer.set_options("")
-    
-        self.__list.hilight(idx)
-        
+        self.__list.hilight(idx)            
+            
         def f():    
             track = self.__tracks[idx]
             try:
@@ -185,6 +184,7 @@ class AlbumViewer(Viewer):
 
                 tags = idtags.read(track)
                 title = tags.get("TITLE", os.path.basename(track))
+                self.__list.hilight(idx)
                 self.set_title(title)
                 
             except:
@@ -217,34 +217,16 @@ class AlbumViewer(Viewer):
             for f in files:
                 filepath = os.path.join(uri, f)
                 ext = os.path.splitext(f)[-1].lower()
+
                 if (ext in _MUSIC_EXT):
-                    #id3 = ID3(filepath)
-                    #print id3.items()
-                    #title = id3.get("TITLE", "f[:-len(ext)]")
-                    #artist = id3.get("ARTIST", "")
-                    
-                    #id3 = id3reader.Reader(filepath)
-                    #id3.dump()
-                    #title = id3.getValue("title") or "..."
-                    #artist = id3.getValue("artist") or ""
-                    
-                    #tags = mutagen.File(filepath)
-                    #print tags
-                    #title = tags.get("TITLE")[0]
-                    #if (not title): title = tags.get("TIT2")[0]
-                    #if (not title): title = "..."
-                    #title = tags.get("TITLE", ["f[:-len(ext)]"])[0]
-                    #artist = tags.get("ARTIST", [""])[0]
-                    
                     tags = idtags.read(filepath)
                     title = tags.get("TITLE", f)
                     artist = tags.get("ARTIST", "")
-                    
-                    #title = f
+                                        
                     self.__tracks.append(filepath)
-                    #if (artist): title += " - " + artist
                     idx = self.__list.append_item(title, None)
                     self.__list.overlay_image(idx, theme.btn_load, 540, 16)
+                #end if
             #end for
 
             if (self.__current_uri in self.__tracks):
