@@ -53,6 +53,17 @@ class KineticScroller(gtk.EventBox, Observable):
         self.connect("button-release-event", self.__on_drag_stop)
         self.connect("motion-notify-event", self.__on_drag)
 
+     
+    def impulse(self, force_x, force_y):
+    
+        self.__delta_s = (force_x, force_y)
+        self.__delta_t = 1        
+
+        # start up impulse handler if not running        
+        if (not self.__impulse_handler_running):
+            gobject.timeout_add(5, self.__impulse_handler)
+            self.__impulse_handler_running = True
+            
 
     def enable_kinetic(self, value):
         """
