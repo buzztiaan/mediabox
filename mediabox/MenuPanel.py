@@ -11,6 +11,7 @@ class MenuPanel(Panel):
     def __init__(self):
     
         self.__current_tab = None
+        self.__tabs = []
     
         Panel.__init__(self)
         
@@ -50,14 +51,27 @@ class MenuPanel(Panel):
                 40 - icon.get_height() / 2)
                 
         self.__tabbox.pack_start(tab, False, False)
+        self.__tabs.append((tab, name))
 
 
     def __on_select_tab(self, src, event, name):
     
+        cnt = 0
+        for t, n in self.__tabs:
+            if (t == src and t != self.__current_tab):
+                self.select_tab(cnt)
+                break
+            cnt += 1
+        #end for
+        
+        
+
+    def select_tab(self, idx):
+        
         if (self.__current_tab):
             self.__current_tab.hilight.hide()
             
-        self.__current_tab = src
-        src.hilight.show()
+        self.__current_tab, name = self.__tabs[idx]
+        self.__current_tab.hilight.show()
         self.update_observer(panel_actions.TAB_SELECTED, name)
         

@@ -102,6 +102,14 @@ class ControlBar(gtk.HBox, Observable):
         self.__menu_panel.add_tab(icon, name)
         
         
+    def select_tab(self, idx):
+        """
+        Selects the given viewer tab.
+        """
+    
+        self.__menu_panel.select_tab(idx)
+        
+        
     def set_playing(self, value):
             
         self.__control_panel.set_playing(value)
