@@ -26,7 +26,7 @@ class Clock(Viewer):
         self.__sunclock = SunClock()
         self.set_widget(self.__sunclock)
         
-        gobject.timeout_add(10000, self.__tick)
+        #gobject.timeout_add(10000, self.__tick)
         
         
     def __tick(self):
@@ -45,6 +45,7 @@ class Clock(Viewer):
         self.update_observer(self.OBS_HIDE_COLLECTION)
         gobject.idle_add(self.__sunclock.update)
         
+        self.__tick()
         if (not self.__is_ticking):
             gobject.timeout_add(10000, self.__tick)
             self.__is_ticking = True
