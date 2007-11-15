@@ -1,5 +1,6 @@
 from viewers.Viewer import Viewer
 from VideoItem import VideoItem
+from LogoScreen import LogoScreen
 from VideoThumbnail import VideoThumbnail
 from mediabox.MPlayer import MPlayer
 from mediabox import caps
@@ -12,9 +13,16 @@ import os
 import time
 
 
+try:
+    import hildon
+    _IS_MAEMO = True
+except:
+    _IS_MAEMO = False
+
+
 _VIDEO_EXT = (".avi", ".flv", ".mov", ".mpeg",
               ".mpg", ".rm", ".wmv", ".asf",
-              ".m4v")
+              ".m4v", ".mp4", ".rmvb")
 
 
 class VideoViewer(Viewer):
@@ -37,14 +45,13 @@ class VideoViewer(Viewer):
         self.__uri = ""
         self.__context_id = 0
 
+        # screen with logo which is displayed when there's no video stream
+        self.__logo = LogoScreen()
+
         Viewer.__init__(self)                
         
         box = gtk.VBox()
-        
-        #frame = gtk.EventBox()
-        #frame.set_shadow_type(gtk.SHADOW_ETCHED_IN)
-        #frame.show()
-        #box.pack_start(frame, True, True, 0)
+        self.set_widget(box)
         
         # video screen        
         self.__screen = gtk.DrawingArea()
@@ -53,19 +60,24 @@ class VideoViewer(Viewer):
         self.__screen.show()
         self.__screen.connect("expose-event", self.__on_expose)
         box.pack_start(self.__screen, True, True)
-        #frame.add(self.__screen)
-        self.set_widget(box) #self.__screen)
         
         
         
     def __on_expose(self, src, ev):
     
-        if (not self.__mplayer.is_playing() or not self.__mplayer.has_video()):
+        if (not self.__mplayer.has_video()):
             win = self.__screen.window
             gc = win.new_gc()
             gc.set_foreground(gtk.gdk.color_parse("#000000"))
             win.draw_rectangle(gc, True, ev.area.x, ev.area.y,
                                ev.area.width, ev.area.height)
+            
+            nil, nil, w, h = src.get_allocation()
+            logo_width = self.__logo.get_width()
+            logo_height = self.__logo.get_height()            
+            win.draw_pixbuf(gc, self.__logo, 0, 0,
+                            (w - logo_width) / 2, (h - logo_height) / 2,
+                            logo_width, logo_height)
 
 
 
@@ -94,7 +106,6 @@ class VideoViewer(Viewer):
             ctx, pos, total = args
             if (ctx == self.__context_id):
                 self.update_observer(self.OBS_POSITION, pos, total)
-                if (pos < 0.01): return
 
         elif (cmd == src.OBS_EOF):
             self.update_observer(self.OBS_STATE_PAUSED)
@@ -117,7 +128,15 @@ class VideoViewer(Viewer):
         if (not self.__is_video(uri)): return                
 
         item = VideoItem(uri)        
-        if (not thumbnailer.has_thumbnail(uri)):        
+        if (not thumbnailer.has_thumbnail(uri)):
+            # quick and dirty way of getting a video thumbnail
+            cmd = "mplayer -zoom -ss 30 -nosound " \
+                  "-vo jpeg:outdir=\"%s\" -frames 7 -vf scale=134:-3  \"%s\"" \
+                  % ("/tmp", uri)
+            os.system(cmd)
+            
+            # not so quick way of getting a video thumbnail
+            """
             # make video thumbnail
             self.__mplayer.set_window(-1)
             self.__mplayer.set_options("-vf scale=134:-3,screenshot -vo null "
@@ -133,15 +152,16 @@ class VideoViewer(Viewer):
             os.system("rm -f /tmp/shot*.png")
             self.__mplayer.screenshot()
             time.sleep(0.1)
-                
+            """
+
             thumbs = [ os.path.join("/tmp", f) for f in os.listdir("/tmp")
-                       if f.startswith("shot") ]
+                       if f.startswith("00000") ]
             if (not thumbs): return
             thumbs.sort()
             thumb = thumbs[-1]
             
             thumbnailer.set_thumbnail_for_uri(uri, thumb)            
-            os.system("rm -f /tmp/shot*.png")
+            os.system("rm -f /tmp/00000*.jpg")
         #end if
         
         tn = VideoThumbnail(thumbnailer.get_thumbnail(uri),
@@ -161,8 +181,16 @@ class VideoViewer(Viewer):
                 if (uri == self.__uri): return
                 
                 self.__mplayer.set_window(self.__screen.window.xid)
-                self.__mplayer.set_options("-vo xv")
-
+                if (_IS_MAEMO):
+                    x, y = self.__screen.window.get_position()
+                    w, h = self.__screen.window.get_size()
+                    print "SCREEN", x, y, w, h
+                    self.__mplayer.set_options("-ao gst -ac dspmp3 -vo xv")
+                                               #"-vo xv,nokia770:fb_overlay_only:"
+                                               #"x=%d:y=%d:w=%d:h=%d" % (x, y, w, h))
+                else:
+                    self.__mplayer.set_options("-vo xv")
+                    
                 try:
                     self.__context_id = self.__mplayer.load(uri)
                     self.__mplayer.set_volume(self.__volume)
@@ -211,19 +239,21 @@ class VideoViewer(Viewer):
 
     def fullscreen(self):
         
-        dialogs.warning("Fullscreen mode not available",
-                        "Fullscreen video mode is currently causing problems\n"
-                        "and is thus not available in this release.")
-        return
+        #dialogs.warning("Fullscreen mode not available",
+        #                "Fullscreen video mode is currently causing problems\n"
+        #                "and is thus not available in this release.")
+        #return
         
         self.__is_fullscreen = not self.__is_fullscreen        
         
         self.__screen.hide()
         if (self.__is_fullscreen):
             self.update_observer(self.OBS_FULLSCREEN)
+            # what a hack! but it works and it allows to unfullscreen mplayer
+            gtk.gdk.keyboard_grab(self.__screen.get_toplevel().window)
         else:
             self.update_observer(self.OBS_UNFULLSCREEN)
+            gtk.gdk.keyboard_ungrab()
         while (gtk.events_pending()): gtk.main_iteration()
         self.__screen.show()
-        #gobject.timeout_add(500, self.__screen.show)
         
