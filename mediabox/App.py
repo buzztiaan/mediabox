@@ -15,6 +15,15 @@ import gobject
 import os
 import time
 
+try:
+    import osso
+    _HAVE_OSSO = True
+except:
+    _HAVE_OSSO = False
+    
+_OSSO_NAME = "de.pycage.mediabox"
+_VERSION = "0.90"
+    
 
 class App(object):
     """
@@ -34,6 +43,8 @@ class App(object):
         self.__saved_image = None
         self.__saved_image_index = -1
     
+        if (_HAVE_OSSO):
+            self.__osso_context = osso.Context(_OSSO_NAME, _VERSION, False)
     
         # set theme
         theme.set_theme(config.theme())
@@ -51,7 +62,7 @@ class App(object):
         self.__ctrlbar.set_size_request(800, 80)
         self.__ctrlbar.add_observer(self.__on_observe_ctrlbar)
         self.__ctrlbar.show()
-        self.__window.put(self.__ctrlbar, 0, 480)
+        self.__window.put(self.__ctrlbar, 0, 400)
 
         # image strip
         self.__strip = ImageStrip(160, 120, 10)
@@ -68,8 +79,7 @@ class App(object):
         self.__box.set_size_request(620, 400)
         self.__box.show()
         self.__window.put(self.__box, 180, 0)
-              
-        
+
         
     def __startup(self):
         """
@@ -79,8 +89,7 @@ class App(object):
         actions = [(self.__load_viewers, []),
                    (self.__check_for_player, []),
                    (self.__scan_media, []),
-                   (self.__raise_ctrlbar, []),
-                   (self.__select_viewer, [0])]
+                   (self.__ctrlbar.select_tab, [0])]
         def f():
             if (actions):
                 act, args = actions.pop(0)
@@ -168,6 +177,8 @@ class App(object):
             
             self.__box.add(viewer.get_widget())
             viewer.add_observer(self.__on_observe_viewer)
+            
+            while (gtk.events_pending()): gtk.main_iteration()
         #end for
                 
         
@@ -208,6 +219,12 @@ class App(object):
             self.__current_viewer.increment()
         elif (key == "F8"):
             self.__current_viewer.decrement()
+            
+        elif (key == "Up"):
+            self.__kscr.impulse(0, 7.075)
+        elif (key == "Down"):
+            self.__kscr.impulse(0, -7.075)
+        
             
         return True
 
@@ -370,8 +387,11 @@ class App(object):
         Loads the given collection into the item strip.
         """
 
-        thumbnails = [ item.get_thumbnail() for item in collection ]
+        thumbnails = [ item.get_thumbnail() for item in collection ]                
         self.__strip.set_images(thumbnails)
+        
+        # initialize thumbnails with deferred rendering
+        #for t in thumbnails: t.get_width()        
         
 
 
@@ -394,14 +414,4 @@ class App(object):
         result = dialogs.question("Exit", "Really quit?")
         if (result == 0):
             gtk.main_quit()
-        
-
-
-    def __raise_ctrlbar(self, y = 480):
-    
-        #y = max(400, y)
-        y = 400
-        self.__window.move(self.__ctrlbar, 0, y)
-        #if (y > 400):
-        #    gobject.timeout_add(50, self.__raise_ctrlbar, y - 10)
-            
+ 
