@@ -1,9 +1,10 @@
 import gtk
+import gobject
 import pango
 
 
 _BPP = gtk.gdk.get_default_root_window().get_depth()
-_TEXT_PMAP = gtk.gdk.Pixmap(None, 200, 200, _BPP)
+_TEXT_PMAP = gtk.gdk.Pixmap(None, 400, 200, _BPP)
 _TEXT_GC = _TEXT_PMAP.new_gc()
 _TEXT_CMAP = _TEXT_PMAP.get_colormap()
 _PANGO_CTX = gtk.HBox().get_pango_context()
@@ -13,25 +14,79 @@ _PANGO_LAYOUT = pango.Layout(_PANGO_CTX)
 
 class Thumbnail(gtk.gdk.Pixbuf):
 
+    __defer_list = []   # this is a static variable shared by all instances
+    
+
     def __init__(self, width = 160, height = 120):
+
+        self.__defer_queue = []
+        self.__deferred = True
     
         gtk.gdk.Pixbuf.__init__(self, gtk.gdk.COLORSPACE_RGB, False,
                                 8, width, height)
         gtk.gdk.Pixbuf.fill(self, 0x00000000L)
 
 
-    def save(self, uri):
+        #if (not self.__defer_list):
+        #    gobject.idle_add(self.__defer_handler)
+        #self.__defer_list.append(self)
+        
+        
+    def __defer_handler(self):
     
+        i = self.__defer_list.pop(0)
+        i.get_width()
+        if (self.__defer_list):
+            return True
+        else:
+            return False
+
+
+    def __defer(self, f, *args):
+    
+        self.__defer_queue.append((f, args))
+
+
+    def __initialize(self):
+    
+        self.__deferred = False
+
+        for f, args in self.__defer_queue:
+            f(*args)
+        self.__defer_queue = []
+            
+            
+    def get_width(self):
+    
+        if (self.__deferred):
+            self.__initialize()
+        return gtk.gdk.Pixbuf.get_width(self)
+
+
+    def save(self, uri):
+                    
+        if (self.__deferred):
+            self.__defer(self.save, uri)
+            return
+            
         gtk.gdk.Pixbuf.save(self, uri, "jpeg")
 
 
     def fill(self, r, g, b):
     
+        if (self.__deferred):
+            self.__defer(self.fill, r, g, b)
+            return
+
         color = (r << 24) + (g << 16) + (b << 8) + 0xff
         gtk.gdk.Pixbuf.fill(self, color)
             
             
     def add_rect(self, x, y, w, h, r, g, b, a = 0xff):
+
+        if (self.__deferred):
+            self.__defer(self.add_rect, x, y, w, h, r, g, b, a)
+            return
     
         color = (r << 24) + (g << 16) + (b << 8) + a
         subpbuf = self.subpixbuf(x, y, w, h)
@@ -41,9 +96,14 @@ class Thumbnail(gtk.gdk.Pixbuf):
         rect.composite(subpbuf, 0, 0, w, h, x, y, 1, 1,
                        gtk.gdk.INTERP_NEAREST, 0xff)
         del rect
+        #import gc; gc.collect()
                 
     
     def add_text(self, text, x, y, font, color):
+
+        if (self.__deferred):
+            self.__defer(self.add_text, text, x, y, font, color)
+            return
     
         _PANGO_LAYOUT.set_font_description(font)
         _PANGO_LAYOUT.set_text(text)
@@ -67,6 +127,10 @@ class Thumbnail(gtk.gdk.Pixbuf):
                     
 
     def add_image(self, img, x = 0, y = 0, width = -1, height = -1):
+
+        if (self.__deferred):
+            self.__defer(self.add_image, img, x, y, width, height)
+            return
         
         if (hasattr(img, "fill")):
             pbuf = img
