@@ -5,6 +5,8 @@ except:
     # Maemo
     import gnome.gconf as gconf
 
+import os
+
 
 _CLIENT = gconf.client_get_default()
 _PREFIX = "/apps/maemo-mediabox/"
@@ -19,7 +21,8 @@ def set_mediaroot(l):
 
 
 def thumbdir():
-    return _CLIENT.get_string(_PREFIX + "thumbnails_folder") or "thumbnails/"
+    return _CLIENT.get_string(_PREFIX + "thumbnails_folder") or \
+        os.path.expanduser("~/.thumbnails/mediabox")
         
 
 
