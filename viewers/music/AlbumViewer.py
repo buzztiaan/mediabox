@@ -233,7 +233,6 @@ class AlbumViewer(Viewer):
                 idx = self.__tracks.index(self.__current_uri)
                 self.__list.hilight(idx)
             
-            import gc; gc.collect()
             self.update_observer(self.OBS_SHOW_PANEL)
 
         gobject.idle_add(f)

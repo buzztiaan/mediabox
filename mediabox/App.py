@@ -7,6 +7,7 @@ from ControlBar import ControlBar
 import panel_actions
 from Thumbnailer import Thumbnailer
 import config
+import values
 import viewers
 import theme
 
@@ -20,9 +21,6 @@ try:
     _HAVE_OSSO = True
 except:
     _HAVE_OSSO = False
-    
-_OSSO_NAME = "de.pycage.mediabox"
-_VERSION = "0.90"
     
 
 class App(object):
@@ -44,7 +42,7 @@ class App(object):
         self.__saved_image_index = -1
     
         if (_HAVE_OSSO):
-            self.__osso_context = osso.Context(_OSSO_NAME, _VERSION, False)
+            self.__osso_context = osso.Context(values.OSSO_NAME, values.VERSION, False)
     
         # set theme
         theme.set_theme(config.theme())
@@ -131,6 +129,7 @@ class App(object):
         collection = []
         thumbdir = os.path.abspath(config.thumbdir())
         for mediaroot in mediaroots:
+            collection.append(mediaroot)
             for dirpath, dirs, files in os.walk(mediaroot):
                 # don't allow scanning the thumbnail directory as this may
                 # loop endlessly
@@ -141,7 +140,7 @@ class App(object):
                                 
                 for f in dirs + files:
                     uri = os.path.join(dirpath, f)
-                    collection.append(uri)                    
+                    collection.append(uri)
                 #end for            
             #end for
         #end for
@@ -323,9 +322,9 @@ class App(object):
     
         elif (cmd == src.OBS_CLICKED):
             px, py = args
-            if (px < 100): return
-            idx = self.__strip.get_index_at(py)            
-            self.__select_item(idx)
+            if (px > 120):
+                idx = self.__strip.get_index_at(py)            
+                self.__select_item(idx)
             
             
     def __select_item(self, idx):
@@ -389,7 +388,7 @@ class App(object):
 
         thumbnails = [ item.get_thumbnail() for item in collection ]                
         self.__strip.set_images(thumbnails)
-        
+       
         # initialize thumbnails with deferred rendering
         #for t in thumbnails: t.get_width()        
         

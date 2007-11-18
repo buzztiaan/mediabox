@@ -4,7 +4,7 @@ import pango
 
 
 _BPP = gtk.gdk.get_default_root_window().get_depth()
-_TEXT_PMAP = gtk.gdk.Pixmap(None, 400, 200, _BPP)
+_TEXT_PMAP = gtk.gdk.Pixmap(None, 800, 200, _BPP)
 _TEXT_GC = _TEXT_PMAP.new_gc()
 _TEXT_CMAP = _TEXT_PMAP.get_colormap()
 _PANGO_CTX = gtk.HBox().get_pango_context()
@@ -30,6 +30,7 @@ class Thumbnail(gtk.gdk.Pixbuf):
         #if (not self.__defer_list):
         #    gobject.idle_add(self.__defer_handler)
         #self.__defer_list.append(self)
+        self.__initialize()
         
         
     def __defer_handler(self):
