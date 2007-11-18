@@ -25,6 +25,7 @@ class ImageStrip(gtk.DrawingArea):
         self.__bg = None
         self.__offset = 0
         self.__canvas = None
+        self.__cmap = None
         self.__itemwidth = width
         self.__itemsize = itemsize
         self.__gapsize = gapsize
@@ -37,64 +38,22 @@ class ImageStrip(gtk.DrawingArea):
         # whether we wrap around
         self.__wrap_around = True
         
-        self.__clip_mask = None
-        self.__full_mask = None
-        
-        
+        # whether to display a slider
+        self.__show_slider = False
+
         
         def f():
             # retrieve canvas and gc once they're available
             if (not self.window):
                 gobject.timeout_add(500, f)
                 return
-            else:   
-            
-                #mask = gtk.gdk.Pixmap(None, 500, 480, 1)
-                #gc = mask.new_gc()
-
-                #gc.set_foreground(gtk.gdk.Color(0, 0, 0, 1))
-                #mask.draw_rectangle(gc, True, 0, 0, 500, 500)
-
-                #gc.set_foreground(gtk.gdk.Color(0, 0, 0, 0))
-                #mask.draw_rectangle(gc, True, 240, 0, 20, 500)
-                            
+            else:
                 self.__canvas = self.window
                 self.__gc = self.__canvas.new_gc()
-                #self.__gc.set_clip_mask(mask)
+                self.__cmap = self.__canvas.get_colormap()
                 gobject.timeout_add(100, self.render_full)
             
-        gobject.idle_add(f)
-        
-        #self.__prepare_clip_mask()
-        
-        
-    def __prepare_clip_mask(self):
-    
-        self.__full_mask = gtk.gdk.Pixmap(None, self.__itemwidth, 600, 1)
-        gc = self.__full_mask.new_gc()
-        w, h = self.__full_mask.get_size()
-        
-        gc.set_foreground(gtk.gdk.Color(0, 0, 0, 1))
-        self.__full_mask.draw_rectangle(gc, True, 0, 0, w, h)
-        
-    
-        self.__clip_mask = gtk.gdk.Pixmap(None, self.__itemwidth, 600, 1)
-        gc = self.__clip_mask.new_gc()
-        w, h = self.__clip_mask.get_size()
-        
-        gc.set_foreground(gtk.gdk.Color(0, 0, 0, 1))
-        self.__clip_mask.draw_rectangle(gc, True, 0, 0, w, h)
-        
-        gc.set_foreground(gtk.gdk.Color(0, 0, 0, 0))
-        for y in range(0, h, self.__itemsize + self.__gapsize):            
-            self.__clip_mask.draw_rectangle(gc, True, 0, y,
-                                            self.__itemwidth, self.__itemsize)
-
-        gc.set_foreground(gtk.gdk.Color(0, 0, 0, 1))
-        for y in range(0, h, self.__itemsize + self.__gapsize):            
-            self.__clip_mask.draw_rectangle(gc, True, 0, y,
-                                            40, 40)
-        
+        gobject.idle_add(f)        
         
         
         
@@ -162,6 +121,10 @@ class ImageStrip(gtk.DrawingArea):
             self.__arrows = None
 
 
+    def set_show_slider(self, value):
+    
+        self.__show_slider = value
+
 
     def get_image(self, idx):
     
@@ -180,10 +143,8 @@ class ImageStrip(gtk.DrawingArea):
             
         import gc; gc.collect()  
 
-        #if (images):
         self.__images = [ self.__to_pixbuf(f) for f in images ]                
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)
-        #end if                
         
         self.__offset = 0
         self.queue_draw()        
@@ -296,6 +257,8 @@ class ImageStrip(gtk.DrawingArea):
         
     def set_offset(self, offset):
     
+        w, h = self.get_size()
+        offset = min(offset, max(0, self.__totalsize - h))
         self.__offset = offset
         
         
@@ -341,6 +304,44 @@ class ImageStrip(gtk.DrawingArea):
         self.__canvas.draw_drawable(self.__gc, pmap2,
                                   0, 0, (w - arrow_width) / 2, h - arrow_height,
                                     arrow_width, arrow_height)
+        
+        
+    def __render_slider(self):
+    
+        w, h = self.get_size()
+        if (self.__totalsize > 0):
+            percent = self.__offset / float(self.__totalsize)
+            slider_size = (h / float(self.__totalsize)) * h
+        else:
+            percent = 0
+            slider_size = h
+
+
+        y1 = int(h * percent)
+        y2 = int(y1 + slider_size)
+
+        if (False and self.__bg):
+            self.__canvas.draw_pixbuf(self.__gc, self.__bg,
+                                        w - 2, 0, w - 2, 0,
+                                        2, y1)
+            if (y2 < h):
+                self.__canvas.draw_pixbuf(self.__gc, self.__bg,
+                                          w - 2, y2, w - 2, y2,
+                                          2, max(0, h - y2))
+        #end if
+
+        self.__gc.set_foreground(self.__cmap.alloc_color("#cccccc"))
+        self.__canvas.draw_rectangle(self.__gc, True,
+                                     w - 2, 0, 2, y1)
+        self.__canvas.draw_rectangle(self.__gc, True,
+                                     w - 2, y2, 2, h - y2)
+        
+        self.__gc.set_foreground(self.__cmap.alloc_color("#444444"))
+        self.__canvas.draw_rectangle(self.__gc, True,
+                                     w - 2, y1, 2, y2 - y1 + 1)
+
+        
+        
         
         
     def render_full(self):
@@ -413,6 +414,9 @@ class ImageStrip(gtk.DrawingArea):
                 gap_offset += blocksize
             #end while
         #end if
+    
+        if (self.__show_slider):
+            self.__render_slider()
         
         
     def move(self, nil, delta):
