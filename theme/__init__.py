@@ -12,7 +12,7 @@ _THEMES_DIR = os.path.dirname(__file__)
 
 
 # TODO: make these themable, too
-font_headline = pango.FontDescription("Nokia Sans bold 24")
+font_headline = pango.FontDescription("Nokia Sans bold 22")
 font_plain = pango.FontDescription("Nokia Sans Cn 16")
 font_tiny = pango.FontDescription("Nokia Sans Cn 13")
 panel_foreground = gtk.gdk.color_parse("#ffffff")

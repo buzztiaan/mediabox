@@ -78,8 +78,8 @@ class Item(gtk.gdk.Pixbuf):
         layout.set_font_description(font)
         layout.set_text(label)
         layout.set_width(width * pango.SCALE)        
-        pmap.draw_layout(gc, x, 16, layout)
+        pmap.draw_layout(gc, x, 24, layout)
         
         self.get_from_drawable(pmap, cmap, 0, 0, 0, 0, width, height)
         
-        import gc; gc.collect()
+        #import gc; gc.collect()
