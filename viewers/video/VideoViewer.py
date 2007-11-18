@@ -45,39 +45,50 @@ class VideoViewer(Viewer):
         self.__uri = ""
         self.__context_id = 0
 
-        # screen with logo which is displayed when there's no video stream
-        self.__logo = LogoScreen()
 
         Viewer.__init__(self)                
         
-        box = gtk.VBox()
-        self.set_widget(box)
+        self.__box = gtk.Layout()
+        self.__box.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#f00000"))
+        self.set_widget(self.__box)
+
+        # screen with logo which is displayed when there's no video stream        
+        self.__logo = LogoScreen()
         
         # video screen        
         self.__screen = gtk.DrawingArea()
         self.__screen.set_double_buffered(False)
         self.__screen.set_sensitive(False)
+        self.__screen.set_size_request(self.__logo.get_width(),
+                                       self.__logo.get_height())
         self.__screen.show()
         self.__screen.connect("expose-event", self.__on_expose)
-        box.pack_start(self.__screen, True, True)
+        self.__box.put(self.__screen, 25, 15)
         
         
         
     def __on_expose(self, src, ev):
+
+        win = self.__screen.window
+        gc = win.new_gc()
+        gc.set_foreground(gtk.gdk.color_parse("#000000"))
+        nil, nil, w, h = src.get_allocation()        
     
         if (not self.__mplayer.has_video()):
-            win = self.__screen.window
-            gc = win.new_gc()
-            gc.set_foreground(gtk.gdk.color_parse("#000000"))
             win.draw_rectangle(gc, True, ev.area.x, ev.area.y,
                                ev.area.width, ev.area.height)
             
-            nil, nil, w, h = src.get_allocation()
             logo_width = self.__logo.get_width()
             logo_height = self.__logo.get_height()            
             win.draw_pixbuf(gc, self.__logo, 0, 0,
                             (w - logo_width) / 2, (h - logo_height) / 2,
                             logo_width, logo_height)
+        else:
+            # mplayer has a bug where it doesn't draw over the right and
+            # bottom edges, so we have to do this ourselves
+            win.draw_rectangle(gc, False, w - 1, 0, 1, h)
+            win.draw_rectangle(gc, False, 0, h - 1, w, 1)
+            
 
 
 
@@ -91,7 +102,9 @@ class VideoViewer(Viewer):
             
         elif (cmd == src.OBS_KILLED):
             print "Killed MPlayer"
+            self.__uri = ""
             self.set_title("")
+            self.__scale_video()            
             self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_PLAYING):
@@ -108,7 +121,35 @@ class VideoViewer(Viewer):
                 self.update_observer(self.OBS_POSITION, pos, total)
 
         elif (cmd == src.OBS_EOF):
+            self.__uri = ""
+            self.__scale_video()
             self.update_observer(self.OBS_STATE_PAUSED)
+            
+
+
+
+    def __scale_video(self):
+        """
+        Scales the video to fill the available space while retaining the
+        original aspect ratio.
+        """
+    
+        nil, nil, w, h = self.__box.get_allocation()     
+        if (self.__mplayer.has_video()):
+            res_w, res_h = self.__mplayer.get_resolution()
+
+            factor = min(h / float(res_h), w / float(res_w))
+            width = int(res_w * factor)
+            height = int(res_h * factor)
+
+            self.__screen.set_size_request(width, height)
+            self.__box.move(self.__screen, (w - width) / 2, (h - height) / 2)        
+        else:
+            width = self.__logo.get_width()
+            height = self.__logo.get_height()
+            self.__screen.set_size_request(width, height)
+            self.__box.move(self.__screen, (w - width) / 2, (h - height) / 2)
+            
 
 
     def __is_video(self, uri):
@@ -174,6 +215,8 @@ class VideoViewer(Viewer):
     def load(self, item):
     
         self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
+        self.__screen.show()
+        self.__screen.set_size_request(320, 240)
     
         def f():
             if (self.__screen.window.xid):
@@ -182,12 +225,11 @@ class VideoViewer(Viewer):
                 
                 self.__mplayer.set_window(self.__screen.window.xid)
                 if (_IS_MAEMO):
-                    x, y = self.__screen.window.get_position()
-                    w, h = self.__screen.window.get_size()
-                    print "SCREEN", x, y, w, h
                     self.__mplayer.set_options("-ao gst -ac dspmp3 -vo xv")
-                                               #"-vo xv,nokia770:fb_overlay_only:"
-                                               #"x=%d:y=%d:w=%d:h=%d" % (x, y, w, h))
+                    # the Nokia 770 would require something like this, instead
+                    #self.__mplayer.set_options("-ao gst -ac dspmp3 "
+                    #                      "-vo xv,nokia770:fb_overlay_only:"
+                    #                      "x=%d:y=%d:w=%d:h=%d" % (x, y, w, h))
                 else:
                     self.__mplayer.set_options("-vo xv")
                     
@@ -196,7 +238,8 @@ class VideoViewer(Viewer):
                     self.__mplayer.set_volume(self.__volume)
                 except:
                     return
-                    
+                
+                self.__scale_video()
                 self.__mplayer.show_text(os.path.basename(uri), 2000)
                 self.set_title(os.path.basename(uri))                
                 self.__uri = uri
@@ -249,11 +292,14 @@ class VideoViewer(Viewer):
         self.__screen.hide()
         if (self.__is_fullscreen):
             self.update_observer(self.OBS_FULLSCREEN)
-            # what a hack! but it works and it allows to unfullscreen mplayer
+            # what a hack! but it works and it allows to unfullscreen mplayer!
             gtk.gdk.keyboard_grab(self.__screen.get_toplevel().window)
         else:
             self.update_observer(self.OBS_UNFULLSCREEN)
             gtk.gdk.keyboard_ungrab()
+            
         while (gtk.events_pending()): gtk.main_iteration()
+        self.__scale_video()
         self.__screen.show()
+        
         
