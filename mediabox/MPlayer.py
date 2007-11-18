@@ -98,9 +98,16 @@ class _MPlayer(Observable):
         """
         Regularly checks the player status and sends events to its listeners.
         """
-        
+                
         if (self.__playing):
             self.__idle_counter = 0
+
+            # check if player is still playing a file
+            if (not self.__check_for_playing()):
+                self.__playing = False
+                self.__has_video = False
+                self.__has_audio = False
+                self.update_observer(self.OBS_EOF, self.__context_id)                
         
             # don't ask mplayer for the current position every time, because
             # this is highly inefficient with Ogg Vorbis files
@@ -126,9 +133,11 @@ class _MPlayer(Observable):
             self.update_observer(self.OBS_POSITION, self.__context_id,
                                  pos, total)
     
-            if (total - pos < 0.1):
-                self.__playing = False
-                self.update_observer(self.OBS_EOF, self.__context_id)
+            #if (total - pos < 0.1):
+            #    self.__playing = False
+            #    self.__has_video = False
+            #    self.__has_audio = False
+            #    self.update_observer(self.OBS_EOF, self.__context_id)
         else:
             self.__idle_counter += 1
         #end if
@@ -143,7 +152,7 @@ class _MPlayer(Observable):
             return False
                 
         gobject.timeout_add(500, self.__heartbeat)        
-       
+
        
     def is_available(self):
         """
@@ -180,6 +189,8 @@ class _MPlayer(Observable):
         """
         
         self.__playing = False
+        self.__has_video = False
+        self.__has_audio = False
         self.update_observer(self.OBS_KILLED)
         
         #if (self.__stdin): self.__stdin.write("quit\n")
@@ -218,7 +229,7 @@ class _MPlayer(Observable):
         self.__stdout = p.stdout
         self.__xid = xid
         self.__opts = opts
-        
+                
         self.__run_heartbeat()
         self.update_observer(self.OBS_STARTED)
         
@@ -277,12 +288,12 @@ class _MPlayer(Observable):
         state = NONE                    
         while (True):
             out = self.__stdout.readline()
-            print ">>> " + out
+            #print ">>> " + out
             if (not out):
                 self.__start_mplayer()
                 raise MPlayerDiedError()
 
-            if (out.strip()): print ">>> " + out.strip()
+            #if (out.strip()): print ">>> " + out.strip()
             if (state == NONE):
                 if (out.startswith("Playing ")):
                     state = LOADING
@@ -295,8 +306,8 @@ class _MPlayer(Observable):
                 elif (out.endswith("No stream found.\n")):
                     raise InvalidFileError()
                 elif (out.startswith("\n")):                
-                    #pass
-                    raise InvalidFileError()                    
+                    pass
+                    #raise InvalidFileError()                    
                 elif (out.startswith("AUDIO: ")):
                     self.__has_audio = True
                 elif (out.startswith("VIDEO: ")):
@@ -309,7 +320,7 @@ class _MPlayer(Observable):
                     self.update_observer(self.OBS_PLAYING)
                     break
         #end while
-        
+                
         self.__context_id +=1
         print "CTX", self.__context_id
         return self.__context_id
@@ -317,11 +328,12 @@ class _MPlayer(Observable):
 
     def __expect(self, key):
 
+        print "expect", key
         i = 0    
         while (not self.__blocked and i < 100):
             i += 1
             out = self.__stdout.readline()            
-            #print ">>> " + out
+            print ">>> " + out
             
             if (not out.strip()):
                 self.__blocked = True
@@ -330,11 +342,33 @@ class _MPlayer(Observable):
                 raise MPlayerError() 
                            
             elif (out.startswith(key)):
-                value = out.split("=")[1]
-                return value.strip()
+                try:
+                    value = out.split("=")[1]
+                except:
+                    return ""
+                else:
+                    return value.strip()
         #end while
 
         return ""
+    
+    
+    def __check_for_playing(self):
+        """
+        Returns whether mplayer is currently playing a file.
+        """
+        
+        # ask for the filename. if there's no answer (MPlayerError), we know
+        # that mplayer isn't playing a file
+        try:
+            self.__stdin.write("get_property filename\n")
+            self.__expect("ANS_filename")
+            
+        except MPlayerError:
+            return False
+            
+        else:
+            return True    
     
     
     def is_playing(self):
@@ -359,7 +393,8 @@ class _MPlayer(Observable):
         Returns whether the current media has an audio stream.
         """
         
-        return self.__has_audio
+        return self.__has_audio               
+        
         
         
     def set_speed(self, n):
@@ -385,7 +420,7 @@ class _MPlayer(Observable):
         
     def pause(self):
 
-        self.__ensure_mplayer()
+        if (not self.__stdin): return
             
         self.__playing = not self.__playing        
         if (self.__playing):
@@ -395,7 +430,6 @@ class _MPlayer(Observable):
         else:
             self.__stdin.write("pause\n")
             self.update_observer(self.OBS_STOPPED)
-                
         
         
     def stop(self):
