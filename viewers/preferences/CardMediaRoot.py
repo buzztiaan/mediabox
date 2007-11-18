@@ -51,7 +51,7 @@ class CardMediaRoot(PrefsCard):
         btn.add(hbox)
         btn.connect("clicked", self.__on_add_folder)
         btn.show()
-        self.pack_start(btn, False, False, 12)
+        self.pack_start(btn, False, False)
         
         self.__build_list()
         
