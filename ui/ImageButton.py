@@ -31,11 +31,15 @@ class ImageButton(gtk.EventBox):
     
         if (not self.__background):
             return pbuf
-        else:            
+        else:
             w, h = pbuf.get_width(), pbuf.get_height()
-            pbuf2 = self.__background.copy().subpixbuf(0, 0, 80, 80)
-            pbuf3 = pbuf2.subpixbuf((80 - w) / 2, (80 - h) / 2, w, h)
-            pbuf.composite(pbuf3, 0, 0, pbuf.get_width(), pbuf.get_height(),
+            bg_w = self.__background.get_width()
+            bg_h = self.__background.get_height()
+            pbuf2 = self.__background.copy()
+            pbuf3 = pbuf2.subpixbuf((bg_w - w) / 2, 
+                                    (bg_h - h) / 2,
+                                    w, h)
+            pbuf.composite(pbuf3, 0, 0, w, h,
                            0, 0, 1, 1, gtk.gdk.INTERP_NEAREST, 0xff)
             return pbuf2
         

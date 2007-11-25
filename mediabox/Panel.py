@@ -24,9 +24,9 @@ class Panel(gtk.Fixed, Observable):
         self.put(self.__bg, 0, 0)
         
         self.box = gtk.HBox()
-        self.box.set_size_request(800, 80)
+        self.box.set_size_request(784, 80)
         self.box.show()
-        self.put(self.box, 0, 0)
+        self.put(self.box, 8, 0)
 
         if (with_next_button):
             btn = self._create_button(theme.btn_turn_1, theme.btn_turn_2,
@@ -41,7 +41,7 @@ class Panel(gtk.Fixed, Observable):
 
     def _create_button(self, img1, img2, cb):
     
-        btn = ImageButton(img1, img2, theme.panel)        
+        btn = ImageButton(img1, img2, theme.panel_button_bg)
         btn.set_size_request(80, -1)
         btn.connect("button-release-event", cb)
         self.box.pack_start(btn, False, False)

@@ -34,7 +34,10 @@ class Viewer(Observable):
     OBS_SHOW_PANEL = 32
     
     OBS_STATE_PLAYING = 100
-    OBS_STATE_PAUSED = 101    
+    OBS_STATE_PAUSED = 101
+    
+    OBS_MINIMIZE = 200
+    OBS_QUIT = 201
     
     
     

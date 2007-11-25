@@ -124,6 +124,7 @@ class App(object):
 
         thumbnailer = Thumbnailer(self.__window)
         thumbnailer.show()
+        self.__ctrlbar.show_message("Looking for media files...")
         while (gtk.events_pending()): gtk.main_iteration()
 
         collection = []
@@ -157,7 +158,12 @@ class App(object):
             for v in self.__viewers:
                 v.make_item_for(uri, thumbnailer)
             #end for
+            
+            #self.__ctrlbar.set_progress(cnt, total)
+            #while (gtk.events_pending()): gtk.main_iteration()            
         #end for
+        
+        self.__ctrlbar.show_panel()
         
         thumbnailer.destroy()
         import gc; gc.collect()
@@ -230,7 +236,13 @@ class App(object):
 
     def __on_observe_viewer(self, src, cmd, *args):
             
-        if (cmd == src.OBS_REPORT_CAPABILITIES):
+        if (cmd == src.OBS_MINIMIZE):
+            self.__window.iconify()
+            
+        elif (cmd == src.OBS_QUIT):
+            self.__try_quit()
+            
+        elif (cmd == src.OBS_REPORT_CAPABILITIES):
             caps = args[0]
             self.__ctrlbar.set_capabilities(caps)
     
@@ -292,6 +304,10 @@ class App(object):
         elif (cmd == src.OBS_SHOW_MESSAGE):
             msg = args[0]
             self.__ctrlbar.show_message(msg)
+            
+        elif (cmd == src.OBS_SHOW_PROGRESS):
+            value, total = args
+            self.__ctrlbar.set_progress(value, total)
             
         elif (cmd == src.OBS_SHOW_PANEL):
             self.__ctrlbar.show_panel()

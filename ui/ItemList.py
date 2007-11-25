@@ -26,7 +26,7 @@ class ItemList(ImageStrip):
                 
         ImageStrip.__init__(self, width, itemsize, 10)
         self.set_wrap_around(False)
-        self.set_show_slider(True)
+        #self.set_show_slider(True)
         
     
     def set_graphics(self, normal, hilighted):

@@ -33,7 +33,7 @@ class MenuPanel(Panel):
         tab.show()
         
         bg = gtk.Image()
-        bg.set_from_pixbuf(theme.panel.subpixbuf(0, 0, 80, 80))
+        bg.set_from_pixbuf(theme.panel_bg)
         bg.show()
         tab.put(bg, 0, 0)
         

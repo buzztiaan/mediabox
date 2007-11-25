@@ -5,6 +5,7 @@ import gtk
 import gobject
 import md5
 import os
+from utils import urlquote
 
 
 
@@ -16,30 +17,32 @@ class Thumbnailer(gtk.Window):
     def __init__(self, parent = None):
                     
         gtk.Window.__init__(self, gtk.WINDOW_POPUP)
-        self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#e0e0e0"))
-        self.set_size_request(800, 200)
+        self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#ffffff"))
+        self.set_size_request(800, 400)
         if (parent and parent.window):
             parx, pary = parent.window.get_position()
-            self.move(parx + 0, pary + 140)
+            self.move(parx + 0, pary + 0)
         else:
-            self.move(0, 140)
+            self.move(0, 0)
         
         fixed = gtk.Fixed()
         fixed.show()
         self.add(fixed)
                 
-        lbl = gtk.Label("Looking For New Media Files...")
-        lbl.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))        
-        lbl.modify_font(theme.font_headline)
-        lbl.show()
-        fixed.put(lbl, 20, 10)
+        #lbl = gtk.Label("Looking For New Media Files...")
+        #lbl.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))        
+        #lbl.modify_font(theme.font_headline)
+        #lbl.show()
+        #fixed.put(lbl, 20, 10)
         
         # title
         self.__title = gtk.Label("")
         self.__title.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#444444"))        
         self.__title.modify_font(theme.font_plain)
+        self.__title.set_size_request(800, -1)
+        self.__title.set_alignment(0.5, 0.5)
         self.__title.show()
-        fixed.put(self.__title, 20, 170)
+        fixed.put(self.__title, 0, 300)
         
         # progress label
         self.__progress_label = gtk.Label("")
@@ -49,12 +52,18 @@ class Thumbnailer(gtk.Window):
         self.__progress_label.set_alignment(1.0, 0.0)
         self.__progress_label.show()
         fixed.put(self.__progress_label, 580, 10)
-        
+                
         # thumbnail
+        box = gtk.HBox()
+        box.set_size_request(160, 120)
+        box.show()
+        fixed.put(box, 320, 140)
+
         self.__thumbnail = gtk.Image()
         self.__thumbnail.show()
-        fixed.put(self.__thumbnail, 600, 40)                
+        box.add(self.__thumbnail)
 
+        # create directory for thumbnails if it doesn't exist yet
         try:
             if (not os.path.exists(config.thumbdir())):
                 os.mkdir(config.thumbdir())
@@ -82,20 +91,7 @@ class Thumbnailer(gtk.Window):
             pass
 
         while (gtk.events_pending()): gtk.main_iteration()
-        
 
-
-    def set_thumbnail(self, item, tn):
-
-        uri = item.get_uri()
-        thumb = self.get_thumbnail(uri)
-
-        self.__thumbnail.set_from_pixbuf(tn)
-        self.__title.set_text(os.path.basename(uri))
-        tn.save(thumb)
-        
-        while (gtk.events_pending()): gtk.main_iteration()                                            
-        item.set_thumbnail(thumb)
             
             
     def load_thumbnail(self, item):
@@ -110,10 +106,13 @@ class Thumbnailer(gtk.Window):
     
         thumb = self.get_thumbnail(uri)
         exists = os.path.exists(thumb)
-        
+                
         if (exists and os.path.exists(uri)):
             if (os.path.getmtime(uri) > os.path.getmtime(thumb)):
                 exists = False
+    
+        if (not exists and self.__try_to_use_existing_thumb(uri)):
+            exists = True    
     
         return exists
        
@@ -164,4 +163,36 @@ class Thumbnailer(gtk.Window):
         #del loader
         
         #return pbuf
+        
+
+
+    def __try_to_use_existing_thumb(self, uri):
+        """
+        Uses the thumbnail from another app, if available.
+        """
+
+        basename = os.path.basename(uri)
+        thumbs = []
+
+        # try osso
+        name = self.__get_md5sum("file://" + urlquote.quote(uri)) + ".png"
+        thumb_dir = os.path.expanduser("~/.thumbnails/osso")
+        thumbs.append(os.path.join(thumb_dir, name))
+        
+        # try UKMP
+        name = basename + "_thumb.jpg"
+        vid_name = basename + ".jpg"
+        thumb_dir = "/media/mmc1/covers"
+        thumbs.append(os.path.join(thumb_dir, name))
+        thumbs.append(os.path.join(thumb_dir, vid_name))
+        
+        
+        for f in thumbs:
+            if (os.path.exists(f)):
+                print "found", f, "for", basename
+                self.set_thumbnail_for_uri(uri, f)
+                return True
+        #end for
+        
+        return False
         

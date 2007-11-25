@@ -60,16 +60,18 @@ class Item(gtk.gdk.Pixbuf):
         gc.set_foreground(cmap.alloc_color("#ffffff"))
         pmap.draw_rectangle(gc, True, 0, 0, width, height)
                           
-        x = 4
+        x = 8
 
         if (background):
             pmap.draw_pixbuf(gc, background, 0, 0, 0, 0,
                              background.get_width(), background.get_height())
             
         if (icon):
-            pmap.draw_pixbuf(gc, icon, 0, 0, 4, 16,
+            icon_y = (self.get_height() - icon.get_height()) / 2
+            pmap.draw_pixbuf(gc, icon, 0, 0, 8, icon_y,
                              icon.get_width(), icon.get_height())
             x += icon.get_width()
+        x += 8
 
         gc.set_foreground(cmap.alloc_color("#000000"))
 
@@ -77,8 +79,9 @@ class Item(gtk.gdk.Pixbuf):
         layout = pango.Layout(pc)
         layout.set_font_description(font)
         layout.set_text(label)
-        layout.set_width(width * pango.SCALE)        
-        pmap.draw_layout(gc, x, 24, layout)
+        layout.set_width(width * pango.SCALE)
+        w, h = layout.get_pixel_size()
+        pmap.draw_layout(gc, x, (height - h) / 2, layout)
         
         self.get_from_drawable(pmap, cmap, 0, 0, 0, 0, width, height)
         

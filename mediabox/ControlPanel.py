@@ -35,7 +35,7 @@ class ControlPanel(Panel):
         ebox.show()
         
         bg = gtk.Image()
-        bg.set_from_pixbuf(theme.panel)
+        bg.set_from_pixbuf(theme.panel_bg)
         bg.show()
         ebox.put(bg, 0, 0)
         
