@@ -89,8 +89,13 @@ class AlbumViewer(Viewer):
                            os.path.join(uri, "cover.jpeg"),
                            os.path.join(uri, "cover.png") ]
 
+            imgs = [ os.path.join(uri, f)
+                     for f in os.listdir(uri)
+                     if f.lower().endswith(".png") or
+                        f.lower().endswith(".jpg") ]
+
             cover = ""
-            for c in candidates:
+            for c in candidates + imgs:
                 if (os.path.exists(c)):
                     cover = c
                     break
@@ -222,7 +227,10 @@ class AlbumViewer(Viewer):
                     tags = idtags.read(filepath)
                     title = tags.get("TITLE", f)
                     artist = tags.get("ARTIST", "")
-                                        
+
+                    if (artist):
+                        title = "%s\n[%s]" % (title, artist)
+                    
                     self.__tracks.append(filepath)
                     idx = self.__list.append_item(title, None)
                     self.__list.overlay_image(idx, theme.btn_load, 540, 16)
