@@ -49,7 +49,7 @@ class VideoViewer(Viewer):
         Viewer.__init__(self)                
         
         self.__box = gtk.Layout()
-        self.__box.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#f00000"))
+        self.__box.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
         self.set_widget(self.__box)
 
         # screen with logo which is displayed when there's no video stream        
@@ -124,8 +124,34 @@ class VideoViewer(Viewer):
             self.__uri = ""
             self.__scale_video()
             self.update_observer(self.OBS_STATE_PAUSED)
+           
+        elif (cmd == src.OBS_ASPECT):
+            ratio = args[0]
+            self.__set_aspect_ratio(ratio)
             
-
+            
+    def __set_aspect_ratio(self, ratio):
+        """
+        Sets the aspect ratio of the screen to the given value.
+        """
+    
+        if (ratio == 0): return
+        
+        self.__screen.hide()
+        nil, nil, w, h = self.__box.get_allocation()
+        w2 = int(ratio * h)
+        h2 = int(w / ratio)
+         
+        print w, h, w2, h2
+        if (w2 > w):
+            self.__screen.set_size_request(w, h2)
+            w2, h2 = w, h2
+        else:
+            self.__screen.set_size_request(w2, h)
+            w2, h2 = w2, h
+        self.__box.move(self.__screen, (w - w2) / 2, (h - h2) / 2)
+        self.__screen.show()
+        while (gtk.events_pending()): gtk.main_iteration()
 
 
     def __scale_video(self):
@@ -134,10 +160,11 @@ class VideoViewer(Viewer):
         original aspect ratio.
         """
     
-        nil, nil, w, h = self.__box.get_allocation()     
+        while (gtk.events_pending()): gtk.main_iteration()
+    
+        nil, nil, w, h = self.__box.get_allocation()
+        nil, nil, res_w, res_h = self.__screen.get_allocation()
         if (self.__mplayer.has_video()):
-            res_w, res_h = self.__mplayer.get_resolution()
-
             factor = min(h / float(res_h), w / float(res_w))
             width = int(res_w * factor)
             height = int(res_h * factor)
@@ -172,7 +199,8 @@ class VideoViewer(Viewer):
         if (not thumbnailer.has_thumbnail(uri)):
             # quick and dirty way of getting a video thumbnail
             cmd = "mplayer -zoom -ss 30 -nosound " \
-                  "-vo jpeg:outdir=\"%s\" -frames 7 -vf scale=134:-3  \"%s\"" \
+                  "-vo jpeg:outdir=\"%s\" -frames 3 -vf scale=134:-3  \"%s\"" \
+                  " >/dev/null 2>&1" \
                   % ("/tmp", uri)
             os.system(cmd)
             
@@ -216,7 +244,7 @@ class VideoViewer(Viewer):
     
         self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
         self.__screen.show()
-        self.__screen.set_size_request(320, 240)
+        #self.__screen.set_size_request(320, 240)
     
         def f():
             if (self.__screen.window.xid):
@@ -255,6 +283,9 @@ class VideoViewer(Viewer):
             self.__volume += 5
         self.__mplayer.set_volume(self.__volume)
         self.update_observer(self.OBS_VOLUME, self.__volume)
+
+        if (self.__is_fullscreen):
+            self.__mplayer.show_text("Volume %d %%" % self.__volume, 500)
         
         
     def decrement(self):
@@ -263,6 +294,10 @@ class VideoViewer(Viewer):
             self.__volume -= 5
         self.__mplayer.set_volume(self.__volume)
         self.update_observer(self.OBS_VOLUME, self.__volume)        
+
+        if (self.__is_fullscreen):
+            self.__mplayer.show_text("Volume %d %%" % self.__volume, 500)
+
         
     def set_position(self, pos):
     
@@ -290,6 +325,8 @@ class VideoViewer(Viewer):
         self.__is_fullscreen = not self.__is_fullscreen        
         
         self.__screen.hide()
+        while (gtk.events_pending()): gtk.main_iteration()
+        
         if (self.__is_fullscreen):
             self.update_observer(self.OBS_FULLSCREEN)
             # what a hack! but it works and it allows to unfullscreen mplayer!
@@ -297,9 +334,9 @@ class VideoViewer(Viewer):
         else:
             self.update_observer(self.OBS_UNFULLSCREEN)
             gtk.gdk.keyboard_ungrab()
-            
-        while (gtk.events_pending()): gtk.main_iteration()
+
         self.__scale_video()
+        while (gtk.events_pending()): gtk.main_iteration()        
         self.__screen.show()
         
         
