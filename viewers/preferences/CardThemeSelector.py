@@ -14,9 +14,9 @@ class CardThemeSelector(PrefsCard):
     
         PrefsCard.__init__(self, title)
     
-        self.__list = ItemList(600, 112)
+        self.__list = ItemList(600, 80)
         self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 368))
-        self.__list.set_graphics(None, theme.item2_active)
+        self.__list.set_graphics(theme.item, theme.item_active)
         self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)                
         self.__list.show()

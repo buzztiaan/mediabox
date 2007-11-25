@@ -61,9 +61,9 @@ class CardMediaRoot(PrefsCard):
         self.__list.clear_items()
         for mroot in self.__mediaroots:
             if (mroot.startswith("/media/mmc")):
-                idx = self.__list.append_item(mroot, theme.mmc)
+                idx = self.__list.append_item(mroot)
             else:
-                idx = self.__list.append_item(mroot, theme.device)
+                idx = self.__list.append_item(mroot)
             self.__list.overlay_image(idx, theme.remove, 540, 16)
 
         
@@ -88,9 +88,9 @@ class CardMediaRoot(PrefsCard):
             self.__mediaroots.append(dirpath)
             config.set_mediaroot(self.__mediaroots)
             if (dirpath.startswith("/media/mmc")):
-                idx = self.__list.append_item(dirpath, theme.mmc)
+                idx = self.__list.append_item(dirpath)
             else:
-                idx = self.__list.append_item(dirpath, theme.device)
+                idx = self.__list.append_item(dirpath)
             self.__list.overlay_image(idx, theme.remove, 540, 16)            
 
         dirchooser.destroy()            

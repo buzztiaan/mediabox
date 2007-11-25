@@ -49,5 +49,14 @@ def set_theme(name):
             globals()[i] = gtk.gdk.pixbuf_new_from_file(path)    
     #end for
 
+    # define some subregions
+    _subregion("panel_bg", panel, 20, 0, 760, 80)
+    _subregion("panel_button_bg", panel, 20, 0, 80, 80)
+
+
+def _subregion(name, src, x, y, w, h):
+
+    globals()[name] = src.subpixbuf(x, y, w, h)
+
 
 set_theme("default")

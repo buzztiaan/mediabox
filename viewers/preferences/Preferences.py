@@ -1,5 +1,6 @@
 from viewers.Viewer import Viewer
 from viewers.Thumbnail import Thumbnail
+from ui.ImageButton import ImageButton
 from PrefsItem import PrefsItem
 from CardMediaRoot import CardMediaRoot
 from CardThemeSelector import CardThemeSelector
@@ -26,11 +27,59 @@ class Preferences(Viewer):
         self.__cards = []
     
         Viewer.__init__(self)
+
+        self.__box = gtk.VBox()
+        self.set_widget(self.__box)
+
+        #
+        # title pane
+        #
+        panel = gtk.Layout()
+        panel.set_size_request(620, 50)
+        panel.show()
+        self.__box.pack_start(panel, False, False)
+        
+        bg = gtk.Image()
+        bg.set_from_pixbuf(theme.titlebar)
+        bg.show()
+        panel.put(bg, 0, 0)
+
+        hbox = gtk.HBox()
+        hbox.set_size_request(620, 50)
+        hbox.show()
+        panel.put(hbox, 0, 0)
+
+        self.__title = gtk.Label("")
+        self.__title.modify_font(theme.font_headline)
+        self.__title.modify_fg(gtk.STATE_NORMAL, theme.panel_foreground)
+        self.__title.set_alignment(0.0, 0.5)
+        self.__title.show()
+        hbox.pack_start(self.__title, True, True)
+
+        btn_minimize = ImageButton(theme.prefs_btn_minimize_1,
+                                   theme.prefs_btn_minimize_2,
+                                   theme.titlebar.subpixbuf(540, 0, 40, 50))
+        btn_minimize.connect("button-release-event",
+                             lambda x,y:self.update_observer(self.OBS_MINIMIZE))
+        btn_minimize.show()
+        hbox.pack_start(btn_minimize, False, False)        
+        
+        btn_close = ImageButton(theme.prefs_btn_close_1,
+                                theme.prefs_btn_close_2,
+                                theme.titlebar.subpixbuf(580, 0, 40, 50))
+        btn_close.connect("button-release-event",
+                          lambda x,y:self.update_observer(self.OBS_QUIT))
+        btn_close.show()
+        hbox.pack_start(btn_close, False, False)
                 
-        self.__box = gtk.HBox()
-        self.set_widget(self.__box)                
-                        
-        self.__add_card(CardMediaRoot("My Media"), "My Media", theme.prefs_folder)
+
+
+
+        #
+        # prefs cards
+        #
+        self.__add_card(CardMediaRoot("Media Collection"), "Media Collection",
+                        theme.prefs_folder)
         self.__add_card(CardThemeSelector("Themes"), "Themes", theme.prefs_theme)
         self.__show_card(0)
 
@@ -43,6 +92,7 @@ class Preferences(Viewer):
         card = self.__cards[idx]
         card.show()
         self.__current_card = card
+        self.__title.set_text(" " + card.get_title())
 
         
         
