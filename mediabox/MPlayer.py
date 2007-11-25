@@ -30,6 +30,7 @@ class InvalidFileError(MPlayerError): pass
 
 
 
+
 class _MPlayer(Observable):
     """
     Singleton class for controlling and embedding mplayer in other applications.
@@ -43,6 +44,8 @@ class _MPlayer(Observable):
     OBS_EOF = 4
     
     OBS_POSITION = 5
+    
+    OBS_ASPECT = 6
     
     
             
@@ -67,6 +70,10 @@ class _MPlayer(Observable):
         self.__needs_restart = False
         self.__media_length = -1
         self.__idle_counter = 0
+        
+        self.__video_width = 0
+        self.__video_height = 0
+        self.__video_aspect = 0
         
         self.__uri = ""
         self.__position = 0
@@ -98,12 +105,14 @@ class _MPlayer(Observable):
         """
         Regularly checks the player status and sends events to its listeners.
         """
-                
+                                
         if (self.__playing):
             self.__idle_counter = 0
+            
+            now = time.time()
 
             # check if player is still playing a file
-            if (not self.__check_for_playing()):
+            if (int(now) % 5 and not self.__check_for_playing()):
                 self.__playing = False
                 self.__has_video = False
                 self.__has_audio = False
@@ -115,7 +124,7 @@ class _MPlayer(Observable):
             if (self.__position == 0): # or t > self.__next_time_check):
                 try:            
                     pos, total = self.get_position()
-                    self.__time_of_check = time.time()
+                    self.__time_of_check = now
                 except:
                     pos, total = 0, 0
 
@@ -276,6 +285,8 @@ class _MPlayer(Observable):
         LOADING = 1
         LOADING_OK = 2
         PLAYING = 3 
+        
+        #self.update_observer(self.OBS_ASPECT, 1.77)
         self.__stdin.write("loadfile \"%s\"\n" % filename)
         self.__playing = False
         self.__blocked = False
@@ -288,7 +299,7 @@ class _MPlayer(Observable):
         state = NONE                    
         while (True):
             out = self.__stdout.readline()
-            #print ">>> " + out
+            print ">>> " + out
             if (not out):
                 self.__start_mplayer()
                 raise MPlayerDiedError()
@@ -312,6 +323,19 @@ class _MPlayer(Observable):
                     self.__has_audio = True
                 elif (out.startswith("VIDEO: ")):
                     self.__has_video = True
+                    
+                elif (out.startswith("ID_VIDEO_WIDTH=")):
+                    value = float(out.split("=")[1])
+                    self.__video_width = value
+                elif (out.startswith("ID_VIDEO_HEIGHT=")):
+                    value = float(out.split("=")[1])
+                    self.__video_height = value
+                    self.__video_aspect = self.__video_width / self.__video_height
+                    self.update_observer(self.OBS_ASPECT, self.__video_aspect)
+                elif (out.startswith("ID_VIDEO_ASPECT=")):
+                    value = float(out.split("=")[1])
+                    self.__video_aspect = value
+                    
                 elif (out.startswith("Starting playback...")):
                     self.__uri = filename
                     self.__playing = True
@@ -328,12 +352,12 @@ class _MPlayer(Observable):
 
     def __expect(self, key):
 
-        print "expect", key
+        #print "expect", key
         i = 0    
         while (not self.__blocked and i < 100):
             i += 1
             out = self.__stdout.readline()            
-            print ">>> " + out
+            #print ">>> " + out
             
             if (not out.strip()):
                 self.__blocked = True
