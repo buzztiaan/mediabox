@@ -56,10 +56,15 @@ class ImageViewer(Viewer):
     def __on_observe_image(self, src, cmd, *args):
     
         if (cmd == src.OBS_BEGIN_LOADING):
-            self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")                    
+            #self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")                    
+            pass
             
         elif (cmd == src.OBS_END_LOADING):
-            self.update_observer(self.OBS_SHOW_PANEL)        
+            #self.update_observer(self.OBS_SHOW_PANEL)
+            pass
+            
+        elif (cmd == src.OBS_PROGRESS):
+            self.update_observer(self.OBS_SHOW_PROGRESS, *args)
             
 
     def __is_image(self, uri):

@@ -32,10 +32,11 @@ class Image(gtk.EventBox, Observable):
 
     OBS_BEGIN_LOADING = 0
     OBS_END_LOADING = 1
-    OBS_RENDERED = 2
-    OBS_ZOOMING = 3
-    OBS_SCALE_RANGE = 4
-    OBS_SMOOTHING = 5
+    OBS_PROGRESS = 2
+    OBS_RENDERED = 3
+    OBS_ZOOMING = 4
+    OBS_SCALE_RANGE = 5
+    OBS_SMOOTHING = 6  
     
 
     def __init__(self):
@@ -525,11 +526,16 @@ class Image(gtk.EventBox, Observable):
         self.__loading_cancelled = False
         self.__current_filename = filename
         
+        size_read = 0
         while (True and size > 0):
             data = fd.read(_CHUNK_SIZE)
+            size_read += len(data)
             
             # this runs the gtk mainiteration and thus allows user interaction
-            if (self.__banner): self.__banner.progress(_CHUNK_SIZE)
+            #if (self.__banner): self.__banner.progress(_CHUNK_SIZE)            
+
+            self.update_observer(self.OBS_PROGRESS, size_read, size)
+            while (gtk.events_pending()): gtk.main_iteration()
 
             if (self.__loading_cancelled):
                 break

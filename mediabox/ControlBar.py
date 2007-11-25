@@ -2,6 +2,7 @@ from utils.Observable import Observable
 from MenuPanel import MenuPanel
 from ControlPanel import ControlPanel
 from VolumePanel import VolumePanel
+from ProgressPanel import ProgressPanel
 from MessagePanel import MessagePanel
 import panel_actions
 import theme
@@ -31,6 +32,9 @@ class ControlBar(gtk.HBox, Observable):
         
         self.__volume_panel = VolumePanel()
         self.__add_panel(self.__volume_panel)
+
+        self.__progress_panel = ProgressPanel()
+        self.__add_panel(self.__progress_panel)
         
         self.__message_panel = MessagePanel()
         self.__add_panel(self.__message_panel)
@@ -128,8 +132,13 @@ class ControlBar(gtk.HBox, Observable):
     def set_volume(self, percent):
     
         self.__volume_panel.set_volume(percent)
-        self.__show_panel_with_timeout(self.__volume_panel, 1000)
-            
+        self.__show_panel_with_timeout(self.__volume_panel, 500)
+
+
+    def set_progress(self, value, total):
+    
+        self.__progress_panel.set_progress(value, total)
+        self.__show_panel_with_timeout(self.__progress_panel, 500)
 
 
     def show_message(self, message):
