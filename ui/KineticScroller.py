@@ -5,6 +5,9 @@ import gobject
 import time
 
 
+_SCROLL_DELAY = 7
+
+
 class KineticScroller(gtk.EventBox, Observable):
     """
     Class for adding kinetic scrolling to a child widget. The child must
@@ -61,8 +64,8 @@ class KineticScroller(gtk.EventBox, Observable):
 
         # start up impulse handler if not running        
         if (not self.__impulse_handler_running):
-            gobject.timeout_add(5, self.__impulse_handler)
             self.__impulse_handler_running = True
+            self.__impulse_handler()
             
 
     def enable_kinetic(self, value):
@@ -98,7 +101,7 @@ class KineticScroller(gtk.EventBox, Observable):
             
             self.__delta_s = (vx * self.__delta_t, vy * self.__delta_t)
             
-            return True
+            gobject.timeout_add(_SCROLL_DELAY, self.__impulse_handler)
 
 
     def __check_for_click(self):
@@ -150,8 +153,8 @@ class KineticScroller(gtk.EventBox, Observable):
         
         # start up impulse handler if not running        
         if (not self.__impulse_handler_running):
-            gobject.timeout_add(5, self.__impulse_handler)
             self.__impulse_handler_running = True
+            self.__impulse_handler()
 
         # wait until we may accept clicks again
         def f(): self.__may_click = True
@@ -183,4 +186,5 @@ class KineticScroller(gtk.EventBox, Observable):
                     
                 self.__child.move(self.__delta_s[0], self.__delta_s[1])
             #end if        
-        #end if            
+        #end if
+      
