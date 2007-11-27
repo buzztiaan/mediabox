@@ -338,7 +338,7 @@ class App(object):
     
         elif (cmd == src.OBS_CLICKED):
             px, py = args
-            if (px > 120):
+            if (px > 108):
                 idx = self.__strip.get_index_at(py)            
                 self.__select_item(idx)
             

@@ -2,8 +2,12 @@ try:
     # GNOME
     import gconf
 except:
-    # Maemo
-    import gnome.gconf as gconf
+    try:
+        # Maemo    
+        import gnome.gconf as gconf
+    except:
+        # last resort...
+        from utils import gconftool as gconf
 
 import os
 

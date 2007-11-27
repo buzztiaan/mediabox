@@ -1,0 +1,9 @@
+2007-11-27  Martin Grimme  <martin.grimme@lintegra.de>
+
+	* mediabox/values.py (VERSION): Raised version to 0.90.1.
+
+	* mediabox/config.py: Use the fallback gconf module as a last resort.
+
+	* gconftool.py: Added fallback gconf module for systems where the
+	gconf bindings are not available.
+

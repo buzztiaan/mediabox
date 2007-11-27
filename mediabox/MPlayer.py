@@ -112,7 +112,7 @@ class _MPlayer(Observable):
             now = time.time()
 
             # check if player is still playing a file
-            if (int(now) % 5 and not self.__check_for_playing()):
+            if ((int(now) % 3 == 0) and not self.__check_for_playing()):
                 self.__playing = False
                 self.__has_video = False
                 self.__has_audio = False
