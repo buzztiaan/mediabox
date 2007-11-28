@@ -253,7 +253,7 @@ class VideoViewer(Viewer):
                 
                 self.__mplayer.set_window(self.__screen.window.xid)
                 if (_IS_MAEMO):
-                    self.__mplayer.set_options("-ao gst -ac dspmp3 -vo xv")
+                    self.__mplayer.set_options("-vo xv")
                     # the Nokia 770 would require something like this, instead
                     #self.__mplayer.set_options("-ao gst -ac dspmp3 "
                     #                      "-vo xv,nokia770:fb_overlay_only:"

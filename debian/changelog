@@ -1,3 +1,17 @@
+mediabox (0.90.2-1) unstable; urgency=low
+
+  * fixed mplayer sound issue on OS 2008
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 28 Nov 2007 22:50:00 +0100
+
+
+mediabox (0.90.1-1) unstable; urgency=low
+
+  * added fallback module to run when gconf bindings are missing
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 27 Nov 2007 20:00:00 +0100
+
+
 mediabox (0.90-1) unstable; urgency=low
 
   * Initial release
