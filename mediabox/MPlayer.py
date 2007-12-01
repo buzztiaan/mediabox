@@ -16,6 +16,7 @@ except:
     
 
 import os
+import fcntl
 import subprocess
 import time
 
@@ -54,8 +55,7 @@ class _MPlayer(Observable):
         """
         Creates the MPlayer singleton.
         """
-    
-        self.__blocked = False
+
         self.__heartbeat_running = False
     
         self.__xid = -1
@@ -84,11 +84,20 @@ class _MPlayer(Observable):
         
         self.__context_id = 0
         
-        
-        # if we're running under GTK, we can use its mainloop
-        self.__run_heartbeat()
-           
-           
+
+    def __on_eof(self, is_eof):
+        """
+        Reacts on end-of-file.
+        """
+
+        if (is_eof):
+            self.__playing = False
+            self.__has_video = False
+            self.__has_audio = False
+            print "REACHED EOF"
+            self.update_observer(self.OBS_EOF, self.__context_id)
+
+
     def __run_heartbeat(self):
         """
         Runs the heartbeat function if GObject is available and it's not
@@ -112,11 +121,7 @@ class _MPlayer(Observable):
             now = time.time()
 
             # check if player is still playing a file
-            if ((int(now) % 3 == 0) and not self.__check_for_playing()):
-                self.__playing = False
-                self.__has_video = False
-                self.__has_audio = False
-                self.update_observer(self.OBS_EOF, self.__context_id)                
+            self.__check_for_eof(self.__on_eof)
         
             # don't ask mplayer for the current position every time, because
             # this is highly inefficient with Ogg Vorbis files
@@ -142,11 +147,6 @@ class _MPlayer(Observable):
             self.update_observer(self.OBS_POSITION, self.__context_id,
                                  pos, total)
     
-            #if (total - pos < 0.1):
-            #    self.__playing = False
-            #    self.__has_video = False
-            #    self.__has_audio = False
-            #    self.update_observer(self.OBS_EOF, self.__context_id)
         else:
             self.__idle_counter += 1
         #end if
@@ -238,6 +238,8 @@ class _MPlayer(Observable):
         self.__stdout = p.stdout
         self.__xid = xid
         self.__opts = opts
+
+        fcntl.fcntl(self.__stdout, fcntl.F_SETFL, os.O_NONBLOCK)
                 
         self.__run_heartbeat()
         self.update_observer(self.OBS_STARTED)
@@ -286,10 +288,8 @@ class _MPlayer(Observable):
         LOADING_OK = 2
         PLAYING = 3 
         
-        #self.update_observer(self.OBS_ASPECT, 1.77)
         self.__stdin.write("loadfile \"%s\"\n" % filename)
         self.__playing = False
-        self.__blocked = False
         
         self.__has_video = False
         self.__has_audio = False
@@ -298,8 +298,15 @@ class _MPlayer(Observable):
 
         state = NONE                    
         while (True):
-            out = self.__stdout.readline()
-            print ">>> " + out
+            try:
+                out = self.__stdout.readline()
+            except IOError, err:
+                errno = err.errno
+                print errno
+                time.sleep(0.01)
+                continue
+                
+            #print ">>> " + out
             if (not out):
                 self.__start_mplayer()
                 raise MPlayerDiedError()
@@ -350,22 +357,32 @@ class _MPlayer(Observable):
         return self.__context_id
         
 
-    def __expect(self, key):
+    def __expect(self, key, cb = None):
+        """
+        Waits for the given key and returns its value. If a callback handler
+        is given, this method returns immediately and calls the handler when
+        the value is available.
+        """
 
+        if (HAVE_GOBJECT and cb):
+            gobject.io_add_watch(self.__stdout, gobject.IO_IN, cb)
+            return
+            
+        elif (cb):
+            return
+                
         #print "expect", key
         i = 0    
-        while (not self.__blocked and i < 100):
+        while (i < 100):
             i += 1
-            out = self.__stdout.readline()            
+            try:
+                out = self.__stdout.readline()
+            except IOError, err:
+                time.sleep(0.01)
+                continue
             #print ">>> " + out
-            
-            if (not out.strip()):
-                self.__blocked = True
-                self.__playing = False
-                self.update_observer(self.OBS_STOPPED)
-                raise MPlayerError() 
-                           
-            elif (out.startswith(key)):
+                                      
+            if (out.startswith(key)):
                 try:
                     value = out.split("=")[1]
                 except:
@@ -377,22 +394,21 @@ class _MPlayer(Observable):
         return ""
     
     
-    def __check_for_playing(self):
-        """
-        Returns whether mplayer is currently playing a file.
-        """
-        
+    def __check_for_eof(self, cb):
+
+        def f(fd, cond):
+            try:
+                out = fd.readline()
+            except IOError:
+                return False
+
+            cb(out.strip() == "")
+            return False
+
         # ask for the filename. if there's no answer (MPlayerError), we know
         # that mplayer isn't playing a file
-        try:
-            self.__stdin.write("get_property filename\n")
-            self.__expect("ANS_filename")
-            
-        except MPlayerError:
-            return False
-            
-        else:
-            return True    
+        self.__stdin.write("get_property filename\n")
+        self.__expect("ANS_filename", f)
     
     
     def is_playing(self):
@@ -436,7 +452,6 @@ class _MPlayer(Observable):
         if (not self.__playing):
             self.__playing = True
             self.__position = 0
-            #self.__blocked = False
             self.__position = 0
             self.__stdin.write("play\n")
             self.update_observer(self.OBS_PLAYING)
