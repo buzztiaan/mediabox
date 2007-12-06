@@ -6,6 +6,7 @@ import time
 
 
 _SCROLL_DELAY = 7
+_TAP_AND_HOLD_DELAY = 500
 
 
 class KineticScroller(gtk.EventBox, Observable):
@@ -17,6 +18,7 @@ class KineticScroller(gtk.EventBox, Observable):
     OBS_SCROLLING = 0
     OBS_STOPPED = 1
     OBS_CLICKED = 2
+    OBS_TAP_AND_HOLD = 3
 
 
     def __init__(self, child):
@@ -119,6 +121,21 @@ class KineticScroller(gtk.EventBox, Observable):
                 self.__scrolling = False                
             #end if
         #end if
+        
+        
+    def __check_for_tap_and_hold(self, fx, fy):
+    
+        if (not self.__is_dragging): return
+        
+        px, py = self.get_pointer()
+            
+        dx = abs(fx - px)
+        dy = abs(fy - py)
+        
+        if (dx < 30 and dy < 30):
+            self.__is_dragging = False
+            print "Tap and Hold"
+            self.update_observer(self.OBS_TAP_AND_HOLD, px, py)
                 
         
     def __on_drag_start(self, src, ev):
@@ -139,6 +156,10 @@ class KineticScroller(gtk.EventBox, Observable):
             
         self.__delta_s = (0, 0)
         self.__scrolling = False
+        
+        gobject.timeout_add(_TAP_AND_HOLD_DELAY,
+                            self.__check_for_tap_and_hold, px, py)
+                
                 
         
     def __on_drag_stop(self, src, ev):
