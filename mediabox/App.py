@@ -18,6 +18,7 @@ import time
 
 try:
     import osso
+    import hildon
     _HAVE_OSSO = True
 except:
     _HAVE_OSSO = False
@@ -43,6 +44,7 @@ class App(object):
     
         if (_HAVE_OSSO):
             self.__osso_context = osso.Context(values.OSSO_NAME, values.VERSION, False)
+            self.__program = hildon.Program()
     
         # set theme
         theme.set_theme(config.theme())
@@ -53,7 +55,11 @@ class App(object):
         self.__window.connect("expose-event", self.__on_expose)
         self.__window.connect("key-press-event", self.__on_key)
         self.__window.connect("key-release-event", lambda x, y: True)        
-        self.__window.show()        
+        self.__window.show()    
+        
+        if (_HAVE_OSSO):
+            self.__program.add_window(self.__window)
+            
        
         # control bar
         self.__ctrlbar = ControlBar()
@@ -317,6 +323,15 @@ class App(object):
     
         if (cmd == panel_actions.PLAY_PAUSE):
             self.__current_viewer.play_pause()
+
+        elif (cmd == panel_actions.PREVIOUS):
+            self.__current_viewer.previous()
+
+        elif (cmd == panel_actions.NEXT):
+            self.__current_viewer.next()
+            
+        elif (cmd == panel_actions.ADD):
+            self.__current_viewer.add()
     
         elif (cmd == panel_actions.SET_POSITION):
             pos = args[0]
