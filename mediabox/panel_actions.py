@@ -12,7 +12,10 @@ ZOOM_IN = 20
 ZOOM_OUT = 21
 ZOOM_100 = 22
 
+# adding
+ADD = 30
+
 # other
-TAB_SELECTED = 30
+TAB_SELECTED = 40
 
 
