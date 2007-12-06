@@ -87,6 +87,21 @@ class Viewer(Observable):
     def play_pause(self):
     
         pass
+        
+        
+    def previous(self):
+    
+        pass
+        
+    
+    def next(self):
+    
+        pass
+        
+
+    def add(self):
+    
+        pass
 
 
     def set_widget(self, widget):
