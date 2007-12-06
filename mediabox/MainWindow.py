@@ -7,48 +7,43 @@ import gtk
 try:
     import hildon
     IS_MAEMO = True
+
 except:
     IS_MAEMO = False
-    
 
-class MainWindow(gtk.Window):
-    """
-    Class for the main window. The main window holds a stack of subwindows
-    where one subwindow can be displayed at a time.
-    """
+
+
+_Window = IS_MAEMO and hildon.Window or gtk.Window
+
+
+
+class MainWindow(_Window):
 
     def __init__(self):
     
-        gtk.Window.__init__(self, gtk.WINDOW_TOPLEVEL)        
-        if (IS_MAEMO): self.fullscreen()
-        else: self.set_decorated(False)
+        if (IS_MAEMO):
+            _Window.__init__(self)
+            self.fullscreen()
+        else:
+            _Window.__init__(self, gtk.WINDOW_TOPLEVEL)
+            self.set_decorated(False)
+
         self.set_size_request(800, 480)
 
-        self.__hbox = gtk.HBox()
-        self.__hbox.show()
-        #gtk.Window.add(self, self.__hbox)
+        self._hbox = gtk.HBox()
+        self._hbox.show()
         
-        self.__fixed = gtk.Fixed()
-        self.__fixed.show()
-        self.add(self.__fixed)
-        
-        self.connect("focus-out-event", self.__on_lose_focus)
-        
-        
-    def __on_lose_focus(self, src, ev):
-    
-        #print "refocus"
-        self.grab_focus()
-        
-        
+        self._fixed = gtk.Fixed()
+        self._fixed.show()
+        self.add(self._fixed)      
+
+
     def put(self, child, x, y):
     
-        self.__fixed.put(child, x, y)
+        self._fixed.put(child, x, y)
         
         
     def move(self, child, x, y):
     
-        self.__fixed.move(child, x, y)
-                
-        
+        self._fixed.move(child, x, y)
 
