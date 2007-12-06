@@ -45,7 +45,7 @@ class _Client(object):
     def set_list(self, key, ktype, value):
     
         s_value = ",".join(value)
-        fail, out = commands.getstatusoutput("%s --type %s --set %s [%s]" \
+        fail, out = commands.getstatusoutput("%s --type list --list-type %s --set %s \"[%s]\"" \
                                             % (_GCONFTOOL, ktype, key, s_value))
                                              
 
@@ -70,6 +70,11 @@ class _Client(object):
         fail, out = commands.getstatusoutput("%s --type %s --set %s \"%s\"" \
                                      % (_GCONFTOOL, VALUE_STRING, key, value))
 
+
+    def unset(self, key):
+    
+        fail, out = commands.getstatusoutput("%s --unset %s" \
+                                             % (_GCONFTOOL, key))
 
 
 _singleton = _Client()
