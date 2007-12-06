@@ -215,7 +215,7 @@ class ImageStrip(gtk.DrawingArea):
         Returns the index of the item at the given position.
         """
         
-        if (not self.__images):
+        if (not self.__images or y > self.__totalsize):
             return -1
         else:
             blocksize = self.__itemsize + self.__gapsize
