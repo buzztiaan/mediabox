@@ -1,3 +1,23 @@
-panel_foreground: #ffffff
-item_foreground:  #444466
+#
+# Background
+#
+color_bg: #ffffff
 
+
+#
+# Thumbnails
+#
+color_bg_thumbnail_label: #4444ff
+color_fg_thumbnail_label: #ffffff
+
+
+#
+# Panel
+#
+color_fg_panel_text: #ffffff
+
+
+#
+# List Items
+#
+color_fg_item: #000000

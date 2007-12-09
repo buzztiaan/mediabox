@@ -29,7 +29,8 @@ def list_themes():
             path = os.path.join(themes_dir, d)
             if (os.path.isdir(path) and not d.startswith(".")):
                 preview = os.path.join(path, "PREVIEW.png")
-                themes.append((d, preview))
+                name, description = _get_info(path)
+                themes.append((d, preview, name, description))
         #end for
     #end for
         
@@ -81,6 +82,31 @@ def _read_fonts(themepath):
     #end for
 
 
+def _get_info(themepath):
+
+    name, description = (os.path.basename(themepath), "")
+
+    try:
+        lines = open(os.path.join(themepath, "info")).readlines()
+    except:
+        return (name, description)
+        
+    for line in lines:
+        line = line.strip()
+        if (not line or line.startswith("#")):
+            continue
+            
+        elif (line.startswith("name:")):    
+            idx = line.find(":")
+            name = line[idx + 1:].strip()
+        elif (line.startswith("description:")):
+            idx = line.find(":")
+            description = line[idx + 1:].strip()
+    #end for
+    
+    return (name, description)
+        
+
     
 
 
@@ -93,16 +119,15 @@ def set_theme(name):
             break
     #end for
 
-    items = [ os.path.splitext(f)[0] for f in os.listdir(theme_dir)
-              if os.path.splitext(f)[1] == ".png" ]
-
+    items = [ f for f in os.listdir(theme_dir)
+              if f.endswith(".png") or f.endswith(".jpg") ]
     for i in items:
-        path = os.path.join(theme_dir, i + ".png")
+        name = os.path.splitext(i)[0]
+        path = os.path.join(theme_dir, i)
         try:
-            globals()[i] = gtk.gdk.pixbuf_new_from_file(path)    
+            globals()[name] = gtk.gdk.pixbuf_new_from_file(path)
         except:
-            path = os.path.join(_DEFAULT_THEME_DIR, i + ".png")
-            globals()[i] = gtk.gdk.pixbuf_new_from_file(path)    
+            pass
     #end for
 
     # define some subregions
