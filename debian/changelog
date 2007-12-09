@@ -1,3 +1,18 @@
+mediabox (0.91) unstable; urgency=low
+
+  * fixed bugs
+  
+  * added FM radio
+  
+  * added buttons for next track and previous track
+  
+  * improved mplayer communication for better performance
+  
+  * improved theming capabilities
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 09 Dec 2007 21:20:00 +0100
+
+
 mediabox (0.90.2-1) unstable; urgency=low
 
   * fixed mplayer sound issue on OS 2008
