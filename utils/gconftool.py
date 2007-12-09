@@ -60,7 +60,6 @@ class _Client(object):
             return None
 
         value = out.strip()
-        print value
 
         return value
 
