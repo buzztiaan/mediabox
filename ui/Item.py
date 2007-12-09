@@ -1,3 +1,5 @@
+import theme
+
 import gtk
 import gobject
 import pango
@@ -73,7 +75,7 @@ class Item(gtk.gdk.Pixbuf):
             x += icon.get_width()
         x += 8
 
-        gc.set_foreground(cmap.alloc_color("#000000"))
+        gc.set_foreground(cmap.alloc_color(theme.color_fg_item))
 
         pc = widget.get_pango_context()
         layout = pango.Layout(pc)

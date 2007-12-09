@@ -3,6 +3,11 @@ import theme
 import gtk
 
 
+def info(title, message):
+
+    return choice(title, message, ("OK",), theme.dialog_info)
+
+
 def warning(title, message):
 
     return choice(title, message, ("OK",), theme.dialog_warning)

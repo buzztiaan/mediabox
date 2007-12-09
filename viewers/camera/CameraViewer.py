@@ -8,6 +8,7 @@
 
 from viewers.Viewer import Viewer
 from mediabox import caps
+import theme
 
 import gtk
 import gobject
@@ -20,7 +21,7 @@ import os
 class CameraViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
-    ICON = os.path.join(PATH, "camera.png")
+    ICON = theme.viewer_video
     PRIORITY = 100
     CAPS = caps.RECORDING
     IS_EXPERIMENTAL = True    
@@ -113,6 +114,11 @@ class CameraViewer(Viewer):
                 self.__pipeline.set_state(gst.STATE_PLAYING)
             except:                
                 pass
+               
+
+    def is_available(self):
+    
+        return os.environ.get("MEDIABOX_EXPERIMENTAL")               
                 
              
     def show(self):

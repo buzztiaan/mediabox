@@ -1,16 +1,1 @@
-2007-11-28  Martin Grimme  <martin.grimme@lintegra.de>
-
-	* mediabox/values.py (VERSION): Raised version to 0.90.2.
-
-	* viewers/video/VideoViewer.py (VideoViewer.load): Fixed "missing sound
-	on OS 2008" bug.
-
-2007-11-27  Martin Grimme  <martin.grimme@lintegra.de>
-
-	* mediabox/values.py (VERSION): Raised version to 0.90.1.
-
-	* mediabox/config.py: Use the fallback gconf module as a last resort.
-
-	* gconftool.py: Added fallback gconf module for systems where the
-	gconf bindings are not available.
-
+See svn log for a change log...

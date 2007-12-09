@@ -20,7 +20,7 @@ class MenuPanel(Panel):
         self.box.pack_start(self.__tabbox, False, False)
         
         
-    def add_tab(self, icon, name):
+    def add_tab(self, icon, icon_active, name):
         """
         Adds a new menu tab.
         """
@@ -37,18 +37,22 @@ class MenuPanel(Panel):
         bg.show()
         tab.put(bg, 0, 0)
         
-        tab.hilight = gtk.Image()
-        tab.hilight.set_from_pixbuf(theme.active_tab)
-        tab.put(tab.hilight,
-                40 - theme.active_tab.get_width() / 2,
-                40 - theme.active_tab.get_height() / 2)
-        
-        img = gtk.Image()
-        img.set_from_pixbuf(icon)
-        img.show()
-        tab.put(img,
+        tab.icon = gtk.Image()
+        tab.icon.set_from_pixbuf(icon)
+        tab.icon.show()
+
+        tab.put(tab.icon,
                 40 - icon.get_width() / 2,
                 40 - icon.get_height() / 2)
+
+        
+        tab.hilight = gtk.Image()
+        tab.hilight.set_from_pixbuf(icon_active)
+        #tab.hilight.show()
+
+        tab.put(tab.hilight,
+                40 - icon_active.get_width() / 2,
+                40 - icon_active.get_height() / 2)
                 
         self.__tabbox.pack_start(tab, False, False)
         self.__tabs.append((tab, name))
@@ -70,8 +74,9 @@ class MenuPanel(Panel):
         
         if (self.__current_tab):
             self.__current_tab.hilight.hide()
+            self.__current_tab.icon.show()
             
         self.__current_tab, name = self.__tabs[idx]
+        self.__current_tab.icon.hide()
         self.__current_tab.hilight.show()
         self.update_observer(panel_actions.TAB_SELECTED, name)
-        

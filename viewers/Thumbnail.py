@@ -73,6 +73,14 @@ class Thumbnail(gtk.gdk.Pixbuf):
         gtk.gdk.Pixbuf.save(self, uri, "jpeg")
 
 
+    def fill_color(self, color):
+                
+        r = color.red >> 8
+        g = color.green >> 8
+        b = color.blue >> 8
+        self.fill(r, g, b)
+
+
     def fill(self, r, g, b):
     
         if (self.__deferred):
@@ -82,13 +90,17 @@ class Thumbnail(gtk.gdk.Pixbuf):
         color = (r << 24) + (g << 16) + (b << 8) + 0xff
         gtk.gdk.Pixbuf.fill(self, color)
             
-            
-    def add_rect(self, x, y, w, h, r, g, b, a = 0xff):
+
+    def add_rect(self, x, y, w, h, color, a = 0xff):    
 
         if (self.__deferred):
-            self.__defer(self.add_rect, x, y, w, h, r, g, b, a)
+            self.__defer(self.add_rect, x, y, w, h, color, a)
             return
-    
+
+        r = color.red >> 8
+        g = color.green >> 8
+        b = color.blue >> 8
+
         color = (r << 24) + (g << 16) + (b << 8) + a
         subpbuf = self.subpixbuf(x, y, w, h)
         

@@ -14,6 +14,7 @@ class Preferences(Viewer):
 
     PATH = os.path.dirname(__file__)
     ICON = theme.viewer_prefs
+    ICON_ACTIVE = theme.viewer_prefs_active
     PRIORITY = 9999
     BORDER_WIDTH = 0
     IS_EXPERIMENTAL = False
@@ -51,7 +52,7 @@ class Preferences(Viewer):
 
         self.__title = gtk.Label("")
         self.__title.modify_font(theme.font_headline)
-        self.__title.modify_fg(gtk.STATE_NORMAL, theme.panel_foreground)
+        self.__title.modify_fg(gtk.STATE_NORMAL, theme.color_fg_panel_text)
         self.__title.set_alignment(0.0, 0.5)
         self.__title.show()
         hbox.pack_start(self.__title, True, True)
@@ -99,10 +100,12 @@ class Preferences(Viewer):
     def __add_card(self, card, label, icon):
             
         tn = Thumbnail()
-        tn.fill(0xff, 0xff, 0xff)
+        tn.fill_color(theme.color_bg)
         tn.add_image(icon, 0, 0, 160, 120)
-        tn.add_rect(0, 98, 160, 22, 0x44, 0x44, 0xff, 0xa0)
-        tn.add_text(label, 2, 96, theme.font_tiny, "#ffffff")
+        #tn.add_rect(0, 98, 160, 22, 0x44, 0x44, 0xff, 0xa0)
+        tn.add_rect(0, 98, 160, 22, theme.color_bg_thumbnail_label, 0xa0)
+        tn.add_text(label, 2, 96, theme.font_tiny,
+                    theme.color_fg_thumbnail_label)
         tn.add_image(theme.btn_load, 128, 88)        
         item = PrefsItem()
         item.set_thumbnail(tn)

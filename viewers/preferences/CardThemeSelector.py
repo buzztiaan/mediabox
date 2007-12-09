@@ -2,6 +2,7 @@ from PrefsCard import PrefsCard
 from ui.Item import Item
 from ui.ItemList import ItemList
 from ui.KineticScroller import KineticScroller
+from ui import dialogs
 from mediabox import config
 import theme
 
@@ -12,7 +13,14 @@ class CardThemeSelector(PrefsCard):
 
     def __init__(self, title):        
     
+        self.__themes = []
+        
+    
         PrefsCard.__init__(self, title)
+
+        box = gtk.HBox()
+        box.show()
+        self.pack_start(box, True, True)
     
         self.__list = ItemList(600, 80)
         self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 368))
@@ -24,18 +32,23 @@ class CardThemeSelector(PrefsCard):
         kscr = KineticScroller(self.__list)
         kscr.add_observer(self.__on_observe_list)
         kscr.show()
-        self.pack_start(kscr, True, True, 12)
+        box.pack_start(kscr, True, True, 10)
         
         self.__update_list()
-        self.__list.hilight(0)
         
         
     def __update_list(self):
     
         themes = theme.list_themes()
-        for name, preview in themes:
+        self.__themes = []
+        for name, preview, title, description in themes:
             img = gtk.gdk.pixbuf_new_from_file(preview)
-            self.__list.append_item(name, img)
+            idx = self.__list.append_item(title + "\n" + description, img)
+            self.__list.overlay_image(idx, theme.btn_load, 540, 16)
+            self.__themes.append(name)
+            
+            if (name == config.theme()):
+                self.__list.hilight(idx)
         
 
     def __on_observe_list(self, src, cmd, *args):
@@ -46,4 +59,6 @@ class CardThemeSelector(PrefsCard):
             
             if (px > 520 and idx >= 0):
                 self.__list.hilight(idx)
-                
+                config.set_theme(self.__themes[idx])
+                dialogs.info("Information",
+                             "Theme will change after restarting.")

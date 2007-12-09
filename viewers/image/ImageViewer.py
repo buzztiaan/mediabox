@@ -17,6 +17,7 @@ class ImageViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
     ICON = theme.viewer_image
+    ICON_ACTIVE = theme.viewer_image_active
     PRIORITY = 30
     IS_EXPERIMENTAL = False
 

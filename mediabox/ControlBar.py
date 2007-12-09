@@ -98,12 +98,12 @@ class ControlBar(gtk.HBox, Observable):
         gobject.timeout_add(timeout, f, panel.timeout_ticket)
 
 
-    def add_tab(self, icon, name):
+    def add_tab(self, icon, icon_active, name):
         """
         Adds a new viewer tab to the menu panel.
         """
     
-        self.__menu_panel.add_tab(icon, name)
+        self.__menu_panel.add_tab(icon, icon_active, name)
         
         
     def select_tab(self, idx):
@@ -122,6 +122,11 @@ class ControlBar(gtk.HBox, Observable):
     def set_position(self, pos, total):
     
         self.__control_panel.set_position(pos, total)
+        
+        
+    def set_value(self, value, unit):
+    
+        self.__control_panel.set_value(value, unit)
 
 
     def set_title(self, title):

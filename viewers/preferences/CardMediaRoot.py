@@ -64,7 +64,7 @@ class CardMediaRoot(PrefsCard):
                 idx = self.__list.append_item(mroot)
             else:
                 idx = self.__list.append_item(mroot)
-            self.__list.overlay_image(idx, theme.remove, 540, 16)
+            self.__list.overlay_image(idx, theme.remove, 540, 24)
 
         
     def __on_add_folder(self, src):
@@ -91,7 +91,7 @@ class CardMediaRoot(PrefsCard):
                 idx = self.__list.append_item(dirpath)
             else:
                 idx = self.__list.append_item(dirpath)
-            self.__list.overlay_image(idx, theme.remove, 540, 16)            
+            self.__list.overlay_image(idx, theme.remove, 540, 24)
 
         dirchooser.destroy()            
 

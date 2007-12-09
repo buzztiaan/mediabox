@@ -23,8 +23,9 @@ class AlbumViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
     ICON = theme.viewer_music
+    ICON_ACTIVE = theme.viewer_music_active
     PRIORITY = 20
-    CAPS = caps.PLAYING | caps.POSITIONING
+    CAPS = caps.PLAYING | caps.SKIPPING | caps.POSITIONING
     BORDER_WIDTH = 0
     IS_EXPERIMENTAL = False
     
@@ -160,7 +161,19 @@ class AlbumViewer(Viewer):
                 idx = self.__list.get_index_at(y)
                 self.__play_track(idx)
         
+
+    def __previous_track(self):
+        """
+        Jumps to the previous track.
+        """
         
+        self.__stop_current_track()
+        if (self.__current_index > 0):
+            self.__play_track(self.__current_index - 1)
+        else:
+            self.__play_track(self.__current_index)
+            
+                    
     def __next_track(self):
         """
         Advances to the next track.
@@ -200,7 +213,11 @@ class AlbumViewer(Viewer):
     def __stop_current_track(self):
     
         self.__list.hilight(-1)          
-            
+         
+         
+    def shutdown(self):
+
+        self.__mplayer.close()
         
         
     def load(self, item):
@@ -270,6 +287,16 @@ class AlbumViewer(Viewer):
     def play_pause(self):
     
         self.__mplayer.pause()
+
+    
+    def previous(self):
+        
+        self.__previous_track()
+
+        
+    def next(self):
+    
+        self.__next_track()
         
 
     def show(self):

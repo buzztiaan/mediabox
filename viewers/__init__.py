@@ -43,7 +43,7 @@ def get_viewers():
             
             viewer = _load_viewer(os.path.join(path, f))
             try:
-                if (viewer and not viewer.IS_EXPERIMENTAL): viewers.append(viewer)
+                if (viewer and viewer.is_available()): viewers.append(viewer)
             except:                
                 pass
     #end for

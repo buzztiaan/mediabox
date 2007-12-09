@@ -29,6 +29,7 @@ class VideoViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
     ICON = theme.viewer_video
+    ICON_ACTIVE = theme.viewer_video_active
     PRIORITY = 10
     CAPS = caps.PLAYING | caps.POSITIONING
     IS_EXPERIMENTAL = False
@@ -65,6 +66,15 @@ class VideoViewer(Viewer):
         self.__screen.connect("expose-event", self.__on_expose)
         self.__box.put(self.__screen, 25, 15)
         
+        
+    def is_available(self):
+    
+        # currently not supported on the Nokia 770 (SU-18)
+        from utils import maemo
+        if (maemo.get_product_code() in ["SU-18"]):
+            return False
+        else:
+            return True
         
         
     def __on_expose(self, src, ev):
@@ -239,6 +249,12 @@ class VideoViewer(Viewer):
         self.__items.append(item)
         
 
+    def shutdown(self):
+
+        # the music viewer already closes mplayer for us
+        #self.__mplayer.close()
+        pass
+        
 
     def load(self, item):
     

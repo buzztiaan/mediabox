@@ -1,5 +1,6 @@
 from utils.Observable import Observable
 from mediabox import caps
+import theme
 
 
 class Viewer(Observable):
@@ -7,18 +8,17 @@ class Viewer(Observable):
     Abstract base class for media viewers.
     """
     
-    ICON = "gfx/dialog-error.png"
+    ICON = theme.dialog_error
+    ICON_ACTIVE = theme.viewer_none_active
     PRIORITY = 999
     CAPS = caps.NONE
     BORDER_WIDTH = 6
     
-    # override this with False if your viewer is running fine
-    # experimental viewers are not visible by default
-    IS_EXPERIMENTAL = True
     
     OBS_TITLE = 0    
     OBS_POSITION = 1
-    OBS_VOLUME = 2
+    OBS_FREQUENCY_MHZ = 2
+    OBS_VOLUME = 3
 
     OBS_REPORT_CAPABILITIES = 10    
     OBS_SET_COLLECTION = 11
@@ -54,6 +54,16 @@ class Viewer(Observable):
         return self.__class__.__name__
         
         
+    def is_available(self):
+    
+        return True
+
+
+    def shutdown(self):
+    
+        pass
+
+
     def clear_items(self):
     
         pass

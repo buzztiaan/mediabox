@@ -12,6 +12,7 @@ class Clock(Viewer):
 
     PATH = os.path.dirname(__file__)
     ICON = theme.viewer_clock
+    ICON_ACTIVE = theme.viewer_clock_active
     PRIORITY = 100
     BORDER_WIDTH = 0
     IS_EXPERIMENTAL = False

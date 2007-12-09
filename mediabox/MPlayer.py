@@ -302,7 +302,7 @@ class _MPlayer(Observable):
                 out = self.__stdout.readline()
             except IOError, err:
                 errno = err.errno
-                print errno
+                #print errno
                 time.sleep(0.01)
                 continue
                 

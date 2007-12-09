@@ -25,47 +25,29 @@ class ControlPanel(Panel):
         
         self.__btn_record = self._create_button(theme.btn_record_1,        
                                                 theme.btn_record_2,
-                     lambda x,y:self.update_observer(panel_actions.PLAY_PAUSE))
-        
-        ebox = gtk.Layout()
-        ebox.add_events(gtk.gdk.BUTTON_PRESS_MASK |
-                        gtk.gdk.BUTTON_RELEASE_MASK)        
-        ebox.set_size_request(560, 80)
-        ebox.connect("button-release-event", self.__on_set_position)                
-        ebox.show()
-        
-        bg = gtk.Image()
-        bg.set_from_pixbuf(theme.panel_bg)
-        bg.show()
-        ebox.put(bg, 0, 0)
-        
-        vbox = gtk.VBox()
-        vbox.set_size_request(560, 80)
-        vbox.show()
-        ebox.put(vbox, 0, 0)
-        self.box.pack_start(ebox, False, False, 6)
+                     lambda x,y:self.update_observer(panel_actions.PLAY_PAUSE))        
 
-        hbox = gtk.HBox()
-        hbox.show()
-        vbox.pack_start(hbox, False, False, 8)
-        
-        self.__title = gtk.Label("")
-        self.__title.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
-        self.__title.set_alignment(0.0, 0.0)
-        self.__title.modify_font(theme.font_plain)
-        self.__title.modify_fg(gtk.STATE_NORMAL, theme.panel_foreground)
-        self.__title.show()
-        hbox.pack_start(self.__title, True, True)
-
-        self.__time = gtk.Label("11:24")
-        self.__time.modify_font(theme.font_plain)
-        self.__time.modify_fg(gtk.STATE_NORMAL, theme.panel_foreground)
-        self.__time.show()
-        hbox.pack_start(self.__time, False, False)
-                
         self.__progress = ProgressBar()
+        self.__progress.connect("button-release-event", self.__on_set_position)
         self.__progress.show()
-        vbox.pack_start(self.__progress, True, True, 8)
+        self.box.pack_start(self.__progress, False, False)
+        
+        self.__tuner = ProgressBar()
+        self.__tuner.connect("button-release-event", self.__on_tune)
+        self.__tuner.show()
+        self.box.pack_start(self.__tuner, False, False)
+
+        self.__btn_previous = self._create_button(theme.btn_previous_1,        
+                                                  theme.btn_previous_2,
+                     lambda x,y:self.update_observer(panel_actions.PREVIOUS))
+        self.__btn_next = self._create_button(theme.btn_next_1,        
+                                              theme.btn_next_2,
+                     lambda x,y:self.update_observer(panel_actions.NEXT))
+
+        self.__btn_add = self._create_button(theme.btn_add_1,        
+                                              theme.btn_add_2,
+                     lambda x,y:self.update_observer(panel_actions.ADD))
+
 
 
     def __on_set_position(self, src, ev):
@@ -73,7 +55,16 @@ class ControlPanel(Panel):
         w, h = src.window.get_size()
         x, y = src.get_pointer()
         pos = max(0, min(99.9, x / float(w) * 100))
-        self.update_observer(panel_actions.SET_POSITION, pos)                     
+        self.update_observer(panel_actions.SET_POSITION, pos)
+        
+        
+    def __on_tune(self, src, ev):
+
+        w, h = src.window.get_size()
+        x, y = src.get_pointer()
+        pos = max(0, min(99.9, x / float(w) * 100))
+        self.update_observer(panel_actions.TUNE, pos)    
+    
                 
         
     def set_capabilities(self, capabilities):
@@ -84,18 +75,33 @@ class ControlPanel(Panel):
         else:
             self.__btn_play.hide()
             self.__btn_pause.hide()
+            
+        if (capabilities & caps.SKIPPING):
+            self.__btn_previous.show()
+            self.__btn_next.show()
+        else:
+            self.__btn_previous.hide()
+            self.__btn_next.hide()
 
-        if (capabilities & caps.POSITIONING or capabilities & caps.TUNING):
+        if (capabilities & caps.POSITIONING):
             self.__progress.show()
-            self.__time.show()
         else:
             self.__progress.hide()
-            self.__time.hide()
+            
+        if (capabilities & caps.TUNING):
+            self.__tuner.show()
+        else:
+            self.__tuner.hide()
             
         if (capabilities & caps.RECORDING):
             self.__btn_record.show()
         else:
             self.__btn_record.hide()
+            
+        if (capabilities & caps.ADDING):
+            self.__btn_add.show()
+        else:
+            self.__btn_add.hide()
 
 
     def set_playing(self, value):
@@ -110,17 +116,17 @@ class ControlPanel(Panel):
 
     def set_title(self, title):
 
-        self.__title.set_text(title)
+        self.__progress.set_title(title)
+        self.__tuner.set_title(title)
 
 
     def set_position(self, pos, total):
     
         self.__progress.set_position(pos, total)
-        pos_m = pos / 60
-        pos_s = pos % 60
-        total_m = total / 60
-        total_s = total % 60
-        self.__time.set_text("%d:%02d / %d:%02d" % 
-                             (pos_m, pos_s, total_m, total_s))            
-            
+        self.__tuner.set_position(pos, total)
 
+
+    def set_value(self, value, unit):
+    
+        self.__tuner.set_value(value, unit)
+        

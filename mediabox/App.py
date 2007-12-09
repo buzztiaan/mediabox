@@ -47,11 +47,17 @@ class App(object):
             self.__program = hildon.Program()
     
         # set theme
-        theme.set_theme(config.theme())
+        try:
+            theme.set_theme(config.theme())
+        except:
+            # theme could not be loaded
+            pass
+            
     
         # window
         self.__window = MainWindow()
         self.__window.set_app_paintable(True)
+        self.__window.connect("delete-event", self.__on_close_window)
         self.__window.connect("expose-event", self.__on_expose)
         self.__window.connect("key-press-event", self.__on_key)
         self.__window.connect("key-release-event", lambda x, y: True)        
@@ -180,10 +186,11 @@ class App(object):
         Loads the media viewers.
         """
     
+        self.__ctrlbar.show_message("Loading Components")
         self.__viewers = viewers.get_viewers()
         cnt = 0
-        for viewer in self.__viewers:            
-            self.__ctrlbar.add_tab(viewer.ICON, cnt)
+        for viewer in self.__viewers:
+            self.__ctrlbar.add_tab(viewer.ICON, viewer.ICON_ACTIVE, cnt)
             cnt += 1
             
             self.__box.add(viewer.get_widget())
@@ -207,6 +214,11 @@ class App(object):
                  "Please install mplayer on your\ninternet tablet in order to\n"
                  "be able to play video or audio.")
                         
+                        
+    def __on_close_window(self, src, ev):
+    
+        self.__try_quit()
+        return True
         
 
     def __on_expose(self, src, ev):
@@ -268,6 +280,11 @@ class App(object):
         elif (cmd == src.OBS_POSITION):
             pos, total = args
             self.__ctrlbar.set_position(pos, total)
+            
+        elif (cmd == src.OBS_FREQUENCY_MHZ):
+            freq = args[0]
+            unit = "MHz"
+            self.__ctrlbar.set_value(freq, unit)
             
         elif (cmd == src.OBS_VOLUME):
             percent = args[0]
@@ -336,6 +353,10 @@ class App(object):
         elif (cmd == panel_actions.SET_POSITION):
             pos = args[0]
             self.__current_viewer.set_position(pos)
+            
+        elif (cmd == panel_actions.TUNE):
+            pos = args[0]
+            self.__current_viewer.tune(pos)
             
         elif (cmd == panel_actions.TAB_SELECTED):
             idx = args[0]
@@ -433,15 +454,12 @@ class App(object):
         self.__startup()
         gtk.main()
         
-        print "HALTING MPLAYER"
-        import MPlayer
-        MPlayer.MPlayer().close()
-        
         
         
     def __try_quit(self):
     
         result = dialogs.question("Exit", "Really quit?")
         if (result == 0):
+            for v in self.__viewers:
+                v.shutdown()
             gtk.main_quit()
- 

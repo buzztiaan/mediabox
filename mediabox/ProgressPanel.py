@@ -12,7 +12,8 @@ class ProgressPanel(Panel):
         
         self.__progress_label = gtk.Label("")
         self.__progress_label.modify_font(theme.font_headline)
-        self.__progress_label.modify_fg(gtk.STATE_NORMAL, theme.panel_foreground)
+        self.__progress_label.modify_fg(gtk.STATE_NORMAL,
+                                        theme.color_fg_panel_text)
         self.__progress_label.set_alignment(1.0, 0.5)
         self.__progress_label.show()
         self.box.add(self.__progress_label)
