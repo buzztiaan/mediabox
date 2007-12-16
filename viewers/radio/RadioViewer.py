@@ -6,6 +6,7 @@ from InetRadioBackend import InetRadioBackend
 from ui.ItemList import ItemList
 from ui.KineticScroller import KineticScroller
 from ui import dialogs
+from utils import maemo
 from mediabox import caps
 import theme
 
@@ -22,7 +23,6 @@ class RadioViewer(Viewer):
     ICON_ACTIVE = theme.viewer_radio_active
     PRIORITY = 25
     BORDER_WIDTH = 0
-    CAPS = caps.PLAYING | caps.SKIPPING | caps.TUNING | caps.ADDING
     IS_EXPERIMENTAL = False
 
 
@@ -54,14 +54,22 @@ class RadioViewer(Viewer):
         box.pack_start(kscr, True, True, 10)                       
         
               
-        # fill with items
-        for name, icon, backend in [
-                ("FM Radio", theme.viewer_radio_fmradio, FMRadioBackend)]:
-                #("Internet Radio", theme.viewer_radio_inetradio, InetRadioBackend)]:
+        # add backends
+        backends = []
+        if (maemo.get_product_code() in ["RX-34", "?"]):
+            backends.append(("FM Radio", theme.viewer_radio_fmradio,
+                             FMRadioBackend))
+        backends.append(("Internet Radio", theme.viewer_radio_inetradio,
+                         InetRadioBackend))
+        
+        for name, icon, backend in backends:
             item = RadioItem(name)
             tn = RadioThumbnail(icon, name)
             item.set_thumbnail(tn)
-            self.__radios[name] = backend()
+            try:
+                self.__radios[name] = backend()
+            except:
+                continue
             self.__radios[name].add_observer(self.__on_observe_backend)
             self.__items.append(item)
         #end for
@@ -84,25 +92,18 @@ class RadioViewer(Viewer):
             elif (px > 420):
                 idx = self.__list.get_index_at(py)
                 if (idx >= 0):
-                    self.__current_radio.set_station(idx)                
                     self.__list.hilight(idx)
+                    gobject.idle_add(self.__current_radio.set_station, idx)
 
-
-        #elif (cmd == src.OBS_TAP_AND_HOLD):
-        #    px, py = args
-        #    idx = self.__list.get_index_at(py)
-        #    if (idx >= 0):
-        #        self.__current_radio.remove_station(idx)
-        #        self.__load_stations()
                     
                     
     def __on_observe_backend(self, src, cmd, *args):
     
-        if (cmd == src.OBS_STATION_NAME):
+        if (cmd == src.OBS_TITLE):
             name = args[0]
             self.update_observer(self.OBS_TITLE, name)
             
-        elif (cmd == src.OBS_FREQUENCY):
+        elif (cmd == src.OBS_LOCATION):
             freq = args[0]
             low, high = self.__current_radio.get_frequency_range()
             self.update_observer(self.OBS_POSITION, freq - low, high - low)
@@ -112,11 +113,14 @@ class RadioViewer(Viewer):
             # see the current frequency
             while (gtk.events_pending()): gtk.main_iteration()
             
-        elif (cmd == src.OBS_RADIO_ON):
+        elif (cmd == src.OBS_ERROR):
+            self.__list.hilight(-1)
+            
+        elif (cmd == src.OBS_PLAY):
             self.__is_on = True
             self.update_observer(self.OBS_STATE_PLAYING)
             
-        elif (cmd == src.OBS_RADIO_OFF):
+        elif (cmd == src.OBS_STOP):
             self.__is_on = False
             self.update_observer(self.OBS_STATE_PAUSED)
 
@@ -129,9 +133,9 @@ class RadioViewer(Viewer):
             self.__list.remove_item(idx)
             
             
-    def __append_station(self, freq, name):
+    def __append_station(self, location, name):
 
-        title = name + "\n[%3.02f MHz]" % (freq / 1000.0)
+        title = "%s\n[%s]" % (name, location)
         idx = self.__list.append_item(title, None)
         self.__list.overlay_image(idx, theme.btn_load, 440, 24)
         self.__list.overlay_image(idx, theme.remove, 540, 24)
@@ -141,21 +145,8 @@ class RadioViewer(Viewer):
     def __load_stations(self):
     
         self.__list.clear_items()
-        for freq, name in self.__current_radio.get_stations():
-            self.__append_station(freq, name)
-
-        
-    def is_available(self):
-        
-        # FM radio is not available on all internet tablet models
-        try:
-            from mediabox.FMRadio import *
-            r = FMRadio()
-        except FMRadioUnsupportedError:
-            return False
-        else:
-            r.close()
-            return True
+        for location, name in self.__current_radio.get_stations():
+            self.__append_station(location, name)
         
         
     def shutdown(self):
@@ -168,6 +159,8 @@ class RadioViewer(Viewer):
     
         name = item.get_uri()
         self.__current_radio = self.__radios[name]
+        self.update_observer(self.OBS_REPORT_CAPABILITIES,
+                             self.__current_radio.CAPS)
         self.__load_stations()
         
         

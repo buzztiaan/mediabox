@@ -31,6 +31,9 @@ class ImageStrip(gtk.DrawingArea):
         self.__gapsize = gapsize
         self.__totalsize = 0
         
+        self.__scroll_to_offset = 0
+        self.__is_scrolling = False
+        
         # the selection offset initially selects the item in the middle and
         # centers the view around it
         self.__selection_offset = 0 #(self.__height - self.__itemsize) / 2
@@ -467,3 +470,37 @@ class ImageStrip(gtk.DrawingArea):
         if (self.__arrows):
             self.__render_arrows()
 
+
+
+    def scroll_to_item(self, idx):
+        """
+        Scrolls to bring the given item into view.
+        """
+        
+        def f():
+            if (self.__offset < self.__scroll_to_offset):
+                self.move(0, 10)
+            elif (self.__offset > self.__scroll_to_offset):
+                self.move(0, -10)
+            else:
+                self.__is_scrolling = False
+                return False
+            return True
+            
+        
+        w, h = self.get_size()
+        
+        # offset must be between these values to make the item visible
+        offset2 = (self.__itemsize + self.__gapsize) * idx
+        offset1 = offset2 - (h - self.__itemsize)
+        
+        if (self.__offset < offset1):
+            self.__scroll_to_offset = offset1
+        elif (self.__offset > offset2):
+            self.__scroll_to_offset = offset2
+        else:
+            return
+                        
+        if (not self.__is_scrolling):
+            self.__is_scrolling = True
+            gobject.timeout_add(5, f)

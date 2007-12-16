@@ -2,7 +2,12 @@ import os
 
 
 _PLAYLIST = os.path.expanduser("~/.mediaplayer-engine/radiochannels.m3u")
-   
+
+# make sure that the playlist dir exists
+try:
+    os.makedirs(os.path.dirname(_PLAYLIST))
+except:
+    pass
 
     
 def get_stations():

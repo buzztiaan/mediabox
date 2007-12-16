@@ -62,15 +62,22 @@ class ItemList(ImageStrip):
     
         self.__items.pop(idx)
         self.remove_image(idx)
+
+        if (idx == self.__hilighted_item):
+            self.__hilighted_item = -1
         
         
     def hilight(self, idx):
 
         if (self.__hilighted_item >= 0):
-            self.replace_image(self.__hilighted_item,
-                               self.__items[self.__hilighted_item][_NORMAL])
+            try:
+                self.replace_image(self.__hilighted_item,
+                                   self.__items[self.__hilighted_item][_NORMAL])
+            except:
+                pass
         if (idx >= 0):                                 
             self.replace_image(idx, self.__items[idx][_HILIGHTED])
             self.__hilighted_item = idx
-                
+            
+            self.scroll_to_item(idx)
 

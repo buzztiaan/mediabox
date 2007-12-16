@@ -1,4 +1,5 @@
 from MainWindow import MainWindow
+from ViewerState import ViewerState
 from viewers.Thumbnail import Thumbnail
 from ui.ImageStrip import ImageStrip
 from ui.KineticScroller import KineticScroller
@@ -36,8 +37,8 @@ class App(object):
         self.__current_collection = []
         self.__current_mediaroots = []
         
-        self.__selected_item_of_viewer = {}
-        self.__offset_of_viewer = {}
+        # mapping: viewer -> state
+        self.__viewer_states = {}
 
         self.__saved_image = None
         self.__saved_image_index = -1
@@ -135,12 +136,13 @@ class App(object):
 
 
         thumbnailer = Thumbnailer(self.__window)
-        thumbnailer.show()
+        #thumbnailer.show()
         self.__ctrlbar.show_message("Looking for media files...")
         while (gtk.events_pending()): gtk.main_iteration()
 
         collection = []
         thumbdir = os.path.abspath(config.thumbdir())
+        print "searching"
         for mediaroot in mediaroots:
             collection.append(mediaroot)
             for dirpath, dirs, files in os.walk(mediaroot):
@@ -164,6 +166,7 @@ class App(object):
             v.clear_items()
 
         cnt = 0
+        print "building"
         for uri in collection:
             cnt += 1
             thumbnailer.set_progress(cnt, total)
@@ -195,6 +198,10 @@ class App(object):
             
             self.__box.add(viewer.get_widget())
             viewer.add_observer(self.__on_observe_viewer)
+            
+            vstate = ViewerState()
+            vstate.caps = viewer.CAPS
+            self.__viewer_states[viewer] = vstate
             
             while (gtk.events_pending()): gtk.main_iteration()
         #end for
@@ -263,6 +270,7 @@ class App(object):
         elif (cmd == src.OBS_REPORT_CAPABILITIES):
             caps = args[0]
             self.__ctrlbar.set_capabilities(caps)
+            self.__get_vstate().caps = caps
     
         elif (cmd == src.OBS_SCAN_MEDIA):
             self.__scan_media() #gobject.idle_add(self.__scan_media)
@@ -303,11 +311,13 @@ class App(object):
             self.__window.move(self.__box, 180, 0)
             self.__box.set_size_request(620, 400)     
             self.__kscr.show()
+            self.__get_vstate().collection_visible = True
 
         elif (cmd == src.OBS_HIDE_COLLECTION):
             self.__window.move(self.__box, 0, 0)
             self.__box.set_size_request(800, 400)
             self.__kscr.hide()
+            self.__get_vstate().collection_visible = False
 
         elif (cmd == src.OBS_FULLSCREEN):
             self.__window.move(self.__box, 0, 0)
@@ -377,14 +387,19 @@ class App(object):
             if (px > 108):
                 idx = self.__strip.get_index_at(py)            
                 self.__select_item(idx)
+           
+           
+    def __get_vstate(self):
+    
+        return self.__viewer_states[self.__current_viewer]
             
             
     def __select_item(self, idx):
 
         self.__hilight_item(idx)    
 
-        item = self.__current_collection[idx]        
-        self.__selected_item_of_viewer[self.__current_viewer] = idx        
+        item = self.__current_collection[idx]
+        self.__get_vstate().selected_item = idx
         gobject.idle_add(self.__current_viewer.load, item)
 
 
@@ -415,16 +430,28 @@ class App(object):
         viewer = self.__viewers[idx]
         if (self.__current_viewer and self.__current_viewer != viewer):
             self.__current_viewer.hide()
-            self.__offset_of_viewer[self.__current_viewer] = \
-                self.__strip.get_offset()
+            self.__get_vstate().item_offset = self.__strip.get_offset()
                 
         self.__current_viewer = viewer
         self.__box.set_border_width(viewer.BORDER_WIDTH)
         
         def f():
             viewer.show()
-            offset = self.__offset_of_viewer.get(viewer, 0)
-            item_idx = self.__selected_item_of_viewer.get(viewer, -1)
+            vstate = self.__get_vstate()
+            
+            if (vstate.collection_visible):
+                self.__window.move(self.__box, 180, 0)
+                self.__box.set_size_request(620, 400)     
+                self.__kscr.show()
+            else:
+                self.__window.move(self.__box, 0, 0)
+                self.__box.set_size_request(800, 400)
+                self.__kscr.hide()
+            
+            self.__ctrlbar.set_capabilities(vstate.caps)
+            
+            offset = vstate.item_offset
+            item_idx = vstate.selected_item
             self.__strip.set_offset(offset)
             if (item_idx >= 0):
                 self.__hilight_item(item_idx)

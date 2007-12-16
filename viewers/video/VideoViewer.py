@@ -118,12 +118,16 @@ class VideoViewer(Viewer):
             self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_PLAYING):
-            print "Playing"
-            self.update_observer(self.OBS_STATE_PLAYING)
+            ctx = args[0]
+            if (ctx == self.__context_id):
+                print "Playing"
+                self.update_observer(self.OBS_STATE_PLAYING)
             
         elif (cmd == src.OBS_STOPPED):
-            print "Stopped"
-            self.update_observer(self.OBS_STATE_PAUSED)
+            ctx = args[0]
+            if (ctx == self.__context_id):
+                print "Stopped"
+                self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_POSITION):
             ctx, pos, total = args
@@ -131,12 +135,14 @@ class VideoViewer(Viewer):
                 self.update_observer(self.OBS_POSITION, pos, total)
 
         elif (cmd == src.OBS_EOF):
-            self.__uri = ""
-            self.__scale_video()
-            self.update_observer(self.OBS_STATE_PAUSED)
+            ctx = args[0]
+            if (ctx == self.__context_id):        
+                self.__uri = ""
+                self.__scale_video()
+                self.update_observer(self.OBS_STATE_PAUSED)
            
         elif (cmd == src.OBS_ASPECT):
-            ratio = args[0]
+            ctx, ratio = args
             self.__set_aspect_ratio(ratio)
             
             
@@ -152,7 +158,7 @@ class VideoViewer(Viewer):
         w2 = int(ratio * h)
         h2 = int(w / ratio)
          
-        print w, h, w2, h2
+        #print ratio, w, h, w2, h2
         if (w2 > w):
             self.__screen.set_size_request(w, h2)
             w2, h2 = w, h2

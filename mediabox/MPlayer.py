@@ -30,6 +30,26 @@ class FileNotFoundError(MPlayerError): pass
 class InvalidFileError(MPlayerError): pass
 
 
+_NAME = 0
+_GENRE = 1
+_WEBSITE = 2
+
+_ICY_INFO = 10
+
+_VIDEO_WIDTH = 20
+_VIDEO_HEIGHT = 21
+_VIDEO_FPS = 22
+_VIDEO_ASPECT = 23
+_VIDEO_RESOLUTION = 24
+
+_FILENAME = 30
+_POSITION = 31
+_LENGTH = 32
+
+_MAX_VALUES = 33
+
+
+_LOGGING = True
 
 
 class _MPlayer(Observable):
@@ -39,15 +59,20 @@ class _MPlayer(Observable):
     
     OBS_STARTED = 0
     OBS_KILLED = 1
+    OBS_ERROR = 2
+        
+    OBS_PLAYING = 3
+    OBS_STOPPED = 4
+    OBS_NEW_STREAM_TRACK = 5
+    OBS_EOF = 6
     
-    OBS_PLAYING = 2
-    OBS_STOPPED = 3
-    OBS_EOF = 4
+    OBS_POSITION = 7
     
-    OBS_POSITION = 5
+    OBS_ASPECT = 8
     
-    OBS_ASPECT = 6
-    
+    # error codes
+    ERR_INVALID = 0
+    ERR_NOT_FOUND = 1
     
             
 
@@ -66,6 +91,7 @@ class _MPlayer(Observable):
         self.__has_video = False
         self.__has_audio = False
         self.__playing = False
+        self.__broken = False
         
         self.__needs_restart = False
         self.__media_length = -1
@@ -81,21 +107,23 @@ class _MPlayer(Observable):
         self.__time_of_check = 0
         
         self.__next_time_check = 0
-        
+                
         self.__context_id = 0
         
+        # table for collecting player values
+        self.__player_values = [None] * _MAX_VALUES
+        
 
-    def __on_eof(self, is_eof):
+    def __on_eof(self):
         """
         Reacts on end-of-file.
         """
 
-        if (is_eof):
-            self.__playing = False
-            self.__has_video = False
-            self.__has_audio = False
-            print "REACHED EOF"
-            self.update_observer(self.OBS_EOF, self.__context_id)
+        self.__playing = False
+        self.__has_video = False
+        self.__has_audio = False
+        print "REACHED EOF"
+        self.update_observer(self.OBS_EOF, self.__context_id)
 
 
     def __run_heartbeat(self):
@@ -106,6 +134,7 @@ class _MPlayer(Observable):
     
         if (HAVE_GOBJECT and not self.__heartbeat_running):
             self.__hearbeat_running = True
+            self.__player_values[_FILENAME] = "..."
             self.__heartbeat()
         
                         
@@ -114,19 +143,16 @@ class _MPlayer(Observable):
         """
         Regularly checks the player status and sends events to its listeners.
         """
-                                
-        if (self.__playing):
-            self.__idle_counter = 0
-            
-            now = time.time()
 
-            # check if player is still playing a file
-            self.__check_for_eof(self.__on_eof)
-        
+        self.__collect_values()
+
+        if (self.__playing):
+            self.__idle_counter = 0            
+
             # don't ask mplayer for the current position every time, because
             # this is highly inefficient with Ogg Vorbis files
-            t = time.time()
-            if (self.__position == 0): # or t > self.__next_time_check):
+            now = time.time()
+            if (self.__position == 0):
                 try:            
                     pos, total = self.get_position()
                     self.__time_of_check = now
@@ -135,15 +161,32 @@ class _MPlayer(Observable):
 
                 self.__position = pos
                 self.__total_length = total
-                self.__next_time_check = t + 10
                 
             else:
-                pos = self.__position + t - self.__time_of_check
+                pos = self.__position + now - self.__time_of_check
                 total = self.__total_length
-                self.__time_of_check = t
+                self.__time_of_check = now
                 self.__position = pos
             #end if
-             
+
+            # check for new track in stream
+            if (self.__player_values[_ICY_INFO]):
+                title = self.__parse_icy_info(self.__player_values[_ICY_INFO])
+                self.update_observer(self.OBS_NEW_STREAM_TRACK,
+                                     self.__context_id, title)
+                self.__player_values[_ICY_INFO] = None
+            
+            # check for end of file
+            now = time.time()
+            if (self.__player_values[_FILENAME]):
+                self.__next_time_check = now + 1
+            elif (now > self.__next_time_check):
+                self.__on_eof()
+                self.__next_time_check = now + 1
+
+            self.__player_values[_FILENAME] = None
+            self.__send_cmd("get_property filename")
+
             self.update_observer(self.OBS_POSITION, self.__context_id,
                                  pos, total)
     
@@ -159,8 +202,140 @@ class _MPlayer(Observable):
             self.__needs_restart = True
             print "mplayer closed due to idle timeout"            
             return False
-                
+           
         gobject.timeout_add(500, self.__heartbeat)        
+
+
+    def __send_cmd(self, data):
+    
+        if (_LOGGING): print "--> " + data
+        self.__stdin.write(data + "\n")
+        
+        
+    def __read(self):
+                
+        data = self.__stdout.readline()
+        if (_LOGGING): print "    " + data[:-1]
+        return data        
+
+
+
+    def __collect_values(self):        
+        
+        if (not self.__stdout): return
+        
+        # get all new data
+        for i in range(10):  # not more than ten in a row
+            try:
+                data = self.__read()
+            except IOError, err:
+                # no data left
+                break
+                
+            self.__parse_value(data)
+        #end for
+        
+        
+    def __read_ans(self, data):
+
+        idx = data.find("=")
+        value = data[idx + 1:].strip()
+        return value
+        
+        
+    def __read_info(self, data):
+    
+        idx = data.find(":")
+        value = data[idx + 1:].strip()
+        return value
+        
+        
+    def __parse_value(self, data):
+    
+        if (data.startswith("ANS_TIME_POSITION")):
+            self.__player_values[_POSITION] = self.__read_ans(data)
+        elif (data.startswith("ANS_LENGTH")):
+            self.__player_values[_LENGTH] = self.__read_ans(data)
+        elif (data.startswith("ANS_VIDEO_RESOLUTION")):
+            self.__player_values[_VIDEO_RESOLUTION] = self.__read_ans(data)
+        elif (data.startswith("ANS_filename")):
+            self.__player_values[_FILENAME] = self.__read_ans(data)
+
+        elif (data.startswith("AUDIO: ")):
+            self.__has_audio = True
+        elif (data.startswith("VIDEO: ")):
+            self.__has_video = True
+
+        elif (data.startswith("ID_VIDEO_WIDTH")):
+            self.__player_values[_VIDEO_WIDTH] = float(self.__read_ans(data))
+        elif (data.startswith("ID_VIDEO_HEIGHT")):
+            self.__player_values[_VIDEO_HEIGHT] = float(self.__read_ans(data))
+            try:
+                self.__video_aspect = self.__player_values[_VIDEO_WIDTH] / \
+                                      self.__player_values[_VIDEO_HEIGHT]
+                self.update_observer(self.OBS_ASPECT, self.__context_id,
+                                     self.__video_aspect)
+            except:
+                import traceback; traceback.print_exc()
+
+        elif (data.startswith("Name   : ")):
+            self.__player_values[_NAME] = self.__read_info(data)
+        elif (data.startswith("Genre  : ")):
+            self.__player_values[_GENRE] = self.__read_info(data)
+        elif (data.startswith("Website: ")):
+            self.__player_values[_WEBSITE] = self.__read_info(data)
+       
+        elif (data.startswith("ICY Info: ")):
+            self.__player_values[_ICY_INFO] = self.__read_info(data)
+        
+        elif (data.startswith("Starting playback...")):
+            self.__playing = True
+            self.__media_length = -1
+            self.update_observer(self.OBS_PLAYING, self.__context_id)
+            
+        elif (data.startswith("File not found: ")):
+            self.__broken = True
+            self.update_observer(self.OBS_ERROR, self.__context_id,
+                                 self.ERR_NOT_FOUND)
+        elif (data.startswith("[file] No filename")):
+            self.__broken = True
+            self.update_observer(self.OBS_ERROR, self.__context_id,
+                                 self.ERR_NOT_FOUND)
+        elif (data.endswith("No stream found.\n")):
+            self.__broken = True
+            self.update_observer(self.OBS_ERROR, self.__context_id,
+                                 self.ERR_NOT_FOUND)
+        elif (" failed to load: " in data):
+            self.__broken = True
+            self.update_observer(self.OBS_ERROR, self.__context_id,
+                                 self.ERR_INVALID)
+
+
+
+        
+    def __parse_icy_info(self, data):
+        
+        key = "StreamTitle='"
+        idx = data.find(key)
+        if (idx != -1):
+            idx2 = data.find("';", idx + len(key))
+            return data[idx + len(key):idx2]
+        return ""
+        
+        
+    def __expect(self, key, must_be_new):
+    
+        if (must_be_new):
+            self.__player_values[key] = None
+        cnt = 0
+        while (self.__player_values[key] == None and cnt < 50):
+            self.__collect_values()
+            time.sleep(0.001)
+            cnt += 1
+        #end while
+            
+        return self.__player_values[key]
+        
 
        
     def is_available(self):
@@ -221,7 +396,7 @@ class _MPlayer(Observable):
         self.__playing = False
         
         cmd = "LANG=C /usr/bin/mplayer -quiet -slave -idle -osdlevel 0 " \
-              "-identify -wid %d %s 3>/dev/null" % (xid, opts)
+              "-identify -wid %d %s 2>&1 3>/dev/null" % (xid, opts)
         p = subprocess.Popen([cmd],
                              shell=True, cwd="/tmp",
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -239,6 +414,7 @@ class _MPlayer(Observable):
         self.__xid = xid
         self.__opts = opts
 
+        # set non-blocking for better performance in an unthreaded environment
         fcntl.fcntl(self.__stdout, fcntl.F_SETFL, os.O_NONBLOCK)
                 
         self.__run_heartbeat()
@@ -255,7 +431,8 @@ class _MPlayer(Observable):
             self.__stop_mplayer()
             self.__needs_restart = False
             if (self.__uri):
-                self.load(self.__uri)
+                self.load(self.__uri, self.__context_id)
+                self.__playing = False
         
         if (not self.__stdin):
             self.__start_mplayer(self.__xid, self.__opts)        
@@ -272,144 +449,46 @@ class _MPlayer(Observable):
     
         self.__stop_mplayer()
 
-    
-    
-    def load(self, filename):
+
+    def load(self, filename, ctx_id = -1):
         """
         Loads and plays the given media file.
         """
-
-        print "LOAD", filename
+    
         self.__uri = ""
         self.__ensure_mplayer()
+        
+        self.__send_cmd("loadfile \"%s\"" % filename)
 
-        NONE = 0
-        LOADING = 1
-        LOADING_OK = 2
-        PLAYING = 3 
-        
-        self.__stdin.write("loadfile \"%s\"\n" % filename)
         self.__playing = False
-        
+        self.__broken = False
         self.__has_video = False
         self.__has_audio = False
-        
         self.__position = 0
+        self.__uri = filename
 
-        state = NONE                    
-        while (True):
-            try:
-                out = self.__stdout.readline()
-            except IOError, err:
-                errno = err.errno
-                #print errno
-                time.sleep(0.01)
-                continue
+        self.__player_values[_FILENAME] = filename
+
+        cnt = 0
+        while (not self.__playing and not self.__broken):
+            self.__collect_values()
+            time.sleep(0.01)
+            #print "CNT", cnt
+            if (cnt == 5000):
+                self.__broken = True
+                break
                 
-            #print ">>> " + out
-            if (not out):
-                self.__start_mplayer()
-                raise MPlayerDiedError()
-
-            #if (out.strip()): print ">>> " + out.strip()
-            if (state == NONE):
-                if (out.startswith("Playing ")):
-                    state = LOADING
-                    
-            elif (state == LOADING):
-                if (out.startswith("Failed to open ")):
-                    raise FileNotFoundError()
-                elif (out.endswith(" failed\n")):
-                    raise InvalidFileError()
-                elif (out.endswith("No stream found.\n")):
-                    raise InvalidFileError()
-                elif (out.startswith("\n")):                
-                    pass
-                    #raise InvalidFileError()                    
-                elif (out.startswith("AUDIO: ")):
-                    self.__has_audio = True
-                elif (out.startswith("VIDEO: ")):
-                    self.__has_video = True
-                    
-                elif (out.startswith("ID_VIDEO_WIDTH=")):
-                    value = float(out.split("=")[1])
-                    self.__video_width = value
-                elif (out.startswith("ID_VIDEO_HEIGHT=")):
-                    value = float(out.split("=")[1])
-                    self.__video_height = value
-                    self.__video_aspect = self.__video_width / self.__video_height
-                    self.update_observer(self.OBS_ASPECT, self.__video_aspect)
-                elif (out.startswith("ID_VIDEO_ASPECT=")):
-                    value = float(out.split("=")[1])
-                    self.__video_aspect = value
-                    
-                elif (out.startswith("Starting playback...")):
-                    self.__uri = filename
-                    self.__playing = True
-                    print self.__has_video, self.__has_audio
-                    self.__media_length = -1
-                    self.update_observer(self.OBS_PLAYING)
-                    break
+            cnt += 1
         #end while
-                
-        self.__context_id +=1
+
+        if (ctx_id != -1):
+            self.__context_id = ctx_id
+        else:
+            self.__context_id +=1
         print "CTX", self.__context_id
         return self.__context_id
         
-
-    def __expect(self, key, cb = None):
-        """
-        Waits for the given key and returns its value. If a callback handler
-        is given, this method returns immediately and calls the handler when
-        the value is available.
-        """
-
-        if (HAVE_GOBJECT and cb):
-            gobject.io_add_watch(self.__stdout, gobject.IO_IN, cb)
-            return
             
-        elif (cb):
-            return
-                
-        #print "expect", key
-        i = 0    
-        while (i < 100):
-            i += 1
-            try:
-                out = self.__stdout.readline()
-            except IOError, err:
-                time.sleep(0.01)
-                continue
-            #print ">>> " + out
-                                      
-            if (out.startswith(key)):
-                try:
-                    value = out.split("=")[1]
-                except:
-                    return ""
-                else:
-                    return value.strip()
-        #end while
-
-        return ""
-    
-    
-    def __check_for_eof(self, cb):
-
-        def f(fd, cond):
-            try:
-                out = fd.readline()
-            except IOError:
-                return False
-
-            cb(out.strip() == "")
-            return False
-
-        # ask for the filename. if there's no answer (MPlayerError), we know
-        # that mplayer isn't playing a file
-        self.__stdin.write("get_property filename\n")
-        self.__expect("ANS_filename", f)
-    
     
     def is_playing(self):
         """
@@ -441,7 +520,7 @@ class _MPlayer(Observable):
     
         self.__ensure_mplayer()
         
-        self.__stdin.write("speed_set %d\n" % n)
+        self.__send_cmd("speed_set %d" % n)
     
     
         
@@ -453,22 +532,23 @@ class _MPlayer(Observable):
             self.__playing = True
             self.__position = 0
             self.__position = 0
-            self.__stdin.write("play\n")
-            self.update_observer(self.OBS_PLAYING)
+            self.__send_cmd("play")
+            self.update_observer(self.OBS_PLAYING, self.__context_id)
         
         
     def pause(self):
 
-        if (not self.__stdin): return
+        #if (not self.__stdin): return
+        self.__ensure_mplayer()
             
         self.__playing = not self.__playing        
         if (self.__playing):
-            self.__stdin.write("pause\n")
+            self.__send_cmd("pause")
             self.__position = 0
-            self.update_observer(self.OBS_PLAYING)
+            self.update_observer(self.OBS_PLAYING, self.__context_id)
         else:
-            self.__stdin.write("pause\n")
-            self.update_observer(self.OBS_STOPPED)
+            self.__send_cmd("pause")
+            self.update_observer(self.OBS_STOPPED, self.__context_id)
         
         
     def stop(self):
@@ -477,14 +557,14 @@ class _MPlayer(Observable):
         
         if (self.__playing):
             self.__playing = False
-            self.__stdin.write("pause\n")
-            self.update_observer(self.OBS_STOPPED)
+            self.__send_cmd("pause")
+            self.update_observer(self.OBS_STOPPED, self.__context_id)
 
 
     def seek(self, pos):
     
         self.__ensure_mplayer()
-        self.__stdin.write("seek %d 2\n" % pos)
+        self.__send_cmd("seek %d 2" % pos)
         self.play()
         self.__position = 0
                 
@@ -494,7 +574,7 @@ class _MPlayer(Observable):
     def seek_percent(self, pos):
 
         self.__ensure_mplayer()    
-        self.__stdin.write("seek %d 1\n" % pos)
+        self.__send_cmd("seek %d 1" % pos)
         self.play()
         self.__position = 0
 
@@ -504,16 +584,17 @@ class _MPlayer(Observable):
 
         self.__ensure_mplayer()
             
-        self.__stdin.write("get_time_pos\n")
+        self.__send_cmd("get_time_pos")
         try:
-            pos = float(self.__expect("ANS_TIME_POSITION"))
+            pos = float(self.__expect(_POSITION, True))
         except:
+            import traceback; traceback.print_exc()
             pos = 0.0            
         
         if (self.__media_length < 0):
-            self.__stdin.write("get_time_length\n")
+            self.__send_cmd("get_time_length")
             try:
-                total = float(self.__expect("ANS_LENGTH"))
+                total = float(self.__expect(_LENGTH, True))
             except:
                 total = 0.0
             self.__media_length = total
@@ -527,8 +608,8 @@ class _MPlayer(Observable):
 
         self.__ensure_mplayer()
             
-        self.__stdin.write("get_video_resolution\n")
-        value = self.__expect("ANS_VIDEO_RESOLUTION")[1:-1]
+        self.__send_cmd("get_video_resolution")
+        value = self.__expect(_VIDEO_RESOLUTION, False)[1:-1]
         
         if (value):
             parts = value.split(" x ")
@@ -549,8 +630,7 @@ class _MPlayer(Observable):
     def set_volume(self, volume):
 
         self.__ensure_mplayer()
-        print "Volume", volume
-        self.__stdin.write("volume %f 1\n" % volume)
+        self.__send_cmd("volume %f 1" % volume)
 
 
 
@@ -558,13 +638,13 @@ class _MPlayer(Observable):
 
         self.__ensure_mplayer()
             
-        self.__stdin.write("osd_show_text \"%s\" %d 0\n" % (text, duration))
+        self.__send_cmd("osd_show_text \"%s\" %d 0" % (text, duration))
 
 
     def screenshot(self):
     
         self.__ensure_mplayer()
-        self.__stdin.write("screenshot 0\n")
+        self.__send_cmd("screenshot 0")
         
 
 

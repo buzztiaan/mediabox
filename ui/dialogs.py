@@ -11,6 +11,11 @@ def info(title, message):
 def warning(title, message):
 
     return choice(title, message, ("OK",), theme.dialog_warning)
+    
+
+def error(title, message):
+
+    return choice(title, message, ("OK",), theme.dialog_error)
 
 
 def question(title, message):

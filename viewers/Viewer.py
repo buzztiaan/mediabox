@@ -128,7 +128,7 @@ class Viewer(Observable):
     
         self.__widget.show()
         self.__is_active = True
-        self.update_observer(self.OBS_REPORT_CAPABILITIES, self.CAPS)
+        #self.update_observer(self.OBS_REPORT_CAPABILITIES, self.CAPS)
         self.update_observer(self.OBS_TITLE, self.__title)
         self.update_observer(self.OBS_POSITION, 0, 0)
         
@@ -137,7 +137,6 @@ class Viewer(Observable):
     
         self.__widget.hide()
         self.__is_active = False
-        self.update_observer(self.OBS_SHOW_COLLECTION)
         
         
     def fullscreen(self):

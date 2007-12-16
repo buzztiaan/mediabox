@@ -51,7 +51,8 @@ def save_stations(stations):
         
     i = 0
     for freq, name in stations:
-        entry = "%f;Channel Name:%s" % (freq / 1000.0, name)
+        s_freq = ("%6.2f" % (freq / 1000.0)).replace(" ", "0")
+        entry = "Frequency:%s;Channel Name:%s" % (s_freq, name)
         _CLIENT.set_string(_PREFIX + `i`, entry)
         i += 1
     #end for

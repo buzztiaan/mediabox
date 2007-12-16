@@ -4,6 +4,7 @@ from AlbumThumbnail import AlbumThumbnail
 from ui.KineticScroller import KineticScroller
 from ui.ItemList import ItemList
 from mediabox.MPlayer import MPlayer
+from mediabox.TrackInfo import TrackInfo
 from mediabox import caps, config
 import theme
 import idtags
@@ -33,6 +34,7 @@ class AlbumViewer(Viewer):
     def __init__(self):
     
         self.__items = []
+        self.__is_fullscreen = False
     
         self.__mplayer = MPlayer()
         self.__mplayer.add_observer(self.__on_observe_mplayer)
@@ -55,10 +57,14 @@ class AlbumViewer(Viewer):
         self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)
         self.__list.show()
-        kscr = KineticScroller(self.__list)
-        kscr.add_observer(self.__on_observe_scroller)
-        kscr.show()
-        box.pack_start(kscr, True, True, 10)
+        self.__kscr = KineticScroller(self.__list)
+        self.__kscr.add_observer(self.__on_observe_scroller)
+        self.__kscr.show()
+        box.pack_start(self.__kscr, True, True, 10)
+        
+        self.__trackinfo = TrackInfo()
+        box.pack_start(self.__trackinfo, True, True, 0)
+        
 
 
     def __is_album(self, uri):
@@ -126,15 +132,24 @@ class AlbumViewer(Viewer):
             self.__list.hilight(-1)
             self.update_observer(self.OBS_STATE_PAUSED)           
             
+        elif (cmd == src.OBS_NEW_STREAM_TRACK):
+            ctx, title = args
+            if (ctx == self.__context_id):
+                print "NEW TRACK", title
+            
         elif (cmd == src.OBS_PLAYING):
-            print "Playing"
-            self.update_observer(self.OBS_STATE_PLAYING)
+            ctx = args[0]
+            if (ctx == self.__context_id):                
+                print "Playing"
+                self.update_observer(self.OBS_STATE_PLAYING)
             
         elif (cmd == src.OBS_STOPPED):
-            self.__current_uri = ""
-            print "Stopped"            
-            #self.__next_track()
-            self.update_observer(self.OBS_STATE_PAUSED)
+            ctx = args[0]
+            if (ctx == self.__context_id):
+                self.__current_uri = ""
+                print "Stopped"            
+                #self.__next_track()
+                self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_POSITION):
             ctx, pos, total = args
@@ -160,6 +175,16 @@ class AlbumViewer(Viewer):
             if (x > 520):
                 idx = self.__list.get_index_at(y)
                 self.__play_track(idx)
+        
+        
+    def __find_cover(self, uri):
+    
+        path = os.path.dirname(uri)
+        for i in (".folder.png", "cover.jpg", "cover.jpeg", "cover.png"):
+            coverpath = os.path.join(path, i)
+            if (os.path.exists(coverpath)): return coverpath
+            
+        return None
         
 
     def __previous_track(self):
@@ -202,8 +227,13 @@ class AlbumViewer(Viewer):
 
                 tags = idtags.read(track)
                 title = tags.get("TITLE", os.path.basename(track))
+                album = tags.get("ALBUM", os.path.basename(track))
+                artist = tags.get("ARTIST", os.path.basename(track))
                 self.__list.hilight(idx)
                 self.set_title(title)
+                self.__trackinfo.set_title(title)
+                self.__trackinfo.set_info(album, artist)
+                self.__trackinfo.set_cover(self.__find_cover(track))
                 
             except:
                 self.__list.hilight(-1)
@@ -250,7 +280,7 @@ class AlbumViewer(Viewer):
                     
                     self.__tracks.append(filepath)
                     idx = self.__list.append_item(title, None)
-                    self.__list.overlay_image(idx, theme.btn_load, 540, 16)
+                    self.__list.overlay_image(idx, theme.btn_load, 540, 24)
                 #end if
             #end for
 
@@ -302,5 +332,19 @@ class AlbumViewer(Viewer):
     def show(self):
     
         Viewer.show(self)
-        self.update_observer(self.OBS_SET_COLLECTION, self.__items)        
+        self.update_observer(self.OBS_SET_COLLECTION, self.__items)
+
+
+    def fullscreen(self):
+    
+        self.__is_fullscreen = not self.__is_fullscreen
+        
+        if (self.__is_fullscreen):
+            self.__kscr.hide()
+            self.__trackinfo.show()
+            self.update_observer(self.OBS_HIDE_COLLECTION)
+        else:
+            self.__trackinfo.hide()
+            self.__kscr.show()
+            self.update_observer(self.OBS_SHOW_COLLECTION)            
 

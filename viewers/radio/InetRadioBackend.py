@@ -1,14 +1,14 @@
-from utils.Observable import Observable
+from RadioBackend import RadioBackend
 from ui.Dialog import Dialog
+from ui import dialogs
 from mediabox.MPlayer import MPlayer
+from mediabox import caps
 import inetstations
 
 
-class InetRadioBackend(Observable):
-
-    OBS_STATION_NAME = 0
-    OBS_FREQUENCY = 1
+class InetRadioBackend(RadioBackend):
     
+    CAPS = caps.PLAYING | caps.TUNING | caps.ADDING
     
     def __init__(self):
     
@@ -29,24 +29,36 @@ class InetRadioBackend(Observable):
     
         if (cmd == src.OBS_STARTED):
             print "Started MPlayer"
-            #self.update_observer(self.OBS_STATE_PAUSED)            
             
         elif (cmd == src.OBS_KILLED):
             #self.__current_uri = ""
             print "Killed MPlayer"
             #self.set_title("")
-            #self.__list.hilight(-1)
-            #self.update_observer(self.OBS_STATE_PAUSED)           
+            self.update_observer(self.OBS_TITLE, "")
+            self.update_observer(self.OBS_STOP)
+            
+        elif (cmd == src.OBS_ERROR):
+            ctx, err = args
+            if (ctx == self.__context_id):
+                self.__show_error(err)
+                self.update_observer(self.OBS_ERROR)
             
         elif (cmd == src.OBS_PLAYING):
-            print "Playing"
-            #self.update_observer(self.OBS_STATE_PLAYING)
+            ctx = args[0]
+            if (ctx == self.__context_id):
+                print "Playing"
+                self.update_observer(self.OBS_PLAY)
             
         elif (cmd == src.OBS_STOPPED):
-            #self.__current_uri = ""
-            print "Stopped"            
-            ##self.__next_track()
-            #self.update_observer(self.OBS_STATE_PAUSED)
+            ctx = args[0]
+            if (ctx == self.__context_id):
+                print "Stopped"
+                self.update_observer(self.OBS_STOP)
+            
+        elif (cmd == src.OBS_NEW_STREAM_TRACK):
+            ctx, title = args
+            if (ctx == self.__context_id):
+                self.update_observer(self.OBS_TITLE, title)
             
         elif (cmd == src.OBS_POSITION):
             #ctx, pos, total = args
@@ -58,11 +70,20 @@ class InetRadioBackend(Observable):
         elif (cmd == src.OBS_EOF):
             ctx = args[0]
             if (ctx == self.__context_id):
-                #self.__current_uri = ""        
+                #self.__current_uri = ""
+                dialogs.error("Disconnected", "Stream has stopped unexpectedly.")
                 print "End of Track"
-                #self.set_title("")
-                #self.update_observer(self.OBS_STATE_PAUSED)
-                #self.__next_track()
+                self.update_observer(self.OBS_TITLE, "")
+                self.update_observer(self.OBS_STOP)
+                
+        
+        
+    def __show_error(self, errcode):
+    
+        if (errcode == self.__mplayer.ERR_INVALID):
+            dialogs.error("Invalid Stream", "Cannot load this stream.")
+        elif (errcode == self.__mplayer.ERR_NOT_FOUND):
+            dialogs.error("Not found", "Cannot find a stream to play.")
         
 
     def __tune(self, location):
@@ -70,10 +91,12 @@ class InetRadioBackend(Observable):
         self.__mplayer.set_window(-1)
         self.__mplayer.set_options("")
         
-        try:
-            self.__context_id = self.__mplayer.load(location)
-        except:
-            pass
+        self.__context_id = self.__mplayer.load(location)
+
+
+    def shutdown(self):
+    
+        pass
 
 
     def get_stations(self):
@@ -91,24 +114,41 @@ class InetRadioBackend(Observable):
             name, location = values    
             self.__stations.append((location, name))
             inetstations.save_stations(self.__stations)
-        
+            self.update_observer(self.OBS_ADD_STATION, location, name)
+            
         
     def remove_station(self, index):
     
         del self.__stations[index]
-        maemostations.save_stations(self.__stations)
+        inetstations.save_stations(self.__stations)
+        self.update_observer(self.OBS_REMOVE_STATION, index)
         
         
     def set_station(self, index):
             
         location, name = self.__stations[index]
         self.__tune(location)
-        self.update_observer(self.OBS_STATION_NAME, name)
+        self.update_observer(self.OBS_TITLE, name)
 
 
     def set_position(self, percent):
     
-        return
+        pass
+        
+        
+    def tune(self, percent):
+    
+        pass
+        
+        
+    def previous(self):
+    
+        pass
+        
+        
+    def next(self):
+    
+        pass
         
 
     def is_playing(self):
@@ -118,7 +158,7 @@ class InetRadioBackend(Observable):
         
     def play_pause(self):
     
-        self.__mplayer.pause()                
+        self.__mplayer.pause()
 
 
     def set_volume(self, volume):
