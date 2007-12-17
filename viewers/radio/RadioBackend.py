@@ -16,3 +16,5 @@ class RadioBackend(Observable):
     OBS_ADD_STATION = 5
     OBS_REMOVE_STATION = 6
     
+    OBS_MESSAGE = 7
+    

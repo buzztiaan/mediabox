@@ -31,7 +31,13 @@ class TrackInfo(gtk.HBox):
         self.__info.modify_font(theme.font_plain)
         self.__info.show()
         vbox.pack_start(self.__info, False, False, 24)
-                
+               
+               
+    def __escape_entities(self, s):
+    
+        return s.replace("<", "&lt;") \
+                .replace(">", "&gt;") \
+                .replace("&", "&amp;") 
 
 
     def set_cover(self, cover):
@@ -55,6 +61,8 @@ class TrackInfo(gtk.HBox):
         
     def set_info(self, album, artist):
     
+        album = self.__escape_entities(album)
+        artist = self.__escape_entities(artist)
         self.__info.set_markup("<b>Album:</b>\t%s\n"
                                "<b>Artist:</b>\t%s" \
                                % (album or "-", artist or "-"))

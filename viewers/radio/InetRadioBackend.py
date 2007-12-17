@@ -43,6 +43,11 @@ class InetRadioBackend(RadioBackend):
                 self.__show_error(err)
                 self.update_observer(self.OBS_ERROR)
             
+        elif (cmd == src.OBS_BUFFERING):
+            ctx = args[0]
+            if (ctx == self.__context_id):
+                self.update_observer(self.OBS_MESSAGE, "Buffering...")
+            
         elif (cmd == src.OBS_PLAYING):
             ctx = args[0]
             if (ctx == self.__context_id):
@@ -84,13 +89,22 @@ class InetRadioBackend(RadioBackend):
             dialogs.error("Invalid Stream", "Cannot load this stream.")
         elif (errcode == self.__mplayer.ERR_NOT_FOUND):
             dialogs.error("Not found", "Cannot find a stream to play.")
+        elif (errcode == self.__mplayer.ERR_CONNECTION_TIMEOUT):
+            dialogs.error("Timeout", "Connection timed out.")
+
         
 
     def __tune(self, location):
     
+        if (location.lower().endswith(".ram")):
+            dialogs.error("Unsupported Format",
+                          "Realaudio (.ram) is not supported.")
+            return
+    
         self.__mplayer.set_window(-1)
         self.__mplayer.set_options("")
         
+        self.update_observer(self.OBS_MESSAGE, "Connecting...")
         self.__context_id = self.__mplayer.load(location)
 
 

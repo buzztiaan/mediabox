@@ -81,9 +81,9 @@ class Thumbnailer(gtk.Window):
         
         thumbpath = self.get_thumbnail(uri)
         
-        self.__title.set_text(os.path.basename(uri))
+        self.__title.set_text(os.path.basename(uri))        
         try:
-            pbuf = self.__load_image(tn)
+            pbuf = self.__load_image(tn)            
             self.__thumbnail.set_from_pixbuf(pbuf)
             pbuf.save(thumbpath, "jpeg")
             del pbuf
@@ -106,14 +106,15 @@ class Thumbnailer(gtk.Window):
     
         thumb = self.get_thumbnail(uri)
         exists = os.path.exists(thumb)
-                
+
         if (exists and os.path.exists(uri)):
             if (os.path.getmtime(uri) > os.path.getmtime(thumb)):
                 exists = False
     
         if (not exists and self.__try_to_use_existing_thumb(uri)):
             exists = True    
-    
+
+        #if (not exists): print "NOT EXISTS", uri    
         return exists
        
        

@@ -56,9 +56,9 @@ class RadioViewer(Viewer):
               
         # add backends
         backends = []
-        if (maemo.get_product_code() in ["RX-34", "?"]):
+        if (maemo.get_product_code() in ["RX-34"]):
             backends.append(("FM Radio", theme.viewer_radio_fmradio,
-                             FMRadioBackend))
+                             FMRadioBackend))        
         backends.append(("Internet Radio", theme.viewer_radio_inetradio,
                          InetRadioBackend))
         
@@ -99,7 +99,11 @@ class RadioViewer(Viewer):
                     
     def __on_observe_backend(self, src, cmd, *args):
     
-        if (cmd == src.OBS_TITLE):
+        if (cmd == src.OBS_MESSAGE):
+            msg = args[0]
+            self.update_observer(self.OBS_SHOW_MESSAGE, msg)
+    
+        elif (cmd == src.OBS_TITLE):
             name = args[0]
             self.update_observer(self.OBS_TITLE, name)
             
@@ -113,11 +117,13 @@ class RadioViewer(Viewer):
             # see the current frequency
             while (gtk.events_pending()): gtk.main_iteration()
             
-        elif (cmd == src.OBS_ERROR):
+        elif (cmd == src.OBS_ERROR):        
             self.__list.hilight(-1)
+            self.update_observer(self.OBS_SHOW_PANEL)
             
         elif (cmd == src.OBS_PLAY):
             self.__is_on = True
+            self.update_observer(self.OBS_SHOW_PANEL)
             self.update_observer(self.OBS_STATE_PLAYING)
             
         elif (cmd == src.OBS_STOP):
@@ -147,6 +153,15 @@ class RadioViewer(Viewer):
         self.__list.clear_items()
         for location, name in self.__current_radio.get_stations():
             self.__append_station(location, name)
+        
+        
+    def is_available(self):
+    
+        # unsupported on the 770 atm
+        if (maemo.get_product_code() in ["SU-18"]):
+            return False
+        else:
+            return True
         
         
     def shutdown(self):
@@ -192,7 +207,7 @@ class RadioViewer(Viewer):
             
     def previous(self):
 
-        self.__list.hilight(-1)    
+        self.__list.hilight(-1)
         self.__current_radio.previous()
         
         
@@ -210,6 +225,8 @@ class RadioViewer(Viewer):
     def show(self):
     
         Viewer.show(self)
+        self.update_observer(self.OBS_REPORT_CAPABILITIES,
+                             self.__current_radio.CAPS)
         self.update_observer(self.OBS_SET_COLLECTION, self.__items)
         if (self.__is_on):
             self.update_observer(self.OBS_STATE_PLAYING)

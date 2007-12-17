@@ -83,7 +83,6 @@ class Item(gtk.gdk.Pixbuf):
         layout.set_text(label)
         layout.set_width((width - 96) * pango.SCALE)
         w, h = layout.get_pixel_size()
-        print w, h, x
         pmap.draw_layout(gc, x, (height - h) / 2, layout)
         
         self.get_from_drawable(pmap, cmap, 0, 0, 0, 0, width, height)

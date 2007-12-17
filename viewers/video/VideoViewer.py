@@ -24,6 +24,9 @@ _VIDEO_EXT = (".avi", ".flv", ".mov", ".mpeg",
               ".mpg", ".rm", ".wmv", ".asf",
               ".m4v", ".mp4", ".rmvb")
 
+_SIZE = (608, 388)
+_SIZE_FS = (800, 480)
+
 
 class VideoViewer(Viewer):
 
@@ -45,6 +48,7 @@ class VideoViewer(Viewer):
 
         self.__uri = ""
         self.__context_id = 0
+        self.__aspect_ratio = 1.0
 
 
         Viewer.__init__(self)                
@@ -143,7 +147,14 @@ class VideoViewer(Viewer):
            
         elif (cmd == src.OBS_ASPECT):
             ctx, ratio = args
+            self.__aspect_ratio = ratio
             self.__set_aspect_ratio(ratio)
+            
+            
+    def __get_size(self):
+    
+        if (self.__is_fullscreen): return _SIZE_FS
+        else: return _SIZE
             
             
     def __set_aspect_ratio(self, ratio):
@@ -154,7 +165,8 @@ class VideoViewer(Viewer):
         if (ratio == 0): return
         
         self.__screen.hide()
-        nil, nil, w, h = self.__box.get_allocation()
+        #nil, nil, w, h = self.__box.get_allocation()
+        w, h = self.__get_size()
         w2 = int(ratio * h)
         h2 = int(w / ratio)
          
@@ -165,6 +177,7 @@ class VideoViewer(Viewer):
         else:
             self.__screen.set_size_request(w2, h)
             w2, h2 = w2, h
+        self.__box.set_size_request(w, h)
         self.__box.move(self.__screen, (w - w2) / 2, (h - h2) / 2)
         self.__screen.show()
         while (gtk.events_pending()): gtk.main_iteration()
@@ -175,11 +188,15 @@ class VideoViewer(Viewer):
         Scales the video to fill the available space while retaining the
         original aspect ratio.
         """
-    
-        while (gtk.events_pending()): gtk.main_iteration()
-    
-        nil, nil, w, h = self.__box.get_allocation()
-        nil, nil, res_w, res_h = self.__screen.get_allocation()
+            
+        #while (gtk.events_pending()): gtk.main_iteration()
+        self.__set_aspect_ratio(self.__aspect_ratio)
+        return
+        """
+        #nil, nil, w, h = self.__box.get_allocation()
+        w, h = self.__get_size()
+        res_w, res_h = self.__screen.get_size_request() #allocation()
+        print w, h, res_w, res_h
         if (self.__mplayer.has_video()):
             factor = min(h / float(res_h), w / float(res_w))
             width = int(res_w * factor)
@@ -192,7 +209,7 @@ class VideoViewer(Viewer):
             height = self.__logo.get_height()
             self.__screen.set_size_request(width, height)
             self.__box.move(self.__screen, (w - width) / 2, (h - height) / 2)
-            
+        """ 
 
 
     def __is_video(self, uri):
@@ -209,12 +226,12 @@ class VideoViewer(Viewer):
     def make_item_for(self, uri, thumbnailer):
     
         if (os.path.isdir(uri)): return
-        if (not self.__is_video(uri)): return                
+        if (not self.__is_video(uri)): return
 
-        item = VideoItem(uri)        
-        if (not thumbnailer.has_thumbnail(uri)):
+        item = VideoItem(uri)
+        if (not thumbnailer.has_thumbnail(uri)):            
             # quick and dirty way of getting a video thumbnail
-            cmd = "mplayer -zoom -ss 30 -nosound " \
+            cmd = "mplayer -zoom -ss 10 -nosound " \
                   "-vo jpeg:outdir=\"%s\" -frames 3 -vf scale=134:-3  \"%s\"" \
                   " >/dev/null 2>&1" \
                   % ("/tmp", uri)
@@ -241,6 +258,7 @@ class VideoViewer(Viewer):
 
             thumbs = [ os.path.join("/tmp", f) for f in os.listdir("/tmp")
                        if f.startswith("00000") ]
+
             if (not thumbs): return
             thumbs.sort()
             thumb = thumbs[-1]
@@ -248,7 +266,7 @@ class VideoViewer(Viewer):
             thumbnailer.set_thumbnail_for_uri(uri, thumb)            
             os.system("rm -f /tmp/00000*.jpg")
         #end if
-        
+
         tn = VideoThumbnail(thumbnailer.get_thumbnail(uri),
                             os.path.basename(uri))
         item.set_thumbnail(tn)        
@@ -285,11 +303,11 @@ class VideoViewer(Viewer):
                     
                 try:
                     self.__context_id = self.__mplayer.load(uri)
-                    self.__mplayer.set_volume(self.__volume)
                 except:
                     return
-                
-                self.__scale_video()
+                                
+                #self.__scale_video()
+                self.__mplayer.set_volume(self.__volume)
                 self.__mplayer.show_text(os.path.basename(uri), 2000)
                 self.set_title(os.path.basename(uri))                
                 self.__uri = uri

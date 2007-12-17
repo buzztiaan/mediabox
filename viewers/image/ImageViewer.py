@@ -88,7 +88,7 @@ class ImageViewer(Viewer):
     
         if (os.path.isdir(uri)): return
         if (not self.__is_image(uri)): return
-                
+
         item = ImageItem(uri)
         if (not thumbnailer.has_thumbnail(uri)):
             thumbnailer.set_thumbnail_for_uri(uri, uri)

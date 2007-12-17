@@ -24,7 +24,7 @@ class Thumbnail(gtk.gdk.Pixbuf):
     
         gtk.gdk.Pixbuf.__init__(self, gtk.gdk.COLORSPACE_RGB, False,
                                 8, width, height)
-        gtk.gdk.Pixbuf.fill(self, 0x00000000L)
+        #gtk.gdk.Pixbuf.fill(self, 0x00000000L)
 
 
         #if (not self.__defer_list):

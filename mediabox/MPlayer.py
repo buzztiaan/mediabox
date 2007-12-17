@@ -30,9 +30,11 @@ class FileNotFoundError(MPlayerError): pass
 class InvalidFileError(MPlayerError): pass
 
 
+# value keys
 _NAME = 0
-_GENRE = 1
-_WEBSITE = 2
+_ARTIST = 1
+_GENRE = 2
+_WEBSITE = 3
 
 _ICY_INFO = 10
 
@@ -49,7 +51,9 @@ _LENGTH = 32
 _MAX_VALUES = 33
 
 
-_LOGGING = True
+# connection timeout in seconds
+_CONNECTION_TIMEOUT = 30
+_LOGGING = False
 
 
 class _MPlayer(Observable):
@@ -70,9 +74,12 @@ class _MPlayer(Observable):
     
     OBS_ASPECT = 8
     
+    OBS_BUFFERING = 9
+    
     # error codes
     ERR_INVALID = 0
     ERR_NOT_FOUND = 1
+    ERR_CONNECTION_TIMEOUT = 2
     
             
 
@@ -106,6 +113,7 @@ class _MPlayer(Observable):
         self.__total_length = 0
         self.__time_of_check = 0
         
+        self.__timeout_point = 0
         self.__next_time_check = 0
                 
         self.__context_id = 0
@@ -119,6 +127,7 @@ class _MPlayer(Observable):
         Reacts on end-of-file.
         """
 
+        self.stop()
         self.__playing = False
         self.__has_video = False
         self.__has_audio = False
@@ -171,7 +180,7 @@ class _MPlayer(Observable):
 
             # check for new track in stream
             if (self.__player_values[_ICY_INFO]):
-                title = self.__parse_icy_info(self.__player_values[_ICY_INFO])
+                title = self.__player_values[_ICY_INFO]
                 self.update_observer(self.OBS_NEW_STREAM_TRACK,
                                      self.__context_id, title)
                 self.__player_values[_ICY_INFO] = None
@@ -180,7 +189,7 @@ class _MPlayer(Observable):
             now = time.time()
             if (self.__player_values[_FILENAME]):
                 self.__next_time_check = now + 1
-            elif (now > self.__next_time_check):
+            elif (now > self.__next_time_check):            
                 self.__on_eof()
                 self.__next_time_check = now + 1
 
@@ -192,11 +201,23 @@ class _MPlayer(Observable):
     
         else:
             self.__idle_counter += 1
+            
+            # check for timeout
+            if (self.__timeout_point and not self.__broken and
+                time.time() > self.__timeout_point):
+                self.__timeout_point = 0
+                self.__broken = True
+                self.update_observer(self.OBS_ERROR, self.__context_id,
+                                     self.ERR_CONNECTION_TIMEOUT)
+                                     
+            
         #end if
         
         # close mplayer if we've been idle too long
         if (self.__idle_counter == 500):
             self.__idle_counter = 0
+            self.__stdin.close()
+            self.__stdout.close()
             self.__stop_mplayer()
             self.__heartbeat_running = False
             self.__needs_restart = True
@@ -204,6 +225,20 @@ class _MPlayer(Observable):
             return False
            
         gobject.timeout_add(500, self.__heartbeat)        
+
+
+    def __wait_for(self, key):
+    
+        cnt  = 0
+        while (not self.__player_values[key] and cnt < 500):
+            self.__collect_values()
+            time.sleep(0.001)
+            cnt += 1
+        print cnt
+
+    def wait_for_video_aspect(self):
+    
+        self.__wait_for(_VIDEO_ASPECT)
 
 
     def __send_cmd(self, data):
@@ -273,6 +308,8 @@ class _MPlayer(Observable):
             try:
                 self.__video_aspect = self.__player_values[_VIDEO_WIDTH] / \
                                       self.__player_values[_VIDEO_HEIGHT]
+                self.__player_values[_VIDEO_ASPECT] = self.__video_aspect
+                self.__send_cmd("switch_ratio %f" % self.__video_aspect)
                 self.update_observer(self.OBS_ASPECT, self.__context_id,
                                      self.__video_aspect)
             except:
@@ -286,10 +323,25 @@ class _MPlayer(Observable):
             self.__player_values[_WEBSITE] = self.__read_info(data)
        
         elif (data.startswith("ICY Info: ")):
-            self.__player_values[_ICY_INFO] = self.__read_info(data)
+            self.__player_values[_ICY_INFO] = \
+              self.__parse_icy_info(self.__read_info(data))
+            
+        elif (data.startswith("Demuxer info Name changed to ")):
+            idx = data.find("changed to ")
+            name = data[idx + 11:].strip()
+            self.__player_values[_NAME] = name
+            self.__player_values[_ICY_INFO] = name
+
+        elif (data.startswith("Demuxer info Artist changed to ")):
+            idx = data.find("changed to ")
+            artist = data[idx + 11:].strip()
+            self.__player_values[_ARTIST] = artist
+            self.__player_values[_ICY_INFO] = self.__player_values[_NAME] + \
+                                              " - " + artist
         
         elif (data.startswith("Starting playback...")):
             self.__playing = True
+            self.__timeout_point = 0
             self.__media_length = -1
             self.update_observer(self.OBS_PLAYING, self.__context_id)
             
@@ -301,6 +353,8 @@ class _MPlayer(Observable):
             self.__broken = True
             self.update_observer(self.OBS_ERROR, self.__context_id,
                                  self.ERR_NOT_FOUND)
+        elif (data.startswith("Cache size set to ")):
+            self.update_observer(self.OBS_BUFFERING, self.__context_id)
         elif (data.endswith("No stream found.\n")):
             self.__broken = True
             self.update_observer(self.OBS_ERROR, self.__context_id,
@@ -469,17 +523,19 @@ class _MPlayer(Observable):
 
         self.__player_values[_FILENAME] = filename
 
-        cnt = 0
-        while (not self.__playing and not self.__broken):
-            self.__collect_values()
-            time.sleep(0.01)
-            #print "CNT", cnt
-            if (cnt == 5000):
-                self.__broken = True
-                break
-                
-            cnt += 1
+        #cnt = 0
+        #while (not self.__playing and not self.__broken):
+        #    self.__collect_values()
+        #    time.sleep(0.01)
+        #    #print "CNT", cnt
+        #    if (cnt == 5000):
+        #        self.__broken = True
+        #        break
+        #        
+        #    cnt += 1
         #end while
+        
+        self.__timeout_point = time.time() + _CONNECTION_TIMEOUT
 
         if (ctx_id != -1):
             self.__context_id = ctx_id

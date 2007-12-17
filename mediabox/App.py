@@ -167,6 +167,7 @@ class App(object):
 
         cnt = 0
         print "building"
+        now = time.time()
         for uri in collection:
             cnt += 1
             thumbnailer.set_progress(cnt, total)
@@ -177,6 +178,7 @@ class App(object):
             #self.__ctrlbar.set_progress(cnt, total)
             #while (gtk.events_pending()): gtk.main_iteration()            
         #end for
+        print "Took", time.time() - now
         
         self.__ctrlbar.show_panel()
         
