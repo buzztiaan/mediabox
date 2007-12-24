@@ -32,7 +32,7 @@ class CardThemeSelector(PrefsCard):
         kscr = KineticScroller(self.__list)
         kscr.add_observer(self.__on_observe_list)
         kscr.show()
-        box.pack_start(kscr, True, True, 10)
+        box.pack_start(kscr, True, True, 12)
         
         self.__update_list()
         

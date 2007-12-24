@@ -259,7 +259,7 @@ class ImageStrip(gtk.DrawingArea):
         
     def set_offset(self, offset):
     
-        w, h = self.get_size()
+        w, h = self.get_size()        
         offset = min(offset, max(0, self.__totalsize - h))
         self.__offset = offset
         
@@ -481,7 +481,7 @@ class ImageStrip(gtk.DrawingArea):
         
             # offset must be between these values to make the item visible
             offset2 = (self.__itemsize + self.__gapsize) * idx
-            offset1 = offset2 - (h - self.__itemsize)          
+            offset1 = (self.__itemsize + self.__gapsize) * idx - (h - (self.__itemsize + self.__gapsize))
 
             if (self.__offset < offset1):
                 self.move(0, 10)
@@ -495,5 +495,9 @@ class ImageStrip(gtk.DrawingArea):
 
                         
         if (not self.__is_scrolling):
+            w, h = self.get_size()
+            if (h == 0 or self.__totalsize <= h): return
+            
             self.__is_scrolling = True
             gobject.timeout_add(5, f, idx)
+                

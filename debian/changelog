@@ -1,3 +1,10 @@
+mediabox (0.92.1) unstable; urgency=low
+
+  * fixed bug in clock module which caused MediaBox to hang during startup
+  during winter season.
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Mon, 24 Dec 2007 13:15:00 +0100
+
 mediabox (0.92) unstable; urgency=low
 
   * fixed bugs

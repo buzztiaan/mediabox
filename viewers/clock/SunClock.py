@@ -105,7 +105,7 @@ class SunClock(gtk.DrawingArea):
         start_winter = _START_WINTER_2005 + years_since * _DELTA_WINTER
     
         now = datetime.datetime.utcnow()
-        if (start_winter <= now < start_spring):
+        if (now < start_spring):
             return 0
         elif (start_spring <= now < start_summer):
             return 1
@@ -113,6 +113,8 @@ class SunClock(gtk.DrawingArea):
             return 2
         elif (start_autumn <= now < start_winter):
             return 3
+        else:
+            return 0
         
         
     def update(self):
