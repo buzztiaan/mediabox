@@ -1,6 +1,6 @@
 NAME = "MediaBox"
 OSSO_NAME = "de.pycage.mediabox"
-VERSION = "0.92.1"
+VERSION = "0.93svn"
 
 AUTHORS = ["Martin Grimme  <martin.grimme@lintegra.de>"]
 COPYRIGHT = "\xc2\xa9 2007 Martin Grimme"
