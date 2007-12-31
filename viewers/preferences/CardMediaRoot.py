@@ -2,6 +2,7 @@ from PrefsCard import PrefsCard
 from ui.Item import Item
 from ui.ItemList import ItemList
 from ui.KineticScroller import KineticScroller
+from ui.ImageButton import ImageButton
 from mediabox import config
 import theme
 
@@ -14,47 +15,44 @@ except:
 
 class CardMediaRoot(PrefsCard):
 
-    def __init__(self, title):
+    def __init__(self, esens, title):
+    
+        self.__toplevel = esens.get_toplevel()
     
         self.__mediaroots = config.mediaroot()
     
-        PrefsCard.__init__(self, title)          
+        PrefsCard.__init__(self, esens, title)          
     
-        self.__list = ItemList(600, 80)
+        self.__list = ItemList(esens, 600, 80)
         self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 368))
         self.__list.set_graphics(theme.item, theme.item_active)        
         self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)
-        self.__list.show()
-        
-        box = gtk.HBox()
-        box.show()
-        self.pack_start(box, True, True)
-        
+        self.__list.set_pos(10, 0)
+        self.__list.set_size(600, 280)
+        self.add(self.__list)
+
         kscr = KineticScroller(self.__list)
         kscr.add_observer(self.__on_observe_list)
-        kscr.show()
-        box.pack_start(kscr, True, True, 12)
 
-        hbox = gtk.HBox()
-        hbox.show()
-        icon = gtk.Image()
-        icon.set_from_pixbuf(theme.prefs_folder)
-        icon.show()
-        hbox.pack_start(icon, False, False, 12)
-        lbl = gtk.Label("Add Folder")
-        lbl.modify_font(theme.font_plain)
-        lbl.show()
-        hbox.pack_start(lbl, False, False, 12)
-
-        btn = gtk.Button()
-        btn.add(hbox)
-        btn.connect("clicked", self.__on_add_folder)
-        btn.show()
-        self.pack_start(btn, False, False)
+        btn = ImageButton(esens, theme.prefs_folder, theme.prefs_folder)
+        btn.set_pos(10, 280)
+        btn.set_size(600, 70)
+        btn.connect(btn.EVENT_BUTTON_RELEASE, self.__on_add_folder)        
+        self.add(btn)
         
         self.__build_list()
         
+        
+    def render_this(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        screen.fill_area(x + 10, y + 280, 600, 70, "#dddddd")
+        
+
         
     def __build_list(self):
     
@@ -66,12 +64,12 @@ class CardMediaRoot(PrefsCard):
                 idx = self.__list.append_item(mroot)
             self.__list.overlay_image(idx, theme.remove, 540, 24)
 
-        
-    def __on_add_folder(self, src):
+
+    def __on_add_folder(self, x, y):
     
         try:
             # Maemo
-            dirchooser = hildon.FileChooserDialog(self.get_toplevel(),
+            dirchooser = hildon.FileChooserDialog(self.__toplevel,
                                action = gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
             dirchooser.set_title("Choose a directory")
         except:     

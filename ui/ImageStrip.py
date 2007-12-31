@@ -1,25 +1,26 @@
+from Widget import Widget
+from Pixmap import Pixmap
+
 import gtk
 import gobject
+import threading
 
 
 _BPP = gtk.gdk.get_default_root_window().get_depth()
 
 
-class ImageStrip(gtk.DrawingArea):
+class ImageStrip(Widget):
     """
     Class for rendering a scrollable strip of images.
     """
 
-    def __init__(self, width, itemsize, gapsize):
+    def __init__(self, edect, width, itemsize, gapsize):
     
         self.__pbuf_cache = {}
         self.__arrows = None
         self.__arrows_save_under = None
     
-        gtk.DrawingArea.__init__(self)
-        self.connect("expose-event", self.__on_expose)
-        #self.set_double_buffered(False)
-        self.set_size_request(width, -1)
+        Widget.__init__(self, edect)
 
         self.__images = []
         self.__bg = None
@@ -43,27 +44,7 @@ class ImageStrip(gtk.DrawingArea):
         # whether to display a slider
         self.__show_slider = False
 
-        
-        def f():
-            # retrieve canvas and gc once they're available
-            if (not self.window):
-                gobject.timeout_add(500, f)
-                return
-            else:
-                self.__canvas = self.window
-                self.__gc = self.__canvas.new_gc()
-                self.__cmap = self.__canvas.get_colormap()
-                gobject.timeout_add(100, self.render_full)
-            
-        gobject.idle_add(f)        
-        
-        
-        
-    def __on_expose(self, src, ev):
-    
-        self.render_full()
-    
-    
+
     def __to_pixbuf(self, obj):
     
         if (hasattr(obj, "add_alpha")):
@@ -87,13 +68,9 @@ class ImageStrip(gtk.DrawingArea):
             return pbuf
     
     
-    def get_size(self):
-    
-        win = self.window
-        if (win):
-            return win.get_size()
-        else:
-            return (0, 0)
+    #def get_size(self):
+    #
+    #    return self.__size
     
         
     def set_background(self, bg):
@@ -116,8 +93,8 @@ class ImageStrip(gtk.DrawingArea):
             arrow_down = arrows.subpixbuf(0, h2, w, h2)
             self.__arrows = (arrow_up, arrow_down)
             
-            pmap1 = gtk.gdk.Pixmap(None, w, h2, _BPP)
-            pmap2 = gtk.gdk.Pixmap(None, w, h2, _BPP)
+            pmap1 = Pixmap(None, w, h2)
+            pmap2 = Pixmap(None, w, h2)
             self.__arrows_save_under = (pmap1, pmap2)
         else:
             self.__arrows = None
@@ -149,14 +126,15 @@ class ImageStrip(gtk.DrawingArea):
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)
         
         self.__offset = 0
-        self.queue_draw()        
+        #self.queue_draw()        
         
         
     def append_image(self, img):
     
         self.__images.append(self.__to_pixbuf(img))
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)
-        self.queue_draw()
+        #self.queue_draw()
+        self.render()
         
         return len(self.__images) - 1
                         
@@ -166,7 +144,8 @@ class ImageStrip(gtk.DrawingArea):
        img = self.__images[idx]
        self.__images[idx] = self.__to_pixbuf(image)           
        del img
-       self.queue_draw()       
+       #self.queue_draw()
+       self.render()
 
        
        
@@ -175,8 +154,9 @@ class ImageStrip(gtk.DrawingArea):
         del self.__images[idx]
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)        
         self.__offset = 0
-        self.queue_draw()
-        
+        #self.queue_draw()
+        self.render()
+
         
     def overlay_image(self, idx, img, x, y):
     
@@ -186,7 +166,8 @@ class ImageStrip(gtk.DrawingArea):
         pbuf.composite(sub, 0, 0, pbuf.get_width(), pbuf.get_height(),
                        0, 0, 1, 1,
                        gtk.gdk.INTERP_NEAREST, 0xff)
-        self.queue_draw()
+        #self.queue_draw()
+        self.render()
         
         
     def set_wrap_around(self, value):
@@ -259,56 +240,80 @@ class ImageStrip(gtk.DrawingArea):
         
     def set_offset(self, offset):
     
-        w, h = self.get_size()        
+        w, h = self.get_size()
         offset = min(offset, max(0, self.__totalsize - h))
         self.__offset = offset
         
         
     def __render_arrows(self):
-    
-        if (not self.__canvas): return
-    
+
+        if (not self.may_render()): return
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+
         arrow_up, arrow_down = self.__arrows
         arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
-        w, h = self.get_size()
         
         pmap1, pmap2 = self.__arrows_save_under
-        pmap1.draw_drawable(pmap1.new_gc(), self.__canvas,
-                            (w - arrow_width) / 2, 0, 0, 0,
-                            arrow_width, arrow_height)
-        pmap2.draw_drawable(pmap2.new_gc(), self.__canvas,
-                            (w - arrow_width) / 2, h - arrow_height, 0, 0,
-                            arrow_width, arrow_height)
+        pmap1.copy_pixmap(screen, x + (w - arrow_width) / 2, y, 0, 0,
+                          arrow_width, arrow_height)
+        #pmap1.draw_drawable(pmap1.new_gc(), self.__canvas,
+        #                    (w - arrow_width) / 2, 0, 0, 0,
+        #                    arrow_width, arrow_height)
+        pmap2.copy_pixmap(screen,
+                          x + (w - arrow_width) / 2, y + h - arrow_height, 0, 0,
+                          arrow_width, arrow_height)        
+        #pmap2.draw_drawable(pmap2.new_gc(), self.__canvas,
+        #                    (w - arrow_width) / 2, h - arrow_height, 0, 0,
+        #                    arrow_width, arrow_height)
 
-        if (self.__offset > 0):        
-            self.__canvas.draw_pixbuf(self.__gc, arrow_up,
-                                      0, 0, (w - arrow_width) / 2, 0,
-                                      arrow_width, arrow_height)
+        if (self.__offset > 0):
+            screen.draw_pixbuf(arrow_up, x + (w - arrow_width) / 2, y)
+            #self.__canvas.draw_pixbuf(self.__gc, arrow_up,
+            #                          0, 0, (w - arrow_width) / 2, 0,
+            #                          arrow_width, arrow_height)
 
         if (self.__offset < self.__totalsize - h):
-            self.__canvas.draw_pixbuf(self.__gc, arrow_down,
-                                  0, 0, (w - arrow_width) / 2, h - arrow_height,
-                                      arrow_width, arrow_height)
+            screen.draw_pixbuf(arrow_down,
+                               x + (w - arrow_width) / 2, y + h - arrow_height)
+            #self.__canvas.draw_pixbuf(self.__gc, arrow_down,
+            #                      0, 0, (w - arrow_width) / 2, h - arrow_height,
+            #                          arrow_width, arrow_height)
 
 
     def __unrender_arrows(self):
 
-        if (not self.__canvas): return
-            
+        if (not self.may_render()): return
+        
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+
         arrow_up, arrow_down = self.__arrows
         arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
-        w, h = self.get_size()
 
         pmap1, pmap2 = self.__arrows_save_under
-        self.__canvas.draw_drawable(self.__gc, pmap1,
-                                    0, 0, (w - arrow_width) / 2, 0,
-                                   arrow_width, arrow_height)
-        self.__canvas.draw_drawable(self.__gc, pmap2,
-                                  0, 0, (w - arrow_width) / 2, h - arrow_height,
-                                    arrow_width, arrow_height)
+        screen.copy_pixmap(pmap1,
+                           0, 0,
+                           x + (w - arrow_width) / 2, y,
+                           arrow_width, arrow_height)
+        #self.__canvas.draw_drawable(self.__gc, pmap1,
+        #                            0, 0, (w - arrow_width) / 2, 0,
+        #                           arrow_width, arrow_height)
+        screen.copy_pixmap(pmap2,
+                           0, 0,
+                           x + (w - arrow_width) / 2, y + h - arrow_height,
+                           arrow_width, arrow_height)
+        #self.__canvas.draw_drawable(self.__gc, pmap2,
+        #                          0, 0, (w - arrow_width) / 2, h - arrow_height,
+        #                            arrow_width, arrow_height)
         
         
     def __render_slider(self):
+
+        if (not self.may_render()): return
     
         w, h = self.get_size()
         if (self.__totalsize > 0):
@@ -344,6 +349,9 @@ class ImageStrip(gtk.DrawingArea):
 
         
         
+    def render_this(self):
+    
+        self.render_full()
         
         
     def render_full(self):
@@ -360,15 +368,18 @@ class ImageStrip(gtk.DrawingArea):
         
     def __render(self, render_offset, render_height):
    
-        if (not self.__canvas): return
+        if (not self.may_render()): return
 
         blocksize = self.__itemsize + self.__gapsize
         render_to = render_offset + render_height
 
+        x, y = self.get_screen_pos()
         w, h = self.get_size()
-
-        while (self.__images and render_offset < render_to):
+        screen = self.get_screen()
+        
+        while (self.__images and render_offset < render_to):            
             idx = ((self.__offset + render_offset) / blocksize)
+
             # wrap around is not available when there are too few items
             if (self.__wrap_around and h < self.__totalsize):
                 idx %= len(self.__images)
@@ -381,18 +392,23 @@ class ImageStrip(gtk.DrawingArea):
 
             if (remain > 0):
                 pbuf = self.__images[idx]
-                self.__canvas.draw_pixbuf(self.__gc, pbuf,
-                                          0, img_offset, 0, render_offset,
-                                          pbuf.get_width(), remain)
+                screen.draw_subpixbuf(pbuf, 0, img_offset, x, y + render_offset,
+                                      pbuf.get_width(), remain)
+                #self.__canvas.draw_pixbuf(self.__gc, pbuf,
+                #                          0, img_offset, 0, render_offset,
+                #                          pbuf.get_width(), remain)
 
             render_offset += (remain + self.__gapsize)
         #end while
-
+        
         if (self.__bg):
             if (render_offset < render_to):
-                self.__canvas.draw_pixbuf(self.__gc, self.__bg,
-                                          0, render_offset, 0, render_offset,
-                                          w, render_to - render_offset)
+                screen.draw_subpixbuf(self.__bg,
+                                      0, render_offset, x, y + render_offset,
+                                      w, render_to - render_offset)
+                #self.__canvas.draw_pixbuf(self.__gc, self.__bg,
+                #                          0, render_offset, 0, render_offset,
+                #                          w, render_to - render_offset)
         
             gap_offset = 0 - (self.__offset % blocksize) - self.__gapsize
 
@@ -408,10 +424,14 @@ class ImageStrip(gtk.DrawingArea):
                     remain = min(self.__gapsize, h - render_offset)
                     
                 if (remain > 0):
-                    self.__canvas.draw_pixbuf(self.__gc, self.__bg,
-                                              0, render_offset, 0, render_offset,
-                                              min(w, self.__bg.get_width()),
-                                              min(remain, self.__bg.get_height()))
+                    screen.draw_subpixbuf(self.__bg,
+                                       0, render_offset, x, y + render_offset,
+                                       min(w, self.__bg.get_width()),
+                                       min(remain, self.__bg.get_height()))
+                    #self.__canvas.draw_pixbuf(self.__gc, self.__bg,
+                    #                          0, render_offset, 0, render_offset,
+                    #                          min(w, self.__bg.get_width()),
+                    #                          min(remain, self.__bg.get_height()))
 
                 gap_offset += blocksize
             #end while
@@ -426,10 +446,11 @@ class ImageStrip(gtk.DrawingArea):
         Scrolls the image strip by the given positive or negative amount.
         """
                 
-        if (not self.__images): return
-                        
+        if (not self.__images): return     
 
+        x, y = self.get_screen_pos()
         w, h = self.get_size()
+        screen = self.get_screen()
         
         if (not (self.__wrap_around and h < self.__totalsize)):
             if (self.__offset + delta > self.__totalsize - h):
@@ -446,24 +467,20 @@ class ImageStrip(gtk.DrawingArea):
         elif (self.__offset > self.__totalsize):
             self.__offset -= self.__totalsize
             
-        if (not self.__canvas): return
 
+        if (not self.may_render()): return
 
         if (self.__arrows):
             self.__unrender_arrows()
             
         if (delta > 0):
-            self.__canvas.draw_drawable(self.__gc, self.__canvas,
-                                        0, delta, 0, 0,
-                                        self.__itemwidth, h - delta)
-
+            screen.copy_pixmap(screen, x, y + delta, x, y,
+                               self.__itemwidth, h - delta)
             self.__render(h - delta, delta)
 
         elif (delta < 0):
-            self.__canvas.draw_drawable(self.__gc, self.__canvas,
-                                        0, 0, 0, abs(delta),
-                                        self.__itemwidth, h - abs(delta))
-                                        
+            screen.copy_pixmap(screen, x, y, x, y + abs(delta),
+                               self.__itemwidth, h - abs(delta))
             self.__render(0, abs(delta))
             
         if (self.__arrows):
@@ -475,13 +492,14 @@ class ImageStrip(gtk.DrawingArea):
         """
         Scrolls to bring the given item into view.
         """
+
+        w, h = self.get_size()
         
         def f(idx):
-            w, h = self.get_size()
         
             # offset must be between these values to make the item visible
             offset2 = (self.__itemsize + self.__gapsize) * idx
-            offset1 = (self.__itemsize + self.__gapsize) * idx - (h - (self.__itemsize + self.__gapsize))
+            offset1 = offset2 - (h - self.__itemsize)          
 
             if (self.__offset < offset1):
                 self.move(0, 10)
@@ -492,12 +510,57 @@ class ImageStrip(gtk.DrawingArea):
                 return False
 
             return True
-
                         
         if (not self.__is_scrolling):
-            w, h = self.get_size()
-            if (h == 0 or self.__totalsize <= h): return
+            offset2 = (self.__itemsize + self.__gapsize) * idx
+            offset1 = offset2 - (h - self.__itemsize)          
+            if (not offset1 <= self.__offset <= offset2):
+                self.__is_scrolling = True
+                gobject.timeout_add(5, f, idx)
             
-            self.__is_scrolling = True
-            gobject.timeout_add(5, f, idx)
+            
+    def fx_slide_in(self, wait = True):
+    
+        STEP = 8
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+
+        buf = Pixmap(None, x + w, y + h)
+        self.render_at(buf)
+        finished = threading.Event()
+        
+        def f(i):
+            screen.copy_pixmap(screen, x, y, x + STEP, y, w - STEP, h)
+            screen.copy_pixmap(buf, w - i - STEP, 0, x, y, STEP, h)
+            if (i < w - STEP):
+                gobject.timeout_add(5, f, i + STEP)
+            else:
+                finished.set()
                 
+        f(0)
+        while (wait and not finished.isSet()): gtk.main_iteration()
+        
+
+    def fx_slide_out(self, wait = True):
+    
+        STEP = 8
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        finished = threading.Event()
+
+        def f(i):
+            import theme
+            screen.copy_pixmap(screen, x + STEP, y, x, y, w - i, h)
+            screen.draw_subpixbuf(theme.background, x + w - i, y, x + w - i, y,
+                                  STEP, h)
+            #screen.copy_pixmap(buf, x + w - i - 4, y, x, y, 4, h)
+            if (i < w):
+                gobject.timeout_add(5, f, i + STEP)
+            else:
+                finished.set()
+
+        f(0)
+        while (wait and not finished.isSet()): gtk.main_iteration()
+

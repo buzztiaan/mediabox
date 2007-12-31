@@ -11,28 +11,24 @@ import gtk
 
 class CardThemeSelector(PrefsCard):
 
-    def __init__(self, title):        
+    def __init__(self, esens, title):        
     
         self.__themes = []
         
     
-        PrefsCard.__init__(self, title)
+        PrefsCard.__init__(self, esens, title)
 
-        box = gtk.HBox()
-        box.show()
-        self.pack_start(box, True, True)
-    
-        self.__list = ItemList(600, 80)
+        self.__list = ItemList(esens, 600, 80)
         self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 368))
         self.__list.set_graphics(theme.item, theme.item_active)
         self.__list.set_font(theme.font_plain)
-        self.__list.set_arrows(theme.arrows)                
-        self.__list.show()
+        self.__list.set_arrows(theme.arrows)
+        self.__list.set_pos(10, 0)
+        self.__list.set_size(600, 350)
+        self.add(self.__list)
             
         kscr = KineticScroller(self.__list)
         kscr.add_observer(self.__on_observe_list)
-        kscr.show()
-        box.pack_start(kscr, True, True, 12)
         
         self.__update_list()
         

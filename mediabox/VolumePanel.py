@@ -6,19 +6,29 @@ import gtk
 
 class VolumePanel(Panel):
 
-    def __init__(self):
+    def __init__(self, esens):
        
-        Panel.__init__(self, False)
+        self.__volume_level = 0
+       
+        Panel.__init__(self, esens, False)
+
+
+    def render_this(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
         
-        self.__volume = gtk.Image()
-        self.__volume.set_from_pixbuf(theme.speaker_volume)
-        self.__volume.set_alignment(0.0, 0.5)        
-        self.__volume.show()
-        self.box.pack_start(self.__volume, False, False, 50)
+        screen.draw_pixbuf(theme.panel, x, y)
+        #self.set_volume(self.__volume_level)
+
+        width = 64 + int(636 * (self.__volume_level / 100.0))
+        screen.draw_subpixbuf(theme.speaker_volume, 0, 0, x + 50, y + 8, width, 64)
+        screen.draw_subpixbuf(theme.panel, width, 0, x + 50 + width, y, w - width, h)        
+
 
 
     def set_volume(self, percent):
     
-        width = 64 + int(636 * (percent / 100.0))
-        self.__volume.set_from_pixbuf(theme.speaker_volume.subpixbuf(0, 0, width, 64))
+        self.__volume_level = percent
 

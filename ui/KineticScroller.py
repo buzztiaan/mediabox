@@ -9,7 +9,7 @@ _SCROLL_DELAY = 7
 _TAP_AND_HOLD_DELAY = 500
 
 
-class KineticScroller(gtk.EventBox, Observable):
+class KineticScroller(Observable):
     """
     Class for adding kinetic scrolling to a child widget. The child must
     implement a move(dx, dy) method.
@@ -31,6 +31,7 @@ class KineticScroller(gtk.EventBox, Observable):
         self.__dragging_from = (0, 0)
         self.__drag_pointer = (0, 0)
         self.__drag_begin = 0
+        self.__pointer = (0, 0)
         
         # whether kinetic scrolling is enabled
         self.__kinetic_enabled = True
@@ -50,13 +51,9 @@ class KineticScroller(gtk.EventBox, Observable):
         # whether the impulse handler is running
         self.__impulse_handler_running = False
 
-    
-        gtk.EventBox.__init__(self)
-        self.add(child)
-        
-        self.connect("button-press-event", self.__on_drag_start)
-        self.connect("button-release-event", self.__on_drag_stop)
-        self.connect("motion-notify-event", self.__on_drag)
+        child.connect(child.EVENT_BUTTON_PRESS, self.__on_drag_start)
+        child.connect(child.EVENT_BUTTON_RELEASE, self.__on_drag_stop)
+        child.connect(child.EVENT_MOTION, self.__on_drag)
 
      
     def impulse(self, force_x, force_y):
@@ -109,7 +106,7 @@ class KineticScroller(gtk.EventBox, Observable):
     def __check_for_click(self):
     
         if (self.__might_be_click):        
-            px, py = self.get_pointer()
+            px, py = self.__pointer
             fx, fy = self.__dragging_from
             
             dx = abs(fx - px)
@@ -127,7 +124,7 @@ class KineticScroller(gtk.EventBox, Observable):
     
         if (not self.__is_dragging): return
         
-        px, py = self.get_pointer()
+        px, py = self.__pointer
             
         dx = abs(fx - px)
         dy = abs(fy - py)
@@ -138,9 +135,10 @@ class KineticScroller(gtk.EventBox, Observable):
             self.update_observer(self.OBS_TAP_AND_HOLD, px, py)
                 
         
-    def __on_drag_start(self, src, ev):
+    def __on_drag_start(self, px, py):
     
-        px, py = self.get_pointer()
+        self.__pointer = (px, py)
+    
         self.__is_dragging = True
         self.__drag_pointer = (px, py)
         self.__dragging_from = (px, py)
@@ -162,7 +160,9 @@ class KineticScroller(gtk.EventBox, Observable):
                 
                 
         
-    def __on_drag_stop(self, src, ev):
+    def __on_drag_stop(self, px, py):
+
+        self.__pointer = (px, py)
     
         if (not self.__is_dragging): return
         
@@ -183,10 +183,11 @@ class KineticScroller(gtk.EventBox, Observable):
         gobject.timeout_add(500, f)
         
         
-    def __on_drag(self, src, ev):
+    def __on_drag(self, px, py):
+
+        self.__pointer = (px, py)
             
         if (self.__is_dragging):
-            px, py = self.get_pointer()
             now = time.time()            
 
             if (self.__drag_pointer == (px, py)): return

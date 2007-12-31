@@ -1,3 +1,4 @@
+from ui.EventSensor import EventSensor
 import config
 
 import gtk
@@ -17,7 +18,7 @@ _Window = IS_MAEMO and hildon.Window or gtk.Window
 
 
 
-class MainWindow(_Window):
+class MainWindow(_Window, EventSensor):
 
     def __init__(self):
     
@@ -29,13 +30,12 @@ class MainWindow(_Window):
             self.set_decorated(False)
 
         self.set_size_request(800, 480)
-
-        self._hbox = gtk.HBox()
-        self._hbox.show()
-        
+       
         self._fixed = gtk.Fixed()
         self._fixed.show()
-        self.add(self._fixed)      
+        self.add(self._fixed)
+
+        EventSensor.__init__(self, self)
 
 
     def put(self, child, x, y):

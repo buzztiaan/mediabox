@@ -1,4 +1,8 @@
 from AlbumViewer import AlbumViewer
 
-def get_viewer(): return AlbumViewer()
+def is_available():
+
+    return True
+
+def get_viewer(): return AlbumViewer
 

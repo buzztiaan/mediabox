@@ -27,12 +27,10 @@ class AlbumViewer(Viewer):
     ICON_ACTIVE = theme.viewer_music_active
     PRIORITY = 20
     CAPS = caps.PLAYING | caps.SKIPPING | caps.POSITIONING
-    BORDER_WIDTH = 0
-    IS_EXPERIMENTAL = False
     
 
-    def __init__(self):
-    
+    def __init__(self, esens):
+
         self.__items = []
         self.__is_fullscreen = False
     
@@ -46,27 +44,25 @@ class AlbumViewer(Viewer):
         
         self.__context_id = 0       
     
-        Viewer.__init__(self)
+        Viewer.__init__(self, esens)
     
-        box = gtk.HBox()
-        self.set_widget(box)
-        
-        self.__list = ItemList(600, 80)
+        self.__list = ItemList(esens, 600, 80)
+        self.add(self.__list)
+        self.__list.set_size(600, 400)        
+        self.__list.set_pos(10, 0)
         self.__list.set_background(theme.background.subpixbuf(185, 0, 600, 400))
         self.__list.set_graphics(theme.item, theme.item_active)
         self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)
-        self.__list.show()
+
         self.__kscr = KineticScroller(self.__list)
         self.__kscr.add_observer(self.__on_observe_scroller)
-        self.__kscr.show()
-        box.pack_start(self.__kscr, True, True, 10)
         
-        self.__trackinfo = TrackInfo()
-        box.pack_start(self.__trackinfo, True, True, 0)
+        self.__trackinfo = TrackInfo(esens)
+        self.__trackinfo.set_visible(False)
+        self.add(self.__trackinfo)
         
-
-
+        
     def __is_album(self, uri):
 
         files = os.listdir(uri)
@@ -215,7 +211,7 @@ class AlbumViewer(Viewer):
     
         self.__mplayer.set_window(-1)
         self.__mplayer.set_options("")
-        self.__list.hilight(idx)            
+        self.__list.hilight(idx)
             
         def f():    
             track = self.__tracks[idx]
@@ -229,7 +225,7 @@ class AlbumViewer(Viewer):
                 title = tags.get("TITLE", os.path.basename(track))
                 album = tags.get("ALBUM", os.path.basename(track))
                 artist = tags.get("ARTIST", os.path.basename(track))
-                self.__list.hilight(idx)
+
                 self.set_title(title)
                 self.__trackinfo.set_title(title)
                 self.__trackinfo.set_info(album, artist)
@@ -293,7 +289,7 @@ class AlbumViewer(Viewer):
         gobject.idle_add(f)
 
         
-    def increment(self):
+    def do_increment(self):
     
         if (self.__volume + 5 <= 100):
             self.__volume += 5
@@ -301,7 +297,7 @@ class AlbumViewer(Viewer):
         self.update_observer(self.OBS_VOLUME, self.__volume)
         
         
-    def decrement(self):
+    def do_decrement(self):
 
         if (self.__volume - 5 >= 0):
             self.__volume -= 5
@@ -309,22 +305,22 @@ class AlbumViewer(Viewer):
         self.update_observer(self.OBS_VOLUME, self.__volume)        
         
     
-    def set_position(self, pos):
+    def do_set_position(self, pos):
     
         self.__mplayer.seek_percent(pos)
 
 
-    def play_pause(self):
+    def do_play_pause(self):
     
         self.__mplayer.pause()
 
     
-    def previous(self):
+    def do_previous(self):
         
         self.__previous_track()
 
         
-    def next(self):
+    def do_next(self):
     
         self.__next_track()
         
@@ -335,16 +331,22 @@ class AlbumViewer(Viewer):
         self.update_observer(self.OBS_SET_COLLECTION, self.__items)
 
 
-    def fullscreen(self):
+    def do_fullscreen(self):
     
         self.__is_fullscreen = not self.__is_fullscreen
         
         if (self.__is_fullscreen):
-            self.__kscr.hide()
-            self.__trackinfo.show()
-            self.update_observer(self.OBS_HIDE_COLLECTION)
+            #self.__trackinfo.show()            
+            self.__list.set_visible(False)
+            self.__trackinfo.set_visible(True)
+            self.update_observer(self.OBS_HIDE_COLLECTION)            
+            #self.__trackinfo.fx_fade_in()
+            #self.__trackinfo.render()
         else:
-            self.__trackinfo.hide()
-            self.__kscr.show()
+            #self.__trackinfo.hide()            
+            self.__trackinfo.set_visible(False)
+            self.__list.set_visible(True)
             self.update_observer(self.OBS_SHOW_COLLECTION)            
+            #self.fx_slide_in()
+            #self.render()
 

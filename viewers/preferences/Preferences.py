@@ -1,6 +1,7 @@
 from viewers.Viewer import Viewer
 from viewers.Thumbnail import Thumbnail
 from ui.ImageButton import ImageButton
+from ui.Label import Label
 from PrefsItem import PrefsItem
 from CardMediaRoot import CardMediaRoot
 from CardThemeSelector import CardThemeSelector
@@ -16,82 +17,70 @@ class Preferences(Viewer):
     ICON = theme.viewer_prefs
     ICON_ACTIVE = theme.viewer_prefs_active
     PRIORITY = 9999
-    BORDER_WIDTH = 0
-    IS_EXPERIMENTAL = False
 
 
-    def __init__(self):
+    def __init__(self, esens):
     
         self.__items = []
     
         self.__current_card = None
         self.__cards = []
     
-        Viewer.__init__(self)
-
-        self.__box = gtk.VBox()
-        self.set_widget(self.__box)
+        Viewer.__init__(self, esens)
 
         #
         # title pane
         #
-        panel = gtk.Layout()
-        panel.set_size_request(620, 50)
-        panel.show()
-        self.__box.pack_start(panel, False, False)
-        
-        bg = gtk.Image()
-        bg.set_from_pixbuf(theme.titlebar)
-        bg.show()
-        panel.put(bg, 0, 0)
+        self.__title = Label(esens, "", theme.font_headline,
+                             theme.color_fg_panel_text)
+        self.__title.set_pos(0, 8)
+        self.add(self.__title)
 
-        hbox = gtk.HBox()
-        hbox.set_size_request(620, 50)
-        hbox.show()
-        panel.put(hbox, 0, 0)
-
-        self.__title = gtk.Label("")
-        self.__title.modify_font(theme.font_headline)
-        self.__title.modify_fg(gtk.STATE_NORMAL, theme.color_fg_panel_text)
-        self.__title.set_alignment(0.0, 0.5)
-        self.__title.show()
-        hbox.pack_start(self.__title, True, True)
-
-        btn_minimize = ImageButton(theme.prefs_btn_minimize_1,
-                                   theme.prefs_btn_minimize_2,
-                                   theme.titlebar.subpixbuf(540, 0, 40, 50))
-        btn_minimize.connect("button-release-event",
+        btn_minimize = ImageButton(esens, theme.prefs_btn_minimize_1,
+                                   theme.prefs_btn_minimize_2)
+        btn_minimize.set_pos(520, 0)
+        btn_minimize.set_size(50, 50)
+        self.add(btn_minimize)
+        btn_minimize.connect(btn_minimize.EVENT_BUTTON_RELEASE,
                              lambda x,y:self.update_observer(self.OBS_MINIMIZE))
-        btn_minimize.show()
-        hbox.pack_start(btn_minimize, False, False)        
         
-        btn_close = ImageButton(theme.prefs_btn_close_1,
-                                theme.prefs_btn_close_2,
-                                theme.titlebar.subpixbuf(580, 0, 40, 50))
-        btn_close.connect("button-release-event",
+        btn_close = ImageButton(esens, theme.prefs_btn_close_1,
+                                theme.prefs_btn_close_2)
+        btn_close.set_pos(570, 0)
+        btn_close.set_size(50, 50)        
+        self.add(btn_close)
+        btn_close.connect(btn_close.EVENT_BUTTON_RELEASE,
                           lambda x,y:self.update_observer(self.OBS_QUIT))
-        btn_close.show()
-        hbox.pack_start(btn_close, False, False)
-                
-
-
 
         #
         # prefs cards
         #
-        self.__add_card(CardMediaRoot("Media Collection"), "Media Collection",
-                        theme.prefs_folder)
-        self.__add_card(CardThemeSelector("Themes"), "Themes", theme.prefs_theme)
+        self.__add_card(CardMediaRoot(esens, "Media Collection"),
+                        "Media Collection", theme.prefs_folder)
+        self.__add_card(CardThemeSelector(esens, "Themes"),
+                        "Themes", theme.prefs_theme)
         self.__show_card(0)
+
+
+    def render_this(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        print x, y
+        screen.draw_pixbuf(theme.titlebar, x, y)
+
 
 
     def __show_card(self, idx):
     
         if (self.__current_card):
-            self.__current_card.hide()
+            self.__current_card.set_visible(False)
             
         card = self.__cards[idx]
-        card.show()
+        card.set_visible(True)
+        card.render()
         self.__current_card = card
         self.__title.set_text(" " + card.get_title())
 
@@ -110,8 +99,9 @@ class Preferences(Viewer):
         item = PrefsItem()
         item.set_thumbnail(tn)
         self.__items.append(item)
-            
-        self.__box.add(card)
+        
+        self.add(card)
+        card.set_visible(False)
         self.__cards.append(card)
         
         

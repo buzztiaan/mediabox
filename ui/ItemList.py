@@ -1,7 +1,6 @@
-from ImageStrip import ImageStrip
+from ImageStrip2  import ImageStrip
 from Item import Item
 
-import gtk
 import pango
 
 
@@ -11,7 +10,7 @@ _HILIGHTED = 1
 
 class ItemList(ImageStrip):
 
-    def __init__(self, width, itemsize):
+    def __init__(self, esens, width, itemsize):
     
         self.__width = width
         self.__height = itemsize
@@ -24,7 +23,7 @@ class ItemList(ImageStrip):
         self.__items = []        
         self.__hilighted_item = -1
                 
-        ImageStrip.__init__(self, width, itemsize, 10)
+        ImageStrip.__init__(self, esens, width, itemsize, 10)
         self.set_wrap_around(False)
         #self.set_show_slider(True)
         
@@ -69,6 +68,7 @@ class ItemList(ImageStrip):
         
     def hilight(self, idx):
 
+        print "HILIGHT", idx
         if (self.__hilighted_item >= 0):
             try:
                 self.replace_image(self.__hilighted_item,

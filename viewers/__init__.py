@@ -18,10 +18,11 @@ def _load_viewer(path):
     sys.path = [dirname] + syspath
     try:    
         mod = __import__(name)
+        if (not mod.is_available()): return None
         viewer = mod.get_viewer()
     except ImportError:
         print "Could not load viewer [%s]" % name
-        import traceback; traceback.print_exc()        
+        #import traceback; traceback.print_exc()        
     finally:
         sys.path = syspath
         
@@ -41,10 +42,11 @@ def get_viewers():
     for f in os.listdir(path):
         if (os.path.isdir(os.path.join(path, f)) and not f.startswith(".")):
             
-            viewer = _load_viewer(os.path.join(path, f))
             try:
-                if (viewer and viewer.is_available()): viewers.append(viewer)
-            except:                
+                viewer = _load_viewer(os.path.join(path, f))
+                if (viewer): viewers.append(viewer)
+            except:
+                #import traceback; traceback.print_exc()
                 pass
     #end for
     

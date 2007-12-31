@@ -1,4 +1,8 @@
+from ui.Pixmap import Pixmap
+
 from MainWindow import MainWindow
+from RootPane import RootPane
+from ContentPane import ContentPane
 from ViewerState import ViewerState
 from viewers.Thumbnail import Thumbnail
 from ui.ImageStrip import ImageStrip
@@ -61,37 +65,42 @@ class App(object):
         self.__window.connect("delete-event", self.__on_close_window)
         self.__window.connect("expose-event", self.__on_expose)
         self.__window.connect("key-press-event", self.__on_key)
-        self.__window.connect("key-release-event", lambda x, y: True)        
+        self.__window.connect("key-release-event", lambda x, y: True)
         self.__window.show()    
         
         if (_HAVE_OSSO):
             self.__program.add_window(self.__window)
-            
-       
-        # control bar
-        self.__ctrlbar = ControlBar()
-        self.__ctrlbar.set_size_request(800, 80)
-        self.__ctrlbar.add_observer(self.__on_observe_ctrlbar)
-        self.__ctrlbar.show()
-        self.__window.put(self.__ctrlbar, 0, 400)
 
+        # screen pixmap
+        self.__screen = Pixmap(self.__window.window)
+        self.__screen.draw_pixbuf(theme.background, 0, 0)
+
+        # root pane
+        self.__root_pane = RootPane(self.__window)
+        self.__root_pane.set_screen(self.__screen)
+        
+        # content pane
+        self.__content_pane = ContentPane(self.__window)
+        self.__root_pane.add(self.__content_pane)
+        
+        # control bar
+        self.__ctrlbar = ControlBar(self.__window)
+        self.__ctrlbar.set_pos(0, 400)
+        self.__ctrlbar.add_observer(self.__on_observe_ctrlbar)
+        self.__root_pane.add(self.__ctrlbar)
+       
         # image strip
-        self.__strip = ImageStrip(160, 120, 10)
+        self.__strip = ImageStrip(self.__window, 160, 120, 10)
+        self.__strip.set_pos(10, 0)
+        self.__strip.set_size(160, 400)
         self.__strip.set_background(theme.background.subpixbuf(10, 0, 160, 400))
-        self.__strip.show()
+        self.__content_pane.add(self.__strip)
 
         self.__kscr = KineticScroller(self.__strip)
-        self.__kscr.set_size_request(160, 400)
         self.__kscr.add_observer(self.__on_observe_strip)
-        self.__window.put(self.__kscr, 10, 0)
 
-        # box for viewers
-        self.__box = gtk.HBox()
-        self.__box.set_size_request(620, 400)
-        self.__box.show()
-        self.__window.put(self.__box, 180, 0)
-
-        
+       
+       
     def __startup(self):
         """
         Runs a queue of actions to take for startup.
@@ -100,7 +109,10 @@ class App(object):
         actions = [(self.__load_viewers, []),
                    (self.__check_for_player, []),
                    (self.__scan_media, []),
-                   (self.__ctrlbar.select_tab, [0])]
+                   #(self.__ctrlbar.fx_raise, []),
+                   (self.__ctrlbar.select_tab, [0]),
+                   ]
+                   
         def f():
             if (actions):
                 act, args = actions.pop(0)
@@ -192,18 +204,28 @@ class App(object):
         """
     
         self.__ctrlbar.show_message("Loading Components")
-        self.__viewers = viewers.get_viewers()
+
         cnt = 0
-        for viewer in self.__viewers:
+        for viewerclass in viewers.get_viewers():
+            try:
+                viewer = viewerclass(self.__window)
+            except:
+                import traceback; traceback.print_exc()
+                continue
+
             self.__ctrlbar.add_tab(viewer.ICON, viewer.ICON_ACTIVE, cnt)
             cnt += 1
-            
-            self.__box.add(viewer.get_widget())
+
+            self.__content_pane.add(viewer)
+            viewer.set_visible(False)
+            viewer.set_pos(180, 0)
+            viewer.set_size(620, 400)
             viewer.add_observer(self.__on_observe_viewer)
             
             vstate = ViewerState()
             vstate.caps = viewer.CAPS
             self.__viewer_states[viewer] = vstate
+            self.__viewers.append(viewer)
             
             while (gtk.events_pending()): gtk.main_iteration()
         #end for
@@ -233,9 +255,10 @@ class App(object):
     def __on_expose(self, src, ev):
     
         x, y, w, h = ev.area
-        src.window.draw_pixbuf(src.window.new_gc(),
-                               theme.background,
-                               x, y, x, y, w, h)
+        self.__screen.restore(x, y, w, h)
+        #src.window.draw_pixbuf(src.window.new_gc(),
+        #                       theme.background,
+        #                       x, y, x, y, w, h)
                                
                                
     def __on_key(self, src, ev):
@@ -246,11 +269,11 @@ class App(object):
         if (key == "Escape"):
             self.__try_quit()
         elif (key == "F6"):
-            self.__current_viewer.fullscreen()
+            self.__current_viewer.do_fullscreen()
         elif (key == "F7"):
-            self.__current_viewer.increment()
+            self.__current_viewer.do_increment()
         elif (key == "F8"):
-            self.__current_viewer.decrement()
+            self.__current_viewer.do_decrement()
             
         elif (key == "Up"):
             self.__kscr.impulse(0, 7.075)
@@ -305,36 +328,46 @@ class App(object):
             self.__current_collection = items
             self.__set_collection(items)
 
-            self.__kscr.show()        
             self.__saved_image = None
             self.__saved_image_index = -1
             
         elif (cmd == src.OBS_SHOW_COLLECTION):
-            self.__window.move(self.__box, 180, 0)
-            self.__box.set_size_request(620, 400)     
-            self.__kscr.show()
+            self.__strip.set_visible(True)
+            #self.__strip.render()
+            #self.__strip.fx_slide_in()
             self.__get_vstate().collection_visible = True
+            self.__current_viewer.set_pos(180, 0)
+            self.__content_pane.render()
 
         elif (cmd == src.OBS_HIDE_COLLECTION):
-            self.__window.move(self.__box, 0, 0)
-            self.__box.set_size_request(800, 400)
-            self.__kscr.hide()
+            self.__strip.set_visible(False)
+            #self.__strip.fx_slide_out()
             self.__get_vstate().collection_visible = False
+            self.__current_viewer.set_pos(0, 0)
+            self.__content_pane.render()
 
         elif (cmd == src.OBS_FULLSCREEN):
-            self.__window.move(self.__box, 0, 0)
-            self.__box.set_size_request(800, 480)
-            self.__box.set_border_width(0)
-            self.__kscr.hide()
-            self.__ctrlbar.hide()
+            self.__strip.set_visible(False)
+            self.__ctrlbar.set_visible(False)
+            #self.__strip.fx_slide_out(wait = False)
+            #self.__ctrlbar.fx_lower()
+            self.__current_viewer.set_pos(0, 0)
+            self.__current_viewer.set_size(800, 480)
+            #self.__current_viewer.render()
+            self.__root_pane.render()
 
         elif (cmd == src.OBS_UNFULLSCREEN):
-            self.__window.move(self.__box, 180, 0)
-            self.__box.set_size_request(620, 400)
-            if (self.__current_viewer):
-                self.__box.set_border_width(self.__current_viewer.BORDER_WIDTH)
-            self.__kscr.show()
-            self.__ctrlbar.show()
+            self.__strip.set_visible(True)
+            self.__ctrlbar.set_visible(True)
+            #self.__strip.render()
+            #self.__ctrlbar.render()
+            #self.__strip.fx_slide_out(wait = False)
+            #self.__ctrlbar.fx_lower()
+            self.__current_viewer.set_pos(180, 0)
+            self.__current_viewer.set_size(620, 400)
+            #self.__current_viewer.render()
+            self.__root_pane.render()
+            #self.__ctrlbar.render()
             
         elif (cmd == src.OBS_SHOW_MESSAGE):
             msg = args[0]
@@ -351,24 +384,24 @@ class App(object):
     def __on_observe_ctrlbar(self, src, cmd, *args):
     
         if (cmd == panel_actions.PLAY_PAUSE):
-            self.__current_viewer.play_pause()
+            self.__current_viewer.do_play_pause()
 
         elif (cmd == panel_actions.PREVIOUS):
-            self.__current_viewer.previous()
+            self.__current_viewer.do_previous()
 
         elif (cmd == panel_actions.NEXT):
-            self.__current_viewer.next()
+            self.__current_viewer.do_next()
             
         elif (cmd == panel_actions.ADD):
-            self.__current_viewer.add()
+            self.__current_viewer.do_add()
     
         elif (cmd == panel_actions.SET_POSITION):
             pos = args[0]
-            self.__current_viewer.set_position(pos)
+            self.__current_viewer.do_set_position(pos)
             
         elif (cmd == panel_actions.TUNE):
             pos = args[0]
-            self.__current_viewer.tune(pos)
+            self.__current_viewer.do_tune(pos)
             
         elif (cmd == panel_actions.TAB_SELECTED):
             idx = args[0]
@@ -377,9 +410,6 @@ class App(object):
 
     def __on_observe_strip(self, src, cmd, *args):
     
-        def f(ticket, item):
-            if (ticket == self.__ticket): self.__media_player.load(item)
-            
         if (cmd == src.OBS_SCROLLING):
             # invalidate ticket
             self.__ticket = 0
@@ -427,29 +457,29 @@ class App(object):
     def __select_viewer(self, idx):
         """
         Selects the current viewer by index number.
-        """
+        """        
     
         viewer = self.__viewers[idx]
-        if (self.__current_viewer and self.__current_viewer != viewer):
+        if (self.__current_viewer == viewer): return
+        
+        if (self.__current_viewer):
             self.__current_viewer.hide()
             self.__get_vstate().item_offset = self.__strip.get_offset()
                 
         self.__current_viewer = viewer
-        self.__box.set_border_width(viewer.BORDER_WIDTH)
+
+        vstate = self.__get_vstate()
+        if (vstate.collection_visible):
+            viewer.set_pos(180, 0)
+            viewer.set_size(620, 400)
+            self.__strip.set_visible(True)
+        else:
+            viewer.set_pos(0, 0)
+            viewer.set_size(800, 400)
+            self.__strip.set_visible(False)
         
         def f():
             viewer.show()
-            vstate = self.__get_vstate()
-            
-            if (vstate.collection_visible):
-                self.__window.move(self.__box, 180, 0)
-                self.__box.set_size_request(620, 400)     
-                self.__kscr.show()
-            else:
-                self.__window.move(self.__box, 0, 0)
-                self.__box.set_size_request(800, 400)
-                self.__kscr.hide()
-            
             self.__ctrlbar.set_capabilities(vstate.caps)
             
             offset = vstate.item_offset
@@ -457,6 +487,8 @@ class App(object):
             self.__strip.set_offset(offset)
             if (item_idx >= 0):
                 self.__hilight_item(item_idx)
+
+            self.__content_pane.render()
 
         gobject.idle_add(f)
 
@@ -469,9 +501,6 @@ class App(object):
 
         thumbnails = [ item.get_thumbnail() for item in collection ]                
         self.__strip.set_images(thumbnails)
-       
-        # initialize thumbnails with deferred rendering
-        #for t in thumbnails: t.get_width()        
         
 
 

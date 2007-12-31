@@ -1,3 +1,4 @@
+from ui.Label import Label
 from Panel import Panel
 import theme
 
@@ -6,16 +7,14 @@ import gtk
 
 class MessagePanel(Panel):
 
-    def __init__(self):
+    def __init__(self, esens):
        
-        Panel.__init__(self, False)
+        Panel.__init__(self, esens, False)
         
-        self.__message_label = gtk.Label("")
-        self.__message_label.modify_font(theme.font_headline)
-        self.__message_label.modify_fg(gtk.STATE_NORMAL,
-                                       theme.color_fg_panel_text)
-        self.__message_label.show()
-        self.box.add(self.__message_label)
+        self.__message_label = Label(esens, "", theme.font_headline,
+                                     theme.color_fg_panel_text)
+        self.__message_label.set_pos(20, 20)
+        self.add(self.__message_label)
 
 
     def set_message(self, msg):

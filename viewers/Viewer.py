@@ -1,9 +1,15 @@
 from utils.Observable import Observable
 from mediabox import caps
 import theme
+from ui.Widget import Widget
+from ui.Pixmap import Pixmap
+
+import gtk
+import gobject
+import threading
 
 
-class Viewer(Observable):
+class Viewer(Widget, Observable):
     """
     Abstract base class for media viewers.
     """
@@ -12,7 +18,6 @@ class Viewer(Observable):
     ICON_ACTIVE = theme.viewer_none_active
     PRIORITY = 999
     CAPS = caps.NONE
-    BORDER_WIDTH = 6
     
     
     OBS_TITLE = 0    
@@ -41,19 +46,19 @@ class Viewer(Observable):
     
     
     
-    def __init__(self):
+    def __init__(self, esens):
     
-        self.__widget = None
         self.__is_active = False
         self.__title = ""
-
         
+        Widget.__init__(self, esens)
+    
         
     def __repr__(self):
     
         return self.__class__.__name__
-        
-        
+     
+ 
     def is_available(self):
     
         return True
@@ -79,67 +84,56 @@ class Viewer(Observable):
         pass
         
         
-    def increment(self):
+    def do_increment(self):
     
         pass
         
         
-    def decrement(self):
+    def do_decrement(self):
     
         pass
         
         
-    def set_position(self, percentpos):
-    
-        pass
-
-
-    def play_pause(self):
-    
-        pass
-        
-        
-    def previous(self):
-    
-        pass
-        
-    
-    def next(self):
-    
-        pass
-        
-
-    def add(self):
+    def do_set_position(self, percentpos):
     
         pass
 
 
-    def set_widget(self, widget):
+    def do_play_pause(self):
     
-        self.__widget = widget
+        pass
         
         
-    def get_widget(self):
+    def do_previous(self):
     
-        return self.__widget
+        pass
         
+    
+    def do_next(self):
+    
+        pass
+        
+
+    def do_add(self):
+    
+        pass
+     
         
     def show(self):
     
-        self.__widget.show()
+        self.set_visible(True)
         self.__is_active = True
-        #self.update_observer(self.OBS_REPORT_CAPABILITIES, self.CAPS)
         self.update_observer(self.OBS_TITLE, self.__title)
         self.update_observer(self.OBS_POSITION, 0, 0)
         
         
     def hide(self):
     
-        self.__widget.hide()
+        self.set_visible(False)
         self.__is_active = False
         
         
-    def fullscreen(self):
+    def do_fullscreen(self):
     
         pass
         
@@ -153,4 +147,51 @@ class Viewer(Observable):
     
         self.__title = title
         self.update_observer(self.OBS_TITLE, title)
+
+
+
+    def fx_slide_out(self, wait = True):
+    
+        STEP = 31
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        finished = threading.Event()
+    
+        def fx(i):
+            screen.copy_pixmap(screen, x, y, x + STEP, y, w - STEP, h)
+            screen.draw_subpixbuf(theme.background, x + i, y, x + i, y, STEP, h)
+            if (i < w - STEP):
+                gobject.timeout_add(5, fx, i + STEP)
+            else:
+                finished.set()
+        
+        fx(0)
+        while (wait and not finished.isSet()): gtk.main_iteration()
+
+
+
+    def fx_slide_in(self, wait = True):
+    
+        STEP = 20
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        buf = Pixmap(None, w, h)
+        self.render_at(buf)
+        finished = threading.Event()
+        
+        def f(i):
+            screen.copy_pixmap(buf, i, 0, x + w - STEP, y, STEP, h)
+            if (i < w - STEP):
+                screen.copy_pixmap(screen, x + w - i - STEP, y, x + w - i - STEP - STEP,
+                                   y, i + STEP, h)
+            if (i < w - STEP):
+                gobject.timeout_add(5, f, i + STEP)
+            else:
+                finished.set()
+                
+        f(0)
+        while (wait and not finished.isSet()): gtk.main_iteration()
         

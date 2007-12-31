@@ -22,11 +22,9 @@ class RadioViewer(Viewer):
     ICON = theme.viewer_radio    
     ICON_ACTIVE = theme.viewer_radio_active
     PRIORITY = 25
-    BORDER_WIDTH = 0
-    IS_EXPERIMENTAL = False
 
 
-    def __init__(self):
+    def __init__(self, esens):
     
         # mapping: name -> radio backend
         self.__radios = {}
@@ -36,23 +34,20 @@ class RadioViewer(Viewer):
         self.__volume = 50
         self.__is_on = False
 
-        Viewer.__init__(self)                
-        box = gtk.HBox()
-        self.set_widget(box)
+        Viewer.__init__(self, esens)                
 
         # stations list
-        self.__list = ItemList(600, 80)
+        self.__list = ItemList(esens, 600, 80)
+        self.add(self.__list)
+        self.__list.set_size(600, 400)        
+        self.__list.set_pos(10, 0)   
         self.__list.set_background(theme.background.subpixbuf(185, 0, 600, 400))
         self.__list.set_graphics(theme.item, theme.item_active)        
         self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)
-        self.__list.show()
                 
         kscr = KineticScroller(self.__list)
         kscr.add_observer(self.__on_observe_list)
-        kscr.show()
-        box.pack_start(kscr, True, True, 10)                       
-        
               
         # add backends
         backends = []
@@ -153,16 +148,7 @@ class RadioViewer(Viewer):
         self.__list.clear_items()
         for location, name in self.__current_radio.get_stations():
             self.__append_station(location, name)
-        
-        
-    def is_available(self):
-    
-        # unsupported on the 770 atm
-        if (maemo.get_product_code() in ["SU-18"]):
-            return False
-        else:
-            return True
-        
+      
         
     def shutdown(self):
         
@@ -180,44 +166,44 @@ class RadioViewer(Viewer):
         
         
 
-    def increment(self):
+    def do_increment(self):
             
         self.__volume = min(100, self.__volume + 5)
         self.__current_radio.set_volume(self.__volume)
         self.update_observer(self.OBS_VOLUME, self.__volume)
         
         
-    def decrement(self):
+    def do_decrement(self):
 
         self.__volume = max(0, self.__volume - 5)
         self.__current_radio.set_volume(self.__volume)
         self.update_observer(self.OBS_VOLUME, self.__volume)
 
 
-    def tune(self, value):
+    def do_tune(self, value):
 
         self.__list.hilight(-1)    
         self.__current_radio.tune(value)
 
 
-    def play_pause(self):
+    def do_play_pause(self):
     
         self.__current_radio.play_pause()
 
             
-    def previous(self):
+    def do_previous(self):
 
         self.__list.hilight(-1)
         self.__current_radio.previous()
         
         
-    def next(self):
+    def do_next(self):
 
         self.__list.hilight(-1)    
         self.__current_radio.next()
 
 
-    def add(self):
+    def do_add(self):
     
         self.__current_radio.add_station()
 

@@ -1,16 +1,16 @@
+from ui.Widget import Widget
 import theme
 
-import gtk
-import pango
 
+class PrefsCard(Widget):
 
-class PrefsCard(gtk.VBox):
-
-    def __init__(self, title):
+    def __init__(self, esens, title):
     
         self.__title = title
     
-        gtk.VBox.__init__(self)
+        Widget.__init__(self, esens)
+        self.set_pos(0, 50)
+        self.set_size(620, 350)
         
 
     def get_title(self):

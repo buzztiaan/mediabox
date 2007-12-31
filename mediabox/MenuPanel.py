@@ -1,68 +1,39 @@
 from Panel import Panel
-from ui.ImageButton import ImageButton
+from ui.TabsBar import TabsBar
 import panel_actions
-import theme
-
-import gtk
 
 
 class MenuPanel(Panel):
 
-    def __init__(self):
+    def __init__(self, esens):
     
         self.__current_tab = None
-        self.__tabs = []
     
-        Panel.__init__(self)
-        
-        self.__tabbox = gtk.HBox(spacing = 12)
-        self.__tabbox.show()
-        self.box.pack_start(self.__tabbox, False, False)
+        Panel.__init__(self, esens)
+        self.__tabsbar = TabsBar(esens)
+        self.add(self.__tabsbar)
         
         
     def add_tab(self, icon, icon_active, name):
         """
         Adds a new menu tab.
         """
-
-        # this is a gtk.Layout instead of a gtk.Fixed because we want to be
-        # able to catch button events
-        tab = gtk.Layout()
-        tab.set_size_request(80, 80)
-        tab.connect("button-press-event", self.__on_select_tab, name)
-        tab.show()
         
-        bg = gtk.Image()
-        bg.set_from_pixbuf(theme.panel_bg)
-        bg.show()
-        tab.put(bg, 0, 0)
-        
-        tab.icon = gtk.Image()
-        tab.icon.set_from_pixbuf(icon)
-        tab.icon.show()
-
-        tab.put(tab.icon,
-                40 - icon.get_width() / 2,
-                40 - icon.get_height() / 2)
-
-        
-        tab.hilight = gtk.Image()
-        tab.hilight.set_from_pixbuf(icon_active)
-        #tab.hilight.show()
-
-        tab.put(tab.hilight,
-                40 - icon_active.get_width() / 2,
-                40 - icon_active.get_height() / 2)
-                
-        self.__tabbox.pack_start(tab, False, False)
-        self.__tabs.append((tab, name))
+        self.__tabsbar.add_tab(icon, icon_active,
+                               lambda n:self.update_observer(panel_actions.TAB_SELECTED, n),
+                               name)
+        w, h = self.get_size()
+        tabs_w, tabs_h = self.__tabsbar.get_size()
+        tabs_x = w - tabs_w                               
+        self.__tabsbar.set_pos(tabs_x, 0)
 
 
-    def __on_select_tab(self, src, event, name):
+    def __on_select_tab(self, px, py, name):
     
+        print name
         cnt = 0
-        for t, n in self.__tabs:
-            if (t == src and t != self.__current_tab):
+        for i, ia, n in self.__tabs:
+            if (n == name):
                 self.select_tab(cnt)
                 break
             cnt += 1
@@ -71,12 +42,6 @@ class MenuPanel(Panel):
         
 
     def select_tab(self, idx):
+
+        self.__tabsbar.hilight_tab(idx)        
         
-        if (self.__current_tab):
-            self.__current_tab.hilight.hide()
-            self.__current_tab.icon.show()
-            
-        self.__current_tab, name = self.__tabs[idx]
-        self.__current_tab.icon.hide()
-        self.__current_tab.hilight.show()
-        self.update_observer(panel_actions.TAB_SELECTED, name)

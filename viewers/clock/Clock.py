@@ -14,20 +14,16 @@ class Clock(Viewer):
     ICON = theme.viewer_clock
     ICON_ACTIVE = theme.viewer_clock_active
     PRIORITY = 100
-    BORDER_WIDTH = 0
-    IS_EXPERIMENTAL = False
-    
+   
 
-    def __init__(self):
+    def __init__(self, esens):
     
         self.__is_ticking = False
     
-        Viewer.__init__(self)
+        Viewer.__init__(self, esens)
                 
-        self.__sunclock = SunClock()
-        self.set_widget(self.__sunclock)
-        
-        #gobject.timeout_add(10000, self.__tick)
+        self.__sunclock = SunClock(esens)
+        self.add(self.__sunclock)
         
         
     def __tick(self):

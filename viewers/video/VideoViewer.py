@@ -1,6 +1,5 @@
 from viewers.Viewer import Viewer
 from VideoItem import VideoItem
-from LogoScreen import LogoScreen
 from VideoThumbnail import VideoThumbnail
 from mediabox.MPlayer import MPlayer
 from mediabox import caps
@@ -24,9 +23,6 @@ _VIDEO_EXT = (".avi", ".flv", ".mov", ".mpeg",
               ".mpg", ".rm", ".wmv", ".asf",
               ".m4v", ".mp4", ".rmvb")
 
-_SIZE = (608, 388)
-_SIZE_FS = (800, 480)
-
 
 class VideoViewer(Viewer):
 
@@ -35,10 +31,11 @@ class VideoViewer(Viewer):
     ICON_ACTIVE = theme.viewer_video_active
     PRIORITY = 10
     CAPS = caps.PLAYING | caps.POSITIONING
-    IS_EXPERIMENTAL = False
 
-    def __init__(self):
+
+    def __init__(self, esens):
     
+        self.__layout = esens
         self.__is_fullscreen = False
     
         self.__items = []
@@ -51,53 +48,42 @@ class VideoViewer(Viewer):
         self.__aspect_ratio = 1.0
 
 
-        Viewer.__init__(self)                
-        
-        self.__box = gtk.Layout()
-        self.__box.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
-        self.set_widget(self.__box)
-
-        # screen with logo which is displayed when there's no video stream        
-        self.__logo = LogoScreen()
-        
+        Viewer.__init__(self, esens)                
+      
         # video screen        
         self.__screen = gtk.DrawingArea()
         self.__screen.set_double_buffered(False)
-        self.__screen.set_sensitive(False)
-        self.__screen.set_size_request(self.__logo.get_width(),
-                                       self.__logo.get_height())
-        self.__screen.show()
+        #self.__screen.set_sensitive(False)
         self.__screen.connect("expose-event", self.__on_expose)
-        self.__box.put(self.__screen, 25, 15)
+        self.__layout.put(self.__screen, 0, 0)
         
         
-    def is_available(self):
-    
-        # currently not supported on the Nokia 770 (SU-18)
-        from utils import maemo
-        if (maemo.get_product_code() in ["SU-18"]):
-            return False
-        else:
-            return True
-        
-        
-    def __on_expose(self, src, ev):
-
-        win = self.__screen.window
-        gc = win.new_gc()
-        gc.set_foreground(gtk.gdk.color_parse("#000000"))
-        nil, nil, w, h = src.get_allocation()        
-    
-        if (not self.__mplayer.has_video()):
-            win.draw_rectangle(gc, True, ev.area.x, ev.area.y,
-                               ev.area.width, ev.area.height)
+    def render_this(self):
             
-            logo_width = self.__logo.get_width()
-            logo_height = self.__logo.get_height()            
-            win.draw_pixbuf(gc, self.__logo, 0, 0,
-                            (w - logo_width) / 2, (h - logo_height) / 2,
-                            logo_width, logo_height)
-        else:
+        vx, vy, vw, vh = self.__get_video_rect()
+        screen = self.get_screen()
+
+        screen.fill_area(vx, vy, vw, vh, "#000000")        
+
+        if (not self.__is_fullscreen):
+            x, y, w, h = self.__get_frame_rect()
+            screen.draw_rect(x, y, w, h, "#000000")
+
+        if (not self.__mplayer.has_video()):
+            self.__layout.move(self.__screen, vx, vy)
+            self.__screen.set_size_request(vw, vh)
+            
+
+
+    def __on_expose(self, src, ev):
+    
+        if (self.__mplayer.has_video()):
+            win = self.__screen.window
+            gc = win.new_gc()
+            cmap = win.get_colormap()
+            gc.set_foreground(cmap.alloc_color("#000000"))
+            nil, nil, w, h = src.get_allocation()
+
             # mplayer has a bug where it doesn't draw over the right and
             # bottom edges, so we have to do this ourselves
             win.draw_rectangle(gc, False, w - 1, 0, 1, h)
@@ -118,7 +104,7 @@ class VideoViewer(Viewer):
             print "Killed MPlayer"
             self.__uri = ""
             self.set_title("")
-            self.__scale_video()            
+            self.__screen.hide()
             self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_PLAYING):
@@ -142,19 +128,33 @@ class VideoViewer(Viewer):
             ctx = args[0]
             if (ctx == self.__context_id):        
                 self.__uri = ""
-                self.__scale_video()
+                self.__screen.hide()
                 self.update_observer(self.OBS_STATE_PAUSED)
            
         elif (cmd == src.OBS_ASPECT):
-            ctx, ratio = args
+            ctx, ratio = args            
             self.__aspect_ratio = ratio
             self.__set_aspect_ratio(ratio)
-            
-            
-    def __get_size(self):
+            self.__screen.show()
+
+
+    def __get_frame_rect(self):
     
-        if (self.__is_fullscreen): return _SIZE_FS
-        else: return _SIZE
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        x += 4; y += 4
+        w -= 8; h -= 8
+        return (x, y, w, h)
+            
+            
+    def __get_video_rect(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        if (not self.__is_fullscreen):
+            x += 6; y += 6
+            w -= 12; h -= 12
+        return (x, y, w, h)
             
             
     def __set_aspect_ratio(self, ratio):
@@ -164,9 +164,8 @@ class VideoViewer(Viewer):
     
         if (ratio == 0): return
         
-        self.__screen.hide()
-        #nil, nil, w, h = self.__box.get_allocation()
-        w, h = self.__get_size()
+        #self.__screen.hide()
+        x, y, w, h = self.__get_video_rect()
         w2 = int(ratio * h)
         h2 = int(w / ratio)
          
@@ -177,9 +176,8 @@ class VideoViewer(Viewer):
         else:
             self.__screen.set_size_request(w2, h)
             w2, h2 = w2, h
-        self.__box.set_size_request(w, h)
-        self.__box.move(self.__screen, (w - w2) / 2, (h - h2) / 2)
-        self.__screen.show()
+        self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
+
         while (gtk.events_pending()): gtk.main_iteration()
 
 
@@ -284,7 +282,6 @@ class VideoViewer(Viewer):
     
         self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
         self.__screen.show()
-        #self.__screen.set_size_request(320, 240)
     
         def f():
             if (self.__screen.window.xid):
@@ -317,7 +314,7 @@ class VideoViewer(Viewer):
         gobject.idle_add(f)
         
 
-    def increment(self):
+    def do_increment(self):
     
         if (self.__volume + 5 <= 100):
             self.__volume += 5
@@ -328,7 +325,7 @@ class VideoViewer(Viewer):
             self.__mplayer.show_text("Volume %d %%" % self.__volume, 500)
         
         
-    def decrement(self):
+    def do_decrement(self):
 
         if (self.__volume - 5 >= 0):
             self.__volume -= 5
@@ -339,12 +336,12 @@ class VideoViewer(Viewer):
             self.__mplayer.show_text("Volume %d %%" % self.__volume, 500)
 
         
-    def set_position(self, pos):
+    def do_set_position(self, pos):
     
         self.__mplayer.seek_percent(pos)
 
 
-    def play_pause(self):
+    def do_play_pause(self):
     
         self.__mplayer.pause()
 
@@ -353,14 +350,16 @@ class VideoViewer(Viewer):
     
         Viewer.show(self)
         self.update_observer(self.OBS_SET_COLLECTION, self.__items)
-
-
-    def fullscreen(self):
+        if (self.__mplayer.has_video()): self.__screen.show()
         
-        #dialogs.warning("Fullscreen mode not available",
-        #                "Fullscreen video mode is currently causing problems\n"
-        #                "and is thus not available in this release.")
-        #return
+        
+    def hide(self):
+    
+        Viewer.hide(self)
+        self.__screen.hide()
+
+
+    def do_fullscreen(self):
         
         self.__is_fullscreen = not self.__is_fullscreen        
         

@@ -2,6 +2,8 @@
 This module is basically a port of mClock from pygame (SDL) to Gtk+.
 """
 
+from ui.Widget import Widget
+from ui.Pixmap import Pixmap
 import sun
 
 import gtk
@@ -29,12 +31,10 @@ _START_SUMMER_2005 = datetime.datetime(2005,  6, 21,  6, 39, 11)  # 21 June 2005
 _START_AUTUMN_2005 = datetime.datetime(2005,  9, 22, 22, 16, 34)  #22 September 2005 22:16:34
 _START_WINTER_2005 = datetime.datetime(2005, 12, 21, 18, 34, 51)  #21 December 2005 18:34:51
 
-_BPP = gtk.gdk.get_default_root_window().get_depth()
 
+class SunClock(Widget):
 
-class SunClock(gtk.DrawingArea):
-
-    def __init__(self):
+    def __init__(self, esens):
                 
         self.__render_map_next = 0
                 
@@ -47,32 +47,31 @@ class SunClock(gtk.DrawingArea):
         self.__numbers = gtk.gdk.pixbuf_new_from_file(
             os.path.join(_PATH, "numbers.png"))
     
-        gtk.DrawingArea.__init__(self)
-        self.set_size_request(800, 400)
-        self.connect("expose-event", self.__on_expose)        
+        Widget.__init__(self, esens)
+        self.set_size(800, 400)
     
         # mask for overlaying the night
         self.__mask = gtk.gdk.Pixmap(None, 800, 400, 1)
         self.__mask_gc = self.__mask.new_gc()
     
         # buffer for holding the rendered map
-        self.__map = gtk.gdk.Pixmap(None, 800, 400, _BPP)
-        self.__map_gc = self.__map.new_gc()
+        self.__map = Pixmap(None, 800, 400)
     
         # buffer for the screen
-        self.__screen = gtk.gdk.Pixmap(None, 800, 400, _BPP)
-        self.__screen_gc = self.__screen.new_gc()
+        self.__screen = Pixmap(None, 800, 400)
       
         self.update()
         
-        
-    def __on_expose(self, src, ev):
+
+    def render_this(self):
     
-        area = ev.area
-        src.window.draw_drawable(src.window.new_gc(), self.__screen,
-                                 area.x, area.y, area.x, area.y,
-                                 area.width, area.height)
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
         
+        if (self.may_render()):
+            screen.copy_pixmap(self.__screen, 0, 0, x, y, w,  h)
+         
         
     def __clear_mask(self):
     
@@ -105,7 +104,7 @@ class SunClock(gtk.DrawingArea):
         start_winter = _START_WINTER_2005 + years_since * _DELTA_WINTER
     
         now = datetime.datetime.utcnow()
-        if (now < start_spring):
+        if (start_winter <= now < start_spring):
             return 0
         elif (start_spring <= now < start_summer):
             return 1
@@ -114,7 +113,8 @@ class SunClock(gtk.DrawingArea):
         elif (start_autumn <= now < start_winter):
             return 3
         else:
-            return 0
+            # this does happen...
+            return 3
         
         
     def update(self):
@@ -123,8 +123,9 @@ class SunClock(gtk.DrawingArea):
             self.__render_map()
             self.__render_map_next = time.time() + 10 * 60  # ten minutes
 
-        self.__render_clock()            
-        self.queue_draw()
+        self.__render_clock()
+        self.render()
+        #self.queue_draw()
 
 
     def __render_clock(self):
@@ -134,8 +135,7 @@ class SunClock(gtk.DrawingArea):
         mins = now[4]
         secs = now[5]
 
-        self.__screen.draw_drawable(self.__screen_gc, self.__map, 0, 0, 0, 0,
-                                    800, 400)
+        self.__screen.copy_pixmap(self.__map, 0, 0, 0, 0, 800, 400)
 
         t = "%d:%02d" % (hours, mins)
         w = len(t) * 108
@@ -147,8 +147,7 @@ class SunClock(gtk.DrawingArea):
                 cx = int(c) * 108
             except:
                 cx = 10 * 108
-            self.__screen.draw_pixbuf(self.__screen_gc, self.__numbers,
-                                      cx, 0, x, y, 108, 200)
+            self.__screen.draw_subpixbuf(self.__numbers, cx, 0, x, y, 108, 200)
             x += 108
         #end for                           
 
@@ -217,18 +216,14 @@ class SunClock(gtk.DrawingArea):
         self.__clear_mask()
         self.__draw_mask(vertices)
         
-        cmap = self.__map.get_colormap()
-        self.__map_gc.set_foreground(cmap.alloc_color("blue"))
-        
-        self.__map.draw_pixbuf(self.__map_gc, map_pbuf, 0, 0, 0, 0, -1, -1)
-        self.__map_gc.set_clip_mask(self.__mask)
-        self.__map.draw_pixbuf(self.__map_gc, self.__night, 0, 0, 0, 0, -1, -1)
-        self.__map_gc.set_clip_rectangle(gtk.gdk.Rectangle(0, 0, 800, 480))
-        self.__map.draw_line(self.__map_gc, 0, 200, 800, 200)
-        self.__map.draw_pixbuf(self.__map_gc, self.__sun, 0, 0,
+        self.__map.draw_pixbuf(map_pbuf, 0, 0)
+        self.__map.set_clip_mask(self.__mask)
+        self.__map.draw_pixbuf(self.__night, 0, 0)
+        self.__map.set_clip_mask()
+        self.__map.draw_line(0, 200, 800, 200, "#0000ff")
+        self.__map.draw_pixbuf(self.__sun, 
                                sun_x - self.__sun.get_width() / 2,
-                               sun_y - self.__sun.get_height() / 2,
-                               -1, -1)
+                               sun_y - self.__sun.get_height() / 2)
         
         del map_pbuf
         import gc; gc.collect()       

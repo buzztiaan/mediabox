@@ -1,4 +1,8 @@
 from Preferences import Preferences
 
-def get_viewer(): return Preferences()
+def is_available():
+
+    return True
+
+def get_viewer(): return Preferences
 
