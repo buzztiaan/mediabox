@@ -46,7 +46,7 @@ def get_viewers():
                 viewer = _load_viewer(os.path.join(path, f))
                 if (viewer): viewers.append(viewer)
             except:
-                #import traceback; traceback.print_exc()
+                import traceback; traceback.print_exc()
                 pass
     #end for
     

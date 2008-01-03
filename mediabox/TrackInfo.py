@@ -56,24 +56,15 @@ class TrackInfo(Widget):
         screen.draw_pixbuf(theme.viewer_music_artist, 400, 148) 
 
                
-    def __escape_entities(self, s):
-    
-        return s.replace("<", "&lt;") \
-                .replace(">", "&gt;") \
-                .replace("&", "&amp;")
-
 
     def set_cover(self, cover):
 
-        try:
-            pbuf = gtk.gdk.pixbuf_new_from_file(cover)    
-        except:
-            pbuf = theme.viewer_music_unknown
-            
-        scaled = pbuf.scale_simple(_COVER_SIZE, _COVER_SIZE, gtk.gdk.INTERP_BILINEAR)
+        if (not cover): cover = theme.viewer_music_unknown
+        
+        scaled = cover.scale_simple(_COVER_SIZE, _COVER_SIZE, gtk.gdk.INTERP_BILINEAR)
         self.__cover = scaled
         
-        del pbuf
+        del cover
         del scaled
         self.render()
         
@@ -85,8 +76,6 @@ class TrackInfo(Widget):
         
     def set_info(self, album, artist):
     
-        album = self.__escape_entities(album)
-        artist = self.__escape_entities(artist)
         self.__album.set_text(album or "-")
         self.__artist.set_text(artist or "-")
 

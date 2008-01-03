@@ -36,6 +36,12 @@ class ControlPanel(Panel):
         self.add(self.__progress)
         self.__all_items.append(self.__progress)
 
+        self.__tuner = ProgressBar(esens)
+        self.__tuner.connect(self.__progress.EVENT_BUTTON_RELEASE,
+                            self.__on_tune)
+        self.add(self.__tuner)
+        self.__all_items.append(self.__tuner)
+
         self.__btn_previous = self.__add_button(theme.btn_previous_1,
                                                 theme.btn_previous_2,
                         lambda x,y:self.update_observer(panel_actions.PREVIOUS))
@@ -49,51 +55,11 @@ class ControlPanel(Panel):
                              lambda x,y:self.update_observer(panel_actions.ADD))
 
 
-        
-
-        return
-        self.__progress = ProgressBar()
-        self.__progress.connect("button-release-event", self.__on_set_position)
-        self.__progress.show()
-        self.box.pack_start(self.__progress, False, False)
-        
-        self.__tuner = ProgressBar()
-        self.__tuner.connect("button-release-event", self.__on_tune)
-        self.__tuner.show()
-        self.box.pack_start(self.__tuner, False, False)
-
-        self.__btn_previous = self._create_button(theme.btn_previous_1,        
-                                                  theme.btn_previous_2,
-                     lambda x,y:self.update_observer(panel_actions.PREVIOUS))
-        self.__btn_next = self._create_button(theme.btn_next_1,        
-                                              theme.btn_next_2,
-                     lambda x,y:self.update_observer(panel_actions.NEXT))
-
-        self.__btn_add = self._create_button(theme.btn_add_1,        
-                                              theme.btn_add_2,
-                     lambda x,y:self.update_observer(panel_actions.ADD))
-
-        
-        self.__btn_play = self._create_button(theme.btn_play_1,        
-                                              theme.btn_play_2,
-                     lambda x,y:self.update_observer(panel_actions.PLAY_PAUSE))
-
-        self.__btn_pause = self._create_button(theme.btn_pause_1,        
-                                               theme.btn_pause_2,
-                     lambda x,y:self.update_observer(panel_actions.PLAY_PAUSE))
-        
-        self.__btn_record = self._create_button(theme.btn_record_1,        
-                                                theme.btn_record_2,
-                     lambda x,y:self.update_observer(panel_actions.PLAY_PAUSE))        
-
-
-
     def __add_button(self, icon, icon_active, cb):
     
         btn = ImageButton(self.__event_sensor, icon, icon_active)
         btn.connect(self.EVENT_BUTTON_RELEASE, cb)
         btn.set_visible(False)
-        #btn.set_enabled(False)
         self.add(btn)
         self.__all_items.append(btn)
 
@@ -107,11 +73,10 @@ class ControlPanel(Panel):
         self.update_observer(panel_actions.SET_POSITION, pos)
         
         
-    def __on_tune(self, src, ev):
+    def __on_tune(self, px, py):
 
-        w, h = src.window.get_size()
-        x, y = src.get_pointer()
-        pos = max(0, min(99.9, x / float(w) * 100))
+        w, h = self.__tuner.get_size()
+        pos = max(0, min(99.9, px / float(w) * 100))
         self.update_observer(panel_actions.TUNE, pos)    
     
                 
@@ -129,7 +94,7 @@ class ControlPanel(Panel):
             self.__items.append(self.__progress)
 
         if (capabilities & caps.TUNING):
-            self.__items.append(self.__progress)
+            self.__items.append(self.__tuner)
 
         if (capabilities & caps.SKIPPING):
             self.__items.append(self.__btn_previous)
@@ -153,22 +118,22 @@ class ControlPanel(Panel):
             item.set_pos(x, y)
             item.set_visible(True)
             x += item.get_size()[0]
+        
+        self.render()
 
 
     def set_playing(self, value):
     
         if (value):
-            self.__btn_play.hide()
-            self.__btn_pause.show()
+            self.__btn_play.set_images(theme.btn_pause_1, theme.btn_pause_2)
         else:
-            self.__btn_pause.hide()
-            self.__btn_play.show()
+            self.__btn_play.set_images(theme.btn_play_1, theme.btn_play_2)
 
 
     def set_title(self, title):
 
         self.__progress.set_title(title)
-        #self.__tuner.set_title(title)
+        self.__tuner.set_title(title)
 
 
     def set_position(self, pos, total):
@@ -179,5 +144,5 @@ class ControlPanel(Panel):
 
     def set_value(self, value, unit):
     
-        self.__progress.set_value(value, unit)
+        self.__tuner.set_value(value, unit)
         

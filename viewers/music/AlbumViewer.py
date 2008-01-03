@@ -80,37 +80,15 @@ class AlbumViewer(Viewer):
         self.__items = []
 
 
-    def make_item_for(self, uri, thumbnailer):
+    def update_media(self, mscanner):
     
-        if (not os.path.isdir(uri)): return
-        if (not self.__is_album(uri)): return    
-
-        item = MusicItem(uri)
-        if (not thumbnailer.has_thumbnail(uri)):
-            candidates = [ os.path.join(uri, ".folder.png"),
-                           os.path.join(uri, "cover.jpg"),
-                           os.path.join(uri, "cover.jpeg"),
-                           os.path.join(uri, "cover.png") ]
-
-            imgs = [ os.path.join(uri, f)
-                     for f in os.listdir(uri)
-                     if f.lower().endswith(".png") or
-                        f.lower().endswith(".jpg") ]
-
-            cover = ""
-            for c in candidates + imgs:
-                if (os.path.exists(c)):
-                    cover = c
-                    break
-        
-            if (cover):
-                thumbnailer.set_thumbnail_for_uri(uri, cover)
-        #end if
-                
-        tn = AlbumThumbnail(thumbnailer.get_thumbnail(uri),
-                            os.path.basename(uri))
-        item.set_thumbnail(tn)
-        self.__items.append(item)
+        self.__items = []
+        for item in mscanner.get_media(mscanner.MEDIA_AUDIO):
+            mitem = MusicItem(item.uri)
+            tn = AlbumThumbnail(item.thumbnail,
+                                os.path.basename(item.uri))
+            mitem.set_thumbnail(tn)
+            self.__items.append(mitem)
        
        
     def __on_observe_mplayer(self, src, cmd, *args):
@@ -174,13 +152,72 @@ class AlbumViewer(Viewer):
         
         
     def __find_cover(self, uri):
+        
+        candidates = [ os.path.join(uri, ".folder.png"),
+                       os.path.join(uri, "cover.jpg"),
+                       os.path.join(uri, "cover.jpeg"),
+                       os.path.join(uri, "cover.png") ]
+
+        imgs = [ os.path.join(uri, f)
+                 for f in os.listdir(uri)
+                 if f.lower().endswith(".png") or
+                 f.lower().endswith(".jpg") ]
+
+        cover = ""
+        for c in candidates + imgs:
+            if (os.path.exists(c)):
+                cover = c
+                break
+        #end for
+        
+        return cover
+        
+        
+    def __load_cover(self, uri, tags = {}):
     
+        coverdata = tags.get("PICTURE")
+        pbuf = None
+        if (coverdata):
+            # load embedded APIC
+            pbuf = self.__load_apic(coverdata)
+            
+        if (not pbuf):
+            # load cover from file
+            coverfile = self.__find_cover(os.path.dirname(uri))
+            try:
+                pbuf = gtk.gdk.pixbuf_new_from_file(coverfile)
+            except:
+                pass
+        
+        return pbuf           
+            
+        
         path = os.path.dirname(uri)
         for i in (".folder.png", "cover.jpg", "cover.jpeg", "cover.png"):
             coverpath = os.path.join(path, i)
             if (os.path.exists(coverpath)): return coverpath
             
         return None
+        
+        
+    def __load_apic(self, data):
+    
+        idx = data.find("\x00", 1)
+        idx = data.find("\x00", idx + 1)
+        while (data[idx] == "\x00"): idx +=1
+        
+        picdata = data[idx:]
+
+        try:
+            loader = gtk.gdk.PixbufLoader()
+            loader.write(picdata)
+            loader.close()
+            pbuf = loader.get_pixbuf()
+        except:
+            import traceback; traceback.print_exc()
+            pbuf = None
+            
+        return pbuf    
         
 
     def __previous_track(self):
@@ -225,13 +262,16 @@ class AlbumViewer(Viewer):
                 title = tags.get("TITLE", os.path.basename(track))
                 album = tags.get("ALBUM", os.path.basename(track))
                 artist = tags.get("ARTIST", os.path.basename(track))
+                
+                cover = self.__load_cover(track, tags)
 
                 self.set_title(title)
                 self.__trackinfo.set_title(title)
                 self.__trackinfo.set_info(album, artist)
-                self.__trackinfo.set_cover(self.__find_cover(track))
+                self.__trackinfo.set_cover(cover)
                 
             except:
+                import traceback; traceback.print_exc()
                 self.__list.hilight(-1)
         gobject.idle_add(f)
         

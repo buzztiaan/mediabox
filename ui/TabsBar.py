@@ -10,6 +10,7 @@ class TabsBar(Widget):
         self.__callbacks = []
         
         self.__bg = Pixmap(None, 80, 80)
+        self.__buffer = Pixmap(None, 80, 80)
         self.__current_tab = -1
     
         Widget.__init__(self, esens)
@@ -23,11 +24,13 @@ class TabsBar(Widget):
         cnt = 0
         for i in range(0, w, 90):
             if (i + 90 > px):
-                self.hilight_tab(cnt)
-                cb, args = self.__callbacks[cnt]
-                cb(*args)
-                break
-                
+                if (cnt == self.__current_tab):
+                    break
+                else:
+                    self.hilight_tab(cnt)
+                    cb, args = self.__callbacks[cnt]
+                    cb(*args)
+                    break            
             cnt += 1
         #end for
         
@@ -50,7 +53,7 @@ class TabsBar(Widget):
         screen = self.get_screen()
         
         # save background
-        self.__bg.copy_pixmap(screen, x, y, 0, 0, 80, 80)
+        self.__bg.copy_buffer(screen, x, y, 0, 0, 80, 80)
         
         cnt = 0
         for icon, icon_active in self.__tabs:
@@ -64,23 +67,26 @@ class TabsBar(Widget):
             
             
     def hilight_tab(self, idx):
-    
+
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-    
+                  
         if (self.__current_tab != -1):
-            x1 = x + self.__current_tab * 90
             icon, icon_active = self.__tabs[self.__current_tab]
-            screen.copy_pixmap(self.__bg, 0, 0, x1, y, 80, 80)
-            x1 += 40 - icon.get_width() / 2            
-            y1 = y + 40 - icon.get_height() / 2
-            screen.draw_pixbuf(icon, x1, y1)
+            x1 = 40 - icon.get_width() / 2            
+            y1 = 40 - icon.get_height() / 2
+            x2 = x + self.__current_tab * 90
+            self.__buffer.copy_pixmap(self.__bg, 0, 0, 0, 0, 80, 80)
+            self.__buffer.draw_pixbuf(icon, x1, y1)
+            screen.copy_pixmap(self.__buffer, 0, 0, x2, y, 80, 80)
            
-        x2 = x + idx * 90
         icon, icon_active = self.__tabs[idx]
-        screen.copy_pixmap(self.__bg, 0, 0, x2, y, 80, 80)
-        y2 = y + (80 - icon_active.get_height()) / 2
-        screen.draw_pixbuf(icon_active, x2, y2)
+        x1 = 40 - icon_active.get_width() / 2            
+        y1 = 40 - icon_active.get_height() / 2
+        x2 = x + idx * 90
+        self.__buffer.copy_pixmap(self.__bg, 0, 0, 0, 0, 80, 80)        
+        self.__buffer.draw_pixbuf(icon_active, x1, y1)
+        screen.copy_pixmap(self.__buffer, 0, 0, x2, y, 80, 80)
         self.__current_tab = idx
         

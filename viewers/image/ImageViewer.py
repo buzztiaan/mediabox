@@ -92,20 +92,16 @@ class ImageViewer(Viewer):
         self.__items = []
 
 
-    def make_item_for(self, uri, thumbnailer):
+    def update_media(self, mscanner):
     
-        if (os.path.isdir(uri)): return
-        if (not self.__is_image(uri)): return
+        self.__items = []
+        for item in mscanner.get_media(mscanner.MEDIA_IMAGE):
+            iitem = ImageItem(item.uri)    
+            tn = ImageThumbnail(item.thumbnail)
+            iitem.set_thumbnail(tn)
+            self.__items.append(iitem)
 
-        item = ImageItem(uri)
-        if (not thumbnailer.has_thumbnail(uri)):
-            thumbnailer.set_thumbnail_for_uri(uri, uri)
-        
-        tn = ImageThumbnail(thumbnailer.get_thumbnail(uri))
-        item.set_thumbnail(tn)
-        self.__items.append(item)
-                        
-        
+
     def load(self, item):
 
         self.__image.load(item.get_uri())
@@ -133,11 +129,13 @@ class ImageViewer(Viewer):
         self.__is_fullscreen = not self.__is_fullscreen        
         
         if (self.__is_fullscreen):
+            self.update_observer(self.OBS_FULLSCREEN)        
             self.__image.set_pos(0, 0)
             self.__image.set_size(800, 480)
-            self.update_observer(self.OBS_FULLSCREEN)
         else:
+            self.update_observer(self.OBS_UNFULLSCREEN)
             self.__image.set_pos(10, 10)
             self.__image.set_size(600, 380)
-            self.update_observer(self.OBS_UNFULLSCREEN)            
+
+        self.update_observer(self.OBS_RENDER)
 

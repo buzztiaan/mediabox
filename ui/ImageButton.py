@@ -7,6 +7,7 @@ class ImageButton(Widget):
     def __init__(self, esens, img1, img2):
     
         self.__bg = None
+        self.__buffer = None
         
         self.__img1 = img1
         self.__img2 = img2
@@ -22,6 +23,7 @@ class ImageButton(Widget):
     
         Widget.set_size(self, w ,h)
         self.__bg = Pixmap(None, w, h)
+        self.__buffer = Pixmap(None, w, h)
     
         
     def render_this(self):
@@ -34,25 +36,43 @@ class ImageButton(Widget):
         
         # save background
         self.__bg.copy_buffer(screen, x, y, 0, 0, w, h)
-            
-        screen.draw_pixbuf(self.__img1,
-                           x + (w - self.__img1.get_width()) / 2,
-                           y + (h - self.__img1.get_height()) / 2)
+
+        self.__render_button(0)            
                      
         
     def __on_click(self, px, py, clicked):
     
+        if (clicked):
+            self.__render_button(1)
+        else:
+            self.__render_button(0)        
+        
+
+
+    def __render_button(self, state):
+
+        if (not self.may_render()): return
+
         x, y = self.get_screen_pos()
         w, h = self.get_size()    
         screen = self.get_screen()
 
-        screen.copy_pixmap(self.__bg, 0, 0, x, y, w, h)    
-        if (clicked):
-            screen.draw_pixbuf(self.__img2,
-                               x + (w - self.__img2.get_width()) / 2,
-                               y + (h - self.__img2.get_height()) / 2)
+        if (state == 0):
+            img = self.__img1
         else:
-            screen.draw_pixbuf(self.__img1,
-                               x + (w - self.__img1.get_width()) / 2,
-                               y + (h - self.__img1.get_height()) / 2)
+            img = self.__img2
+
+        self.__buffer.copy_pixmap(self.__bg, 0, 0, 0, 0, w, h)
+        self.__buffer.draw_pixbuf(img,
+                                  (w - img.get_width()) / 2,
+                                  (h - img.get_height()) / 2)
+        screen.copy_pixmap(self.__buffer, 0, 0, x, y, w, h)
+        
+        
+    def set_images(self, img1, img2):
+    
+        self.__img1 = img1
+        self.__img2 = img2
+        
+        self.__render_button(0)
 

@@ -5,7 +5,12 @@ import gobject
 import pango
 
 
+
 class Label(Widget):
+
+    # text alignments
+    LEFT = 0
+    RIGHT = 1
 
     def __init__(self, esens, text, font, color):
     
@@ -13,6 +18,7 @@ class Label(Widget):
         self.__bg = None
         self.__is_scrolling = False
         self.__is_new_text = False
+        self.__alignment = self.LEFT
     
         self.__text = text
         self.__font = font
@@ -77,6 +83,11 @@ class Label(Widget):
         self.__text_pmap.draw_text(self.__text, self.__font, 0, 0, self.__color)
 
 
+    def set_alignment(self, alignment):
+    
+        self.__alignment = alignment
+
+
     def set_text(self, text):
 
         self.__is_new_text = True
@@ -122,9 +133,14 @@ class Label(Widget):
         if (not h): h = text_h
 
         # render currently visible text portion
-        if (text_w <= w): pos = 0
+        if (text_w <= w):
+            if (self.__alignment == self.LEFT): text_x = 0
+            else: text_x = w - text_w
+        else:
+            text_x = 0
+            
         if (self.may_render()):
-            screen.copy_pixmap(self.__text_pmap, pos, 0, x, y,
+            screen.copy_pixmap(self.__text_pmap, pos, 0, x + text_x, y,
                                min(text_w, w), text_h)
 
         # handle scrolling

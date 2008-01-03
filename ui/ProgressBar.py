@@ -24,19 +24,20 @@ class ProgressBar(Widget):
                              theme.color_fg_panel_text)
         self.add(self.__label)
         self.__label.set_pos(0, 0)
-        self.__label.set_size(w, 22)
+        self.__label.set_size(w, 0)
         
         self.__pos_label = Label(esens, "", theme.font_tiny,
                                  theme.color_fg_panel_text)
         self.add(self.__pos_label)
         self.__pos_label.set_pos(0, 24 + h)
-        self.__pos_label.set_size(50, 22)
+        self.__pos_label.set_size(50, 0)
         
         self.__total_label = Label(esens, "", theme.font_tiny,
                                    theme.color_fg_panel_text)
         self.add(self.__total_label)
-        self.__total_label.set_pos(w - 42, 24 + h)
-        self.__total_label.set_size(42, 22)
+        self.__total_label.set_pos(w - 100, 24 + h)
+        self.__total_label.set_size(100, 0)
+        self.__total_label.set_alignment(self.__total_label.RIGHT)
 
 
     def render_this(self):

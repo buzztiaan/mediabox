@@ -30,7 +30,7 @@ class Thumbnail(gtk.gdk.Pixbuf):
         #if (not self.__defer_list):
         #    gobject.idle_add(self.__defer_handler)
         #self.__defer_list.append(self)
-        self.__initialize()
+        #self.__initialize()
         
         
     def __defer_handler(self):

@@ -10,6 +10,7 @@ import time
 import gc
 
 
+
 # predefined zoom levels
 _ZOOM_LEVELS = [18, 25, 33, 50, 75, 100, 150, 200,
                 300, 400, 600, 800, 1200, 1600]
@@ -42,6 +43,9 @@ class Image(Widget, Observable):
 
         # the buffer contains the pixbuf for rendering on screen
         self.__buffer = None
+        
+        # offscreen drawing pixmap
+        self.__offscreen = Pixmap(None, 800, 480)
 
         # original size of the image
         self.__original_size = (0, 0)
@@ -67,6 +71,11 @@ class Image(Widget, Observable):
         # a buffer is a tuple (pixmap, x, y, w, h)
         self.__save_unders = []
 
+        # flag for marking new images that have not been rendered to screen yet
+        self.__is_new_image = False
+        
+        self.__hi_quality_timer = None
+        
         # the currently available zoom levels (= _ZOOM_LEVELS + fitting)
         self.__zoom_levels = []
         self.__zoom_level = 4
@@ -89,12 +98,16 @@ class Image(Widget, Observable):
         # create a client-side pixmap for rendering
         self.__buffer = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
                                        True, 8, 800, 480)
+                                       
+        self.__offscreen.fill_area(0, 0, 800, 480, _BACKGROUND_COLOR)
 
 
     def render_this(self):
-    
-        self.__invalidated = True
-        self._render()
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()    
+        screen.copy_pixmap(self.__offscreen, x, y, x, y, w, h)
 
 
     def set_size(self, w, h):
@@ -104,25 +117,16 @@ class Image(Widget, Observable):
         if ((w, h) != self.__visible_size):
             self.__visible_size = (w, h)
             #if (self.__original_size != (0, 0)): self.__scale_to_fit()
-            if (self.__original_size != (0, 0)): self.zoom(self.__zoom_level)
+            self.__invalidated = True
+            self._render()
+            #if (self.__original_size != (0, 0)): self.zoom(self.__zoom_level)
         
-
-
 
     def __hi_quality_render(self):
 
-        tstamp = int(time.time() * 1000)
-        self.__timer_tstamp = tstamp
-        gobject.timeout_add(1000, self.__hi_quality_timer, tstamp)
-
-
-    def __hi_quality_timer(self, tstamp):
-
-        if (tstamp != self.__timer_tstamp): return
-
-        self.update_observer(self.OBS_SMOOTHING)
-        self.__invalidated = True
-        gobject.idle_add(self._render, True)
+       self.update_observer(self.OBS_SMOOTHING)
+       self.__invalidated = True
+       self._render(True)
 
 
     def scroll_to(self, x, y):
@@ -330,8 +334,6 @@ class Image(Widget, Observable):
         Renders the visible area of the image.
         """
 
-        if (not self.may_render()): return
-
         x, y = self.get_screen_pos()
         screen = self.get_screen()
 
@@ -376,35 +378,52 @@ class Image(Widget, Observable):
             
             if (vwidth < width):
                 bw = (width - vwidth) / 2
-                screen.fill_area(x, y, bw, height, _BACKGROUND_COLOR)
-                screen.fill_area(x + width - bw, y, bw, height,
-                                 _BACKGROUND_COLOR)
+                self.__offscreen.fill_area(x, y, bw, height, _BACKGROUND_COLOR)
+                self.__offscreen.fill_area(x + width - bw - 1, y, bw + 1, height,
+                                           _BACKGROUND_COLOR)
             
             if (vheight < height):
                 bh = (height - vheight) / 2
-                screen.fill_area(x, y, width, bh, _BACKGROUND_COLOR)
-                screen.fill_area(x, y + height - bh, width, bh,
-                                 _BACKGROUND_COLOR)
+                self.__offscreen.fill_area(x, y, width, bh, _BACKGROUND_COLOR)
+                self.__offscreen.fill_area(x, y + height - bh - 1, width, bh + 1,
+                                           _BACKGROUND_COLOR)
                 
         else:
             # copy on the server-side (this is our simple trick for
             # fast scrolling!)
-            x, y = self.get_screen_pos()
-            screen = self.get_screen()
-            screen.copy_pixmap(screen,
-                               x + src_x, y + src_y,
-                               x + dest_x, y + dest_y,
-                               src_w, src_h)
+            self.__offscreen.copy_pixmap(screen,
+                                         x + src_x, y + src_y,
+                                         x + dest_x, y + dest_y,
+                                         src_w, src_h)
             
         # render borders
         for rx, ry, rw, rh in areas:
             self.__render_area(rx, ry, rw, rh, high_quality)
 
+        # wait for VBL
+        #omapfb.sync_gfx()
+
+        # copy to screen
+        if (self.may_render()):
+            if (self.__is_new_image):
+                self.__is_new_image = False
+                self.fx_fade_in()
+            else:
+                screen.copy_pixmap(self.__offscreen, x, y, x, y, width, height)            
+            
+            if (not high_quality):
+                if (self.__hi_quality_timer):
+                    gobject.source_remove(self.__hi_quality_timer)
+                    
+                self.__hi_quality_timer = \
+                  gobject.timeout_add(1000, self.__hi_quality_render)
+            else:
+                self.__hi_quality_timer = None
+
         self.__previous_offset = (offx, offy)
         
         self.update_observer(self.OBS_RENDERED)
-        #self.__image.queue_draw()
-        if (not high_quality): self.__hi_quality_render()
+
 
         
 
@@ -460,12 +479,8 @@ class Image(Widget, Observable):
             if (vheight < height): ry += (height - vheight) / 2
 
         x, y = self.get_screen_pos()
-        screen = self.get_screen()
-        screen.draw_pixbuf(destpbuf, x + rx, y + ry)        
-        #pmap.draw_pixbuf(None, destpbuf,
-        #                 0, 0, rx, ry, destwidth, destheight,
-        #                 gtk.gdk.RGB_DITHER_NONE, 0, 0)
-        
+        self.__offscreen.draw_pixbuf(destpbuf, x + rx, y + ry)        
+       
 
 
 
@@ -477,10 +492,32 @@ class Image(Widget, Observable):
 
         if (filename != self.__current_filename):
             self.__loading_cancelled = True
+            
+            if (self.__hi_quality_timer):
+                gobject.source_remove(self.__hi_quality_timer)            
+
             self.update_observer(self.OBS_BEGIN_LOADING, filename)
             
             # timeout for the cancelation to take effect
-            gobject.timeout_add(50, self.__load_img, filename)
+            #gobject.timeout_add(50, self.__load_img, filename)
+            self.__load_img_at_once(filename)
+
+
+    def __load_img_at_once(self, filename):
+        """
+        Loads the image.
+        """
+
+        try:
+            self.__loader.close()
+        except:
+            pass
+        self.__loader = gtk.gdk.PixbufLoader()
+        self.__loader.connect("size-prepared", self.__on_check_size)
+        self.__current_filename = filename
+        self.__loader.write(open(filename).read())
+        self.__loader.close()
+        self.__finish_loading()
 
 
 
@@ -591,7 +628,9 @@ class Image(Widget, Observable):
         w, h = self.__pixbuf.get_width(), self.__pixbuf.get_height()
         self.__original_size = (w, h)
 
+        self.__is_new_image = True
         self.__scale_to_fit()
+        #self.fx_fade_in()
 
         # collect three generations of garbage
         for i in range(3): gc.collect()
@@ -650,3 +689,33 @@ class Image(Widget, Observable):
         if (factor != 1):
             loader.set_size(int(width * factor), int(height * factor))
 
+
+
+    def fx_fade_in(self, wait = True):
+        
+        import threading
+    
+        STEP = 32
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+
+        pbuf = self.__offscreen.render_on_pixbuf()
+        dst_pbuf = screen.render_on_pixbuf()
+        finished = threading.Event()
+        
+        def f(i, pbuf, dst_pbuf):
+            i = min(255, i)
+            pbuf.composite(dst_pbuf, x, y, w, h, 0, 0, 1, 1,
+                           gtk.gdk.INTERP_NEAREST, i)
+            screen.draw_subpixbuf(dst_pbuf, x, y, x, y, w, h)
+            if (i < 255):
+                gobject.timeout_add(50, f, i + STEP, pbuf, dst_pbuf)
+            else:
+                self.set_screen(screen)
+                finished.set()
+                del pbuf
+                del dst_pbuf
+                
+        f(32, pbuf, dst_pbuf)
+        while (wait and not finished.isSet()): gtk.main_iteration()

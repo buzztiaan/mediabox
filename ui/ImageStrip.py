@@ -48,6 +48,7 @@ class ImageStrip(Widget):
     def __to_pixbuf(self, obj):
     
         if (hasattr(obj, "add_alpha")):
+            obj.get_width()
             return obj
         else:
             return gtk.gdk.pixbuf_new_from_file(obj)

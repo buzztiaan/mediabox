@@ -68,7 +68,7 @@ class VideoViewer(Viewer):
         if (not self.__is_fullscreen):
             x, y, w, h = self.__get_frame_rect()
             screen.draw_rect(x, y, w, h, "#000000")
-
+    
         if (not self.__mplayer.has_video()):
             self.__layout.move(self.__screen, vx, vy)
             self.__screen.set_size_request(vw, vh)
@@ -187,27 +187,8 @@ class VideoViewer(Viewer):
         original aspect ratio.
         """
             
-        #while (gtk.events_pending()): gtk.main_iteration()
         self.__set_aspect_ratio(self.__aspect_ratio)
-        return
-        """
-        #nil, nil, w, h = self.__box.get_allocation()
-        w, h = self.__get_size()
-        res_w, res_h = self.__screen.get_size_request() #allocation()
-        print w, h, res_w, res_h
-        if (self.__mplayer.has_video()):
-            factor = min(h / float(res_h), w / float(res_w))
-            width = int(res_w * factor)
-            height = int(res_h * factor)
 
-            self.__screen.set_size_request(width, height)
-            self.__box.move(self.__screen, (w - width) / 2, (h - height) / 2)        
-        else:
-            width = self.__logo.get_width()
-            height = self.__logo.get_height()
-            self.__screen.set_size_request(width, height)
-            self.__box.move(self.__screen, (w - width) / 2, (h - height) / 2)
-        """ 
 
 
     def __is_video(self, uri):
@@ -221,55 +202,16 @@ class VideoViewer(Viewer):
         self.__items = []
 
 
-    def make_item_for(self, uri, thumbnailer):
+    def update_media(self, mscanner):
     
-        if (os.path.isdir(uri)): return
-        if (not self.__is_video(uri)): return
-
-        item = VideoItem(uri)
-        if (not thumbnailer.has_thumbnail(uri)):            
-            # quick and dirty way of getting a video thumbnail
-            cmd = "mplayer -zoom -ss 10 -nosound " \
-                  "-vo jpeg:outdir=\"%s\" -frames 3 -vf scale=134:-3  \"%s\"" \
-                  " >/dev/null 2>&1" \
-                  % ("/tmp", uri)
-            os.system(cmd)
-            
-            # not so quick way of getting a video thumbnail
-            """
-            # make video thumbnail
-            self.__mplayer.set_window(-1)
-            self.__mplayer.set_options("-vf scale=134:-3,screenshot -vo null "
-                                       "-nosound -speed 10")
-            try:
-                self.__mplayer.load(uri)
-            except:
-                return
-        
-            # not all videos support seeking, but try it for those that do
-            self.__mplayer.seek(20)            
-            time.sleep(0.1)
-            os.system("rm -f /tmp/shot*.png")
-            self.__mplayer.screenshot()
-            time.sleep(0.1)
-            """
-
-            thumbs = [ os.path.join("/tmp", f) for f in os.listdir("/tmp")
-                       if f.startswith("00000") ]
-
-            if (not thumbs): return
-            thumbs.sort()
-            thumb = thumbs[-1]
-            
-            thumbnailer.set_thumbnail_for_uri(uri, thumb)            
-            os.system("rm -f /tmp/00000*.jpg")
-        #end if
-
-        tn = VideoThumbnail(thumbnailer.get_thumbnail(uri),
-                            os.path.basename(uri))
-        item.set_thumbnail(tn)        
-        self.__items.append(item)
-        
+        self.__items = []
+        for item in mscanner.get_media(mscanner.MEDIA_VIDEO):
+            vitem = VideoItem(item.uri)
+            tn = VideoThumbnail(item.thumbnail,
+                                os.path.basename(item.uri))
+            vitem.set_thumbnail(tn)
+            self.__items.append(vitem)
+           
 
     def shutdown(self):
 
@@ -301,6 +243,7 @@ class VideoViewer(Viewer):
                 try:
                     self.__context_id = self.__mplayer.load(uri)
                 except:
+                    self.__screen.hide()
                     return
                                 
                 #self.__scale_video()
@@ -350,7 +293,9 @@ class VideoViewer(Viewer):
     
         Viewer.show(self)
         self.update_observer(self.OBS_SET_COLLECTION, self.__items)
-        if (self.__mplayer.has_video()): self.__screen.show()
+        if (self.__mplayer.has_video()):
+            self.__scale_video()
+            self.__screen.show()
         
         
     def hide(self):
@@ -373,9 +318,12 @@ class VideoViewer(Viewer):
         else:
             self.update_observer(self.OBS_UNFULLSCREEN)
             gtk.gdk.keyboard_ungrab()
+        
+        #while (gtk.events_pending()): gtk.main_iteration()        
+        
+        self.update_observer(self.OBS_RENDER)
 
-        self.__scale_video()
-        while (gtk.events_pending()): gtk.main_iteration()        
-        self.__screen.show()
-        
-        
+        if (self.__mplayer.has_video()):
+            self.__scale_video()
+            self.__screen.show()
+

@@ -60,7 +60,7 @@ class SunClock(Widget):
         # buffer for the screen
         self.__screen = Pixmap(None, 800, 400)
       
-        self.update()
+        #self.update()
         
 
     def render_this(self):

@@ -33,6 +33,7 @@ class Viewer(Widget, Observable):
     OBS_HIDE_COLLECTION = 21       
     OBS_FULLSCREEN = 22
     OBS_UNFULLSCREEN = 23
+    OBS_RENDER = 24
     
     OBS_SHOW_MESSAGE = 30
     OBS_SHOW_PROGRESS = 31
@@ -73,10 +74,10 @@ class Viewer(Widget, Observable):
     
         pass
         
-        
-    def make_item_for(self, uri, thumbnailer):
     
-        return None        
+    def update_media(self, mscanner):
+    
+        pass
         
         
     def load(self, uri):

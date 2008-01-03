@@ -1,16 +1,15 @@
-from ui.Pixmap import Pixmap
-
 from MainWindow import MainWindow
 from RootPane import RootPane
 from ContentPane import ContentPane
 from ViewerState import ViewerState
 from viewers.Thumbnail import Thumbnail
+from ui.Pixmap import Pixmap
 from ui.ImageStrip import ImageStrip
 from ui.KineticScroller import KineticScroller
 from ui import dialogs
 from ControlBar import ControlBar
 import panel_actions
-from Thumbnailer import Thumbnailer
+from mediascanner.MediaScanner import MediaScanner
 import config
 import values
 import viewers
@@ -99,7 +98,7 @@ class App(object):
         self.__kscr = KineticScroller(self.__strip)
         self.__kscr.add_observer(self.__on_observe_strip)
 
-       
+      
        
     def __startup(self):
         """
@@ -132,69 +131,45 @@ class App(object):
         """
 
         mediaroots = config.mediaroot()
-        mediaroots.sort()
     
-        if (not mediaroots):
-            dialogs.warning("No media location specified!",
-                 "Please specify the locations of your\n"
-                 "media files in the preferences.")
-        #end if
-
         if (`mediaroots` == `self.__current_mediaroots`):
             return
-            
         else:
             self.__current_mediaroots = mediaroots
 
-
-        thumbnailer = Thumbnailer(self.__window)
-        #thumbnailer.show()
         self.__ctrlbar.show_message("Looking for media files...")
         while (gtk.events_pending()): gtk.main_iteration()
 
-        collection = []
-        thumbdir = os.path.abspath(config.thumbdir())
-        print "searching"
-        for mediaroot in mediaroots:
-            collection.append(mediaroot)
-            for dirpath, dirs, files in os.walk(mediaroot):
-                # don't allow scanning the thumbnail directory as this may
-                # loop endlessly
-                if (dirpath == thumbdir): continue
+        if (not mediaroots):
+            dialogs.warning("No media location specified!",
+                            "Please specify the locations of your\n"
+                            "media files in the preferences.")
+        #end if          
 
-                dirs.sort()
-                files.sort()                
-                                
-                for f in dirs + files:
-                    uri = os.path.join(dirpath, f)
-                    collection.append(uri)
-                #end for            
-            #end for
-        #end for
-        
-        total = len(collection)
-        
-        for v in self.__viewers:
-            v.clear_items()
+        mscanner = MediaScanner()
+        mscanner.set_thumb_folder(os.path.abspath(config.thumbdir()))
+        mscanner.set_media_roots([ (uri, mscanner.MEDIA_VIDEO | mscanner.MEDIA_AUDIO | mscanner.MEDIA_IMAGE) for uri in mediaroots ])
 
-        cnt = 0
-        print "building"
         now = time.time()
-        for uri in collection:
-            cnt += 1
-            thumbnailer.set_progress(cnt, total)
-            for v in self.__viewers:
-                v.make_item_for(uri, thumbnailer)
-            #end for
-            
-            #self.__ctrlbar.set_progress(cnt, total)
-            #while (gtk.events_pending()): gtk.main_iteration()            
-        #end for
-        print "Took", time.time() - now
-        
-        self.__ctrlbar.show_panel()
-        
-        thumbnailer.destroy()
+        mscanner.scan()
+
+        self.__ctrlbar.show_message("Took %f seconds" % (time.time() - now))
+        while (gtk.events_pending()): gtk.main_iteration()
+        time.sleep(2)
+
+        self.__ctrlbar.show_message("Generating Thumbnails...")
+        while (gtk.events_pending()): gtk.main_iteration()
+
+        # update viewers        
+        now = time.time()
+        for v in self.__viewers:
+            v.update_media(mscanner)        
+
+        self.__ctrlbar.show_message("Took %f seconds" % (time.time() - now))
+        while (gtk.events_pending()): gtk.main_iteration()
+        time.sleep(2)
+
+        self.__ctrlbar.show_panel()                
         import gc; gc.collect()
 
 
@@ -331,7 +306,11 @@ class App(object):
             self.__saved_image = None
             self.__saved_image_index = -1
             
+        elif (cmd == src.OBS_RENDER):
+            self.__root_pane.render()
+            
         elif (cmd == src.OBS_SHOW_COLLECTION):
+            #if (not self.__strip.is_visible()):
             self.__strip.set_visible(True)
             #self.__strip.render()
             #self.__strip.fx_slide_in()
@@ -354,7 +333,7 @@ class App(object):
             self.__current_viewer.set_pos(0, 0)
             self.__current_viewer.set_size(800, 480)
             #self.__current_viewer.render()
-            self.__root_pane.render()
+            #self.__root_pane.render()
 
         elif (cmd == src.OBS_UNFULLSCREEN):
             self.__strip.set_visible(True)
@@ -366,7 +345,7 @@ class App(object):
             self.__current_viewer.set_pos(180, 0)
             self.__current_viewer.set_size(620, 400)
             #self.__current_viewer.render()
-            self.__root_pane.render()
+            #self.__root_pane.render()
             #self.__ctrlbar.render()
             
         elif (cmd == src.OBS_SHOW_MESSAGE):
@@ -460,13 +439,15 @@ class App(object):
         """        
     
         viewer = self.__viewers[idx]
-        if (self.__current_viewer == viewer): return
         
         if (self.__current_viewer):
             self.__current_viewer.hide()
             self.__get_vstate().item_offset = self.__strip.get_offset()
                 
         self.__current_viewer = viewer
+
+        buf = Pixmap(None, 800, 400)
+        self.__content_pane.set_screen(buf)
 
         vstate = self.__get_vstate()
         if (vstate.collection_visible):
@@ -489,6 +470,8 @@ class App(object):
                 self.__hilight_item(item_idx)
 
             self.__content_pane.render()
+            self.__content_pane.set_screen(self.__screen)
+            self.__content_pane.fx_raise(buf)
 
         gobject.idle_add(f)
 
@@ -500,8 +483,10 @@ class App(object):
         """
 
         thumbnails = [ item.get_thumbnail() for item in collection ]                
+        self.__ctrlbar.show_message("Loading Thumbnails...")
+        while (gtk.events_pending()): gtk.mainiteration()
         self.__strip.set_images(thumbnails)
-        
+        self.__ctrlbar.show_panel()
 
 
     def run(self):

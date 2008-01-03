@@ -24,7 +24,7 @@ class Clock(Viewer):
                 
         self.__sunclock = SunClock(esens)
         self.add(self.__sunclock)
-        
+              
         
     def __tick(self):
     
@@ -40,8 +40,7 @@ class Clock(Viewer):
     
         Viewer.show(self)
         self.update_observer(self.OBS_HIDE_COLLECTION)
-        gobject.idle_add(self.__sunclock.update)
-        
+                   
         self.__tick()
         if (not self.__is_ticking):
             gobject.timeout_add(10000, self.__tick)

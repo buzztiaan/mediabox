@@ -236,6 +236,11 @@ class ControlBar(Widget, Observable):
         self.__control_panel.set_position(pos, total)
 
 
+    def set_value(self, value, unit):
+    
+        self.__control_panel.set_value(value, unit)
+
+
     def set_progress(self, value, total):
     
         pass
@@ -249,7 +254,7 @@ class ControlBar(Widget, Observable):
         
     def set_playing(self, value):
     
-        pass
+        self.__control_panel.set_playing(value)
         
         
     def show_panel(self):
