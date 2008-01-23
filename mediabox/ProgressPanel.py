@@ -1,26 +1,30 @@
 from Panel import Panel
+from ui.Label import Label
+from ui.ProgressBar import ProgressBar
 import theme
-
-import gtk
 
 
 class ProgressPanel(Panel):
 
-    def __init__(self):
+    def __init__(self, esens):
        
-        Panel.__init__(self, False)
+        Panel.__init__(self, esens, False)
         
-        self.__progress_label = gtk.Label("")
-        self.__progress_label.modify_font(theme.font_headline)
-        self.__progress_label.modify_fg(gtk.STATE_NORMAL,
-                                        theme.color_fg_panel_text)
-        self.__progress_label.set_alignment(1.0, 0.5)
-        self.__progress_label.show()
-        self.box.add(self.__progress_label)
+        self.__progress = ProgressBar(esens, False)
+        self.add(self.__progress)
+        w, h = self.__progress.get_size()
+        self.__progress.set_pos(800 - 20 - w, (80 - h) / 2)
+
+        self.__progress_label = Label(esens, "", theme.font_headline,
+                                                 theme.color_fg_panel_text)
+        self.add(self.__progress_label)
+        self.__progress_label.set_pos(20, 20)
+        self.__progress_label.set_size(800 - 40 - w - 20, 0)
 
 
-    def set_progress(self, value, total):
+    def set_progress(self, text, value, total):
     
         if (total > 0):
-            self.__progress_label.set_text("%d %%" % (100 * value / float(total)))
+            self.__progress_label.set_text(text)
+            self.__progress.set_position(value, total)
 

@@ -1,6 +1,8 @@
 from MainWindow import MainWindow
+from SplashScreen import SplashScreen
 from RootPane import RootPane
 from ContentPane import ContentPane
+from Thumbnailer import Thumbnailer
 from ViewerState import ViewerState
 from viewers.Thumbnail import Thumbnail
 from ui.Pixmap import Pixmap
@@ -77,10 +79,21 @@ class App(object):
         # root pane
         self.__root_pane = RootPane(self.__window)
         self.__root_pane.set_screen(self.__screen)
+
+        # splash screen
+        self.__splash = SplashScreen(self.__window)
+        self.__splash.set_visible(True)
+        self.__root_pane.add(self.__splash)
+
+        # thumbnail screen
+        self.__thumbnailer = Thumbnailer(self.__window)
+        self.__thumbnailer.set_visible(False)
+        self.__root_pane.add(self.__thumbnailer)
         
         # content pane
         self.__content_pane = ContentPane(self.__window)
         self.__root_pane.add(self.__content_pane)
+        self.__content_pane.set_visible(False)
         
         # control bar
         self.__ctrlbar = ControlBar(self.__window)
@@ -98,6 +111,9 @@ class App(object):
         self.__kscr = KineticScroller(self.__strip)
         self.__kscr.add_observer(self.__on_observe_strip)
 
+        # set up media scanner
+        mscanner = MediaScanner()
+        mscanner.add_observer(self.__on_observe_media_scanner)
       
        
     def __startup(self):
@@ -105,10 +121,15 @@ class App(object):
         Runs a queue of actions to take for startup.
         """
         
-        actions = [(self.__load_viewers, []),
+        actions = [(self.__root_pane.render, []),
+                   (self.__load_viewers, []),
                    (self.__check_for_player, []),
+                   #(time.sleep, [500]),
+                   (self.__splash.set_visible, [False]),
+                   (self.__content_pane.set_visible, [True]),
+                   (self.__ctrlbar.set_visible, [True]),                   
+                   (self.__root_pane.render, []),
                    (self.__scan_media, []),
-                   #(self.__ctrlbar.fx_raise, []),
                    (self.__ctrlbar.select_tab, [0]),
                    ]
                    
@@ -130,32 +151,43 @@ class App(object):
         when missing.
         """
 
-        mediaroots = config.mediaroot()
+        mediaroots = config.mediaroot()        
     
         if (`mediaroots` == `self.__current_mediaroots`):
             return
         else:
             self.__current_mediaroots = mediaroots
 
-        self.__ctrlbar.show_message("Looking for media files...")
-        while (gtk.events_pending()): gtk.main_iteration()
-
         if (not mediaroots):
             dialogs.warning("No media location specified!",
                             "Please specify the locations of your\n"
                             "media files in the preferences.")
-        #end if          
+            return
+        #end if
+
+
+        self.__ctrlbar.show_message("Looking for media files...")
+        self.__content_pane.set_visible(False)
+        self.__thumbnailer.set_visible(True)
+        self.__root_pane.render()
+        while (gtk.events_pending()): gtk.main_iteration()
+
 
         mscanner = MediaScanner()
         mscanner.set_thumb_folder(os.path.abspath(config.thumbdir()))
-        mscanner.set_media_roots([ (uri, mscanner.MEDIA_VIDEO | mscanner.MEDIA_AUDIO | mscanner.MEDIA_IMAGE) for uri in mediaroots ])
+        
+        # TODO: media types should be applied by the user to the roots
+        mtypes = mscanner.MEDIA_VIDEO | \
+                 mscanner.MEDIA_AUDIO | \
+                 mscanner.MEDIA_IMAGE
+        
+        mscanner.set_media_roots([ (uri, mtypes) for uri in mediaroots ])
 
         now = time.time()
         mscanner.scan()
 
-        self.__ctrlbar.show_message("Took %f seconds" % (time.time() - now))
-        while (gtk.events_pending()): gtk.main_iteration()
-        time.sleep(2)
+        #self.__ctrlbar.show_message("Took %f seconds" % (time.time() - now))
+        #while (gtk.events_pending()): gtk.main_iteration()
 
         self.__ctrlbar.show_message("Generating Thumbnails...")
         while (gtk.events_pending()): gtk.main_iteration()
@@ -163,14 +195,16 @@ class App(object):
         # update viewers        
         now = time.time()
         for v in self.__viewers:
-            v.update_media(mscanner)        
+            v.update_media(mscanner)
+            self.__viewer_states[v].thumbs_loaded = False
 
-        self.__ctrlbar.show_message("Took %f seconds" % (time.time() - now))
-        while (gtk.events_pending()): gtk.main_iteration()
-        time.sleep(2)
+        self.__thumbnailer.set_visible(False)
+        self.__content_pane.set_visible(True)
+        self.__root_pane.render()
 
-        self.__ctrlbar.show_panel()                
         import gc; gc.collect()
+        self.__ctrlbar.show_panel()                
+        
 
 
     def __load_viewers(self):
@@ -178,8 +212,6 @@ class App(object):
         Loads the media viewers.
         """
     
-        self.__ctrlbar.show_message("Loading Components")
-
         cnt = 0
         for viewerclass in viewers.get_viewers():
             try:
@@ -201,8 +233,6 @@ class App(object):
             vstate.caps = viewer.CAPS
             self.__viewer_states[viewer] = vstate
             self.__viewers.append(viewer)
-            
-            while (gtk.events_pending()): gtk.main_iteration()
         #end for
                 
         
@@ -231,11 +261,8 @@ class App(object):
     
         x, y, w, h = ev.area
         self.__screen.restore(x, y, w, h)
-        #src.window.draw_pixbuf(src.window.new_gc(),
-        #                       theme.background,
-        #                       x, y, x, y, w, h)
-                               
-                               
+
+
     def __on_key(self, src, ev):
     
         keyval = ev.keyval
@@ -243,6 +270,8 @@ class App(object):
         
         if (key == "Escape"):
             self.__try_quit()
+        elif (key == "Return"):
+            self.__current_viewer.do_enter()
         elif (key == "F6"):
             self.__current_viewer.do_fullscreen()
         elif (key == "F7"):
@@ -254,9 +283,19 @@ class App(object):
             self.__kscr.impulse(0, 7.075)
         elif (key == "Down"):
             self.__kscr.impulse(0, -7.075)
-        
+        else:
+            print "unknown key", key
             
         return True
+
+
+    def __on_observe_media_scanner(self, src, cmd, *args):
+    
+        if (cmd == src.OBS_THUMBNAIL_GENERATED):
+            thumburi, uri = args
+            name = os.path.basename(uri)
+            self.__thumbnailer.show_thumbnail(thumburi, name)
+
 
 
     def __on_observe_viewer(self, src, cmd, *args):
@@ -305,9 +344,13 @@ class App(object):
 
             self.__saved_image = None
             self.__saved_image_index = -1
+           
+        elif (cmd == src.OBS_SELECT_ITEM):
+            idx = args[0]
+            self.__select_item(idx)
             
         elif (cmd == src.OBS_RENDER):
-            self.__root_pane.render()
+            self.__root_pane.render_buffered()
             
         elif (cmd == src.OBS_SHOW_COLLECTION):
             #if (not self.__strip.is_visible()):
@@ -316,14 +359,14 @@ class App(object):
             #self.__strip.fx_slide_in()
             self.__get_vstate().collection_visible = True
             self.__current_viewer.set_pos(180, 0)
-            self.__content_pane.render()
+            #self.__content_pane.render()
 
         elif (cmd == src.OBS_HIDE_COLLECTION):
             self.__strip.set_visible(False)
             #self.__strip.fx_slide_out()
             self.__get_vstate().collection_visible = False
             self.__current_viewer.set_pos(0, 0)
-            self.__content_pane.render()
+            #self.__content_pane.render()
 
         elif (cmd == src.OBS_FULLSCREEN):
             self.__strip.set_visible(False)
@@ -354,7 +397,7 @@ class App(object):
             
         elif (cmd == src.OBS_SHOW_PROGRESS):
             value, total = args
-            self.__ctrlbar.set_progress(value, total)
+            self.__ctrlbar.show_progress("Loading...", value, total)
             
         elif (cmd == src.OBS_SHOW_PANEL):
             self.__ctrlbar.show_panel()
@@ -364,6 +407,18 @@ class App(object):
     
         if (cmd == panel_actions.PLAY_PAUSE):
             self.__current_viewer.do_play_pause()
+
+        elif (cmd == panel_actions.ZOOM_IN):
+            self.__current_viewer.do_zoom_in()
+
+        elif (cmd == panel_actions.ZOOM_OUT):
+            self.__current_viewer.do_zoom_out()
+
+        elif (cmd == panel_actions.ZOOM_100):
+            self.__current_viewer.do_zoom_100()
+
+        elif (cmd == panel_actions.ZOOM_FIT):
+            self.__current_viewer.do_zoom_fit()
 
         elif (cmd == panel_actions.PREVIOUS):
             self.__current_viewer.do_previous()
@@ -407,11 +462,12 @@ class App(object):
             
     def __select_item(self, idx):
 
-        self.__hilight_item(idx)    
+        self.__hilight_item(idx)
 
         item = self.__current_collection[idx]
         self.__get_vstate().selected_item = idx
-        gobject.idle_add(self.__current_viewer.load, item)
+        self.__current_viewer.load(item)
+        self.__strip.scroll_to_item(idx)
 
 
     def __hilight_item(self, idx):
@@ -445,6 +501,7 @@ class App(object):
             self.__get_vstate().item_offset = self.__strip.get_offset()
                 
         self.__current_viewer = viewer
+        self.__kscr.stop_scrolling()
 
         buf = Pixmap(None, 800, 400)
         self.__content_pane.set_screen(buf)
@@ -483,11 +540,28 @@ class App(object):
         """
 
         thumbnails = [ item.get_thumbnail() for item in collection ]                
-        self.__ctrlbar.show_message("Loading Thumbnails...")
-        while (gtk.events_pending()): gtk.mainiteration()
-        self.__strip.set_images(thumbnails)
-        self.__ctrlbar.show_panel()
+        
+        vstate = self.__get_vstate()        
+        if (not vstate.thumbs_loaded):
+            total = len(thumbnails)
+            cnt = 1
+            for t in thumbnails:
+                t.get_width()             
 
+                if (cnt % 5 == 0 or (cnt == total and cnt > 5)):
+                    self.__ctrlbar.show_progress("Loading %d Items..." % total,
+                                                 cnt, total)                
+                    while (gtk.events_pending()): gtk.main_iteration()
+                    
+                cnt += 1                    
+            #end for
+        #end if
+
+        self.__strip.set_images(thumbnails)
+
+        if (not vstate.thumbs_loaded):
+            vstate.thumbs_loaded = True
+            
 
     def run(self):
         """
@@ -506,3 +580,4 @@ class App(object):
             for v in self.__viewers:
                 v.shutdown()
             gtk.main_quit()
+

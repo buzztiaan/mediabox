@@ -11,20 +11,22 @@ class Label(Widget):
     # text alignments
     LEFT = 0
     RIGHT = 1
+    CENTERED = 2
 
     def __init__(self, esens, text, font, color):
     
         self.__text_pmap = None
         self.__bg = None
-        self.__is_scrolling = False
-        self.__is_new_text = False
+        self.__is_new_text = True
         self.__alignment = self.LEFT
+        self.__render_timer = None
     
         self.__text = text
         self.__font = font
         self.__color = color
     
         Widget.__init__(self, esens)
+        self.__create_text_pmap()
 
 
     def __create_text_pmap(self):
@@ -88,13 +90,32 @@ class Label(Widget):
         self.__alignment = alignment
 
 
+    def get_physical_size(self):
+
+        w, h = self.get_size()
+        if (self.__text_pmap):
+            text_w, text_h = self.__text_pmap.get_size()    
+            if (not w): w = text_w
+            if (not h): h = text_h
+
+        return (w, h)
+        
+
     def set_text(self, text):
+
+        if (self.__text == text): return
 
         self.__is_new_text = True
         self.__text = text
 
-        if (not self.__is_scrolling and self.may_render()):
+        if (self.may_render()):
+            if (self.__render_timer):
+                gobject.source_remove(self.__render_timer)        
             self.__render_text(0, 1)
+            
+    def get_text(self):
+    
+        return self.__text
             
 
     def render(self):
@@ -106,10 +127,11 @@ class Label(Widget):
         self.__acquire_background()
         self.__create_text()
         self.__is_new_text = False
-    
-        if (not self.__is_scrolling):    
-            self.__render_text(0, 1)
 
+        if (self.may_render()):
+            if (self.__render_timer):
+                gobject.source_remove(self.__render_timer)        
+            self.__render_text(0, 1)    
         
         
     def __render_text(self, pos, direction):
@@ -135,6 +157,7 @@ class Label(Widget):
         # render currently visible text portion
         if (text_w <= w):
             if (self.__alignment == self.LEFT): text_x = 0
+            elif (self.__alignment == self.CENTERED): text_x = (w - text_w) / 2
             else: text_x = w - text_w
         else:
             text_x = 0
@@ -145,7 +168,6 @@ class Label(Widget):
 
         # handle scrolling
         if (text_w > w and self.may_render()):
-            self.__is_scrolling = True
             if (pos == 0):
                 direction = 1
                 delay = 1500
@@ -160,9 +182,10 @@ class Label(Widget):
             else:
                 pos -= 1
 
-            gobject.timeout_add(delay, self.__render_text, pos, direction)
+            self.__render_timer = \
+              gobject.timeout_add(delay, self.__render_text, pos, direction)
             
         else:
-            self.__is_scrolling = False
+            self.__render_timer = None
         #end if
         

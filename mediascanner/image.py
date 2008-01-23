@@ -1,3 +1,5 @@
+import thief
+
 import os
 import gtk
 
@@ -23,6 +25,8 @@ def is_media(uri):
         
         
 def make_thumbnail(uri, dest):
+    
+    uri = thief.steal_image(uri) or uri
     
     def on_size_available(loader, width, height):
         factor = 1

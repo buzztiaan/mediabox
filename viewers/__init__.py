@@ -22,7 +22,7 @@ def _load_viewer(path):
         viewer = mod.get_viewer()
     except ImportError:
         print "Could not load viewer [%s]" % name
-        #import traceback; traceback.print_exc()        
+        import traceback; traceback.print_exc()        
     finally:
         sys.path = syspath
         

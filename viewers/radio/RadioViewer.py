@@ -164,6 +164,10 @@ class RadioViewer(Viewer):
                              self.__current_radio.CAPS)
         self.__load_stations()
         
+
+    def do_enter(self):
+    
+        self.__current_radio.play_pause()
         
 
     def do_increment(self):

@@ -30,13 +30,26 @@ class ControlPanel(Panel):
                                               theme.btn_record_2,
                       lambda x,y:self.update_observer(panel_actions.PLAY_PAUSE))
 
+        self.__btn_zoom_in = self.__add_button(theme.btn_zoom_in_1,
+                                               theme.btn_zoom_in_2,
+                      lambda x,y:self.update_observer(panel_actions.ZOOM_IN))
+        self.__btn_zoom_out = self.__add_button(theme.btn_zoom_out_1,
+                                                theme.btn_zoom_out_2,
+                      lambda x,y:self.update_observer(panel_actions.ZOOM_OUT))
+        self.__btn_zoom_100 = self.__add_button(theme.btn_zoom_100_1,
+                                                theme.btn_zoom_100_2,
+                      lambda x,y:self.update_observer(panel_actions.ZOOM_100))
+        self.__btn_zoom_fit = self.__add_button(theme.btn_zoom_fit_1,
+                                                theme.btn_zoom_fit_2,
+                      lambda x,y:self.update_observer(panel_actions.ZOOM_FIT))
+
         self.__progress = ProgressBar(esens)
         self.__progress.connect(self.__progress.EVENT_BUTTON_RELEASE,
                                 self.__on_set_position)
         self.add(self.__progress)
         self.__all_items.append(self.__progress)
 
-        self.__tuner = ProgressBar(esens)
+        self.__tuner = ProgressBar(esens, False)
         self.__tuner.connect(self.__progress.EVENT_BUTTON_RELEASE,
                             self.__on_tune)
         self.add(self.__tuner)
@@ -90,6 +103,12 @@ class ControlPanel(Panel):
         if (capabilities & caps.PLAYING):
             self.__items.append(self.__btn_play)
 
+        if (capabilities & caps.ZOOMING):
+            self.__items.append(self.__btn_zoom_in)
+            self.__items.append(self.__btn_zoom_out)
+            self.__items.append(self.__btn_zoom_100)
+            self.__items.append(self.__btn_zoom_fit)                             
+
         if (capabilities & caps.POSITIONING):
             self.__items.append(self.__progress)
 
@@ -112,7 +131,7 @@ class ControlPanel(Panel):
         for item in self.__items:
             width += item.get_size()[0]
         
-        x = w - width - 10
+        x = w - width - 20
         for item in self.__items:
             nil, y = item.get_pos()
             item.set_pos(x, y)
@@ -139,7 +158,7 @@ class ControlPanel(Panel):
     def set_position(self, pos, total):
     
         self.__progress.set_position(pos, total)
-        #self.__tuner.set_position(pos, total)
+        self.__tuner.set_position(pos, total)
 
 
     def set_value(self, value, unit):

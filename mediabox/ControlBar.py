@@ -40,8 +40,10 @@ class ControlBar(Widget, Observable):
         self.__message_panel = MessagePanel(esens)
         self.__message_panel.set_visible(False)
         self.add(self.__message_panel)
-
-        #self.__add_panel(self.__volume_panel)
+        
+        self.__progress_panel = ProgressPanel(esens)
+        self.__progress_panel.set_visible(False)
+        self.add(self.__progress_panel)
           
         
     def __add_panel(self, panel):
@@ -181,16 +183,18 @@ class ControlBar(Widget, Observable):
     
         if (not self.may_render()): return
     
-        self.__panels[self.__current_panel].set_visible(False)
-        panel.set_visible(True)
+        if (not panel.is_visible()):
+            self.__panels[self.__current_panel].set_visible(False)
+            panel.set_visible(True)
 
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
+            x, y = self.get_screen_pos()
+            w, h = self.get_size()
+            screen = self.get_screen()
         
-        buf = Pixmap(None, w, h)
-        panel.render_at(buf)
-        screen.copy_pixmap(buf, 0, 0, x, y, w, h)
+            buf = Pixmap(None, w, h)
+            panel.render_at(buf)
+            screen.copy_pixmap(buf, 0, 0, x, y, w, h)
+        #end if
         
         # what a dirty hack... but it works well
         panel.timeout_ticket = `time.time()`
@@ -241,9 +245,10 @@ class ControlBar(Widget, Observable):
         self.__control_panel.set_value(value, unit)
 
 
-    def set_progress(self, value, total):
-    
-        pass
+    def show_progress(self, text, value, total):
+
+        self.__progress_panel.set_progress(text, value, total)
+        self.__show_panel_with_timeout(self.__progress_panel, 500)
         
 
     def set_volume(self, percent):

@@ -11,8 +11,10 @@ class ProgressBar(Widget):
     Class for a progress bar with a text label.
     """
     
-    def __init__(self, esens):
+    def __init__(self, esens, show_time = True):
 
+        self.__show_time = show_time
+        
         self.__progress = 0
         self.__progress_width = 0        
         w, h = (theme.progress.get_width(), theme.progress.get_height())
@@ -54,16 +56,11 @@ class ProgressBar(Widget):
 
     def set_position(self, pos, total):
 
-        if (not self.may_render()):
-            return
-
-        self.__progress = pos
+        if (pos == self.__progress): return
+        if (not self.may_render()): return
         if (total == 0): return
 
-        pos_m = pos / 60
-        pos_s = pos % 60
-        total_m = total / 60
-        total_s = total % 60      
+        self.__progress = pos
         
         w, h = self.get_size()
         percent = min(pos / float(total), 1.0)
@@ -76,12 +73,23 @@ class ProgressBar(Widget):
         w, h = self.get_size()        
         screen = self.get_screen()
 
-        screen.draw_subpixbuf(theme.progress, 0, 0, x, y + 24,
-                              width, 32)
-        screen.fill_area(x + width, y + 24, w - width, 32, "#000000")
-
-        self.__pos_label.set_text("%d:%02d" % (pos_m, pos_s))
-        self.__total_label.set_text("%d:%02d" % (total_m, total_s))
+        if (self.__progress_width < width):
+            screen.draw_subpixbuf(theme.progress, self.__progress_width, 0,
+                                  x + self.__progress_width, y + 24,
+                                  width - self.__progress_width, 32)
+        else:
+            screen.fill_area(x + width, y + 24,
+                             self.__progress_width - width, 32, "#000000")
+        #end if
+        
+        if (self.__show_time):
+            pos_m = pos / 60
+            pos_s = pos % 60
+            total_m = total / 60
+            total_s = total % 60      
+            self.__pos_label.set_text("%d:%02d" % (pos_m, pos_s))
+            self.__total_label.set_text("%d:%02d" % (total_m, total_s))
+        #end if
 
         self.__progress_width = width
         

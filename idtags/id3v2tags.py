@@ -110,7 +110,7 @@ def _parse_tagsoup(soup, params):
 
 def read(fd, params):
 
-    print "Reading ID3v2 tags", params.version
+    #print "Reading ID3v2 tags", params.version
     tagsoup = _read_tagsoup(fd)
     tags = _parse_tagsoup(tagsoup, params)
 

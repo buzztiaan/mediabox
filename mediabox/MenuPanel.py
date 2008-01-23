@@ -25,21 +25,8 @@ class MenuPanel(Panel):
         w, h = self.get_size()
         tabs_w, tabs_h = self.__tabsbar.get_size()
         tabs_x = w - tabs_w                               
-        self.__tabsbar.set_pos(tabs_x, 0)
+        self.__tabsbar.set_pos(tabs_x, 0)      
 
-
-    def __on_select_tab(self, px, py, name):
-    
-        print name
-        cnt = 0
-        for i, ia, n in self.__tabs:
-            if (n == name):
-                self.select_tab(cnt)
-                break
-            cnt += 1
-        #end for
-        
-        
 
     def select_tab(self, idx):
 

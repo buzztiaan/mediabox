@@ -1,4 +1,5 @@
 from viewers.Viewer import Viewer
+from ui.KineticScroller import KineticScroller
 from SunClock import SunClock
 import theme
 
@@ -21,9 +22,13 @@ class Clock(Viewer):
         self.__is_ticking = False
     
         Viewer.__init__(self, esens)
-                
+
         self.__sunclock = SunClock(esens)
         self.add(self.__sunclock)
+
+        # kinetic panning of the earth background is not optimized for speed
+        # yet
+        #kscr = KineticScroller(self.__sunclock)
               
         
     def __tick(self):

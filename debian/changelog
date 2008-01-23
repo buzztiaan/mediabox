@@ -1,3 +1,24 @@
+mediabox (0.93) unstable; urgency=low
+
+  * Highly improved media scanner for quick scanning and quick startup.
+
+  * Support for various ID3 tag versions (v1, v2.2, v2.3, v2.4).
+  
+  * Support for album art embedded in ID3 tags.
+  
+  * High-performant GDK-based rendering engine for a responsive UI and
+  more transition effects.
+  
+  * Buttons for skipping and zooming in the image viewer.
+  
+  * Enhancements in the default theme.
+  
+  * Application icon now has the proper size on OS 2008.
+  
+  * Bugfixes
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Mon, 23 Jan 2008 19:13:00 +0100
+
 mediabox (0.92.1) unstable; urgency=low
 
   * fixed bug in clock module which caused MediaBox to hang during startup

@@ -27,7 +27,8 @@ class Viewer(Widget, Observable):
 
     OBS_REPORT_CAPABILITIES = 10    
     OBS_SET_COLLECTION = 11
-    OBS_SCAN_MEDIA = 12
+    OBS_SELECT_ITEM = 12
+    OBS_SCAN_MEDIA = 13
     
     OBS_SHOW_COLLECTION = 20
     OBS_HIDE_COLLECTION = 21       
@@ -85,6 +86,11 @@ class Viewer(Widget, Observable):
         pass
         
         
+    def do_enter(self):
+    
+        pass
+        
+        
     def do_increment(self):
     
         pass
@@ -104,6 +110,26 @@ class Viewer(Widget, Observable):
     
         pass
         
+        
+    def do_zoom_in(self):
+    
+        pass
+        
+
+    def do_zoom_out(self):
+    
+        pass
+
+
+    def do_zoom_100(self):
+    
+        pass
+
+
+    def do_zoom_fit(self):
+    
+        pass
+
         
     def do_previous(self):
     

@@ -37,6 +37,9 @@ class SunClock(Widget):
     def __init__(self, esens):
                 
         self.__render_map_next = 0
+
+        # not everybody wants Europe in the center
+        self.__map_offset = 0
                 
         self.__night = gtk.gdk.pixbuf_new_from_file(
             os.path.join(_PATH, "0-Night.jpg"))
@@ -117,6 +120,14 @@ class SunClock(Widget):
             return 3
         
         
+    def move(self, dx, dy):
+    
+        self.__map_offset += dx
+        self.__map_offset %= 800
+        self.__render_clock()
+        self.render()
+        
+        
     def update(self):
     
         if (time.time() > self.__render_map_next):
@@ -135,7 +146,17 @@ class SunClock(Widget):
         mins = now[4]
         secs = now[5]
 
-        self.__screen.copy_pixmap(self.__map, 0, 0, 0, 0, 800, 400)
+        self.__screen.copy_pixmap(self.__map,
+                                  self.__map_offset, 0,
+                                  0, 0,
+                                  800 - self.__map_offset, 400)
+        if (self.__map_offset > 0):
+            self.__screen.copy_pixmap(self.__map,
+                                      0, 0,
+                                      800 - self.__map_offset, 0,
+                                      self.__map_offset, 400)
+                                  
+        #self.__screen.copy_pixmap(self.__map, 0, 0, 0, 0, 800, 400)
 
         t = "%d:%02d" % (hours, mins)
         w = len(t) * 108

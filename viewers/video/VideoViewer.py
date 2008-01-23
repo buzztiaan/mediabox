@@ -120,8 +120,8 @@ class VideoViewer(Viewer):
                 self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_POSITION):
-            ctx, pos, total = args
-            if (ctx == self.__context_id):
+            ctx, pos, total = args            
+            if (not self.__is_fullscreen and ctx == self.__context_id):
                 self.update_observer(self.OBS_POSITION, pos, total)
 
         elif (cmd == src.OBS_EOF):
@@ -255,7 +255,12 @@ class VideoViewer(Viewer):
                 self.update_observer(self.OBS_SHOW_PANEL)
                 
         gobject.idle_add(f)
-        
+
+
+    def do_enter(self):
+    
+        self.__mplayer.pause()
+                        
 
     def do_increment(self):
     

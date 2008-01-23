@@ -16,9 +16,7 @@ _ZOOM_LEVELS = [18, 25, 33, 50, 75, 100, 150, 200,
                 300, 400, 600, 800, 1200, 1600]
 
 # read this many bytes at once
-_CHUNK_SIZE = 50000
-
-_BACKGROUND_COLOR = gtk.gdk.color_parse("#101010")
+_CHUNK_SIZE = 10000 #50000
 
 # the font for comments, etc.
 _FONT = "Nokia Sans Cn 22"
@@ -43,6 +41,9 @@ class Image(Widget, Observable):
 
         # the buffer contains the pixbuf for rendering on screen
         self.__buffer = None
+        
+        # color of the background
+        self.__bg_color = gtk.gdk.color_parse("#000000")
         
         # offscreen drawing pixmap
         self.__offscreen = Pixmap(None, 800, 480)
@@ -73,7 +74,7 @@ class Image(Widget, Observable):
 
         # flag for marking new images that have not been rendered to screen yet
         self.__is_new_image = False
-        
+               
         self.__hi_quality_timer = None
         
         # the currently available zoom levels (= _ZOOM_LEVELS + fitting)
@@ -92,14 +93,14 @@ class Image(Widget, Observable):
         self.__loading_cancelled = False
         self.__pixbuf = None
 
+        # slide from right or left
+        self.__slide_from_right = True
         
         Widget.__init__(self, esens)
 
         # create a client-side pixmap for rendering
         self.__buffer = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
                                        True, 8, 800, 480)
-                                       
-        self.__offscreen.fill_area(0, 0, 800, 480, _BACKGROUND_COLOR)
 
 
     def render_this(self):
@@ -116,10 +117,17 @@ class Image(Widget, Observable):
 
         if ((w, h) != self.__visible_size):
             self.__visible_size = (w, h)
-            #if (self.__original_size != (0, 0)): self.__scale_to_fit()
-            self.__invalidated = True
-            self._render()
-            #if (self.__original_size != (0, 0)): self.zoom(self.__zoom_level)
+            if (self.__original_size != (0, 0)):
+                self.__invalidated = True
+                self._render()
+                self.__scale_to_fit()
+                #gobject.idle_add(self.__scale_to_fit)
+
+
+    def set_background(self, col):
+    
+        self.__bg_color = col
+        self.__offscreen.fill_area(0, 0, 800, 480, self.__bg_color)
         
 
     def __hi_quality_render(self):
@@ -201,7 +209,7 @@ class Image(Widget, Observable):
         self.__virtual_size = (int(bufwidth * self.__zoom_value),
                                int(bufheight * self.__zoom_value))
 
-        for i in range(3): gc.collect()
+        #for i in range(3): gc.collect()
         self.__invalidated = True
 
         self.update_observer(self.OBS_ZOOMING,
@@ -378,15 +386,15 @@ class Image(Widget, Observable):
             
             if (vwidth < width):
                 bw = (width - vwidth) / 2
-                self.__offscreen.fill_area(x, y, bw, height, _BACKGROUND_COLOR)
+                self.__offscreen.fill_area(x, y, bw, height, self.__bg_color)
                 self.__offscreen.fill_area(x + width - bw - 1, y, bw + 1, height,
-                                           _BACKGROUND_COLOR)
+                                           self.__bg_color)
             
             if (vheight < height):
                 bh = (height - vheight) / 2
-                self.__offscreen.fill_area(x, y, width, bh, _BACKGROUND_COLOR)
+                self.__offscreen.fill_area(x, y, width, bh, self.__bg_color)
                 self.__offscreen.fill_area(x, y + height - bh - 1, width, bh + 1,
-                                           _BACKGROUND_COLOR)
+                                           self.__bg_color)
                 
         else:
             # copy on the server-side (this is our simple trick for
@@ -407,7 +415,7 @@ class Image(Widget, Observable):
         if (self.may_render()):
             if (self.__is_new_image):
                 self.__is_new_image = False
-                self.fx_fade_in()
+                self.fx_slide_in()
             else:
                 screen.copy_pixmap(self.__offscreen, x, y, x, y, width, height)            
             
@@ -498,9 +506,8 @@ class Image(Widget, Observable):
 
             self.update_observer(self.OBS_BEGIN_LOADING, filename)
             
-            # timeout for the cancelation to take effect
-            #gobject.timeout_add(50, self.__load_img, filename)
             self.__load_img_at_once(filename)
+            self.__finish_loading()
 
 
     def __load_img_at_once(self, filename):
@@ -515,10 +522,28 @@ class Image(Widget, Observable):
         self.__loader = gtk.gdk.PixbufLoader()
         self.__loader.connect("size-prepared", self.__on_check_size)
         self.__current_filename = filename
-        self.__loader.write(open(filename).read())
-        self.__loader.close()
-        self.__finish_loading()
+        
+        fd = open(filename, "r")
+        # determine file size
+        fd.seek(0, 2)
+        size = fd.tell()
+        fd.seek(0)        
 
+        size_read = 0
+        while (size > 0):
+            data = fd.read(_CHUNK_SIZE)
+            size_read += len(data)
+
+            if (data):
+                if (self.__loader): self.__loader.write(data)
+            else:
+                break
+
+            self.update_observer(self.OBS_PROGRESS, size_read, size)
+        #end while
+        
+
+        self.__loader.close()
 
 
     def __load_img(self, filename):
@@ -530,7 +555,7 @@ class Image(Widget, Observable):
             self.__banner.close()
 
         if (not os.path.exists(filename)):
-            filename = "" #pixmaps.get_path("image-missing.png")
+            filename = ""
 
         try:
             self.__loader.close()
@@ -544,11 +569,6 @@ class Image(Widget, Observable):
         size = fd.tell()
         fd.seek(0)
 
-        # collect three generations of garbage
-        for i in range(3): gc.collect()
-
-        #self.__banner = ProgressBanner(self,
-        #                "%s" % os.path.basename(filename), size)
         self.__loading_cancelled = False
         self.__current_filename = filename
         
@@ -556,9 +576,6 @@ class Image(Widget, Observable):
         while (True and size > 0):
             data = fd.read(_CHUNK_SIZE)
             size_read += len(data)
-            
-            # this runs the gtk mainiteration and thus allows user interaction
-            #if (self.__banner): self.__banner.progress(_CHUNK_SIZE)            
 
             self.update_observer(self.OBS_PROGRESS, size_read, size)
             while (gtk.events_pending()): gtk.main_iteration()
@@ -577,8 +594,6 @@ class Image(Widget, Observable):
             try:
                 self.__loader.close()
             except:
-                pass #hildon.hildon_banner_show_information(self, gtk.STOCK_DIALOG_ERROR,
-                     #                                 "Not a valid image")
                 self.__loading_cancelled = True
 
             if (not self.__loading_cancelled): self.__finish_loading()
@@ -628,14 +643,13 @@ class Image(Widget, Observable):
         w, h = self.__pixbuf.get_width(), self.__pixbuf.get_height()
         self.__original_size = (w, h)
 
+        self.update_observer(self.OBS_END_LOADING)
+        
         self.__is_new_image = True
         self.__scale_to_fit()
-        #self.fx_fade_in()
 
         # collect three generations of garbage
-        for i in range(3): gc.collect()
-
-        self.update_observer(self.OBS_END_LOADING)
+        #for i in range(3): gc.collect()
 
 
     def __scale_to_fit(self):
@@ -688,34 +702,45 @@ class Image(Widget, Observable):
 
         if (factor != 1):
             loader.set_size(int(width * factor), int(height * factor))
-
-
-
-    def fx_fade_in(self, wait = True):
+      
         
-        import threading
+    def slide_from_left(self):
     
-        STEP = 32
+        self.__slide_from_right = False
+        
+        
+    def slide_from_right(self):
+    
+        self.__slide_from_right = True
+        
+        
+    def fx_slide_in(self, wait = True):
+    
+        import threading
+
+        STEP = 40
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
 
-        pbuf = self.__offscreen.render_on_pixbuf()
-        dst_pbuf = screen.render_on_pixbuf()
         finished = threading.Event()
         
-        def f(i, pbuf, dst_pbuf):
-            i = min(255, i)
-            pbuf.composite(dst_pbuf, x, y, w, h, 0, 0, 1, 1,
-                           gtk.gdk.INTERP_NEAREST, i)
-            screen.draw_subpixbuf(dst_pbuf, x, y, x, y, w, h)
-            if (i < 255):
-                gobject.timeout_add(50, f, i + STEP, pbuf, dst_pbuf)
+        def f(i):
+            i = min(i, w)
+            if (self.__slide_from_right):
+                screen.copy_buffer(screen, x + STEP, y, x, y, w - STEP, h)
+                screen.copy_pixmap(self.__offscreen, x + i, y, x + w - STEP, y,
+                                   STEP, h)
             else:
-                self.set_screen(screen)
+                screen.copy_buffer(screen, x, y, x + STEP, y, w - STEP, h)
+                screen.copy_pixmap(self.__offscreen, x + w - STEP - i, y, x, y,
+                                   STEP, h)
+            
+            if (i < w - STEP):
+                gobject.timeout_add(5, f, i + STEP)
+            else:
                 finished.set()
-                del pbuf
-                del dst_pbuf
-                
-        f(32, pbuf, dst_pbuf)
+
+        f(0)
         while (wait and not finished.isSet()): gtk.main_iteration()
+        

@@ -34,8 +34,14 @@ class Panel(Widget, Observable):
         x, y = self.get_screen_pos()
         screen = self.get_screen()
     
-        screen.draw_pixbuf(theme.panel, x, y)        
-      
+        screen.draw_pixbuf(theme.panel, x, y)
+        
+        # show memory consumption      
+        #import os
+        #pid = os.getpid()
+        #size = int(open("/proc/%d/status" % pid, "r").read().splitlines()[15].split()[1])
+        #size /= 1024.0
+        #screen.draw_text("%0.02f MB" % size, theme.font_tiny, x, y, "#000000")
 
 
     def has_next_button(self):

@@ -67,7 +67,8 @@ class ImageButton(Widget):
                                   (w - img.get_width()) / 2,
                                   (h - img.get_height()) / 2)
         screen.copy_pixmap(self.__buffer, 0, 0, x, y, w, h)
-        
+
+       
         
     def set_images(self, img1, img2):
     

@@ -25,7 +25,7 @@ def _parse_tagsoup(soup):
         idx = e.find("=")
         if (idx != -1):
             key = e[:idx]
-            print "  " + key
+            #print "  " + key
             value = e[idx + 1:-1]
             tags[key.upper()] = value
     #end for
@@ -36,7 +36,7 @@ def _parse_tagsoup(soup):
 
 def read(fd):
 
-    print "Reading Ogg tags"       
+    #print "Reading Ogg tags"       
     block = fd.read(1024)
     
     idx = block.find("\x03vorbis")    

@@ -9,7 +9,7 @@ import md5
 def steal_image(uri):
 
     # try osso
-    vfsuri = "file://" + urlquote.quote(uri)) + ".png"
+    vfsuri = "file://" + urlquote.quote(uri) + ".png"
     name = md5.new(vfsuri).hexdigest()
     thumb_dir = os.path.expanduser("~/.thumbnails/osso")
     thumb_uri = os.path.join(thumb_dir, name)
@@ -42,7 +42,7 @@ def steal_video(uri):
     vid_name = basename + ".jpg"
     thumb_dir = "/media/mmc1/covers"
         
-    video_uri = os.path.join(thumb_dir, name)
+    video_uri = os.path.join(thumb_dir, vid_name)
     if (os.path.exists(video_uri)):
         return video_uri
     else:

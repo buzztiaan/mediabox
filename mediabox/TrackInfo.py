@@ -16,21 +16,25 @@ class TrackInfo(Widget):
     def __init__(self, esens):
     
         self.__cover = None
+        self.__buffer = Pixmap(None, 800, 400)
     
         Widget.__init__(self, esens)
         self.set_size(800, 400)
         
-        self.__title = Label(esens, "-", theme.font_headline, "#000000")
+        self.__title = Label(esens, "-", theme.font_headline,
+                             theme.color_fg_trackinfo)
         self.add(self.__title)
         self.__title.set_pos(400, 48)
         self.__title.set_size(400 - 48, 0)
 
-        self.__album = Label(esens, "-", theme.font_plain, "#000000")
+        self.__album = Label(esens, "-", theme.font_plain,
+                             theme.color_fg_trackinfo)
         self.add(self.__album)
         self.__album.set_pos(448, 108)
         self.__album.set_size(400 - 96, 0)
 
-        self.__artist = Label(esens, "-", theme.font_plain, "#000000")
+        self.__artist = Label(esens, "-", theme.font_plain,
+                              theme.color_fg_trackinfo)
         self.add(self.__artist)
         self.__artist.set_pos(448, 148)
         self.__artist.set_size(400 - 96, 0)
@@ -42,18 +46,20 @@ class TrackInfo(Widget):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        screen.draw_subpixbuf(theme.background, 0, 0, 0, 0, w, h)
-        screen.draw_rect(x + 46, y + 46, _COVER_SIZE + 4, _COVER_SIZE + 4,
-                        "#000000")
-
+        self.__buffer.draw_subpixbuf(theme.background, 0, 0, 0, 0, w, h)        
+        self.__buffer.draw_frame(theme.viewer_music_frame, x + 45, y + 45,
+                                 _COVER_SIZE + 11, _COVER_SIZE + 11, True)
+ 
         if (self.__cover):
-            screen.draw_pixbuf(self.__cover, x + 48, y + 48)
+            self.__buffer.draw_pixbuf(self.__cover, x + 48, y + 48)
         else:
-            screen.fill_area(x + 48, y + 48, _COVER_SIZE, _COVER_SIZE,
+            self.__buffer.fill_area(x + 48, y + 48, _COVER_SIZE, _COVER_SIZE,
                              "#aaaaaa")
         
-        screen.draw_pixbuf(theme.viewer_music_album, 400, 108)
-        screen.draw_pixbuf(theme.viewer_music_artist, 400, 148) 
+        self.__buffer.draw_pixbuf(theme.viewer_music_album, 400, 108)
+        self.__buffer.draw_pixbuf(theme.viewer_music_artist, 400, 148)
+        
+        screen.copy_pixmap(self.__buffer, 0, 0, 0, 0, w, h)
 
                
 

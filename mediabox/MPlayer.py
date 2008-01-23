@@ -55,6 +55,9 @@ _MAX_VALUES = 33
 _CONNECTION_TIMEOUT = 30
 _LOGGING = False
 
+# path to the mplayer executable
+_MPLAYER = "/usr/bin/mplayer"
+
 
 class _MPlayer(Observable):
     """
@@ -99,6 +102,8 @@ class _MPlayer(Observable):
         self.__has_audio = False
         self.__playing = False
         self.__broken = False
+        
+        self.__volume = 50
         
         self.__needs_restart = False
         self.__media_length = -1
@@ -157,10 +162,10 @@ class _MPlayer(Observable):
 
         if (self.__playing):
             self.__idle_counter = 0            
+            now = time.time()
 
             # don't ask mplayer for the current position every time, because
             # this is highly inefficient with Ogg Vorbis files
-            now = time.time()
             if (self.__position == 0):
                 try:            
                     pos, total = self.get_position()
@@ -186,7 +191,6 @@ class _MPlayer(Observable):
                 self.__player_values[_ICY_INFO] = None
             
             # check for end of file
-            now = time.time()
             if (self.__player_values[_FILENAME]):
                 self.__next_time_check = now + 1
             elif (now > self.__next_time_check):            
@@ -202,15 +206,14 @@ class _MPlayer(Observable):
         else:
             self.__idle_counter += 1
             
-            # check for timeout
+            # check for connection timeout
             if (self.__timeout_point and not self.__broken and
                 time.time() > self.__timeout_point):
                 self.__timeout_point = 0
                 self.__broken = True
                 self.update_observer(self.OBS_ERROR, self.__context_id,
                                      self.ERR_CONNECTION_TIMEOUT)
-                                     
-            
+
         #end if
         
         # close mplayer if we've been idle too long
@@ -224,10 +227,13 @@ class _MPlayer(Observable):
             print "mplayer closed due to idle timeout"            
             return False
            
-        gobject.timeout_add(500, self.__heartbeat)        
+        gobject.timeout_add(300, self.__heartbeat)        
 
 
     def __wait_for(self, key):
+        """
+        Waits (with a timeout) until the given key has a value.
+        """
     
         cnt  = 0
         while (not self.__player_values[key] and cnt < 500):
@@ -235,6 +241,7 @@ class _MPlayer(Observable):
             time.sleep(0.001)
             cnt += 1
         print cnt
+        
 
     def wait_for_video_aspect(self):
     
@@ -244,7 +251,11 @@ class _MPlayer(Observable):
     def __send_cmd(self, data):
     
         if (_LOGGING): print "--> " + data
-        self.__stdin.write(data + "\n")
+        try:
+            self.__stdin.write(data + "\n")
+        except IOError:
+            # broken pipe
+            self.__stop_mplayer()
         
         
     def __read(self):
@@ -295,6 +306,8 @@ class _MPlayer(Observable):
             self.__player_values[_VIDEO_RESOLUTION] = self.__read_ans(data)
         elif (data.startswith("ANS_filename")):
             self.__player_values[_FILENAME] = self.__read_ans(data)
+        elif (data.startswith("ANS_volume")):
+            print "VOLUME", self.__read_ans(data)
 
         elif (data.startswith("AUDIO: ")):
             self.__has_audio = True
@@ -343,6 +356,7 @@ class _MPlayer(Observable):
             self.__playing = True
             self.__timeout_point = 0
             self.__media_length = -1
+            self.set_volume(self.__volume)
             self.update_observer(self.OBS_PLAYING, self.__context_id)
             
         elif (data.startswith("File not found: ")):
@@ -397,7 +411,7 @@ class _MPlayer(Observable):
         Returns whether mplayer is available on the system.
         """
         
-        return os.path.exists("/usr/bin/mplayer")
+        return os.path.exists(_MPLAYER)
         
         
     def set_window(self, xid):
@@ -449,8 +463,8 @@ class _MPlayer(Observable):
         print "Starting MPlayer"
         self.__playing = False
         
-        cmd = "LANG=C /usr/bin/mplayer -quiet -slave -idle -osdlevel 0 " \
-              "-identify -wid %d %s 2>&1 3>/dev/null" % (xid, opts)
+        cmd = "LANG=C %s -quiet -slave -idle -osdlevel 0 " \
+              "-identify -wid %d %s 2>&1 3>/dev/null" % (_MPLAYER, xid, opts)
         p = subprocess.Popen([cmd],
                              shell=True, cwd="/tmp",
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -588,17 +602,18 @@ class _MPlayer(Observable):
             self.__playing = True
             self.__position = 0
             self.__position = 0
-            self.__send_cmd("play")
+            self.set_volume(self.__volume)
+            self.__send_cmd("play")            
             self.update_observer(self.OBS_PLAYING, self.__context_id)
         
         
     def pause(self):
 
-        #if (not self.__stdin): return
         self.__ensure_mplayer()
             
         self.__playing = not self.__playing        
         if (self.__playing):
+            self.set_volume(self.__volume)
             self.__send_cmd("pause")
             self.__position = 0
             self.update_observer(self.OBS_PLAYING, self.__context_id)
@@ -644,7 +659,7 @@ class _MPlayer(Observable):
         try:
             pos = float(self.__expect(_POSITION, True))
         except:
-            import traceback; traceback.print_exc()
+            #import traceback; traceback.print_exc()
             pos = 0.0            
         
         if (self.__media_length < 0):
@@ -685,15 +700,16 @@ class _MPlayer(Observable):
 
     def set_volume(self, volume):
 
-        self.__ensure_mplayer()
-        self.__send_cmd("volume %f 1" % volume)
+        #self.__ensure_mplayer()
+        if (self.__playing):
+            self.__send_cmd("volume %f 1" % volume)
+        self.__volume = volume
 
 
 
     def show_text(self, text, duration):
 
         self.__ensure_mplayer()
-            
         self.__send_cmd("osd_show_text \"%s\" %d 0" % (text, duration))
 
 

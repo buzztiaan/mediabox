@@ -12,6 +12,7 @@ LIBDIR=/usr/lib/${NAME}
 # files to copy into destination
 COPY_FILES=idtags   \
 	   mediabox \
+	   mediascanner \
 	   theme    \
  	   ui       \
 	   utils    \
@@ -25,7 +26,7 @@ EXEC_FILE=MediaBox.py
 _LIBDIR=${DESTDIR}${LIBDIR}
 _DESKTOPDIR=${DESTDIR}/usr/share/applications/hildon
 _SERVICEDIR=${DESTDIR}/usr/share/dbus-1/services
-_ICONDIR=${DESTDIR}/usr/share/icons
+_ICONDIR=${DESTDIR}/usr/share/icons/hicolor/scalable/apps
 
 
 clean:

@@ -38,6 +38,11 @@ class Widget(object):
         #end for
     
     
+    def get_children(self):
+    
+        return self.__children[:]
+    
+    
     def add(self, child):
         
         self.__children.append(child)
@@ -49,6 +54,11 @@ class Widget(object):
     def set_parent(self, parent):
     
         self.__parent = parent
+        
+        
+    def get_parent(self):
+    
+        return self.__parent
                 
                 
     def set_screen(self, screen):
@@ -190,6 +200,11 @@ class Widget(object):
         
         
     def get_size(self):
+    
+        return self.__size
+        
+        
+    def get_physical_size(self):
     
         return self.__size
 

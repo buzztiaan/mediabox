@@ -3,9 +3,10 @@ from MusicItem import MusicItem
 from AlbumThumbnail import AlbumThumbnail
 from ui.KineticScroller import KineticScroller
 from ui.ItemList import ItemList
+from ui.Throbber import Throbber
 from mediabox.MPlayer import MPlayer
 from mediabox.TrackInfo import TrackInfo
-from mediabox import caps, config
+from mediabox import caps
 import theme
 import idtags
 
@@ -62,6 +63,11 @@ class AlbumViewer(Viewer):
         self.__trackinfo.set_visible(False)
         self.add(self.__trackinfo)
         
+        self.__throbber = Throbber(esens, theme.throbber)
+        self.add(self.__throbber)
+        self.__throbber.set_size(600, 400)
+        self.__throbber.set_visible(False)
+        
         
     def __is_album(self, uri):
 
@@ -103,7 +109,7 @@ class AlbumViewer(Viewer):
             self.__current_uri = ""
             print "Killed MPlayer"
             self.set_title("")
-            self.__list.hilight(-1)
+            #self.__list.hilight(-1)
             self.update_observer(self.OBS_STATE_PAUSED)           
             
         elif (cmd == src.OBS_NEW_STREAM_TRACK):
@@ -291,7 +297,10 @@ class AlbumViewer(Viewer):
         Loads the given album.
         """
 
-        self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
+        #self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
+        self.__list.set_frozen(True)
+        self.__throbber.set_visible(True)
+        self.render()
 
         def f():             
             uri = item.get_uri()
@@ -317,6 +326,7 @@ class AlbumViewer(Viewer):
                     self.__tracks.append(filepath)
                     idx = self.__list.append_item(title, None)
                     self.__list.overlay_image(idx, theme.btn_load, 540, 24)
+                    self.__throbber.rotate()
                 #end if
             #end for
 
@@ -324,10 +334,18 @@ class AlbumViewer(Viewer):
                 idx = self.__tracks.index(self.__current_uri)
                 self.__list.hilight(idx)
             
-            self.update_observer(self.OBS_SHOW_PANEL)
+            self.__list.set_frozen(False)
+            self.__throbber.set_visible(False)
+            self.render()
+            #self.update_observer(self.OBS_SHOW_PANEL)
 
         gobject.idle_add(f)
 
+
+    def do_enter(self):
+    
+        self.__mplayer.pause()
+        
         
     def do_increment(self):
     
@@ -380,13 +398,15 @@ class AlbumViewer(Viewer):
             self.__list.set_visible(False)
             self.__trackinfo.set_visible(True)
             self.update_observer(self.OBS_HIDE_COLLECTION)            
-            #self.__trackinfo.fx_fade_in()
+            #self.__trackinfo.fx_uncover()
+            self.update_observer(self.OBS_RENDER)
             #self.__trackinfo.render()
         else:
             #self.__trackinfo.hide()            
             self.__trackinfo.set_visible(False)
             self.__list.set_visible(True)
-            self.update_observer(self.OBS_SHOW_COLLECTION)            
+            self.update_observer(self.OBS_SHOW_COLLECTION)
+            self.update_observer(self.OBS_RENDER)
             #self.fx_slide_in()
             #self.render()
 

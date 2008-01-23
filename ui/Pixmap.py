@@ -155,7 +155,10 @@ class Pixmap(object):
             self.__buffer.draw_layout(self.__buffer_gc, x, y, _PANGO_LAYOUT)
         
         
-    def draw_pixbuf(self, pbuf, x, y, w = -1, h = -1):
+    def draw_pixbuf(self, pbuf, x, y, w = -1, h = -1, scale = False):
+    
+        if (scale):
+            pbuf = pbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
     
         self.__pixmap.draw_pixbuf(self.__gc, pbuf,
                                   0, 0, x, y, w, h)
@@ -163,9 +166,14 @@ class Pixmap(object):
         if (self.__buffered):
             if (w == -1): w = pbuf.get_width()
             if (h == -1): h = pbuf.get_height()
-                
-            self.__buffer.draw_drawable(self.__buffer_gc, self.__pixmap,
-                                        x, y, x, y, w, h)
+            
+            self.__buffer.draw_pixbuf(self.__buffer_gc, pbuf,
+                                      0, 0, x, y, w, h)
+
+            #self.__buffer.draw_drawable(self.__buffer_gc, self.__pixmap,
+            #                            x, y, x, y, w, h)
+                                        
+        del pbuf
 
         
         
@@ -174,8 +182,47 @@ class Pixmap(object):
         self.__pixmap.draw_pixbuf(self.__gc, pbuf, srcx, srcy, dstx, dsty, w, h)
         
         if (self.__buffered):
-            self.__buffer.draw_drawable(self.__buffer_gc, self.__pixmap,
-                                        dstx, dsty, dstx, dsty, w, h)
+            self.__buffer.draw_pixbuf(self.__buffer_gc, pbuf, srcx, srcy,
+                                      dstx, dsty, w, h)
+            #self.__buffer.draw_drawable(self.__buffer_gc, self.__pixmap,
+            #                            dstx, dsty, dstx, dsty, w, h)
+
+
+    def __split_frame(self, img):
+    
+        w, h = img.get_width(), img.get_height()
+        w3 = w / 3
+        h3 = h / 3
+        tl = img.subpixbuf(0, 0, w3, h3)
+        t = img.subpixbuf(w3, 0, w3, h3)
+        tr = img.subpixbuf(w - w3, 0, w3, h3)
+        r = img.subpixbuf(w - w3, h3, w3, h3)
+        br = img.subpixbuf(w - w3, h - h3, w3, h3)
+        b = img.subpixbuf(w3, h - h3, w3, h3)
+        bl = img.subpixbuf(0, h - h3, w3, h3)
+        l = img.subpixbuf(0, h3, w3, h3)
+        c = img.subpixbuf(w3, h3, w3, h3)
+
+        return (tl, t, tr, r, br, b, bl, l, c) 
+
+
+    def draw_frame(self, framepbuf, x, y, w, h, filled):
+    
+        tl, t, tr, r, br, b, bl, l, c = self.__split_frame(framepbuf)
+        w1, h1 = tl.get_width(), tl.get_height()
+        
+        self.draw_pixbuf(tl, x, y)
+        self.draw_pixbuf(tr, x + w - w1, y)
+        self.draw_pixbuf(bl, x, y + h - h1)        
+        self.draw_pixbuf(br, x + w - w1, y + h - h1)
+        
+        self.draw_pixbuf(t, x + w1, y, w - 2 * w1, h1, True)
+        self.draw_pixbuf(b, x + w1, y + h - h1, w - 2 * w1, h1, True)
+        self.draw_pixbuf(l, x, y + h1, w1, h - 2 * h1, True)
+        self.draw_pixbuf(r, x + w - w1, y + h1, w1, h - 2 * h1, True)
+
+        if (filled):
+            self.draw_pixbuf(c, x + w1, y + h1, w - 2 * w1, h - 2 * h1, True)        
                                                 
         
     def copy_pixmap(self, pmap, srcx, srcy, dstx, dsty, w, h):

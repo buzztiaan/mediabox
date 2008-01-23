@@ -1,8 +1,14 @@
 #
 # Background
 #
-color_bg: #ffffff
+color_bg: #eef0ff
 
+
+#
+# Splash Screen
+#
+color_bg_splash: #eef0ff
+color_fg_splash: #000000
 
 #
 # Thumbnails
@@ -21,3 +27,16 @@ color_fg_panel_text: #ffffff
 # List Items
 #
 color_fg_item: #000000
+
+
+#
+# Track info
+#
+color_fg_trackinfo: #000000
+
+
+#
+# Photo
+#
+color_fg_photo_label: #404040
+

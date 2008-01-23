@@ -68,7 +68,6 @@ class Preferences(Viewer):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        print x, y
         screen.draw_pixbuf(theme.titlebar, x, y)
 
 

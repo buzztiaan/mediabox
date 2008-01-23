@@ -1,4 +1,4 @@
-from ImageStrip2  import ImageStrip
+from ImageStrip import ImageStrip
 from Item import Item
 
 import pango
@@ -68,7 +68,7 @@ class ItemList(ImageStrip):
         
     def hilight(self, idx):
 
-        print "HILIGHT", idx
+        #print "HILIGHT", idx
         if (self.__hilighted_item >= 0):
             try:
                 self.replace_image(self.__hilighted_item,

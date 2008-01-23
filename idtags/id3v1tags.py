@@ -31,7 +31,7 @@ def _parse_tagsoup(soup):
 
 def read(fd):
 
-    print "Reading ID3v1 tags"     
+    #print "Reading ID3v1 tags"     
     tagsoup = _read_tagsoup(fd)
     tags = _parse_tagsoup(tagsoup)
              

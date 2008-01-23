@@ -2,6 +2,9 @@ from PrefsCard import PrefsCard
 from ui.Item import Item
 from ui.ItemList import ItemList
 from ui.KineticScroller import KineticScroller
+from ui.Label import Label
+from ui.HBox import HBox
+from ui.Button import Button
 from ui.ImageButton import ImageButton
 from mediabox import config
 import theme
@@ -24,22 +27,29 @@ class CardMediaRoot(PrefsCard):
         PrefsCard.__init__(self, esens, title)          
     
         self.__list = ItemList(esens, 600, 80)
-        self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 368))
+        self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 350))
         self.__list.set_graphics(theme.item, theme.item_active)        
         self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)
         self.__list.set_pos(10, 0)
-        self.__list.set_size(600, 280)
+        self.__list.set_size(600, 270)
         self.add(self.__list)
 
         kscr = KineticScroller(self.__list)
         kscr.add_observer(self.__on_observe_list)
 
-        btn = ImageButton(esens, theme.prefs_folder, theme.prefs_folder)
-        btn.set_pos(10, 280)
-        btn.set_size(600, 70)
+        btn = Button(esens, theme.button_1,
+                            theme.button_2)
+        btn.set_pos(10, 270)
+        btn.set_size(600, 80)
         btn.connect(btn.EVENT_BUTTON_RELEASE, self.__on_add_folder)        
         self.add(btn)
+        
+        hbox = HBox(esens)
+        btn.add(hbox)                
+        
+        lbl = Label(esens, "Add Folder", theme.font_plain, theme.color_fg_item)
+        hbox.add(lbl)
         
         self.__build_list()
         

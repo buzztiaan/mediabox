@@ -66,6 +66,11 @@ class KineticScroller(Observable):
             self.__impulse_handler_running = True
             self.__impulse_handler()
             
+            
+    def stop_scrolling(self):
+    
+        self.__delta_s = (0, 0)
+            
 
     def enable_kinetic(self, value):
         """

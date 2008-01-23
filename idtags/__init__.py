@@ -11,7 +11,7 @@ import id3v2tags
 def read(filename):
 
     try:
-        print "Scanning", filename
+        #print "Scanning", filename
         fd = open(filename, "r")               
     except:
         return {}
