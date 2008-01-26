@@ -312,6 +312,8 @@ class App(object):
             self.__get_vstate().caps = caps
     
         elif (cmd == src.OBS_SCAN_MEDIA):
+            force = args[0]
+            if (force): self.__current_mediaroots = []
             self.__scan_media() #gobject.idle_add(self.__scan_media)
 
         elif (cmd == src.OBS_STATE_PLAYING):
@@ -546,7 +548,7 @@ class App(object):
             total = len(thumbnails)
             cnt = 1
             for t in thumbnails:
-                t.get_width()             
+                t.get_width()
 
                 if (cnt % 5 == 0 or (cnt == total and cnt > 5)):
                     self.__ctrlbar.show_progress("Loading %d Items..." % total,
