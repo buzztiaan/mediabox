@@ -38,19 +38,29 @@ class CardMediaRoot(PrefsCard):
         kscr = KineticScroller(self.__list)
         kscr.add_observer(self.__on_observe_list)
 
-        btn = Button(esens, theme.button_1,
-                            theme.button_2)
-        btn.set_pos(10, 270)
-        btn.set_size(600, 80)
-        btn.connect(btn.EVENT_BUTTON_RELEASE, self.__on_add_folder)        
-        self.add(btn)
-        
+        btn_add = Button(esens, theme.button_1, theme.button_2)
+        btn_add.set_pos(10, 270)
+        btn_add.set_size(300, 80)
+        btn_add.connect(btn_add.EVENT_BUTTON_RELEASE, self.__on_add_folder)        
+        self.add(btn_add)
+
         hbox = HBox(esens)
-        btn.add(hbox)                
-        
+        btn_add.add(hbox)
         lbl = Label(esens, "Add Folder", theme.font_plain, theme.color_fg_item)
         hbox.add(lbl)
-        
+
+
+        btn_rescan = Button(esens, theme.button_1, theme.button_2)
+        btn_rescan.set_pos(310, 270)
+        btn_rescan.set_size(300, 80)
+        btn_rescan.connect(btn_rescan.EVENT_BUTTON_RELEASE, self.__on_rescan)        
+        self.add(btn_rescan)
+
+        hbox = HBox(esens)
+        btn_rescan.add(hbox)
+        lbl = Label(esens, "Rescan", theme.font_plain, theme.color_fg_item)
+        hbox.add(lbl)
+                
         self.__build_list()
         
         
@@ -102,6 +112,11 @@ class CardMediaRoot(PrefsCard):
             self.__list.overlay_image(idx, theme.remove, 540, 24)
 
         dirchooser.destroy()            
+
+
+    def __on_rescan(self, src, cmd, *args):
+    
+        self.update_observer(self.OBS_SCAN_MEDIA)
 
 
     def __on_observe_list(self, src, cmd, *args):

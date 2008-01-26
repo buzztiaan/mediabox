@@ -1,5 +1,4 @@
 from viewers.Viewer import Viewer
-from VideoItem import VideoItem
 from VideoThumbnail import VideoThumbnail
 from mediabox.MPlayer import MPlayer
 from mediabox import caps
@@ -206,11 +205,10 @@ class VideoViewer(Viewer):
     
         self.__items = []
         for item in mscanner.get_media(mscanner.MEDIA_VIDEO):
-            vitem = VideoItem(item.uri)
-            tn = VideoThumbnail(item.thumbnail,
-                                os.path.basename(item.uri))
-            vitem.set_thumbnail(tn)
-            self.__items.append(vitem)
+            if (not item.thumbnail_pmap):
+                tn = VideoThumbnail(item.thumbnail, item.name)
+                item.thumbnail_pmap = tn
+            self.__items.append(item)
            
 
     def shutdown(self):
@@ -227,7 +225,7 @@ class VideoViewer(Viewer):
     
         def f():
             if (self.__screen.window.xid):
-                uri = item.get_uri()
+                uri = item.uri
                 if (uri == self.__uri): return
                 
                 self.__mplayer.set_window(self.__screen.window.xid)

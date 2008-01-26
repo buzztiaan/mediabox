@@ -2,7 +2,7 @@ from viewers.Viewer import Viewer
 from viewers.Thumbnail import Thumbnail
 from ui.ImageButton import ImageButton
 from ui.Label import Label
-from PrefsItem import PrefsItem
+from mediascanner.MediaItem import MediaItem
 from CardMediaRoot import CardMediaRoot
 from CardThemeSelector import CardThemeSelector
 import theme
@@ -71,6 +71,11 @@ class Preferences(Viewer):
         screen.draw_pixbuf(theme.titlebar, x, y)
 
 
+    def __on_observe_cards(self, src, cmd, *args):
+    
+        if (cmd == src.OBS_SCAN_MEDIA):
+            self.update_observer(self.OBS_SCAN_MEDIA, True)
+
 
     def __show_card(self, idx):
     
@@ -95,13 +100,14 @@ class Preferences(Viewer):
         tn.add_text(label, 2, 96, theme.font_tiny,
                     theme.color_fg_thumbnail_label)
         tn.add_image(theme.btn_load, 128, 88)        
-        item = PrefsItem()
-        item.set_thumbnail(tn)
+        item = MediaItem()
+        item.thumbnail_pmap = tn
         self.__items.append(item)
         
         self.add(card)
         card.set_visible(False)
         self.__cards.append(card)
+        card.add_observer(self.__on_observe_cards)
         
         
     def load(self, item):
@@ -119,5 +125,5 @@ class Preferences(Viewer):
     def hide(self):
     
         Viewer.hide(self)
-        self.update_observer(self.OBS_SCAN_MEDIA)
+        self.update_observer(self.OBS_SCAN_MEDIA, False)
         

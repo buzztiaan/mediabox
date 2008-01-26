@@ -2,7 +2,6 @@ from viewers.Viewer import Viewer
 from ui.KineticScroller import KineticScroller
 from ui.Label import Label
 from ui.Throbber import Throbber
-from ImageItem import ImageItem
 from ImageThumbnail import ImageThumbnail
 from Image import Image
 from mediabox import caps
@@ -143,15 +142,15 @@ class ImageViewer(Viewer):
         self.__items = []
         self.__current_item = -1
         for item in mscanner.get_media(mscanner.MEDIA_IMAGE):
-            iitem = ImageItem(item.uri)    
-            tn = ImageThumbnail(item.thumbnail)
-            iitem.set_thumbnail(tn)
-            self.__items.append(iitem)
+            if (not item.thumbnail_pmap):
+                tn = ImageThumbnail(item.thumbnail)
+                item.thumbnail_pmap = tn
+            self.__items.append(item)
 
 
     def load(self, item):
       
-        uri = item.get_uri()
+        uri = item.uri
         self.__image.load(uri)
         self.__label.set_text(self.__get_name(uri))
         self.__current_item = self.__items.index(item)

@@ -1,5 +1,4 @@
 from viewers.Viewer import Viewer
-from RadioItem import RadioItem
 from RadioThumbnail import RadioThumbnail
 from FMRadioBackend import FMRadioBackend
 from InetRadioBackend import InetRadioBackend
@@ -8,6 +7,7 @@ from ui.KineticScroller import KineticScroller
 from ui import dialogs
 from utils import maemo
 from mediabox import caps
+from mediascanner.MediaItem import MediaItem
 import theme
 
 
@@ -58,9 +58,10 @@ class RadioViewer(Viewer):
                          InetRadioBackend))
         
         for name, icon, backend in backends:
-            item = RadioItem(name)
+            item = MediaItem()
+            item.name = name
             tn = RadioThumbnail(icon, name)
-            item.set_thumbnail(tn)
+            item.thumbnail_pmap = tn
             try:
                 self.__radios[name] = backend()
             except:
@@ -158,7 +159,7 @@ class RadioViewer(Viewer):
 
     def load(self, item):
     
-        name = item.get_uri()
+        name = item.name
         self.__current_radio = self.__radios[name]
         self.update_observer(self.OBS_REPORT_CAPABILITIES,
                              self.__current_radio.CAPS)

@@ -1,5 +1,4 @@
 from viewers.Viewer import Viewer
-from MusicItem import MusicItem
 from AlbumThumbnail import AlbumThumbnail
 from ui.KineticScroller import KineticScroller
 from ui.ItemList import ItemList
@@ -90,11 +89,11 @@ class AlbumViewer(Viewer):
     
         self.__items = []
         for item in mscanner.get_media(mscanner.MEDIA_AUDIO):
-            mitem = MusicItem(item.uri)
-            tn = AlbumThumbnail(item.thumbnail,
-                                os.path.basename(item.uri))
-            mitem.set_thumbnail(tn)
-            self.__items.append(mitem)
+            if (not item.thumbnail_pmap):
+                tn = AlbumThumbnail(item.thumbnail, item.name)
+                item.thumbnail_pmap = tn
+                print "new thumb", item.name
+            self.__items.append(item)
        
        
     def __on_observe_mplayer(self, src, cmd, *args):
@@ -160,6 +159,7 @@ class AlbumViewer(Viewer):
     def __find_cover(self, uri):
         
         candidates = [ os.path.join(uri, ".folder.png"),
+                       os.path.join(uri, "folder.jpg"),
                        os.path.join(uri, "cover.jpg"),
                        os.path.join(uri, "cover.jpeg"),
                        os.path.join(uri, "cover.png") ]
@@ -199,7 +199,8 @@ class AlbumViewer(Viewer):
             
         
         path = os.path.dirname(uri)
-        for i in (".folder.png", "cover.jpg", "cover.jpeg", "cover.png"):
+        for i in (".folder.png", "folder.jpg", "cover.jpg",
+                  "cover.jpeg", "cover.png"):
             coverpath = os.path.join(path, i)
             if (os.path.exists(coverpath)): return coverpath
             
@@ -303,7 +304,7 @@ class AlbumViewer(Viewer):
         self.render()
 
         def f():             
-            uri = item.get_uri()
+            uri = item.uri
         
             self.__tracks = []
             self.__list.clear_items()
