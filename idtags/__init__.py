@@ -3,6 +3,7 @@
 # Well, it works for me (TM).
 
 
+import flactags
 import oggtags
 import id3v1tags
 import id3v2tags
@@ -23,6 +24,8 @@ def read(filename):
     try:
         if (tagtype == "Ogg"):
             return oggtags.read(fd)
+        elif (tagtype == "fLa"):
+            return flactags.read(fd)
         elif (tagtype == "ID3"):
             if (major == "\x02"):
                 return id3v2tags.read(fd, id3v2tags.REV2)
