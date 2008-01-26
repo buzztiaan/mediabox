@@ -1,3 +1,4 @@
+from MediaItem import MediaItem
 from utils.Observable import Observable
 
 import video
@@ -6,20 +7,13 @@ import image
 
 import md5
 import os
+import time
 #import cPickle
-
-
-class _Item(object):
-    def __init__(self):
-        self.mediatype = 0
-        self.name = ""
-        self.uri = ""
-        self.thumbnail = ""
-
+    
 
 class _MediaScanner(Observable):
     """
-    Singleton class for efficient scanning for media.
+    Singleton class for efficient scanning of media.
     """
 
     OBS_THUMBNAIL_GENERATED = 0
@@ -35,6 +29,11 @@ class _MediaScanner(Observable):
         #try:
         #    self.__media = cPickle.load(open("/tmp/mediabox-mediacache", "r"))
         #except:
+        
+        # time of the last scan
+        self.__scantime = 0
+        
+        # table: path -> item
         self.__media = {}
             
         self.__thumb_folder = "/home/user/.thumbnails/mediabox"        
@@ -43,7 +42,8 @@ class _MediaScanner(Observable):
         
     def __is_up_to_date(self, uri):
            
-        thumb = self.__thumb_folder + "/" + self.__media[uri][0] + ".jpg"
+        item = self.__media[uri]
+        thumb = self.__thumb_folder + "/" + item.md5 + ".jpg"
         broken = thumb + ".broken"
         
         if (os.path.exists(broken)):
@@ -54,6 +54,7 @@ class _MediaScanner(Observable):
         try:
             mtime1 = os.path.getmtime(uri)
             mtime2 = os.path.getmtime(thumburi)
+            item.mtime = mtime1
 
             return (mtime1 <= mtime2)
 
@@ -120,7 +121,8 @@ class _MediaScanner(Observable):
         """
 
         collection = []
-        self.__media = {}
+        #self.__media = {}
+        self.__scantime = int(time.time())
         print "searching"
         seen = {}
         for mediaroot, mediatypes in self.__media_roots:
@@ -150,7 +152,13 @@ class _MediaScanner(Observable):
                 #end for
             #end for
         #end for
-        
+
+        # get rid of items which haven't been found now
+        for key, item in self.__media.items():
+            if (item.scantime < self.__scantime):
+                del self.__media[key]
+        #end for
+
         #cPickle.dump(self.__media, open("/tmp/mediabox-mediacache", "w"))
         
         
@@ -161,20 +169,32 @@ class _MediaScanner(Observable):
                                   (self.MEDIA_IMAGE, image)]:
 
             if (mediatypes & mediatype and module.is_media(uri)):
-                md5sum = self.__md5sum(uri)
-                self.__media[uri] = (md5sum, mediatype)            
+                try:
+                    item = self.__media[uri]
+                except:
+                    item = MediaItem()
+                    self.__media[uri] = item
+                    
+                item.scantime = self.__scantime
+                item.mediatype = mediatype                
+                item.name = os.path.basename(uri)
+                item.uri = uri
+                item.md5 = self.__md5sum(uri)
+                item.thumbnail = self.__thumb_folder + "/" + item.md5 + ".jpg"
+
+                
                 if (not self.__is_up_to_date(uri)):
-                    thumb = self.__thumb_folder + "/" + md5sum + ".jpg"
-                    module.make_thumbnail(uri, thumb)
+                    item.thumbnail_pmap = None
+                    module.make_thumbnail(uri, item.thumbnail)
                     
                     # no thumbnail generated? remember this
-                    if (not os.path.exists(thumb)):
-                        self.__mark_as_unavailable(thumb)
+                    if (not os.path.exists(item.thumbnail)):
+                        self.__mark_as_unavailable(item.thumbnail)
                     else:
-                        self.__unmark_as_unavailable(thumb)
+                        self.__unmark_as_unavailable(item.thumbnail)
                     
                     self.update_observer(self.OBS_THUMBNAIL_GENERATED,
-                                         thumb, uri)
+                                         item.thumbnail, uri)
                 #end if
              #end if
          #end for
@@ -185,17 +205,19 @@ class _MediaScanner(Observable):
         Returns a list of media items of the given media types.
         """
     
-        media = []
-        for uri, entry in self.__media.items():
-            md5sum, mediatype = entry
-            if (mediatypes & mediatype):
-                item = _Item()
-                item.mediatype = mediatype
-                item.name = os.path.basename(uri)
-                item.uri = uri
-                item.thumbnail = self.__thumb_folder + "/" + md5sum + ".jpg"
-                media.append(item)
-        #end for
+        media = [ item for item in self.__media.values()
+                  if mediatypes & item.mediatype ]
+                  
+        #for uri, entry in self.__media.items():
+        #    md5sum, mediatype = entry
+        #    if (mediatypes & mediatype):
+        #        item = _Item()
+        #        item.mediatype = mediatype
+        #        item.name = os.path.basename(uri)
+        #        item.uri = uri
+        #        item.thumbnail = self.__thumb_folder + "/" + md5sum + ".jpg"
+        #        media.append(item)
+        ##end for
         
         def comp(a, b): return cmp(a.uri.lower(), b.uri.lower())
         media.sort(comp)

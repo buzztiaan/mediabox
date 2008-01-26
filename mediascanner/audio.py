@@ -34,9 +34,10 @@ def make_thumbnail(uri, dest):
     # look for a cover file
     if (not cover):
         candidates = [ os.path.join(uri, ".folder.png"),
-                        os.path.join(uri, "cover.jpg"),
-                        os.path.join(uri, "cover.jpeg"),
-                        os.path.join(uri, "cover.png") ]
+                       os.path.join(uri, "folder.jpg"),
+                       os.path.join(uri, "cover.jpg"),
+                       os.path.join(uri, "cover.jpeg"),
+                       os.path.join(uri, "cover.png") ]
 
         imgs = [ os.path.join(uri, f)
                     for f in os.listdir(uri)
