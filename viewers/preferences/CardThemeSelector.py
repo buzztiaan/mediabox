@@ -1,5 +1,5 @@
 from PrefsCard import PrefsCard
-from ui.Item import Item
+from ThemeListItem import ThemeListItem
 from ui.ItemList import ItemList
 from ui.KineticScroller import KineticScroller
 from ui import dialogs
@@ -20,8 +20,6 @@ class CardThemeSelector(PrefsCard):
 
         self.__list = ItemList(esens, 600, 80)
         self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 368))
-        self.__list.set_graphics(theme.item, theme.item_active)
-        self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)
         self.__list.set_pos(10, 0)
         self.__list.set_size(600, 350)
@@ -39,8 +37,10 @@ class CardThemeSelector(PrefsCard):
         self.__themes = []
         for name, preview, title, description in themes:
             img = gtk.gdk.pixbuf_new_from_file(preview)
-            idx = self.__list.append_item(title + "\n" + description, img)
-            self.__list.overlay_image(idx, theme.btn_load, 540, 16)
+            item = ThemeListItem(600, 80, img, title + "\n" + description)
+            idx = self.__list.append_custom_item(item)
+            #idx = self.__list.append_item(title + "\n" + description, img)
+            #self.__list.overlay_image(idx, theme.btn_load, 540, 16)
             self.__themes.append(name)
             
             if (name == config.theme()):

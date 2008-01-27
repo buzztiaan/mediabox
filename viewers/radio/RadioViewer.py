@@ -1,4 +1,5 @@
 from viewers.Viewer import Viewer
+from ListItem import ListItem
 from RadioThumbnail import RadioThumbnail
 from FMRadioBackend import FMRadioBackend
 from InetRadioBackend import InetRadioBackend
@@ -42,11 +43,10 @@ class RadioViewer(Viewer):
         self.__list.set_size(600, 400)        
         self.__list.set_pos(10, 0)   
         self.__list.set_background(theme.background.subpixbuf(185, 0, 600, 400))
-        self.__list.set_graphics(theme.item, theme.item_active)        
-        self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)
                 
         kscr = KineticScroller(self.__list)
+        kscr.set_touch_area(0, 440)
         kscr.add_observer(self.__on_observe_list)
               
         # add backends
@@ -138,9 +138,8 @@ class RadioViewer(Viewer):
     def __append_station(self, location, name):
 
         title = "%s\n[%s]" % (name, location)
-        idx = self.__list.append_item(title, None)
-        self.__list.overlay_image(idx, theme.btn_load, 440, 24)
-        self.__list.overlay_image(idx, theme.remove, 540, 24)
+        item = ListItem(600, 80, title)
+        idx = self.__list.append_custom_item(item)
         
 
 

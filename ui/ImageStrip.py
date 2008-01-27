@@ -520,7 +520,7 @@ class ImageStrip(Widget):
             #print offset, offset1, offset2, self.__totalsize, distance, distances
 
             return True
-                  
+
         if (not self.__is_scrolling.isSet()):
             self.__is_scrolling.set()
             gobject.timeout_add(5, f, idx)

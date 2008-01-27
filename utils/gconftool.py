@@ -38,15 +38,22 @@ class _Client(object):
         out = out.strip()
         out = out[1:-1]
         values = [ v.strip() for v in out.split(",") ]
+        if (ktype == VALUE_INT):
+            values = [ int(v) for v in values ]
 
         return values
 
 
     def set_list(self, key, ktype, value):
-    
+
+        if (ktype == VALUE_INT):
+            value = [ str(v) for v in value ]
         s_value = ",".join(value)
+        #print "%s --type list --list-type %s --set %s \"[%s]\"" \
+        #                                    % (_GCONFTOOL, ktype, key, s_value)
         fail, out = commands.getstatusoutput("%s --type list --list-type %s --set %s \"[%s]\"" \
                                             % (_GCONFTOOL, ktype, key, s_value))
+        #print fail, out
                                              
 
     def get_string(self, key):

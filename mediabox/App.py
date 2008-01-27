@@ -109,6 +109,7 @@ class App(object):
         self.__content_pane.add(self.__strip)
 
         self.__kscr = KineticScroller(self.__strip)
+        self.__kscr.set_touch_area(0, 108)
         self.__kscr.add_observer(self.__on_observe_strip)
 
         # set up media scanner
@@ -168,6 +169,7 @@ class App(object):
 
         self.__ctrlbar.show_message("Looking for media files...")
         self.__content_pane.set_visible(False)
+        self.__thumbnailer.clear()
         self.__thumbnailer.set_visible(True)
         self.__root_pane.render()
         while (gtk.events_pending()): gtk.main_iteration()
@@ -177,11 +179,11 @@ class App(object):
         mscanner.set_thumb_folder(os.path.abspath(config.thumbdir()))
         
         # TODO: media types should be applied by the user to the roots
-        mtypes = mscanner.MEDIA_VIDEO | \
-                 mscanner.MEDIA_AUDIO | \
-                 mscanner.MEDIA_IMAGE
+        #mtypes = mscanner.MEDIA_VIDEO | \
+        #         mscanner.MEDIA_AUDIO | \
+        #         mscanner.MEDIA_IMAGE
         
-        mscanner.set_media_roots([ (uri, mtypes) for uri in mediaroots ])
+        mscanner.set_media_roots(mediaroots) #[ (uri, mtypes) for uri in mediaroots ])
 
         now = time.time()
         mscanner.scan()
@@ -197,6 +199,8 @@ class App(object):
         for v in self.__viewers:
             v.update_media(mscanner)
             self.__viewer_states[v].thumbs_loaded = False
+            self.__viewer_states[v].selected_item = -1
+            self.__viewer_states[v].item_offset = 0
 
         self.__thumbnailer.set_visible(False)
         self.__content_pane.set_visible(True)

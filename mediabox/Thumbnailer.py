@@ -35,6 +35,10 @@ class Thumbnailer(Widget):
         # save background
         self.__bg.copy_buffer(screen, 400 - 80, 200 - 60, 0, 0, 160, 120)
         
+        
+    def clear(self):
+    
+        self.__label.set_text("")
 
       
                

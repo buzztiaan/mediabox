@@ -9,6 +9,9 @@ _HILIGHTED = 1
 
 
 class ItemList(ImageStrip):
+    """
+    This class is a item list view based on the ImageStrip for smooth scrolling.
+    """
 
     def __init__(self, esens, width, itemsize):
     
@@ -17,9 +20,7 @@ class ItemList(ImageStrip):
         
         self.__normal_bg = None
         self.__hilighted_bg = None
-        
-        self.__font = pango.FontDescription("Sans 8")
-        
+               
         self.__items = []        
         self.__hilighted_item = -1
                 
@@ -32,11 +33,6 @@ class ItemList(ImageStrip):
     
         self.__normal_bg = normal
         self.__hilighted_bg = hilighted
-    
-    
-    def set_font(self, font):
-    
-        self.__font = font    
         
         
     def clear_items(self):
@@ -44,18 +40,18 @@ class ItemList(ImageStrip):
         self.__items = []
         self.__hilighted_item = -1
         self.set_images([])
-        
-        
-    def append_item(self, label, icon = None):
-    
-        normal_item    = Item(self, self.__width, self.__height, icon, label,
-                              self.__font, self.__normal_bg)
-        hilighted_item = Item(self, self.__width, self.__height, icon, label,
-                              self.__font, self.__hilighted_bg)
 
-        self.__items.append((normal_item, hilighted_item))
-        return self.append_image(normal_item)
+
+    def append_custom_item(self, item):
+
+        self.__items.append(item)        
+        return self.append_image(item)
         
+        
+    def get_item(self, idx):
+    
+        return self.__items[idx]
+               
         
     def remove_item(self, idx):
     
@@ -71,13 +67,15 @@ class ItemList(ImageStrip):
         #print "HILIGHT", idx
         if (self.__hilighted_item >= 0):
             try:
-                self.replace_image(self.__hilighted_item,
-                                   self.__items[self.__hilighted_item][_NORMAL])
+                item = self.__items[self.__hilighted_item]
+                item.set_hilighted(False)
             except:
                 pass
-        if (idx >= 0):                                 
-            self.replace_image(idx, self.__items[idx][_HILIGHTED])
-            self.__hilighted_item = idx
-            
+                
+        if (idx >= 0):
+            item = self.__items[idx]
+            item.set_hilighted(True)
+            self.__hilighted_item = idx            
             self.scroll_to_item(idx)
 
+        self.render()

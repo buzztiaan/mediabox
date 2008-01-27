@@ -27,7 +27,6 @@ def steal_cover(uri):
     name = basename + "_thumb.jpg"
     thumb_dir = "/media/mmc1/covers"
 
-        
     cover_uri = os.path.join(thumb_dir, name)
     if (os.path.exists(cover_uri)):
         return cover_uri
@@ -41,7 +40,7 @@ def steal_video(uri):
     basename = os.path.basename(uri)
     vid_name = basename + ".jpg"
     thumb_dir = "/media/mmc1/covers"
-        
+
     video_uri = os.path.join(thumb_dir, vid_name)
     if (os.path.exists(video_uri)):
         return video_uri

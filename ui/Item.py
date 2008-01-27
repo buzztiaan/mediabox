@@ -14,13 +14,18 @@ class Item(gtk.gdk.Pixbuf):
     __defer_list = []   # this is a static variable shared by all instances
 
 
-    def __init__(self, widget, width, height, icon, label, font, background = None):
+    def __init__(self, width, height):
 
+        self.__normal_bg = None
+        self.__hilighted_bg = None
+        self.__is_hilighted = False
+        
+        self.__width = width
+        self.__height = height
+        
         self.__canvas = Pixmap(None, width, height)
         
-
         self.__initialized = False
-        self.__args = (widget, width, height, icon, label, font, background)
     
         gtk.gdk.Pixbuf.__init__(self, gtk.gdk.COLORSPACE_RGB, False, 8,
                                 width, height)
@@ -40,6 +45,25 @@ class Item(gtk.gdk.Pixbuf):
             return False
 
 
+    def set_graphics(self, normal, hilighted):
+    
+        self.__normal_bg = normal
+        self.__hilighted_bg = hilighted
+
+
+
+    def set_hilighted(self, value):
+    
+        if (value != self.__is_hilighted):
+            self.__is_hilighted = value
+            self._render_item()
+            
+            
+    def is_hilighted(self):
+    
+        return self.__is_hilighted
+
+
     def get_width(self):
     
         if (not self.__initialized): self.__initialize()
@@ -52,48 +76,27 @@ class Item(gtk.gdk.Pixbuf):
         return gtk.gdk.Pixbuf.subpixbuf(self, *args)
 
 
+    def _render_item(self):
+
+        self._render(self.__canvas)
+        self.__canvas.render_on_pixbuf(self)
+        
+        
+    def _render(self, canvas):
+        
+        canvas.fill_area(0, 0, self.__width, self.__height, "#ffffff")        
+
+        background = self.__is_hilighted and self.__hilighted_bg \
+                                          or self.__normal_bg
+
+        if (background):
+            self.__canvas.draw_subpixbuf(background, 0, 0, 0, 0,
+                                         self.__width, self.__height)
+
+
+
     def __initialize(self):
     
         self.__initialized = True
-        
-        widget, width, height, icon, label, font, background = self.__args
-    
-        self.__canvas.fill_area(0, 0, width, height, "#ffffff")
-    
-        #cmap = widget.get_colormap()
-        #gc = pmap.new_gc()
+        self._render_item()
 
-        #gc.set_foreground(cmap.alloc_color("#ffffff"))
-        #pmap.draw_rectangle(gc, True, 0, 0, width, height)
-                          
-        x = 8
-
-        if (background):
-            self.__canvas.draw_subpixbuf(background, 0, 0, 0, 0, width, height)
-            #pmap.draw_pixbuf(gc, background, 0, 0, 0, 0,
-            #                 background.get_width(), background.get_height())
-            
-        if (icon):
-            icon_y = (self.get_height() - icon.get_height()) / 2
-            self.__canvas.draw_pixbuf(icon, 8, icon_y)
-            #pmap.draw_pixbuf(gc, icon, 0, 0, 8, icon_y,
-            #                 icon.get_width(), icon.get_height())
-            x += icon.get_width()
-        x += 8
-
-        self.__canvas.draw_text(label, font, x, 8, theme.color_fg_item)
-
-        #gc.set_foreground(cmap.alloc_color(theme.color_fg_item))
-
-        #pc = widget.get_pango_context()
-        #layout = pango.Layout(pc)
-        #layout.set_font_description(font)
-        #layout.set_text(label)
-        #layout.set_width((width - 96) * pango.SCALE)
-        #w, h = layout.get_pixel_size()
-        #pmap.draw_layout(gc, x, (height - h) / 2, layout)
-        
-        #self.get_from_drawable(pmap, cmap, 0, 0, 0, 0, width, height)
-        self.__canvas.render_on_pixbuf(self)
-        
-        #import gc; gc.collect()

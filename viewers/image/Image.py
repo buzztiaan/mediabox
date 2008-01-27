@@ -198,6 +198,8 @@ class Image(Widget, Observable):
 
     def zoom(self, level):
 
+        if (not self.__zoom_levels): return
+
         cx, cy = self.__center_pos
         cx /= self.__zoom_value
         cy /= self.__zoom_value

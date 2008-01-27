@@ -45,7 +45,7 @@ class _MediaScanner(Observable):
         item = self.__media[uri]
         thumb = self.__thumb_folder + "/" + item.md5 + ".jpg"
         broken = thumb + ".broken"
-        
+                
         if (os.path.exists(broken)):
             thumburi = broken
         else:
@@ -124,13 +124,13 @@ class _MediaScanner(Observable):
         #self.__media = {}
         self.__scantime = int(time.time())
         print "searching"
-        seen = {}
+
         for mediaroot, mediatypes in self.__media_roots:
             try:
                 self.__process_media(mediatypes, mediaroot)
             except:
                 pass
-                
+            seen = {}
             for dirpath, dirs, files in os.walk(mediaroot):
                 # don't be so stupid to follow circular links
                 if (seen.get(dirpath)): continue
@@ -182,9 +182,14 @@ class _MediaScanner(Observable):
                 item.md5 = self.__md5sum(uri)
                 item.thumbnail = self.__thumb_folder + "/" + item.md5 + ".jpg"
 
-                
                 if (not self.__is_up_to_date(uri)):
                     item.thumbnail_pmap = None
+
+                    try:
+                        # get rid of old thumbnail first
+                        os.unlink(item.thumbnail)
+                    except:
+                        pass
                     module.make_thumbnail(uri, item.thumbnail)
                     
                     # no thumbnail generated? remember this
@@ -202,23 +207,12 @@ class _MediaScanner(Observable):
         
     def get_media(self, mediatypes):
         """
-        Returns a list of media items of the given media types.
+        Returns a sorted list of media items of the given media types.
         """
     
         media = [ item for item in self.__media.values()
                   if mediatypes & item.mediatype ]
-                  
-        #for uri, entry in self.__media.items():
-        #    md5sum, mediatype = entry
-        #    if (mediatypes & mediatype):
-        #        item = _Item()
-        #        item.mediatype = mediatype
-        #        item.name = os.path.basename(uri)
-        #        item.uri = uri
-        #        item.thumbnail = self.__thumb_folder + "/" + md5sum + ".jpg"
-        #        media.append(item)
-        ##end for
-        
+
         def comp(a, b): return cmp(a.uri.lower(), b.uri.lower())
         media.sort(comp)
         

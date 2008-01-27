@@ -14,8 +14,8 @@ def is_media(uri):
             return False
         
         # ignore 'cover.jpg'
-        if (uri.endswith("/cover.jpg")):
-            return False
+        #if (uri.endswith("/cover.jpg")):
+        #    return False
 
         elif (os.path.splitext(uri)[1].lower() in _IMAGE_EXT):
             return True

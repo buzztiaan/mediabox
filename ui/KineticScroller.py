@@ -35,6 +35,9 @@ class KineticScroller(Observable):
         
         # whether kinetic scrolling is enabled
         self.__kinetic_enabled = True
+
+        # the area where the user can touch to scroll
+        self.__touch_area = (0, 1000)
         
         # the physics behind kinetic scrolling
         self.__impulse_point = 0        
@@ -78,6 +81,11 @@ class KineticScroller(Observable):
         """
     
         self.__kinetic_enabled = value
+
+
+    def set_touch_area(self, begin, end):
+    
+        self.__touch_area = (begin, end)
 
 
     def __impulse_handler(self):
@@ -143,25 +151,30 @@ class KineticScroller(Observable):
     def __on_drag_start(self, px, py):
     
         self.__pointer = (px, py)
-    
-        self.__is_dragging = True
-        self.__drag_pointer = (px, py)
-        self.__dragging_from = (px, py)
-        self.__drag_begin = time.time()
-        delta_sx, delta_sy = self.__delta_s
+        touch_begin, touch_end = self.__touch_area
         
-        # during kinetic scrolling, clicks stop the scrolling but don't select
-        # an item
-        if (abs(delta_sx) < 1 and abs(delta_sy) < 1):
-            self.__might_be_click = True
-        else:
-            self.__might_be_click = False
+        if (touch_begin <= px <= touch_end):
+            self.__is_dragging = True
+            self.__drag_pointer = (px, py)
+            self.__dragging_from = (px, py)
+            self.__drag_begin = time.time()
+            delta_sx, delta_sy = self.__delta_s
+        
+            # during kinetic scrolling, clicks stop the scrolling but don't select
+            # an item
+            if (abs(delta_sx) < 1 and abs(delta_sy) < 1):
+                self.__might_be_click = True
+            else:
+                self.__might_be_click = False
             
-        self.__delta_s = (0, 0)
-        self.__scrolling = False
+            self.__delta_s = (0, 0)
+            self.__scrolling = False
         
-        gobject.timeout_add(_TAP_AND_HOLD_DELAY,
-                            self.__check_for_tap_and_hold, px, py)
+            gobject.timeout_add(_TAP_AND_HOLD_DELAY,
+                                self.__check_for_tap_and_hold, px, py)
+
+        else:
+            self.update_observer(self.OBS_CLICKED, px, py)            
                 
                 
         
@@ -174,8 +187,8 @@ class KineticScroller(Observable):
         self.__is_dragging = False
         self.__scrolling = False
 
-        if (self.__may_click):
-            self.__check_for_click()            
+        #if (self.__may_click):
+        #    self.__check_for_click()            
         
         # start up impulse handler if not running        
         if (not self.__impulse_handler_running):
@@ -183,9 +196,9 @@ class KineticScroller(Observable):
             self.__impulse_handler()
 
         # wait until we may accept clicks again
-        def f(): self.__may_click = True
-        self.__may_click = False        
-        gobject.timeout_add(500, f)
+        #def f(): self.__may_click = True
+        #self.__may_click = False        
+        #gobject.timeout_add(500, f)
         
         
     def __on_drag(self, px, py):

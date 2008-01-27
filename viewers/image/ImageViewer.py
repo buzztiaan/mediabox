@@ -109,7 +109,9 @@ class ImageViewer(Viewer):
             
             
     def __previous_image(self):
-            
+
+        if (not self.__items): return
+        
         idx = self.__current_item
         if (idx == -1): idx = 0
         idx -= 1
@@ -119,7 +121,9 @@ class ImageViewer(Viewer):
 
 
     def __next_image(self):
-            
+
+        if (not self.__items): return
+                    
         idx = self.__current_item       
         idx += 1
         idx %= len(self.__items)

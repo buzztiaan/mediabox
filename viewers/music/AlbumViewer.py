@@ -1,4 +1,5 @@
 from viewers.Viewer import Viewer
+from ListItem import ListItem
 from AlbumThumbnail import AlbumThumbnail
 from ui.KineticScroller import KineticScroller
 from ui.ItemList import ItemList
@@ -51,11 +52,10 @@ class AlbumViewer(Viewer):
         self.__list.set_size(600, 400)        
         self.__list.set_pos(10, 0)
         self.__list.set_background(theme.background.subpixbuf(185, 0, 600, 400))
-        self.__list.set_graphics(theme.item, theme.item_active)
-        self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)
 
         self.__kscr = KineticScroller(self.__list)
+        self.__kscr.set_touch_area(0, 540)
         self.__kscr.add_observer(self.__on_observe_scroller)
         
         self.__trackinfo = TrackInfo(esens)
@@ -92,7 +92,6 @@ class AlbumViewer(Viewer):
             if (not item.thumbnail_pmap):
                 tn = AlbumThumbnail(item.thumbnail, item.name)
                 item.thumbnail_pmap = tn
-                print "new thumb", item.name
             self.__items.append(item)
        
        
@@ -325,8 +324,8 @@ class AlbumViewer(Viewer):
                         title = "%s\n[%s]" % (title, artist)
                     
                     self.__tracks.append(filepath)
-                    idx = self.__list.append_item(title, None)
-                    self.__list.overlay_image(idx, theme.btn_load, 540, 24)
+                    listitem = ListItem(600, 80, title)
+                    idx = self.__list.append_custom_item(listitem)
                     self.__throbber.rotate()
                 #end if
             #end for

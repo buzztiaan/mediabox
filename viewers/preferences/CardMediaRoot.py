@@ -1,5 +1,5 @@
 from PrefsCard import PrefsCard
-from ui.Item import Item
+from MediaListItem import MediaListItem
 from ui.ItemList import ItemList
 from ui.KineticScroller import KineticScroller
 from ui.Label import Label
@@ -28,14 +28,13 @@ class CardMediaRoot(PrefsCard):
     
         self.__list = ItemList(esens, 600, 80)
         self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 350))
-        self.__list.set_graphics(theme.item, theme.item_active)        
-        self.__list.set_font(theme.font_plain)
         self.__list.set_arrows(theme.arrows)
         self.__list.set_pos(10, 0)
         self.__list.set_size(600, 270)
         self.add(self.__list)
 
         kscr = KineticScroller(self.__list)
+        kscr.set_touch_area(192, 540)
         kscr.add_observer(self.__on_observe_list)
 
         btn_add = Button(esens, theme.button_1, theme.button_2)
@@ -58,7 +57,7 @@ class CardMediaRoot(PrefsCard):
 
         hbox = HBox(esens)
         btn_rescan.add(hbox)
-        lbl = Label(esens, "Rescan", theme.font_plain, theme.color_fg_item)
+        lbl = Label(esens, "Scan for Changes", theme.font_plain, theme.color_fg_item)
         hbox.add(lbl)
                 
         self.__build_list()
@@ -77,11 +76,13 @@ class CardMediaRoot(PrefsCard):
     def __build_list(self):
     
         self.__list.clear_items()
-        for mroot in self.__mediaroots:
+        for mroot, mtypes in self.__mediaroots:
+            item = MediaListItem(600, 80, mroot)
+            item.set_mediatypes(mtypes)
             if (mroot.startswith("/media/mmc")):
-                idx = self.__list.append_item(mroot)
+                idx = self.__list.append_custom_item(item)
             else:
-                idx = self.__list.append_item(mroot)
+                idx = self.__list.append_custom_item(item)
             self.__list.overlay_image(idx, theme.remove, 540, 24)
 
 
@@ -103,13 +104,14 @@ class CardMediaRoot(PrefsCard):
         
         if (response == gtk.RESPONSE_OK):
             dirpath = dirchooser.get_filename()       
-            self.__mediaroots.append(dirpath)
+            self.__mediaroots.append((dirpath, 7))
             config.set_mediaroot(self.__mediaroots)
+            item = MediaListItem(600, 80, dirpath)
+            item.set_mediatypes(7)
             if (dirpath.startswith("/media/mmc")):
-                idx = self.__list.append_item(dirpath)
+                idx = self.__list.append_custom_item(item)
             else:
-                idx = self.__list.append_item(dirpath)
-            self.__list.overlay_image(idx, theme.remove, 540, 24)
+                idx = self.__list.append_custom_item(item)
 
         dirchooser.destroy()            
 
@@ -123,10 +125,22 @@ class CardMediaRoot(PrefsCard):
     
         if (cmd == src.OBS_CLICKED):
             px, py = args
-            idx = self.__list.get_index_at(py)
+            idx = self.__list.get_index_at(py)            
+            if (idx == -1): return
+
+            uri, mtypes = self.__mediaroots[idx]
+            if (px < 192):
+                if (px < 64):    mtypes ^= 1
+                elif (px < 128): mtypes ^= 2
+                elif (px < 192): mtypes ^= 4
+                item = self.__list.get_item(idx)
+                item.set_mediatypes(mtypes)
+                self.__mediaroots[idx] = (uri, mtypes)
             
-            if (px >= 540 and idx >= 0):
+            elif (px >= 540):
                 del self.__mediaroots[idx]
-                config.set_mediaroot(self.__mediaroots)
                 self.__list.remove_item(idx)
             
+            self.__list.render()
+            config.set_mediaroot(self.__mediaroots)
+
