@@ -54,7 +54,7 @@ def _read_colors(themepath):
         name = line[:idx].strip()
         colorname = line[idx + 1:].strip()
         try:
-            globals()[name] = gtk.gdk.color_parse(colorname)
+            globals()[name] = colorname #gtk.gdk.color_parse(colorname)
         except:
             pass
     #end for

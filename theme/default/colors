@@ -27,6 +27,7 @@ color_fg_panel_text: #ffffff
 # List Items
 #
 color_fg_item: #000000
+color_fg_item_2: #888888
 
 
 #
