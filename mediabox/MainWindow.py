@@ -1,28 +1,19 @@
 from ui.EventSensor import EventSensor
+from utils import maemo
 import config
 
 import gtk
+if (maemo.IS_MAEMO): import hildon
 
 
-
-try:
-    import hildon
-    IS_MAEMO = True
-
-except:
-    IS_MAEMO = False
-
-
-
-_Window = IS_MAEMO and hildon.Window or gtk.Window
-
+_Window = maemo.IS_MAEMO and hildon.Window or gtk.Window
 
 
 class MainWindow(_Window, EventSensor):
 
     def __init__(self):
     
-        if (IS_MAEMO):
+        if (maemo.IS_MAEMO):
             _Window.__init__(self)
             self.fullscreen()
         else:

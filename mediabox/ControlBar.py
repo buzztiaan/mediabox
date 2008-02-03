@@ -23,6 +23,8 @@ class ControlBar(Widget, Observable):
         
         self.__panels = []
         self.__current_panel = 0
+        
+        self.__fading_handler = None
     
         Widget.__init__(self, esens)
         self.set_size(800, 80)
@@ -157,8 +159,40 @@ class ControlBar(Widget, Observable):
         
         fx(0)
         while (wait and not finished.isSet()): gtk.main_iteration()
-        
 
+
+    def fx_fade_in(self, wait = True):
+    
+        STEP = 32
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        buf = Pixmap(None, w, h)
+        self.render_at(buf)
+        dst_pbuf = screen.render_on_pixbuf()
+        pbuf = buf.render_on_pixbuf()
+        finished = threading.Event()
+        
+        def f(i, pbuf, dst_pbuf):
+            i = min(255, i)
+            pbuf.composite(dst_pbuf, x, y, w, h, x, y, 1, 1,
+                           gtk.gdk.INTERP_NEAREST, i)
+            screen.draw_subpixbuf(dst_pbuf, x, y, x, y, w, h)
+            if (i < 255):
+                self.__fading_handler = \
+                  gobject.timeout_add(50, f, i + STEP, pbuf, dst_pbuf)
+            else:
+                finished.set()
+                del pbuf
+                del dst_pbuf
+            self.__fading_handler = None
+                
+        if (self.__fading_handler):
+            gobject.source_remove(self.__fading_handler)
+        f(32, pbuf, dst_pbuf)
+        while (wait and not finished.isSet()): gtk.main_iteration()
+        
 
     def next_panel(self):
         """
@@ -173,7 +207,9 @@ class ControlBar(Widget, Observable):
         panel2.set_visible(True)
 
         self.__current_panel = idx
-        self.switch_to_panel(panel2)
+        panel2.render()
+        #self.fx_fade_in()
+        #self.switch_to_panel(panel2)
 
 
     def __show_panel_with_timeout(self, panel, timeout):
@@ -194,6 +230,7 @@ class ControlBar(Widget, Observable):
             buf = Pixmap(None, w, h)
             panel.render_at(buf)
             screen.copy_pixmap(buf, 0, 0, x, y, w, h)
+            #self.fx_fade_in()
         #end if
         
         # what a dirty hack... but it works well
@@ -204,6 +241,7 @@ class ControlBar(Widget, Observable):
                 panel.set_visible(False)
                 self.__panels[self.__current_panel].set_visible(True)
                 self.__panels[self.__current_panel].render()
+                #self.fx_fade_in()
 
         gobject.timeout_add(timeout, f, panel.timeout_ticket)
         
@@ -236,7 +274,7 @@ class ControlBar(Widget, Observable):
         
         
     def set_position(self, pos, total):
-    
+
         self.__control_panel.set_position(pos, total)
 
 
@@ -267,6 +305,7 @@ class ControlBar(Widget, Observable):
         panel = self.__panels[self.__current_panel]
         self.__message_panel.set_visible(False)        
         panel.set_visible(True)
+        #self.fx_fade_in()
         panel.render()
         
         
@@ -275,12 +314,6 @@ class ControlBar(Widget, Observable):
         self.__message_panel.set_message(msg)
         self.__panels[self.__current_panel].set_visible(False)
         self.__message_panel.set_visible(True)
+        #self.fx_fade_in()
         self.__message_panel.render()
-        
-        
-    def switch_to_panel(self, panel):
-    
-        self.render()
-        #self.fx_slide_out()
-        #self.fx_slide_in(panel)
-        
+

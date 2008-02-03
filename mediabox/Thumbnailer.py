@@ -10,6 +10,9 @@ import gtk
 class Thumbnailer(Widget):
 
     def __init__(self, esens):
+        """
+        Class for providing visual feedback while thubmnails are being rendered.
+        """
     
         self.__buffer = Pixmap(None, 160, 120)
         self.__bg = Pixmap(None, 160, 120)
