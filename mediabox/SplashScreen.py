@@ -3,8 +3,6 @@ from ui.Label import Label
 import values
 import theme
 
-import gtk
-
 
 class SplashScreen(Widget):
 
