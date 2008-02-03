@@ -1,4 +1,7 @@
 class Widget(object):
+    """
+    Base class for GDK based lightweight widgets.
+    """
 
     EVENT_BUTTON_PRESS = 0
     EVENT_BUTTON_RELEASE = 1

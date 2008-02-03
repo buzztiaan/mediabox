@@ -8,6 +8,10 @@ _PANGO_LAYOUT = pango.Layout(_PANGO_CTX)
 
 
 def pixmap_for_text(text, font):
+    """
+    Creates and returns a new Pixmap object fitting the given text with the
+    given font. The text is not rendered on the Pixmap.
+    """
 
     _PANGO_LAYOUT.set_font_description(font)
     _PANGO_LAYOUT.set_text(text)
@@ -22,6 +26,9 @@ def pixmap_for_text(text, font):
 
 
 class Pixmap(object):
+    """
+    Class for on-screen and off-screen server-side drawables.
+    """
 
     def __init__(self, pmap, w = 0, h = 0):
         
@@ -64,8 +71,9 @@ class Pixmap(object):
             target = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8,
                                     self.__width, self.__height)
                                     
-        target.get_from_drawable(self.__pixmap, self.__cmap, 0, 0, 0, 0,
+        pbuf = target.get_from_drawable(self.__pixmap, self.__cmap, 0, 0, 0, 0,
                                  self.__width, self.__height)
+        #del pbuf
 
         return target
         
@@ -135,10 +143,15 @@ class Pixmap(object):
 
                                     
 
-    def draw_text(self, text, font, x, y, color):
+    def draw_text(self, text, font, x, y, color, use_markup = False):
 
         _PANGO_LAYOUT.set_font_description(font)
-        _PANGO_LAYOUT.set_text(text)
+        _PANGO_LAYOUT.set_text("")
+        _PANGO_LAYOUT.set_markup("")
+        if (use_markup):
+            _PANGO_LAYOUT.set_markup(text)
+        else:
+            _PANGO_LAYOUT.set_text(text)
         self.__gc.set_foreground(self.__cmap.alloc_color(color))
         
         rect_a, rect_b = _PANGO_LAYOUT.get_extents()
@@ -170,13 +183,10 @@ class Pixmap(object):
             self.__buffer.draw_pixbuf(self.__buffer_gc, pbuf,
                                       0, 0, x, y, w, h)
 
-            #self.__buffer.draw_drawable(self.__buffer_gc, self.__pixmap,
-            #                            x, y, x, y, w, h)
-                                        
+                                       
         del pbuf
 
-        
-        
+
     def draw_subpixbuf(self, pbuf, srcx, srcy, dstx,dsty, w, h):
     
         self.__pixmap.draw_pixbuf(self.__gc, pbuf, srcx, srcy, dstx, dsty, w, h)
@@ -184,8 +194,6 @@ class Pixmap(object):
         if (self.__buffered):
             self.__buffer.draw_pixbuf(self.__buffer_gc, pbuf, srcx, srcy,
                                       dstx, dsty, w, h)
-            #self.__buffer.draw_drawable(self.__buffer_gc, self.__pixmap,
-            #                            dstx, dsty, dstx, dsty, w, h)
 
 
     def __split_frame(self, img):

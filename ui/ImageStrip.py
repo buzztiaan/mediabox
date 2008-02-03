@@ -121,7 +121,7 @@ class ImageStrip(Widget):
             img = self.__images.pop()
             del img  
             
-        import gc; gc.collect()  
+        import gc; gc.collect()
 
         self.__images = [ self.__to_pixbuf(f) for f in images ]                
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)

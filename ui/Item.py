@@ -80,6 +80,7 @@ class Item(gtk.gdk.Pixbuf):
 
         self._render(self.__canvas)
         self.__canvas.render_on_pixbuf(self)
+        #import gc; gc.collect()
         
         
     def _render(self, canvas):
