@@ -12,6 +12,7 @@ LIBDIR=/usr/lib/${NAME}
 # files to copy into destination
 COPY_FILES=idtags   \
 	   mediabox \
+	   mediaplayer \
 	   mediascanner \
 	   theme    \
  	   ui       \
