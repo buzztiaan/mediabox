@@ -3,6 +3,27 @@ Module for maemo-specific stuff.
 """
 
 
+_osso_context = None
+
+
+try:
+    import hildon
+    IS_MAEMO = True
+except:
+    IS_MAEMO = False
+
+
+def set_osso_context(ctx):
+
+    global _osso_context
+    _osso_context = ctx
+    
+    
+def get_osso_context():
+
+    return _osso_context
+
+
 def get_product_code():
     """
     Returns the product code.
@@ -27,3 +48,4 @@ def get_product_code():
     #end for
     
     return product
+
