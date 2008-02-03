@@ -15,6 +15,7 @@ from mediascanner.MediaScanner import MediaScanner
 import config
 import values
 import viewers
+from utils import maemo
 import theme
 
 import gtk
@@ -22,13 +23,6 @@ import gobject
 import os
 import time
 
-try:
-    import osso
-    import hildon
-    _HAVE_OSSO = True
-except:
-    _HAVE_OSSO = False
-    
 
 class App(object):
     """
@@ -47,9 +41,15 @@ class App(object):
 
         self.__saved_image = None
         self.__saved_image_index = -1
+        
+        # flag for indicating whether media scanning has already been scheduled
+        self.__media_scan_scheduled = False
     
-        if (_HAVE_OSSO):
-            self.__osso_context = osso.Context(values.OSSO_NAME, values.VERSION, False)
+        if (maemo.IS_MAEMO):
+            import hildon
+            import osso
+            maemo.set_osso_context(osso.Context(values.OSSO_NAME,
+                                                "1.0", False))
             self.__program = hildon.Program()
     
         # set theme
@@ -69,7 +69,7 @@ class App(object):
         self.__window.connect("key-release-event", lambda x, y: True)
         self.__window.show()    
         
-        if (_HAVE_OSSO):
+        if (maemo.IS_MAEMO):
             self.__program.add_window(self.__window)
 
         # screen pixmap
@@ -130,27 +130,54 @@ class App(object):
                    (self.__content_pane.set_visible, [True]),
                    (self.__ctrlbar.set_visible, [True]),                   
                    (self.__root_pane.render, []),
-                   (self.__scan_media, []),
+                   (self.__scan_media, [True]),
                    (self.__ctrlbar.select_tab, [0]),
+                   (self.__setup_mmc_replacement_detection, []),
                    ]
                    
         def f():
             if (actions):
                 act, args = actions.pop(0)
-                act(*args)
+                try:
+                    act(*args)
+                except:
+                    pass
                 return True
             else:
                 return False
                 
         gobject.idle_add(f)
         
-        
 
-    def __scan_media(self):
+    def __setup_mmc_replacement_detection(self):
+
+        import dbus, dbus.glib
+        bus = dbus.SessionBus()
+        obj = bus.get_object("org.gnome.GnomeVFS.Daemon",
+                             "/org/gnome/GnomeVFS/Daemon")
+        iface = dbus.Interface(obj, 'org.gnome.GnomeVFS.Daemon')
+        iface.connect_to_signal("VolumeMountedSignal", self.__on_mount_mmc)
+
+      
+    def __on_mount_mmc(self, arg):
+    
+        def f():
+            self.__scan_media(True)
+            self.__media_scan_scheduled = False
+    
+        if (not self.__media_scan_scheduled):
+            self.__media_scan_scheduled = True
+            gobject.timeout_add(500, f)
+
+
+    def __scan_media(self, force_scan):
         """
         Scans the media root locations for media files. Will create thumbnails
         when missing.
         """
+
+        if (force_scan):
+            self.__current_mediaroots = []
 
         mediaroots = config.mediaroot()        
     
@@ -177,13 +204,8 @@ class App(object):
 
         mscanner = MediaScanner()
         mscanner.set_thumb_folder(os.path.abspath(config.thumbdir()))
-        
-        # TODO: media types should be applied by the user to the roots
-        #mtypes = mscanner.MEDIA_VIDEO | \
-        #         mscanner.MEDIA_AUDIO | \
-        #         mscanner.MEDIA_IMAGE
-        
-        mscanner.set_media_roots(mediaroots) #[ (uri, mtypes) for uri in mediaroots ])
+               
+        mscanner.set_media_roots(mediaroots)
 
         now = time.time()
         mscanner.scan()
@@ -246,7 +268,7 @@ class App(object):
         if not.
         """
     
-        import MPlayer
+        from mediaplayer.MPlayer import MPlayer
         mplayer = MPlayer.MPlayer()
         
         if (not mplayer.is_available()):
@@ -317,8 +339,7 @@ class App(object):
     
         elif (cmd == src.OBS_SCAN_MEDIA):
             force = args[0]
-            if (force): self.__current_mediaroots = []
-            self.__scan_media() #gobject.idle_add(self.__scan_media)
+            self.__scan_media(force)
 
         elif (cmd == src.OBS_STATE_PLAYING):
             self.__ctrlbar.set_playing(True)
@@ -359,43 +380,29 @@ class App(object):
             self.__root_pane.render_buffered()
             
         elif (cmd == src.OBS_SHOW_COLLECTION):
-            #if (not self.__strip.is_visible()):
             self.__strip.set_visible(True)
             #self.__strip.render()
             #self.__strip.fx_slide_in()
             self.__get_vstate().collection_visible = True
             self.__current_viewer.set_pos(180, 0)
-            #self.__content_pane.render()
 
         elif (cmd == src.OBS_HIDE_COLLECTION):
             self.__strip.set_visible(False)
             #self.__strip.fx_slide_out()
             self.__get_vstate().collection_visible = False
             self.__current_viewer.set_pos(0, 0)
-            #self.__content_pane.render()
 
         elif (cmd == src.OBS_FULLSCREEN):
             self.__strip.set_visible(False)
             self.__ctrlbar.set_visible(False)
-            #self.__strip.fx_slide_out(wait = False)
-            #self.__ctrlbar.fx_lower()
             self.__current_viewer.set_pos(0, 0)
             self.__current_viewer.set_size(800, 480)
-            #self.__current_viewer.render()
-            #self.__root_pane.render()
 
         elif (cmd == src.OBS_UNFULLSCREEN):
             self.__strip.set_visible(True)
             self.__ctrlbar.set_visible(True)
-            #self.__strip.render()
-            #self.__ctrlbar.render()
-            #self.__strip.fx_slide_out(wait = False)
-            #self.__ctrlbar.fx_lower()
             self.__current_viewer.set_pos(180, 0)
             self.__current_viewer.set_size(620, 400)
-            #self.__current_viewer.render()
-            #self.__root_pane.render()
-            #self.__ctrlbar.render()
             
         elif (cmd == src.OBS_SHOW_MESSAGE):
             msg = args[0]
@@ -456,7 +463,7 @@ class App(object):
     
         elif (cmd == src.OBS_CLICKED):
             px, py = args
-            if (px > 108):
+            if (px > 120):
                 idx = self.__strip.get_index_at(py)            
                 self.__select_item(idx)
            
