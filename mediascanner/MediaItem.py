@@ -1,4 +1,7 @@
 class MediaItem(object):
+    """
+    Class representing a media item. This is merely a struct.
+    """
     __slots__ = ["mediatype", "name", "uri", "md5", "mtime", "scantime",
                  "thumbnail", "thumbnail_pmap"]
                  

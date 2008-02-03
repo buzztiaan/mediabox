@@ -56,6 +56,7 @@ def make_thumbnail(uri, dest):
             time.sleep(0.005)
         #end while
 
+        # if mplayer is hanging or taking a loooong time, kill it
         if (_has_pid(mplayer_pid)):
             try:
                 os.kill(int(mplayer_pid), _SIGKILL)

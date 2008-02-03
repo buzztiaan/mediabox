@@ -1,6 +1,7 @@
 from MediaItem import MediaItem
 from utils.Observable import Observable
 
+# these modules handle the particular media types
 import video
 import audio
 import image
@@ -126,6 +127,8 @@ class _MediaScanner(Observable):
         print "searching"
 
         for mediaroot, mediatypes in self.__media_roots:
+            if (not os.path.exists(mediaroot)): continue
+            
             try:
                 self.__process_media(mediatypes, mediaroot)
             except:

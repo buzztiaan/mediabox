@@ -1,5 +1,10 @@
-# the thief module tries to get existing thumbnails from the desktop or
-# other applications, so that we can skip making our own
+"""
+This module tries to get existing thumbnails from the desktop or
+other applications, so that we can skip making our own.
+If you are extending the thief's capabilities, please remember that a good
+thief needs to be quick!
+"""
+
 
 from utils import urlquote
 import os
