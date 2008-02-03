@@ -1,5 +1,5 @@
 """
-This package contains the media viewers as sub packages. Valid viewers are
+This package contains the media viewers as subpackages. Valid viewers are
 detected automatically.
 """
 
@@ -35,6 +35,9 @@ def _viewer_comparator(a, b):
 
 
 def get_viewers():
+    """
+    Returns a sorted list of the available viewer classes.
+    """
 
     viewers = []
     

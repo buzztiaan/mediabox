@@ -137,8 +137,7 @@ class RadioViewer(Viewer):
             
     def __append_station(self, location, name):
 
-        title = "%s\n[%s]" % (name, location)
-        item = ListItem(600, 80, title)
+        item = ListItem(600, 80, name, location)
         idx = self.__list.append_custom_item(item)
         
 

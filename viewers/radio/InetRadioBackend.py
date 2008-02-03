@@ -1,7 +1,7 @@
 from RadioBackend import RadioBackend
 from ui.Dialog import Dialog
 from ui import dialogs
-from mediabox.MPlayer import MPlayer
+import mediaplayer
 from mediabox import caps
 import inetstations
 
@@ -12,8 +12,8 @@ class InetRadioBackend(RadioBackend):
     
     def __init__(self):
     
-        self.__mplayer = MPlayer()
-        self.__mplayer.add_observer(self.__on_observe_mplayer)
+        self.__player = mediaplayer.get_player_for_uri("")
+        mediaplayer.add_observer(self.__on_observe_player)
         self.__context_id = 0
         
         self.__stations = []
@@ -23,16 +23,16 @@ class InetRadioBackend(RadioBackend):
             self.__stations.append((l, n))
         
 
-    def __on_observe_mplayer(self, src, cmd, *args):
+    def __on_observe_player(self, src, cmd, *args):
     
         #if (not self.is_active()): return        
     
         if (cmd == src.OBS_STARTED):
-            print "Started MPlayer"
+            print "Started Player"
             
         elif (cmd == src.OBS_KILLED):
             #self.__current_uri = ""
-            print "Killed MPlayer"
+            print "Killed Player"
             #self.set_title("")
             self.update_observer(self.OBS_TITLE, "")
             self.update_observer(self.OBS_STOP)
@@ -85,27 +85,24 @@ class InetRadioBackend(RadioBackend):
         
     def __show_error(self, errcode):
     
-        if (errcode == self.__mplayer.ERR_INVALID):
+        if (errcode == self.__player.ERR_INVALID):
             dialogs.error("Invalid Stream", "Cannot load this stream.")
-        elif (errcode == self.__mplayer.ERR_NOT_FOUND):
+        elif (errcode == self.__player.ERR_NOT_FOUND):
             dialogs.error("Not found", "Cannot find a stream to play.")
-        elif (errcode == self.__mplayer.ERR_CONNECTION_TIMEOUT):
+        elif (errcode == self.__player.ERR_CONNECTION_TIMEOUT):
             dialogs.error("Timeout", "Connection timed out.")
-
+        elif (errcode == self.__player.ERR_NOT_SUPPORTED):
+            dialogs.error("Not supported", "The media format is not supported.")
         
 
     def __tune(self, location):
-    
-        if (location.lower().endswith(".ram")):
-            dialogs.error("Unsupported Format",
-                          "Realaudio (.ram) is not supported.")
-            return
-    
-        self.__mplayer.set_window(-1)
-        self.__mplayer.set_options("")
+       
+        self.__player = mediaplayer.get_player_for_uri(location)
+        self.__player.set_window(-1)
+        self.__player.set_options("")
         
         self.update_observer(self.OBS_MESSAGE, "Connecting...")
-        self.__context_id = self.__mplayer.load(location)
+        self.__context_id = self.__player.load_audio(location)
 
 
     def shutdown(self):
@@ -167,15 +164,15 @@ class InetRadioBackend(RadioBackend):
 
     def is_playing(self):
     
-        return self.__mplayer.is_playing()
+        return self.__player.is_playing()
         
         
     def play_pause(self):
     
-        self.__mplayer.pause()
+        self.__player.pause()
 
 
     def set_volume(self, volume):
     
-        self.__mplayer.set_volume(volume)
+        self.__player.set_volume(volume)
         

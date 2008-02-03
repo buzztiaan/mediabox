@@ -1,6 +1,7 @@
 from viewers.Viewer import Viewer
 from VideoThumbnail import VideoThumbnail
-from mediabox.MPlayer import MPlayer
+from mediaplayer.MPlayer import MPlayer
+import mediaplayer
 from mediabox import caps
 from ui import dialogs
 import theme
@@ -38,8 +39,8 @@ class VideoViewer(Viewer):
         self.__is_fullscreen = False
     
         self.__items = []
-        self.__mplayer = MPlayer()    
-        self.__mplayer.add_observer(self.__on_observe_mplayer)
+        self.__player = mediaplayer.get_player_for_uri("")
+        mediaplayer.add_observer(self.__on_observe_player)
         self.__volume = 50
 
         self.__uri = ""
@@ -52,10 +53,12 @@ class VideoViewer(Viewer):
         # video screen        
         self.__screen = gtk.DrawingArea()
         self.__screen.set_double_buffered(False)
-        #self.__screen.set_sensitive(False)
         self.__screen.connect("expose-event", self.__on_expose)
         self.__layout.put(self.__screen, 0, 0)
         
+        self.connect(self.EVENT_BUTTON_PRESS, self.__on_drag_start)
+        
+         
         
     def render_this(self):
             
@@ -68,7 +71,7 @@ class VideoViewer(Viewer):
             x, y, w, h = self.__get_frame_rect()
             screen.draw_rect(x, y, w, h, "#000000")
     
-        if (not self.__mplayer.has_video()):
+        if (not self.__player or not self.__player.has_video()):
             self.__layout.move(self.__screen, vx, vy)
             self.__screen.set_size_request(vw, vh)
             
@@ -76,7 +79,7 @@ class VideoViewer(Viewer):
 
     def __on_expose(self, src, ev):
     
-        if (self.__mplayer.has_video()):
+        if (self.__player.has_video()):
             win = self.__screen.window
             gc = win.new_gc()
             cmap = win.get_colormap()
@@ -88,23 +91,40 @@ class VideoViewer(Viewer):
             win.draw_rectangle(gc, False, w - 1, 0, 1, h)
             win.draw_rectangle(gc, False, 0, h - 1, w, 1)
             
+            
+    def __on_drag_start(self, px, py):
+    
+        print "CLICKED"
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+
+        pos = px - x
+        self.update_observer(self.OBS_POSITION, pos, w)
+        
 
 
 
-    def __on_observe_mplayer(self, src, cmd, *args):
+    def __on_observe_player(self, src, cmd, *args):
     
         if (not self.is_active()): return            
             
         if (cmd == src.OBS_STARTED):
-            print "Started MPlayer"
+            print "Started Player"
             self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_KILLED):
-            print "Killed MPlayer"
+            print "Killed Player"
             self.__uri = ""
             self.set_title("")
             self.__screen.hide()
             self.update_observer(self.OBS_STATE_PAUSED)
+
+        elif (cmd == src.OBS_ERROR):
+            ctx, err = args
+            if (ctx == self.__context_id):
+                self.__show_error(err)
+                self.set_title("")                
+                self.__screen.hide()
             
         elif (cmd == src.OBS_PLAYING):
             ctx = args[0]
@@ -135,6 +155,18 @@ class VideoViewer(Viewer):
             self.__aspect_ratio = ratio
             self.__set_aspect_ratio(ratio)
             self.__screen.show()
+
+
+    def __show_error(self, errcode):
+    
+        if (errcode == self.__player.ERR_INVALID):
+            dialogs.error("Invalid Stream", "Cannot load this stream.")
+        elif (errcode == self.__player.ERR_NOT_FOUND):
+            dialogs.error("Not found", "Cannot find a stream to play.")
+        elif (errcode == self.__player.ERR_CONNECTION_TIMEOUT):
+            dialogs.error("Timeout", "Connection timed out.")       
+        elif (errcode == self.__player.ERR_NOT_SUPPORTED):
+            dialogs.error("Not supported", "The media format is not supported.")
 
 
     def __get_frame_rect(self):
@@ -213,8 +245,8 @@ class VideoViewer(Viewer):
 
     def shutdown(self):
 
-        # the music viewer already closes mplayer for us
-        #self.__mplayer.close()
+        # the music viewer already closes the player for us
+        #mediaplayer.close()
         pass
         
 
@@ -228,25 +260,25 @@ class VideoViewer(Viewer):
                 uri = item.uri
                 if (uri == self.__uri): return
                 
-                self.__mplayer.set_window(self.__screen.window.xid)
+                self.__player = mediaplayer.get_player_for_uri(uri)
+                self.__player.set_window(self.__screen.window.xid)
                 if (_IS_MAEMO):
-                    self.__mplayer.set_options("-vo xv")
+                    self.__player.set_options("-vo xv")
                     # the Nokia 770 would require something like this, instead
-                    #self.__mplayer.set_options("-ao gst -ac dspmp3 "
+                    #self.__player.set_options("-ao gst -ac dspmp3 "
                     #                      "-vo xv,nokia770:fb_overlay_only:"
                     #                      "x=%d:y=%d:w=%d:h=%d" % (x, y, w, h))
                 else:
-                    self.__mplayer.set_options("-vo xv")
+                    self.__player.set_options("-vo xv")
                     
                 try:
-                    self.__context_id = self.__mplayer.load(uri)
+                    self.__context_id = self.__player.load_video(uri)
                 except:
                     self.__screen.hide()
                     return
                                 
-                #self.__scale_video()
-                self.__mplayer.set_volume(self.__volume)
-                self.__mplayer.show_text(os.path.basename(uri), 2000)
+                self.__player.set_volume(self.__volume)
+                self.__player.show_text(os.path.basename(uri), 2000)
                 self.set_title(os.path.basename(uri))                
                 self.__uri = uri
                 
@@ -257,46 +289,46 @@ class VideoViewer(Viewer):
 
     def do_enter(self):
     
-        self.__mplayer.pause()
+        self.__player.pause()
                         
 
     def do_increment(self):
     
         if (self.__volume + 5 <= 100):
             self.__volume += 5
-        self.__mplayer.set_volume(self.__volume)
+        self.__player.set_volume(self.__volume)
         self.update_observer(self.OBS_VOLUME, self.__volume)
 
         if (self.__is_fullscreen):
-            self.__mplayer.show_text("Volume %d %%" % self.__volume, 500)
+            self.__player.show_text("Volume %d %%" % self.__volume, 500)
         
         
     def do_decrement(self):
 
         if (self.__volume - 5 >= 0):
             self.__volume -= 5
-        self.__mplayer.set_volume(self.__volume)
+        self.__player.set_volume(self.__volume)
         self.update_observer(self.OBS_VOLUME, self.__volume)        
 
         if (self.__is_fullscreen):
-            self.__mplayer.show_text("Volume %d %%" % self.__volume, 500)
+            self.__player.show_text("Volume %d %%" % self.__volume, 500)
 
         
     def do_set_position(self, pos):
     
-        self.__mplayer.seek_percent(pos)
+        self.__player.seek_percent(pos)
 
 
     def do_play_pause(self):
     
-        self.__mplayer.pause()
+        self.__player.pause()
 
 
     def show(self):
     
         Viewer.show(self)
         self.update_observer(self.OBS_SET_COLLECTION, self.__items)
-        if (self.__mplayer.has_video()):
+        if (self.__player and self.__player.has_video()):
             self.__scale_video()
             self.__screen.show()
         
@@ -318,15 +350,17 @@ class VideoViewer(Viewer):
             self.update_observer(self.OBS_FULLSCREEN)
             # what a hack! but it works and it allows to unfullscreen mplayer!
             gtk.gdk.keyboard_grab(self.__screen.get_toplevel().window)
+            gtk.gdk.pointer_grab(self.__screen.get_toplevel().window)
         else:
             self.update_observer(self.OBS_UNFULLSCREEN)
             gtk.gdk.keyboard_ungrab()
+            gtk.gdk.pointer_ungrab()
         
         #while (gtk.events_pending()): gtk.main_iteration()        
         
         self.update_observer(self.OBS_RENDER)
 
-        if (self.__mplayer.has_video()):
+        if (self.__player.has_video()):
             self.__scale_video()
             self.__screen.show()
 

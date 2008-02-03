@@ -4,15 +4,15 @@ from AlbumThumbnail import AlbumThumbnail
 from ui.KineticScroller import KineticScroller
 from ui.ItemList import ItemList
 from ui.Throbber import Throbber
-from mediabox.MPlayer import MPlayer
+import mediaplayer
 from mediabox.TrackInfo import TrackInfo
 from mediabox import caps
+from ui import dialogs
 import theme
 import idtags
 
 import gtk
 import gobject
-import pango
 import os
 
 
@@ -35,8 +35,8 @@ class AlbumViewer(Viewer):
         self.__items = []
         self.__is_fullscreen = False
     
-        self.__mplayer = MPlayer()
-        self.__mplayer.add_observer(self.__on_observe_mplayer)
+        self.__player = mediaplayer.get_player_for_uri("")
+        mediaplayer.add_observer(self.__on_observe_player)
         self.__volume = 50
                 
         self.__tracks = []
@@ -66,18 +66,6 @@ class AlbumViewer(Viewer):
         self.add(self.__throbber)
         self.__throbber.set_size(600, 400)
         self.__throbber.set_visible(False)
-        
-        
-    def __is_album(self, uri):
-
-        files = os.listdir(uri)
-        for f in files:
-            ext = os.path.splitext(f)[1]
-            if (ext.lower() in _MUSIC_EXT):
-                return True
-        #end for
-        
-        return False        
 
 
     def clear_items(self):
@@ -95,21 +83,26 @@ class AlbumViewer(Viewer):
             self.__items.append(item)
        
        
-    def __on_observe_mplayer(self, src, cmd, *args):
+    def __on_observe_player(self, src, cmd, *args):
     
         #if (not self.is_active()): return        
     
         if (cmd == src.OBS_STARTED):
-            print "Started MPlayer"
+            print "Started Player"
             self.update_observer(self.OBS_STATE_PAUSED)            
             
         elif (cmd == src.OBS_KILLED):
             self.__current_uri = ""
-            print "Killed MPlayer"
+            print "Killed Player"
             self.set_title("")
-            #self.__list.hilight(-1)
             self.update_observer(self.OBS_STATE_PAUSED)           
-            
+
+        elif (cmd == src.OBS_ERROR):
+            ctx, err = args
+            if (ctx == self.__context_id):
+                self.__show_error(err)
+                self.__list.hilight(-1)
+                            
         elif (cmd == src.OBS_NEW_STREAM_TRACK):
             ctx, title = args
             if (ctx == self.__context_id):
@@ -126,7 +119,6 @@ class AlbumViewer(Viewer):
             if (ctx == self.__context_id):
                 self.__current_uri = ""
                 print "Stopped"            
-                #self.__next_track()
                 self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_POSITION):
@@ -144,7 +136,19 @@ class AlbumViewer(Viewer):
                 self.update_observer(self.OBS_STATE_PAUSED)
                 self.__next_track()
        
-        
+
+    def __show_error(self, errcode):
+    
+        if (errcode == self.__player.ERR_INVALID):
+            dialogs.error("Invalid Stream", "Cannot load this stream.")
+        elif (errcode == self.__player.ERR_NOT_FOUND):
+            dialogs.error("Not found", "Cannot find a stream to play.")
+        elif (errcode == self.__player.ERR_CONNECTION_TIMEOUT):
+            dialogs.error("Timeout", "Connection timed out.")       
+        elif (errcode == self.__player.ERR_NOT_SUPPORTED):
+            dialogs.error("Not supported", "The media format is not supported.")
+
+
         
     def __on_observe_scroller(self, src, cmd, *args):
     
@@ -251,23 +255,25 @@ class AlbumViewer(Viewer):
         
         
     def __play_track(self, idx):
+
+        track = self.__tracks[idx]
+        self.__player = mediaplayer.get_player_for_uri(track)
     
-        self.__mplayer.set_window(-1)
-        self.__mplayer.set_options("")
+        self.__player.set_window(-1)
+        self.__player.set_options("")
         self.__list.hilight(idx)
             
-        def f():    
-            track = self.__tracks[idx]
+        def f():               
             try:
-                self.__context_id = self.__mplayer.load(track)            
+                self.__context_id = self.__player.load_audio(track)            
                 self.__current_uri = track
                 self.__current_index = idx
-                self.__mplayer.set_volume(self.__volume)
+                self.__player.set_volume(self.__volume)
 
                 tags = idtags.read(track)
                 title = tags.get("TITLE", os.path.basename(track))
-                album = tags.get("ALBUM", os.path.basename(track))
-                artist = tags.get("ARTIST", os.path.basename(track))
+                album = tags.get("ALBUM", "")
+                artist = tags.get("ARTIST", "")
                 
                 cover = self.__load_cover(track, tags)
 
@@ -289,7 +295,7 @@ class AlbumViewer(Viewer):
          
     def shutdown(self):
 
-        self.__mplayer.close()
+        mediaplayer.close()
         
         
     def load(self, item):
@@ -319,12 +325,9 @@ class AlbumViewer(Viewer):
                     tags = idtags.read(filepath)
                     title = tags.get("TITLE", f)
                     artist = tags.get("ARTIST", "")
-
-                    if (artist):
-                        title = "%s\n[%s]" % (title, artist)
-                    
+                   
                     self.__tracks.append(filepath)
-                    listitem = ListItem(600, 80, title)
+                    listitem = ListItem(600, 80, title, artist)
                     idx = self.__list.append_custom_item(listitem)
                     self.__throbber.rotate()
                 #end if
@@ -344,14 +347,14 @@ class AlbumViewer(Viewer):
 
     def do_enter(self):
     
-        self.__mplayer.pause()
+        self.__player.pause()
         
         
     def do_increment(self):
     
         if (self.__volume + 5 <= 100):
             self.__volume += 5
-        self.__mplayer.set_volume(self.__volume)
+        self.__player.set_volume(self.__volume)
         self.update_observer(self.OBS_VOLUME, self.__volume)
         
         
@@ -359,18 +362,18 @@ class AlbumViewer(Viewer):
 
         if (self.__volume - 5 >= 0):
             self.__volume -= 5
-        self.__mplayer.set_volume(self.__volume)
+        self.__player.set_volume(self.__volume)
         self.update_observer(self.OBS_VOLUME, self.__volume)        
         
     
     def do_set_position(self, pos):
     
-        self.__mplayer.seek_percent(pos)
+        self.__player.seek_percent(pos)
 
 
     def do_play_pause(self):
     
-        self.__mplayer.pause()
+        self.__player.pause()
 
     
     def do_previous(self):
@@ -394,19 +397,13 @@ class AlbumViewer(Viewer):
         self.__is_fullscreen = not self.__is_fullscreen
         
         if (self.__is_fullscreen):
-            #self.__trackinfo.show()            
             self.__list.set_visible(False)
             self.__trackinfo.set_visible(True)
             self.update_observer(self.OBS_HIDE_COLLECTION)            
-            #self.__trackinfo.fx_uncover()
             self.update_observer(self.OBS_RENDER)
-            #self.__trackinfo.render()
         else:
-            #self.__trackinfo.hide()            
             self.__trackinfo.set_visible(False)
             self.__list.set_visible(True)
             self.update_observer(self.OBS_SHOW_COLLECTION)
             self.update_observer(self.OBS_RENDER)
-            #self.fx_slide_in()
-            #self.render()
 

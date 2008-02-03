@@ -13,6 +13,10 @@ _PANGO_LAYOUT = pango.Layout(_PANGO_CTX)
 
 
 class Thumbnail(gtk.gdk.Pixbuf):
+    """
+    Base class for thumbnail images. Viewers subclass this class for their
+    thumbnails.
+    """
 
     __defer_list = []   # this is a static variable shared by all instances
     
@@ -75,6 +79,7 @@ class Thumbnail(gtk.gdk.Pixbuf):
 
     def fill_color(self, color):
                 
+        color = gtk.gdk.color_parse(color)
         r = color.red >> 8
         g = color.green >> 8
         b = color.blue >> 8
@@ -97,6 +102,7 @@ class Thumbnail(gtk.gdk.Pixbuf):
             self.__defer(self.add_rect, x, y, w, h, color, a)
             return
 
+        color = gtk.gdk.color_parse(color)
         r = color.red >> 8
         g = color.green >> 8
         b = color.blue >> 8
