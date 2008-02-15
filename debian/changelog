@@ -1,3 +1,26 @@
+mediabox (0.94) unstable; urgency=low
+
+  * Improved caching in media scanner to further minimize scanning time
+  
+  * Theme enhancements
+  
+  * Media folders can now be filtered by media content types
+
+  * Automatic detection of memory card replacement (scans for new media)
+
+  * Support for the button on the headset (pause/play)
+  
+  * Loudspeakers can be switched on for FM radio
+  
+  * Support for reading FLAC tags
+
+  * Alternative media player backend for the osso-media-server adds support for
+  more media formats (such as real media and MP4)
+  
+  * Bugfixes
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 10 Feb 2008 19:10:00 +0100
+
 mediabox (0.93) unstable; urgency=low
 
   * Highly improved media scanner for quick scanning and quick startup.

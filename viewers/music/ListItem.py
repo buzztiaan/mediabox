@@ -9,6 +9,8 @@ class ListItem(Item):
 
     def __init__(self, width, height, label, sublabel):
     
+        label = label.decode("utf-8", "replace").encode("utf-8")
+        sublabel = sublabel.decode("utf-8", "replace").encode("utf-8")
         self.__label = label.replace("<", "&lt;") \
                             .replace(">", "&gt;") \
                             .replace("&", "&amp;")

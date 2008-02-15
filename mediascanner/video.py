@@ -6,7 +6,7 @@ import shutil
 import time
 
 
-_VIDEO_EXT = (".avi", ".flv", ".mov", ".mpeg",
+_VIDEO_EXT = (".3gp", ".avi", ".flv", ".mov", ".mpeg",
               ".mpg", ".rm", ".wmv", ".asf",
               ".m4v", ".mp4", ".rmvb")
 

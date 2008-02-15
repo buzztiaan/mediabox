@@ -42,6 +42,7 @@ class AlbumViewer(Viewer):
         self.__tracks = []
         self.__current_index = -1
         self.__current_uri = ""
+        self.__current_album_uri = ""
         
         self.__context_id = 0       
     
@@ -257,6 +258,10 @@ class AlbumViewer(Viewer):
     def __play_track(self, idx):
 
         track = self.__tracks[idx]
+        if (track == self.__current_uri): return
+
+
+        self.update_observer(self.OBS_STOP_PLAYING, self)
         self.__player = mediaplayer.get_player_for_uri(track)
     
         self.__player.set_window(-1)
@@ -290,7 +295,8 @@ class AlbumViewer(Viewer):
 
     def __stop_current_track(self):
     
-        self.__list.hilight(-1)          
+        self.__list.hilight(-1)
+        self.__current_uri = ""
          
          
     def shutdown(self):
@@ -303,46 +309,52 @@ class AlbumViewer(Viewer):
         Loads the given album.
         """
 
+        uri = item.uri
+        if (uri == self.__current_album_uri): return
+        
+        self.__current_album_uri = uri
         #self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
         self.__list.set_frozen(True)
         self.__throbber.set_visible(True)
         self.render()
 
-        def f():             
-            uri = item.uri
-        
-            self.__tracks = []
-            self.__list.clear_items()
-            self.__current_index = -1
-        
-            files = os.listdir(uri)
-            files.sort()
-            for f in files:
-                filepath = os.path.join(uri, f)
-                ext = os.path.splitext(f)[-1].lower()
+        self.__tracks = []
+        self.__list.clear_items()
+        self.__current_index = -1
 
-                if (ext in _MUSIC_EXT):
-                    tags = idtags.read(filepath)
-                    title = tags.get("TITLE", f)
-                    artist = tags.get("ARTIST", "")
+               
+        files = os.listdir(uri)
+        files.sort()
+        for f in files:      
+            filepath = os.path.join(uri, f)
+            ext = os.path.splitext(f)[-1].lower()
+
+            if (ext in _MUSIC_EXT):
+                tags = idtags.read(filepath) or {}
+                title = tags.get("TITLE", f)
+                artist = tags.get("ARTIST", "")
                    
-                    self.__tracks.append(filepath)
-                    listitem = ListItem(600, 80, title, artist)
-                    idx = self.__list.append_custom_item(listitem)
-                    self.__throbber.rotate()
-                #end if
-            #end for
+                self.__tracks.append(filepath)
+                listitem = ListItem(600, 80, title, artist)
+                idx = self.__list.append_custom_item(listitem)
+                self.__throbber.rotate()
 
-            if (self.__current_uri in self.__tracks):
-                idx = self.__tracks.index(self.__current_uri)
-                self.__list.hilight(idx)
+                if (uri != self.__current_album_uri):
+                    # give up if the user selected another album while
+                    # the throbber was being rotated
+                    return
+            #end if
+        #end for
+
+        # hilight currently selected item
+        if (self.__current_uri in self.__tracks):
+            idx = self.__tracks.index(self.__current_uri)
+            self.__list.hilight(idx)
             
-            self.__list.set_frozen(False)
-            self.__throbber.set_visible(False)
-            self.render()
-            #self.update_observer(self.OBS_SHOW_PANEL)
-
-        gobject.idle_add(f)
+        self.__list.set_frozen(False)
+        self.__throbber.set_visible(False)
+        self.render()
+        #self.update_observer(self.OBS_SHOW_PANEL)
 
 
     def do_enter(self):
@@ -384,6 +396,12 @@ class AlbumViewer(Viewer):
     def do_next(self):
     
         self.__next_track()
+        
+        
+    def stop_playing(self, issued_by):
+    
+        if (issued_by != self):
+            self.__player.stop()
         
 
     def show(self):

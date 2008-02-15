@@ -4,7 +4,7 @@ import gobject
 
 class _DummyPlayer(GenericMediaPlayer):
     """
-    Singleton class for a dummy player which cannot play anything.
+    Singleton class for a dummy player that cannot play anything.
     """            
 
     def __init__(self):
@@ -105,9 +105,6 @@ class _DummyPlayer(GenericMediaPlayer):
         
 
     def is_playing(self):
-        """
-        Returns whether the player is currently playing.
-        """
     
         return False
     

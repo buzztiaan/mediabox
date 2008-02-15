@@ -57,7 +57,7 @@ class CardMediaRoot(PrefsCard):
 
         hbox = HBox(esens)
         btn_rescan.add(hbox)
-        lbl = Label(esens, "Scan for Changes", theme.font_plain, theme.color_fg_item)
+        lbl = Label(esens, "Refresh", theme.font_plain, theme.color_fg_item)
         hbox.add(lbl)
                 
         self.__build_list()

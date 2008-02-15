@@ -1,3 +1,3 @@
 """
-This module contains a quick media scanner with media thumbnailing.
+This package contains a quick media scanner with media thumbnailing.
 """

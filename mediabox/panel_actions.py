@@ -17,7 +17,10 @@ ZOOM_FIT = 23
 # adding
 ADD = 30
 
+# force speaker
+FORCE_SPEAKER = 40
+
 # other
-TAB_SELECTED = 40
+TAB_SELECTED = 50
 
 

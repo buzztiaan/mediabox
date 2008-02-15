@@ -40,6 +40,8 @@ class Viewer(Widget, Observable):
     OBS_SHOW_PROGRESS = 31
     OBS_SHOW_PANEL = 32
     
+    OBS_STOP_PLAYING = 40
+    
     OBS_STATE_PLAYING = 100
     OBS_STATE_PAUSED = 101
     
@@ -144,6 +146,11 @@ class Viewer(Widget, Observable):
     def do_add(self):
     
         pass
+
+
+    def do_toggle_speaker(self):
+    
+        pass
      
         
     def show(self):
@@ -160,6 +167,11 @@ class Viewer(Widget, Observable):
         self.__is_active = False
         
         
+    def stop_playing(self, issued_by):
+    
+        pass
+        
+        
     def do_fullscreen(self):
     
         pass
@@ -174,7 +186,6 @@ class Viewer(Widget, Observable):
     
         self.__title = title
         self.update_observer(self.OBS_TITLE, title)
-
 
 
     def fx_slide_out(self, wait = True):

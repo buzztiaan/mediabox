@@ -1,13 +1,15 @@
 from RadioBackend import RadioBackend
 from ui.Dialog import Dialog
 from mediabox.FMRadio import *
+from mediabox.Headset import Headset
 from mediabox import caps
 import maemostations
 
 
 class FMRadioBackend(RadioBackend):
         
-    CAPS = caps.PLAYING | caps.SKIPPING | caps.TUNING | caps.ADDING
+    CAPS = caps.PLAYING | caps.SKIPPING | caps.TUNING | caps.ADDING | \
+           caps.FORCING_SPEAKER
         
     def __init__(self):
     
@@ -22,7 +24,7 @@ class FMRadioBackend(RadioBackend):
             
         for f,n in stations:
             self.__stations.append((f, n))
-        
+                   
         
     def __scan_cb(self, freq):
 
@@ -31,6 +33,12 @@ class FMRadioBackend(RadioBackend):
         
         
     def __radio_on(self):
+    
+        if (not Headset().is_connected()):
+            self.update_observer(self.OBS_WARNING,
+                                 "Please connect headphones!\n"
+                                 "The FM radio only works if you connect\n"
+                                 "a headphones cable as antenna.")
     
         try:
             self.__radio = FMRadio()
@@ -59,6 +67,7 @@ class FMRadioBackend(RadioBackend):
             self.__current_freq = freq
             self.update_observer(self.OBS_LOCATION, freq)
             self.update_observer(self.OBS_TITLE, "")
+
 
     def __format_freq(self, freq):
     

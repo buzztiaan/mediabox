@@ -19,11 +19,6 @@ except:
     _IS_MAEMO = False
 
 
-_VIDEO_EXT = (".avi", ".flv", ".mov", ".mpeg",
-              ".mpg", ".rm", ".wmv", ".asf",
-              ".m4v", ".mp4", ".rmvb")
-
-
 class VideoViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
@@ -54,9 +49,11 @@ class VideoViewer(Viewer):
         self.__screen = gtk.DrawingArea()
         self.__screen.set_double_buffered(False)
         self.__screen.connect("expose-event", self.__on_expose)
+        self.__screen.set_events(gtk.gdk.BUTTON_PRESS_MASK |
+                                 gtk.gdk.KEY_PRESS_MASK)
         self.__layout.put(self.__screen, 0, 0)
         
-        self.connect(self.EVENT_BUTTON_PRESS, self.__on_drag_start)
+        #self.connect(self.EVENT_BUTTON_PRESS, self.__on_drag_start)
         
          
         
@@ -84,12 +81,9 @@ class VideoViewer(Viewer):
             gc = win.new_gc()
             cmap = win.get_colormap()
             gc.set_foreground(cmap.alloc_color("#000000"))
-            nil, nil, w, h = src.get_allocation()
+            x, y, w, h = ev.area
+            self.__player.handle_expose(win, gc, x, y, w, h)
 
-            # mplayer has a bug where it doesn't draw over the right and
-            # bottom edges, so we have to do this ourselves
-            win.draw_rectangle(gc, False, w - 1, 0, 1, h)
-            win.draw_rectangle(gc, False, 0, h - 1, w, 1)
             
             
     def __on_drag_start(self, px, py):
@@ -148,6 +142,10 @@ class VideoViewer(Viewer):
             if (ctx == self.__context_id):        
                 self.__uri = ""
                 self.__screen.hide()
+
+                # unfullscreen
+                if (self.__is_fullscreen): self.do_fullscreen()
+                
                 self.update_observer(self.OBS_STATE_PAUSED)
            
         elif (cmd == src.OBS_ASPECT):
@@ -207,8 +205,10 @@ class VideoViewer(Viewer):
         else:
             self.__screen.set_size_request(w2, h)
             w2, h2 = w2, h
-        self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
 
+        self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
+        print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
+        
         while (gtk.events_pending()): gtk.main_iteration()
 
 
@@ -219,13 +219,7 @@ class VideoViewer(Viewer):
         """
             
         self.__set_aspect_ratio(self.__aspect_ratio)
-
-
-
-    def __is_video(self, uri):
-        
-        ext = os.path.splitext(uri)[1].lower()
-        return (ext in _VIDEO_EXT)
+        self.__player.set_window(self.__screen.window.xid)
 
 
     def clear_items(self):
@@ -251,7 +245,9 @@ class VideoViewer(Viewer):
         
 
     def load(self, item):
-    
+
+        self.update_observer(self.OBS_STOP_PLAYING, self)
+        
         self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
         self.__screen.show()
     
@@ -324,6 +320,13 @@ class VideoViewer(Viewer):
         self.__player.pause()
 
 
+
+    def stop_playing(self, issued_by):
+    
+        if (issued_by != self):
+            self.__player.stop()
+
+
     def show(self):
     
         Viewer.show(self)
@@ -348,13 +351,8 @@ class VideoViewer(Viewer):
         
         if (self.__is_fullscreen):
             self.update_observer(self.OBS_FULLSCREEN)
-            # what a hack! but it works and it allows to unfullscreen mplayer!
-            gtk.gdk.keyboard_grab(self.__screen.get_toplevel().window)
-            gtk.gdk.pointer_grab(self.__screen.get_toplevel().window)
         else:
             self.update_observer(self.OBS_UNFULLSCREEN)
-            gtk.gdk.keyboard_ungrab()
-            gtk.gdk.pointer_ungrab()
         
         #while (gtk.events_pending()): gtk.main_iteration()        
         

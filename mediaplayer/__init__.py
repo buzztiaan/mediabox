@@ -9,10 +9,42 @@ from OSSOPlayer import OSSOPlayer
 import os
 
 
-_PLAYERS = [ player for player in (MPlayer(), OSSOPlayer(), DummyPlayer())
-             if player.is_available() ]
+_MPLAYER = MPlayer()
+_OMS = OSSOPlayer()
+_DUMMY = DummyPlayer()
 
-_current_player = DummyPlayer()
+_PLAYERS = [_MPLAYER, _OMS, _DUMMY]
+
+_current_player = _DUMMY
+
+
+# map filetypes to player backends
+# TODO: make this configurable
+_MAPPING = {".3gp":           _OMS,
+            ".aac":           _OMS,
+            ".asf":           _MPLAYER,
+            ".avi":           _MPLAYER,
+            ".flac":          _MPLAYER,
+            ".flv":           _MPLAYER,
+            ".m3u":           _OMS,
+            ".m4a":           _OMS,
+            ".m4v":           _OMS,
+            ".mov":           _MPLAYER,
+            ".mp3":           _OMS,
+            ".mp4":           _OMS,
+            ".mpeg":          _MPLAYER,
+            ".mpg":           _MPLAYER,
+            ".ogg":           _MPLAYER,
+            ".pls":           _OMS,
+            ".ram":           _OMS,
+            ".rm":            _OMS,
+            ".rmvb":          _OMS,
+            ".wav":           _OMS,
+            ".wma":           _OMS,
+            ".wmv":           _MPLAYER,
+            ".wpl":           _OMS,
+            "unknown-stream": _MPLAYER}
+         
 
 
 def get_player_for_uri(uri):
@@ -20,19 +52,32 @@ def get_player_for_uri(uri):
     Returns the appropriate player for the given uri or returns None
     if no appropriate player was found.
     """
-
-    filetype = os.path.splitext(uri)[-1].lower()
-    print "FILETYPE:", filetype,
-
-    candidates = [ player for player in _PLAYERS if player.handles(filetype) ]
-    if (candidates):
-        player = candidates[0]
-        print "... handled by", player        
-        _switch_player(player)
-        return player
+    
+    uri = uri.lower()
+    if (uri.startswith("http:") or \
+        uri.startswith("https:") or \
+        uri.startswith("rtsp") or \
+        uri.startswith("mms")):
+        
+        if (uri.endswith(".ram")):
+            filetype = ".ram"
+        elif (uri.endswith(".pls")):
+            filetype = ".pls"
+        elif (uri.endswith(".m3u")):
+            filetype = ".m3u"
+        elif (uri.endswith(".asf")):
+            filetype = ".asf"
+        else:
+            filetype = "unknown-stream"
+            
     else:
-        print "... unhandled"
-        return None
+        filetype = os.path.splitext(uri)[-1]
+        
+    player = _MAPPING.get(filetype, _DUMMY)
+    print filetype, "... handled by", player
+    _switch_player(player)
+    
+    return player
 
 
 def add_observer(observer):

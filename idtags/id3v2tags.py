@@ -9,6 +9,7 @@ class REV2:
     flag_compressed = 0
     flag_encrypted = 0
     flag_ingroup = 0
+    encodings = ()
 
 class REV3:
     version = "v2.3"
@@ -19,6 +20,7 @@ class REV3:
     flag_compressed = 0x0080
     flag_encrypted = 0x0040
     flag_ingroup = 0x0020
+    encodings = ("latin1", "utf-16", "utf_16_be", "utf-8")
 
 class REV4:
     version = "v2.4"
@@ -29,7 +31,8 @@ class REV4:
     flag_compressed = 0x0008
     flag_encrypted = 0x0004
     flag_ingroup = 0x0002
-
+    encodings = ("latin1", "utf-16", "utf_16_be", "utf-8")
+    
 
 def _read_tagsoup(fd):
 
@@ -81,6 +84,9 @@ def _read_frame(soup, pos, params):
                 value = ""
     else:
         value = soup[pos:pos + size]
+        if (params.encodings and ord(value[0]) < 5):
+            encoding = params.encodings[ord(value[0])]
+            value = value[1:].decode(encoding, "replace")
         
     #print "  " + key, hex(size), size < 60 and value or "<binary>"
 

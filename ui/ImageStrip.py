@@ -420,7 +420,7 @@ class ImageStrip(Widget):
         Scrolls the image strip by the given positive or negative amount.
         """
                 
-        if (not self.__images): return     
+        #if (not self.__images): return     
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()

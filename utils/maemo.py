@@ -12,6 +12,10 @@ try:
 except:
     IS_MAEMO = False
 
+import dbus, dbus.glib
+_system_bus = dbus.SystemBus()
+_session_bus = dbus.SessionBus()
+
 
 def set_osso_context(ctx):
 
@@ -23,6 +27,16 @@ def get_osso_context():
 
     return _osso_context
 
+
+def get_system_bus():
+
+    return _system_bus
+    
+
+def get_session_bus():
+
+    return _session_bus
+    
 
 def get_product_code():
     """

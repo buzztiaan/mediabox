@@ -9,3 +9,5 @@ TUNING           = 1 << 3   # same as positioning but looking different
 ZOOMING          = 1 << 4
 RECORDING        = 1 << 5
 ADDING           = 1 << 6
+FORCING_SPEAKER  = 1 << 7
+

@@ -61,6 +61,11 @@ class GenericMediaPlayer(_Observable):
         return True
         
         
+    def handle_expose(self, src, x, y, w, h):
+    
+        pass
+        
+        
     def set_window(self, xid):
     
         pass

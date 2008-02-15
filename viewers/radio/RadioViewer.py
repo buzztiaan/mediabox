@@ -8,6 +8,7 @@ from ui.KineticScroller import KineticScroller
 from ui import dialogs
 from utils import maemo
 from mediabox import caps
+from mediabox.Headset import Headset
 from mediascanner.MediaItem import MediaItem
 import theme
 
@@ -15,6 +16,7 @@ import theme
 import gtk
 import gobject
 import os
+import dbus
 
 
 class RadioViewer(Viewer):
@@ -34,14 +36,16 @@ class RadioViewer(Viewer):
         self.__current_radio = None
         self.__volume = 50
         self.__is_on = False
-
-        Viewer.__init__(self, esens)                
+        
+        self.__speaker_on = False
+            
+        Viewer.__init__(self, esens)
 
         # stations list
         self.__list = ItemList(esens, 600, 80)
         self.add(self.__list)
         self.__list.set_size(600, 400)        
-        self.__list.set_pos(10, 0)   
+        self.__list.set_pos(10, 0)
         self.__list.set_background(theme.background.subpixbuf(185, 0, 600, 400))
         self.__list.set_arrows(theme.arrows)
                 
@@ -98,6 +102,10 @@ class RadioViewer(Viewer):
         if (cmd == src.OBS_MESSAGE):
             msg = args[0]
             self.update_observer(self.OBS_SHOW_MESSAGE, msg)
+    
+        elif (cmd == src.OBS_WARNING):
+            msg = args[0]
+            dialogs.warning("Warning", msg)
     
         elif (cmd == src.OBS_TITLE):
             name = args[0]
@@ -185,7 +193,8 @@ class RadioViewer(Viewer):
 
     def do_tune(self, value):
 
-        self.__list.hilight(-1)    
+        self.__list.hilight(-1)
+        self.update_observer(self.OBS_STOP_PLAYING, self)
         self.__current_radio.tune(value)
 
 
@@ -209,6 +218,19 @@ class RadioViewer(Viewer):
     def do_add(self):
     
         self.__current_radio.add_station()
+
+
+    def do_toggle_speaker(self):
+
+        self.__speaker_on = not self.__speaker_on
+        Headset().set_force_speaker(self.__speaker_on)
+
+
+    def stop_playing(self, issued_by):
+    
+        if (issued_by != self):
+            if (self.__current_radio.is_playing()):
+                self.__current_radio.stop()
 
 
     def show(self):

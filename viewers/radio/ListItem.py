@@ -8,9 +8,15 @@ class ListItem(Item):
     """
 
     def __init__(self, width, height, label, sublabel):
-    
-        self.__label = label
-        self.__sublabel = sublabel
+
+        label = label.decode("utf-8", "replace").encode("utf-8")
+        sublabel = sublabel.decode("utf-8", "replace").encode("utf-8")
+        self.__label = label.replace("<", "&lt;") \
+                            .replace(">", "&gt;") \
+                            .replace("&", "&amp;")
+        self.__sublabel = sublabel.replace("<", "&lt;") \
+                                  .replace(">", "&gt;") \
+                                  .replace("&", "&amp;")    
            
         Item.__init__(self,width, height)
         self.set_graphics(theme.item, theme.item_active)

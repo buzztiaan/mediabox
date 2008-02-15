@@ -11,6 +11,7 @@ from ui.KineticScroller import KineticScroller
 from ui import dialogs
 from ControlBar import ControlBar
 import panel_actions
+from Headset import Headset
 from mediascanner.MediaScanner import MediaScanner
 import config
 import values
@@ -116,6 +117,9 @@ class App(object):
         mscanner = MediaScanner()
         mscanner.add_observer(self.__on_observe_media_scanner)
       
+        # watch headset button
+        Headset().add_observer(self.__on_observe_headset)
+        
        
     def __startup(self):
         """
@@ -131,7 +135,7 @@ class App(object):
                    (self.__ctrlbar.set_visible, [True]),                   
                    (self.__root_pane.render, []),
                    (self.__scan_media, [True]),
-                   (self.__ctrlbar.select_tab, [0]),
+                   (self.__ctrlbar.select_tab, [1]),
                    (self.__setup_mmc_replacement_detection, []),
                    ]
                    
@@ -415,6 +419,12 @@ class App(object):
         elif (cmd == src.OBS_SHOW_PANEL):
             self.__ctrlbar.show_panel()
 
+        elif (cmd == src.OBS_STOP_PLAYING):
+            issuer = args[0]
+            # call all viewers to stop playing
+            for v in self.__viewers:
+                v.stop_playing(issuer)
+
 
     def __on_observe_ctrlbar(self, src, cmd, *args):
     
@@ -442,6 +452,9 @@ class App(object):
         elif (cmd == panel_actions.ADD):
             self.__current_viewer.do_add()
     
+        elif (cmd == panel_actions.FORCE_SPEAKER):
+            self.__current_viewer.do_toggle_speaker()
+    
         elif (cmd == panel_actions.SET_POSITION):
             pos = args[0]
             self.__current_viewer.do_set_position(pos)
@@ -466,6 +479,12 @@ class App(object):
             if (px > 120):
                 idx = self.__strip.get_index_at(py)            
                 self.__select_item(idx)
+           
+           
+    def __on_observe_headset(self, src, cmd, *args):
+    
+        if (cmd == src.OBS_BUTTON_PRESSED):
+            self.__current_viewer.do_enter()
            
            
     def __get_vstate(self):

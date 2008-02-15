@@ -50,7 +50,8 @@ _FORMATS = (".avi", ".flv", ".mov", ".mpeg",
             ".mp4",
 
             ".mp3", ".wav", ".wma", ".ogg",
-            ".aac", ".flac", ".m4a")
+            ".aac", ".flac", ".m4a",            
+            ".m3u", ".pls", "unknown-stream")
 
 
 class _MPlayer(GenericMediaPlayer):
@@ -102,8 +103,16 @@ class _MPlayer(GenericMediaPlayer):
 
 
     def handles(self, filetype):
-    
+      
+        return False
         return (filetype in _FORMATS)
+
+
+    def handle_expose(self, src, gc, x, y, w, h):
+
+        w, h = src.get_size()
+        src.draw_rectangle(gc, False, w - 1, 0, 1, h)
+        src.draw_rectangle(gc, False, 0, h - 1, w, 1)    
         
 
     def __on_eof(self):
@@ -170,14 +179,16 @@ class _MPlayer(GenericMediaPlayer):
                 self.__player_values[_ICY_INFO] = None
             
             # check for end of file
-            if (self.__player_values[_FILENAME]):
-                self.__next_time_check = now + 1
-            elif (now > self.__next_time_check):            
-                self.__on_eof()
-                self.__next_time_check = now + 1
+            if (total > 0 and pos >= total):
+                if (self.__player_values[_FILENAME]):
+                    self.__next_time_check = now + 1
+                elif (now > self.__next_time_check):            
+                    self.__on_eof()
+                    self.__next_time_check = now + 1
 
-            self.__player_values[_FILENAME] = None
-            self.__send_cmd("get_property filename")
+                self.__player_values[_FILENAME] = None
+                self.__send_cmd("get_property filename")
+            #end if
 
             self.update_observer(self.OBS_POSITION, self.__context_id,
                                  pos, total)
@@ -446,6 +457,12 @@ class _MPlayer(GenericMediaPlayer):
         print "Starting MPlayer"
         self.__playing = False
         
+        niceness = os.nice(0)
+        try:
+            os.nice(0 - niceness)
+        except OSError:
+            pass
+
         cmd = "LANG=C %s -quiet -slave " \
               "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
               "-idle -osdlevel 0 -idx " \
@@ -454,6 +471,15 @@ class _MPlayer(GenericMediaPlayer):
                              shell=True, cwd="/tmp",
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              close_fds=True)
+
+        niceness = os.nice(0)
+        try:
+            os.nice(0 - niceness + 10)
+        except OSError:
+            pass
+
+        if (niceness == 0):
+            print "mediabox niceness", os.nice(10)
 
         time.sleep(0.25)
         if (p.poll()):
@@ -522,6 +548,9 @@ class _MPlayer(GenericMediaPlayer):
         self.__uri = filename
 
         self.__player_values[_FILENAME] = filename
+
+        # reset position bar
+        self.update_observer(self.OBS_POSITION, self.__context_id, 0, 0.01)
 
         #cnt = 0
         #while (not self.__playing and not self.__broken):

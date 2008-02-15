@@ -1,10 +1,10 @@
 try:
     # GNOME
-    import xgconf
+    import gconf
 except:
     try:
         # Maemo    
-        import xgnome.gconf as gconf
+        import gnome.gconf as gconf
     except:
         # last resort...
         from utils import gconftool as gconf
@@ -21,14 +21,14 @@ def mediaroot():
     roots = _CLIENT.get_list(_PREFIX + "mediaroot", gconf.VALUE_STRING) or \
            ["/home/user/MyDocs/.videos", "/home/user/MyDocs/.sounds",
             "/home/user/MyDocs/.images"]
-    mtypes = _CLIENT.get_list(_PREFIX + "mediaroot_types", gconf.VALUE_STRING)
+    mtypes = _CLIENT.get_list(_PREFIX + "mediaroot_types", gconf.VALUE_INT)
     
     ret = []
     while roots:
         r = roots.pop(0)
-        if (mtypes):
+        try:
             mtype = int(mtypes.pop(0))
-        else:
+        except:
             mtype = 7  # %00000111
         ret.append((r, mtype))
     #end while

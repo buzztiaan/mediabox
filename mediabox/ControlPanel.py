@@ -68,6 +68,11 @@ class ControlPanel(Panel):
                              lambda x,y:self.update_observer(panel_actions.ADD))
 
 
+        self.__btn_speaker = self.__add_button(theme.btn_speaker_toggle_1,
+                                               theme.btn_speaker_toggle_2,
+                   lambda x,y:self.update_observer(panel_actions.FORCE_SPEAKER))
+
+
     def __add_button(self, icon, icon_active, cb):
     
         btn = ImageButton(self.__event_sensor, icon, icon_active)
@@ -124,6 +129,9 @@ class ControlPanel(Panel):
             
         if (capabilities & caps.ADDING):
             self.__items.append(self.__btn_add)        
+
+        if (capabilities & caps.FORCING_SPEAKER):
+            self.__items.append(self.__btn_speaker)
 
         w, h = self.get_size()
         
