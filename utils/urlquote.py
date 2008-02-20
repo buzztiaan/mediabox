@@ -22,3 +22,20 @@ def quote(s, safe = '/'):
         _safemaps[cachekey] = safe_map
     res = map(safe_map.__getitem__, s)
     return ''.join(res)
+    
+    
+_hextochr = dict(('%02x' % i, chr(i)) for i in range(256))
+_hextochr.update(('%02X' % i, chr(i)) for i in range(256))
+
+def unquote(s):
+    res = s.split('%')
+    for i in xrange(1, len(res)):
+        item = res[i]
+        try:
+            res[i] = _hextochr[item[:2]] + item[2:]
+        except KeyError:
+            res[i] = '%' + item
+        except UnicodeDecodeError:
+            res[i] = unichr(int(item[:2], 16)) + item[2:]
+    return "".join(res)
+

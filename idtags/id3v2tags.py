@@ -84,7 +84,7 @@ def _read_frame(soup, pos, params):
                 value = ""
     else:
         value = soup[pos:pos + size]
-        if (params.encodings and ord(value[0]) < 5):
+        if (value and params.encodings and ord(value[0]) < 5):
             encoding = params.encodings[ord(value[0])]
             value = value[1:].decode(encoding, "replace")
         

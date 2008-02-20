@@ -127,14 +127,13 @@ class ImageStrip(Widget):
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)
         
         self.__offset = 0
-        #self.queue_draw()        
+        self.render()
         
         
     def append_image(self, img):
     
         self.__images.append(self.__to_pixbuf(img))
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)
-        #self.queue_draw()
         self.render()
         
         return len(self.__images) - 1
@@ -145,7 +144,6 @@ class ImageStrip(Widget):
        img = self.__images[idx]
        self.__images[idx] = self.__to_pixbuf(image)           
        del img
-       #self.queue_draw()
        self.render()
 
        

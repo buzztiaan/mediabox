@@ -171,3 +171,8 @@ class FMRadioBackend(RadioBackend):
     
         self.__radio.set_volume(volume)
         
+        
+    def stop(self):
+    
+        self.__radio_off()
+

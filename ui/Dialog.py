@@ -13,9 +13,10 @@ class Dialog(gtk.Dialog):
         self.__entries = []    
     
         gtk.Dialog.__init__(self) #, gtk.WINDOW_POPUP)
+        self.set_title(" ")
         self.set_modal(True)
         self.set_border_width(12)
-        self.set_decorated(False)
+        #self.set_decorated(False)
         self.set_size_request(600, -1)
         self.move(100, -1000)
         #self.set_flags(gtk.CAN_FOCUS)
@@ -93,9 +94,9 @@ class Dialog(gtk.Dialog):
     def wait_for_values(self):
     
         self.show()
-        self.__slide_in()
+        #self.__slide_in()
         response = self.run()
-        self.__slide_out()
+        #self.__slide_out()
         if (response == gtk.RESPONSE_ACCEPT):
             values = self.get_values()
         else:

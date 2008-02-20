@@ -457,12 +457,6 @@ class _MPlayer(GenericMediaPlayer):
         print "Starting MPlayer"
         self.__playing = False
         
-        niceness = os.nice(0)
-        try:
-            os.nice(0 - niceness)
-        except OSError:
-            pass
-
         cmd = "LANG=C %s -quiet -slave " \
               "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
               "-idle -osdlevel 0 -idx " \
@@ -471,15 +465,6 @@ class _MPlayer(GenericMediaPlayer):
                              shell=True, cwd="/tmp",
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              close_fds=True)
-
-        niceness = os.nice(0)
-        try:
-            os.nice(0 - niceness + 10)
-        except OSError:
-            pass
-
-        if (niceness == 0):
-            print "mediabox niceness", os.nice(10)
 
         time.sleep(0.25)
         if (p.poll()):

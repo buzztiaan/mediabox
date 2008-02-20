@@ -176,3 +176,8 @@ class InetRadioBackend(RadioBackend):
     
         self.__player.set_volume(volume)
         
+        
+    def stop(self):
+    
+        self.__player.stop()
+        

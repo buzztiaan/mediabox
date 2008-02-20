@@ -127,6 +127,7 @@ class RadioViewer(Viewer):
             
         elif (cmd == src.OBS_PLAY):
             self.__is_on = True
+            self.update_observer(self.OBS_STOP_PLAYING, self)
             self.update_observer(self.OBS_SHOW_PANEL)
             self.update_observer(self.OBS_STATE_PLAYING)
             
@@ -194,7 +195,6 @@ class RadioViewer(Viewer):
     def do_tune(self, value):
 
         self.__list.hilight(-1)
-        self.update_observer(self.OBS_STOP_PLAYING, self)
         self.__current_radio.tune(value)
 
 

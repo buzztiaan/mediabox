@@ -1,6 +1,6 @@
 # pyFMRadio
 # Module for controlling the tea5761 FM radio chip in the Nokia N800.
-# Copyright (C) 2007 Martin Grimme  <martin.grimme _AT_ lintegra.de>
+# Copyright (C) 2007 - 2008 Martin Grimme  <martin.grimme _AT_ lintegra.de>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@ import os
 import time
 
 
-__VERSION__ = 0.21
+__VERSION__ = 0.22
 
 
 # kernel definitions for ioctl commands
@@ -146,6 +146,8 @@ class FMRadio(object):
 
     def __init__(self):
         
+        self.__is_scanning = False
+        
         try:
             self.__fd = os.open(_RADIO_DEV, os.O_RDONLY)
         except OSError:
@@ -185,7 +187,8 @@ class FMRadio(object):
         """
         Closes the radio and powers off the FM tuner chip.
         """
-        
+
+        self.cancel_scanning()        
         self.set_mute(True)
         self.set_frequency(0)
         os.close(self.__fd)
@@ -264,10 +267,12 @@ class FMRadio(object):
         return freq
         
         
-    def set_frequency(self, freq):
+    def set_frequency(self, freq, cancel_scanning = True):
         """
         Sets the frequency to the given value.
         """
+
+        if (cancel_scanning): self.cancel_scanning()
 
         low, high = self.__freq_range
         # a frequency of 0 tells the FM tuner to power down
@@ -352,11 +357,14 @@ class FMRadio(object):
         If you pass a callback function, it will be called at every step.
         The signature of the callback must be: f(freq, is_station)
         """
+
+        if (self.__is_scanning): return []
         
         stations = []
         low, high = self.get_frequency_range()
+        self.__is_scanning = True
         for freq in range(low, high + 1, _SCAN_STEP_KHZ):
-            self.set_frequency(freq)
+            self.set_frequency(freq, False)
             is_good = self.is_signal_good()
             if (is_good): stations.append(freq)
             if (cb):
@@ -365,7 +373,9 @@ class FMRadio(object):
                 except:
                     pass
             #end if
+            if (not self.__is_scanning): break
         #end for
+        self.__is_scanning = False
         
         return stations
 
@@ -382,12 +392,15 @@ class FMRadio(object):
         RISING = 1       
 
         current = self.get_frequency()
+        if (self.__is_scanning): return current
+        
         prev_freq = current
         prev_strength = self.get_signal_strength()
         
         mode = FALLING
+        self.__is_scanning = True
         for freq in range(current + step, scan_to, step):
-            self.set_frequency(freq)
+            self.set_frequency(freq, False)
             strength = self.get_signal_strength()
             
             if (prev_strength > strength):
@@ -412,7 +425,9 @@ class FMRadio(object):
             prev_freq = freq
             prev_strength = strength
             
+            if (not self.__is_scanning): break
         #end for
+        self.__is_scanning = False
         
         return current
 
@@ -436,3 +451,12 @@ class FMRadio(object):
 
         low, high = self.get_frequency_range()
         return self.__scan_next(high, _SCAN_STEP_KHZ, cb)
+        
+        
+    def cancel_scanning(self):
+        """
+        Cancels scanning for stations.
+        """
+    
+        self.__is_scanning = False
+        

@@ -270,6 +270,7 @@ class VideoViewer(Viewer):
                 try:
                     self.__context_id = self.__player.load_video(uri)
                 except:
+                    import traceback; traceback.print_exc()
                     self.__screen.hide()
                     return
                                 
