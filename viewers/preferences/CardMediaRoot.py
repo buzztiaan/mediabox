@@ -26,11 +26,12 @@ class CardMediaRoot(PrefsCard):
     
         PrefsCard.__init__(self, esens, title)          
     
-        self.__list = ItemList(esens, 600, 80)
-        self.__list.set_background(theme.background.subpixbuf(185, 32, 600, 350))
-        self.__list.set_arrows(theme.arrows)
-        self.__list.set_pos(10, 0)
-        self.__list.set_size(600, 270)
+        self.__list = ItemList(esens, 80)
+        self.__list.set_caps(theme.list_top, theme.list_bottom)
+        self.__list.set_bg_color(theme.color_bg)
+        self.__list.set_scrollbar(theme.list_scrollbar)
+        #self.__list.set_arrows(theme.arrows)
+        self.__list.set_geometry(0, 0, 610, 290)
         self.add(self.__list)
 
         kscr = KineticScroller(self.__list)
@@ -38,52 +39,44 @@ class CardMediaRoot(PrefsCard):
         kscr.add_observer(self.__on_observe_list)
 
         btn_add = Button(esens, theme.button_1, theme.button_2)
-        btn_add.set_pos(10, 270)
+        btn_add.set_pos(10, 290)
         btn_add.set_size(300, 80)
         btn_add.connect(btn_add.EVENT_BUTTON_RELEASE, self.__on_add_folder)        
         self.add(btn_add)
 
         hbox = HBox(esens)
+        hbox.set_size(300, 80)
         btn_add.add(hbox)
         lbl = Label(esens, "Add Folder", theme.font_plain, theme.color_fg_item)
         hbox.add(lbl)
 
 
         btn_rescan = Button(esens, theme.button_1, theme.button_2)
-        btn_rescan.set_pos(310, 270)
+        btn_rescan.set_pos(310, 290)
         btn_rescan.set_size(300, 80)
         btn_rescan.connect(btn_rescan.EVENT_BUTTON_RELEASE, self.__on_rescan)        
         self.add(btn_rescan)
 
         hbox = HBox(esens)
+        hbox.set_size(300, 80)
         btn_rescan.add(hbox)
         lbl = Label(esens, "Refresh", theme.font_plain, theme.color_fg_item)
         hbox.add(lbl)
                 
         self.__build_list()
-        
-        
-    def render_this(self):
-    
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
-        
-        screen.fill_area(x + 10, y + 280, 600, 70, "#dddddd")
-        
 
-        
+
     def __build_list(self):
     
         self.__list.clear_items()
         for mroot, mtypes in self.__mediaroots:
-            item = MediaListItem(600, 80, mroot)
+            item = MediaListItem(mroot)
             item.set_mediatypes(mtypes)
             if (mroot.startswith("/media/mmc")):
-                idx = self.__list.append_custom_item(item)
+                idx = self.__list.append_item(item)
             else:
-                idx = self.__list.append_custom_item(item)
-            self.__list.overlay_image(idx, theme.remove, 540, 24)
+                idx = self.__list.append_item(item)
+            #self.__list.overlay_image(idx, theme.remove, 540, 24)
 
 
     def __on_add_folder(self, x, y):
@@ -106,13 +99,13 @@ class CardMediaRoot(PrefsCard):
             dirpath = dirchooser.get_filename()       
             self.__mediaroots.append((dirpath, 7))
             config.set_mediaroot(self.__mediaroots)
-            item = MediaListItem(600, 80, dirpath)
+            item = MediaListItem(dirpath)
             item.set_mediatypes(7)
             if (dirpath.startswith("/media/mmc")):
-                idx = self.__list.append_custom_item(item)
+                idx = self.__list.append_item(item)
             else:
-                idx = self.__list.append_custom_item(item)
-
+                idx = self.__list.append_item(item)
+            self.__list.render()
         dirchooser.destroy()            
 
 
@@ -129,18 +122,19 @@ class CardMediaRoot(PrefsCard):
             if (idx == -1): return
 
             uri, mtypes = self.__mediaroots[idx]
-            if (px < 192):
-                if (px < 64):    mtypes ^= 1
-                elif (px < 128): mtypes ^= 2
-                elif (px < 192): mtypes ^= 4
+            if (px < 208):
+                if (px < 82):    mtypes ^= 1
+                elif (px < 146): mtypes ^= 2
+                elif (px < 208): mtypes ^= 4
                 item = self.__list.get_item(idx)
                 item.set_mediatypes(mtypes)
                 self.__mediaroots[idx] = (uri, mtypes)
+                self.render()
+                config.set_mediaroot(self.__mediaroots)
             
             elif (px >= 540):
                 del self.__mediaroots[idx]
-                self.__list.remove_item(idx)
-            
-            self.__list.render()
-            config.set_mediaroot(self.__mediaroots)
+                self.__list.remove_item(idx)            
+                self.__list.render()
+                config.set_mediaroot(self.__mediaroots)
 

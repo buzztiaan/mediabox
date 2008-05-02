@@ -10,4 +10,5 @@ ZOOMING          = 1 << 4
 RECORDING        = 1 << 5
 ADDING           = 1 << 6
 FORCING_SPEAKER  = 1 << 7
-
+PLAYLIST         = 1 << 8
+ALBUMS           = 1 << 9

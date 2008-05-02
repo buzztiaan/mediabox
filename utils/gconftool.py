@@ -37,9 +37,10 @@ class _Client(object):
 
         out = out.strip()
         out = out[1:-1]
-        values = [ v.strip() for v in out.split(",") ]
+        values = [ v.strip() for v in out.split(",") if v ]
+
         if (ktype == VALUE_INT):
-            values = [ int(v) for v in values ]
+            values = [ int(v) for v in values if v.isdigit() ]
 
         return values
 

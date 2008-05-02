@@ -1,5 +1,5 @@
 from viewers.Viewer import Viewer
-from viewers.Thumbnail import Thumbnail
+from PrefsThumbnail import PrefsThumbnail
 from ui.ImageButton import ImageButton
 from ui.Label import Label
 from mediascanner.MediaItem import MediaItem
@@ -28,29 +28,6 @@ class Preferences(Viewer):
     
         Viewer.__init__(self, esens)
 
-        #
-        # title pane
-        #
-        self.__title = Label(esens, "", theme.font_headline,
-                             theme.color_fg_panel_text)
-        self.__title.set_pos(0, 8)
-        self.add(self.__title)
-
-        btn_minimize = ImageButton(esens, theme.prefs_btn_minimize_1,
-                                   theme.prefs_btn_minimize_2)
-        btn_minimize.set_pos(520, 0)
-        btn_minimize.set_size(50, 50)
-        self.add(btn_minimize)
-        btn_minimize.connect(btn_minimize.EVENT_BUTTON_RELEASE,
-                             lambda x,y:self.update_observer(self.OBS_MINIMIZE))
-        
-        btn_close = ImageButton(esens, theme.prefs_btn_close_1,
-                                theme.prefs_btn_close_2)
-        btn_close.set_pos(570, 0)
-        btn_close.set_size(50, 50)        
-        self.add(btn_close)
-        btn_close.connect(btn_close.EVENT_BUTTON_RELEASE,
-                          lambda x,y:self.update_observer(self.OBS_QUIT))
 
         #
         # prefs cards
@@ -68,7 +45,7 @@ class Preferences(Viewer):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        screen.draw_pixbuf(theme.titlebar, x, y)
+        #screen.draw_pixbuf(theme.titlebar, x, y)
 
 
     def __on_observe_cards(self, src, cmd, *args):
@@ -86,20 +63,13 @@ class Preferences(Viewer):
         card.set_visible(True)
         card.render()
         self.__current_card = card
-        self.__title.set_text(" " + card.get_title())
+        self.update_observer(self.OBS_TITLE, card.get_title())
 
         
         
     def __add_card(self, card, label, icon):
             
-        tn = Thumbnail()
-        tn.fill_color(theme.color_bg)
-        tn.add_image(icon, 0, 0, 160, 120)
-        #tn.add_rect(0, 98, 160, 22, 0x44, 0x44, 0xff, 0xa0)
-        tn.add_rect(0, 98, 160, 22, theme.color_bg_thumbnail_label, 0xa0)
-        tn.add_text(label, 2, 96, theme.font_tiny,
-                    theme.color_fg_thumbnail_label)
-        tn.add_image(theme.btn_load, 128, 88)        
+        tn = PrefsThumbnail(icon, label)
         item = MediaItem()
         item.thumbnail_pmap = tn
         self.__items.append(item)
@@ -123,7 +93,7 @@ class Preferences(Viewer):
         
         
     def hide(self):
-    
+
+        self.update_observer(self.OBS_SCAN_MEDIA, False)    
         Viewer.hide(self)
-        self.update_observer(self.OBS_SCAN_MEDIA, False)
         

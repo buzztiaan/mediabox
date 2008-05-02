@@ -32,8 +32,6 @@ class Thumbnailer(Widget):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-                
-        screen.draw_pixbuf(theme.background, x, y)
 
         # save background
         self.__bg.copy_buffer(screen, 400 - 80, 200 - 60, 0, 0, 160, 120)
@@ -47,7 +45,7 @@ class Thumbnailer(Widget):
                
     def show_thumbnail(self, thumburi, uri):
 
-        self.__label.set_text(uri)
+        #self.__label.set_text(uri)
         
         screen = self.get_screen()
         try:

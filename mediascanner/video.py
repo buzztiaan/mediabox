@@ -1,3 +1,4 @@
+from mediaplayer import VIDEO_FORMATS
 import thief
 
 import os
@@ -5,10 +6,6 @@ import commands
 import shutil
 import time
 
-
-_VIDEO_EXT = (".3gp", ".avi", ".flv", ".mov", ".mpeg",
-              ".mpg", ".rm", ".wmv", ".asf",
-              ".m4v", ".mp4", ".rmvb")
 
 _SIGKILL = 9
 
@@ -28,7 +25,7 @@ def is_media(uri):
         if (os.path.isdir(uri)):
             return False
         
-        elif (os.path.splitext(uri)[1].lower() in _VIDEO_EXT):
+        elif (os.path.splitext(uri)[1].lower() in VIDEO_FORMATS):
             return True
             
     except:

@@ -3,7 +3,7 @@ This module is basically a port of mClock from pygame (SDL) to Gtk+.
 """
 
 from ui.Widget import Widget
-from ui.Pixmap import Pixmap
+from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 import sun
 
 import gtk
@@ -62,9 +62,7 @@ class SunClock(Widget):
     
         # buffer for the screen
         self.__screen = Pixmap(None, 800, 400)
-      
-        #self.update()
-        
+
 
     def render_this(self):
     
@@ -73,7 +71,13 @@ class SunClock(Widget):
         screen = self.get_screen()
         
         if (self.may_render()):
-            screen.copy_pixmap(self.__screen, 0, 0, x, y, w,  h)
+            if (time.time() > self.__render_map_next):
+                self.__render_map()
+                self.__render_map_next = time.time() + 10 * 60  # ten minutes
+
+                print "RENDER"
+            self.__render_clock(screen, x, y)
+
          
         
     def __clear_mask(self):
@@ -124,51 +128,37 @@ class SunClock(Widget):
     
         self.__map_offset += dx
         self.__map_offset %= 800
-        self.__render_clock()
         self.render()
         
         
-    def update(self):
-    
-        if (time.time() > self.__render_map_next):
-            self.__render_map()
-            self.__render_map_next = time.time() + 10 * 60  # ten minutes
-
-        self.__render_clock()
-        self.render()
-        #self.queue_draw()
-
-
-    def __render_clock(self):
+    def __render_clock(self, screen, x, y):
     
         now = time.localtime(time.time())
         hours = now[3]
         mins = now[4]
         secs = now[5]
 
-        self.__screen.copy_pixmap(self.__map,
-                                  self.__map_offset, 0,
-                                  0, 0,
-                                  800 - self.__map_offset, 400)
+        screen.copy_pixmap(self.__map,
+                           self.__map_offset, 0,
+                           x, y,
+                           800 - self.__map_offset, 400)
         if (self.__map_offset > 0):
-            self.__screen.copy_pixmap(self.__map,
-                                      0, 0,
-                                      800 - self.__map_offset, 0,
-                                      self.__map_offset, 400)
+            screen.copy_pixmap(self.__map,
+                               x, y,
+                               800 - self.__map_offset, 0,
+                               self.__map_offset, 400)
                                   
-        #self.__screen.copy_pixmap(self.__map, 0, 0, 0, 0, 800, 400)
-
         t = "%d:%02d" % (hours, mins)
         w = len(t) * 108
         h = 200
-        x = 400 - w / 2
-        y = 200 - h / 2
+        x = x + 400 - w / 2
+        y = y + 200 - h / 2
         for c in t:
             try:
                 cx = int(c) * 108
             except:
                 cx = 10 * 108
-            self.__screen.draw_subpixbuf(self.__numbers, cx, 0, x, y, 108, 200)
+            screen.draw_subpixbuf(self.__numbers, cx, 0, x, y, 108, 200)
             x += 108
         #end for                           
 

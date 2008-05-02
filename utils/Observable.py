@@ -41,5 +41,9 @@ class Observable(object):
 
         self.__ensure_init()
 
+        handled = False
         for h in self.__handlers[:]:
-            h(self, *args)
+            handled |= h(self, *args) or False
+            
+        return handled
+

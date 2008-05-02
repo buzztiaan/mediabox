@@ -13,8 +13,8 @@ except:
     IS_MAEMO = False
 
 import dbus, dbus.glib
-_system_bus = dbus.SystemBus()
-_session_bus = dbus.SessionBus()
+_system_bus = dbus.SystemBus(private = True)
+_session_bus = dbus.SessionBus(private = True)
 
 
 def set_osso_context(ctx):

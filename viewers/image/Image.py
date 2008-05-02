@@ -1,5 +1,5 @@
 from ui.Widget import Widget
-from ui.Pixmap import Pixmap
+from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from utils.Observable import Observable
 
 import gtk
@@ -13,7 +13,7 @@ import gc
 
 # predefined zoom levels
 _ZOOM_LEVELS = [18, 25, 33, 50, 75, 100, 150, 200,
-                300, 400, 600, 800, 1200, 1600]
+                300, 400, 600, 800, 1200, 1600, 2400, 3200]
 
 # read this many bytes at once
 _CHUNK_SIZE = 10000 #50000
@@ -109,6 +109,7 @@ class Image(Widget, Observable):
         w, h = self.get_size()
         screen = self.get_screen()    
         screen.copy_pixmap(self.__offscreen, x, y, x, y, w, h)
+        
 
 
     def set_size(self, w, h):
@@ -401,7 +402,7 @@ class Image(Widget, Observable):
         else:
             # copy on the server-side (this is our simple trick for
             # fast scrolling!)
-            self.__offscreen.copy_pixmap(screen,
+            self.__offscreen.copy_pixmap(self.__offscreen, #screen,
                                          x + src_x, y + src_y,
                                          x + dest_x, y + dest_y,
                                          src_w, src_h)
@@ -418,8 +419,8 @@ class Image(Widget, Observable):
             if (self.__is_new_image):
                 self.__is_new_image = False
                 self.fx_slide_in()
-            else:
-                screen.copy_pixmap(self.__offscreen, x, y, x, y, width, height)            
+            #else:
+            #    screen.copy_pixmap(self.__offscreen, x, y, x, y, width, height)            
             
             if (not high_quality):
                 if (self.__hi_quality_timer):
@@ -432,7 +433,11 @@ class Image(Widget, Observable):
 
         self.__previous_offset = (offx, offy)
         
-        self.update_observer(self.OBS_RENDERED)
+        #self.render()
+        if (self.may_render()):
+            self.render_at(TEMPORARY_PIXMAP, x, y)
+            screen.copy_pixmap(TEMPORARY_PIXMAP, x, y, x, y, width, height)
+            self.update_observer(self.OBS_RENDERED)
 
 
         
@@ -728,15 +733,16 @@ class Image(Widget, Observable):
         finished = threading.Event()
         
         def f(i):
-            i = min(i, w)
+            dx = min(STEP, w - i)
+
             if (self.__slide_from_right):
-                screen.copy_buffer(screen, x + STEP, y, x, y, w - STEP, h)
-                screen.copy_pixmap(self.__offscreen, x + i, y, x + w - STEP, y,
-                                   STEP, h)
+                screen.copy_buffer(screen, x + dx, y, x, y, w - dx, h)
+                screen.copy_pixmap(self.__offscreen, x + i, y, x + w - dx, y,
+                                   dx, h)
             else:
-                screen.copy_buffer(screen, x, y, x + STEP, y, w - STEP, h)
-                screen.copy_pixmap(self.__offscreen, x + w - STEP - i, y, x, y,
-                                   STEP, h)
+                screen.copy_buffer(screen, x, y, x + dx, y, w - dx, h)
+                screen.copy_pixmap(self.__offscreen, x + w - dx - i, y, x, y,
+                                   dx, h)
             
             if (i < w - STEP):
                 gobject.timeout_add(5, f, i + STEP)

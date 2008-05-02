@@ -19,6 +19,7 @@ MAPPING = { "APIC": "PICTURE",
             "TYE":  "YEAR",
             "TCO":  "GENRE" }
 
+STRINGS = ( "COMMENT", "COPYRIGHT", "TITLE", "ARTIST", "ALBUM" )
 
 # the official weird, unsorted, incomplete list of genres for ID3 tags
 GENRES = [

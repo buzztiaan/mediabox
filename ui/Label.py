@@ -77,9 +77,16 @@ class Label(Widget):
         if (not w): w = text_w
         if (not h): h = text_h        
 
+        if (text_w <= w):
+            if (self.__alignment == self.LEFT): text_x = 0
+            elif (self.__alignment == self.CENTERED): text_x = (w - text_w) / 2
+            else: text_x = w - text_w
+        else:
+            text_x = 0
+
         # tile background
         for i in range(0, text_w, w):
-            self.__text_pmap.copy_pixmap(self.__bg, 0, 0, i, 0, w, h)
+            self.__text_pmap.copy_pixmap(self.__bg, 0, 0, i - text_x, 0, w, h)
         
         # draw text
         self.__text_pmap.draw_text(self.__text, self.__font, 0, 0, self.__color)
@@ -136,6 +143,8 @@ class Label(Widget):
         
     def __render_text(self, pos, direction):
 
+        if (not self.may_render()): return
+
         if (self.__is_new_text):
             self.__restore_background()
             self.__create_text_pmap()
@@ -165,6 +174,7 @@ class Label(Widget):
         if (self.may_render()):
             screen.copy_pixmap(self.__text_pmap, pos, 0, x + text_x, y,
                                min(text_w, w), text_h)
+
 
         # handle scrolling
         if (text_w > w and self.may_render()):

@@ -4,7 +4,7 @@ class ViewerState(object):
     restored again without the viewer's help.
     """
     __slots__ = ["item_offset", "selected_item", "collection_visible", "caps",
-                 "thumbs_loaded"]
+                 "thumbs_loaded", "title", "info"]
 
     def __init__(self):
         self.item_offset = 0
@@ -12,3 +12,5 @@ class ViewerState(object):
         self.collection_visible = True
         self.caps = 0
         self.thumbs_loaded = False
+        self.title = ""
+        self.info = ""

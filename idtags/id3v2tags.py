@@ -55,9 +55,10 @@ def _read_tagsoup(fd):
 def _read_frame(soup, pos, params):
     
     if (pos > len(soup) - 10 or soup[pos:pos + 2] == "\x00\x00"): return None
-    key = soup[pos:pos + params.key_length]    
+    key = soup[pos:pos + params.key_length]
+    key = mapping.MAPPING.get(key, key)
     pos += params.key_length
-    
+
     bytes = [ ord(b) for b in soup[pos:pos + params.size_length] ]
     if (params.syncsafe):
         size = (bytes[0] << 21) + (bytes[1] << 14) + (bytes[2] << 7) + bytes[3]
@@ -84,13 +85,14 @@ def _read_frame(soup, pos, params):
                 value = ""
     else:
         value = soup[pos:pos + size]
-        if (value and params.encodings and ord(value[0]) < 5):
+        if (key in mapping.STRINGS and value and
+                params.encodings and ord(value[0]) < 5):
             encoding = params.encodings[ord(value[0])]
             value = value[1:].decode(encoding, "replace")
         
     #print "  " + key, hex(size), size < 60 and value or "<binary>"
 
-    key = mapping.MAPPING.get(key, key)
+    
     
     # strip off unwanted characters
     if (size < 512):

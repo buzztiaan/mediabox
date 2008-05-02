@@ -1,5 +1,5 @@
 from Widget import Widget
-from Pixmap import Pixmap
+from Pixmap import Pixmap, TEMPORARY_PIXMAP
 
 import gtk
 import gobject
@@ -14,25 +14,38 @@ class ImageStrip(Widget):
     Class for rendering a scrollable strip of images.
     """
 
-    def __init__(self, edect, width, itemsize, gapsize):
+    def __init__(self, edect, gapsize):
     
         self.__pbuf_cache = {}
         self.__arrows = None
         self.__arrows_save_under = None
+        self.__scrollbar_pmap = None
+        self.__scrollbar_pbuf = None
+        self.__cap_top = None
+        self.__cap_top_size = (0, 0)
+        self.__cap_bottom = None
+        self.__cap_bottom_size = (0, 0)
+    
+        # index and position of a floating item
+        # index = -1 means that no item is currently floating
+        self.__floating_index = -1
+        self.__floating_position = 0
     
         Widget.__init__(self, edect)
 
         self.__images = []
         self.__bg = None
+        self.__bg_color = None
         self.__offset = 0
         self.__canvas = None
         self.__cmap = None
-        self.__itemwidth = width
-        self.__itemsize = itemsize
+        self.__itemsize = 0 #itemsize
         self.__gapsize = gapsize
         self.__totalsize = 0
         
-        self.__is_scrolling = threading.Event()
+        self.__scroll_to_item_handler = None
+        self.__scroll_to_item_index = 0
+        #self.__is_scrolling = threading.Event()
         
         # the selection offset initially selects the item in the middle and
         # centers the view around it
@@ -41,45 +54,44 @@ class ImageStrip(Widget):
         # whether we wrap around
         self.__wrap_around = True
         
-        # whether to display a slider
-        self.__show_slider = False
+        # handle of the renderer
+        self.__render_handler = None
 
+        self.__buffer = Pixmap(None, 800, 480)
+ 
+ 
+    def set_size(self, w, h):
+    
+        Widget.set_size(self, w, h)
+        self.set_scrollbar(self.__scrollbar_pbuf)
+ 
 
-    def __to_pixbuf(self, obj):
+    def set_bg_color(self, color):
     
-        if (hasattr(obj, "add_alpha")):
-            #obj.get_width()
-            return obj
-        else:
-            return gtk.gdk.pixbuf_new_from_file(obj)
-
-    
-    
-    def __create_pixbuf(self, filename):
-    
-        if (filename in self.__pbuf_cache):
-            return self.__pbuf_cache[filename]
-        else:
-            try:
-                pbuf = gtk.gdk.pixbuf_new_from_file(filename)
-            except:
-                pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, 160, 120)
-            self.__pbuf_cache[filename] = pbuf
-            
-            return pbuf
-    
-    
-    #def get_size(self):
-    #
-    #    return self.__size
-    
+        self.__bg_color = color
+        self.__buffer.fill_area(0, 0, 800, 480, self.__bg_color)
+        
         
     def set_background(self, bg):
         """
         Sets the background image from the given pixbuf or filename.
         """
     
-        self.__bg = self.__to_pixbuf(bg)
+        self.__bg = bg
+        
+        
+    def set_caps(self, top, bottom):
+        """
+        Sets the top and bottom caps for visual effects. Pass None as value to
+        disable a cap.
+        """
+    
+        self.__cap_top = top
+        if (top):
+            self.__cap_top_size = (top.get_width(), top.get_height())            
+        self.__cap_bottom = bottom
+        if (bottom):
+            self.__cap_bottom_size = (bottom.get_width(), bottom.get_height())
         
         
     def set_arrows(self, arrows):
@@ -101,9 +113,28 @@ class ImageStrip(Widget):
             self.__arrows = None
 
 
-    def set_show_slider(self, value):
+    def set_scrollbar(self, pbuf):
     
-        self.__show_slider = value
+        self.__scrollbar_pbuf = pbuf
+        if (not pbuf):
+            self.__scrollbar_pmap = None
+        else:
+            nil, h = self.get_size()
+            w = pbuf.get_width()
+            w = max(2, w)
+            h = max(2, h)
+            self.__scrollbar_pmap = Pixmap(None, w, h)            
+            self.__scrollbar_pmap.draw_pixbuf(pbuf, 0, 0, w, h, scale = True)
+
+
+    def float_item(self, idx, pos = 0):
+        """
+        Floats the given item at the given position. Position is relative
+        to the current offset.
+        """
+    
+        self.__floating_index = idx
+        self.__floating_position = pos
 
 
     def get_image(self, idx):
@@ -116,23 +147,26 @@ class ImageStrip(Widget):
         Sets the list of images to be displayed by the image strip.
         It can either be a list of pixbufs or a list of filenames.
         """
-
+        
         while (self.__images):
             img = self.__images.pop()
             del img  
             
         import gc; gc.collect()
 
-        self.__images = [ self.__to_pixbuf(f) for f in images ]                
-        self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)
-        
+        if (images):
+            self.__images = [ f for f in images ]
+            self.__itemsize = self.__images[0].get_size()[1]
+            self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)
+               
         self.__offset = 0
         self.render()
         
         
     def append_image(self, img):
     
-        self.__images.append(self.__to_pixbuf(img))
+        self.__images.append(img)
+        self.__itemsize = self.__images[0].get_size()[1]
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)
         self.render()
         
@@ -142,7 +176,7 @@ class ImageStrip(Widget):
     def replace_image(self, idx, image):
     
        img = self.__images[idx]
-       self.__images[idx] = self.__to_pixbuf(image)           
+       self.__images[idx] = image
        del img
        self.render()
 
@@ -150,22 +184,16 @@ class ImageStrip(Widget):
        
     def remove_image(self, idx):
     
+        w, h = self.get_size()
         del self.__images[idx]
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)        
-        self.__offset = 0
-        #self.queue_draw()
+        self.__offset = max(0, min(self.__offset, self.__totalsize - h))
         self.render()
 
         
     def overlay_image(self, idx, img, x, y):
-    
-        pbuf = self.__to_pixbuf(img)
-        sub = self.__images[idx].subpixbuf(x, y,
-                                           pbuf.get_width(), pbuf.get_height())
-        pbuf.composite(sub, 0, 0, pbuf.get_width(), pbuf.get_height(),
-                       0, 0, 1, 1,
-                       gtk.gdk.INTERP_NEAREST, 0xff)
-        #self.queue_draw()
+
+        self.__images[idx].draw_pixbuf(img, x, y)
         self.render()
         
         
@@ -194,17 +222,35 @@ class ImageStrip(Widget):
         
     def get_index_at(self, y):
         """
-        Returns the index of the item at the given position.
+        Returns the index of the item at the given position or -1 if there's no
+        item at that position.
         """
         
         if (not self.__images or y > self.__totalsize):
             return -1
         else:
             blocksize = self.__itemsize + self.__gapsize
-            pos = self.__offset + y
-            index = (pos / blocksize) % len(self.__images)
+            pos = self.__offset + y            
+            index = (pos / blocksize)
+            
+            if (index < 0 or index >= len(self.__images)):
+                if (self.__wrap_around):
+                    index %= len(self.__images)
+                else:
+                    index = -1
         
             return index
+            
+            
+    def swap(self, idx1, idx2):
+        """
+        Swaps the place of two images.
+        """
+        
+        temp = self.__images[idx1]
+        self.__images[idx1] = self.__images[idx2]
+        self.__images[idx2] = temp
+        #self.render()
         
         
     def get_current_index(self):
@@ -250,7 +296,7 @@ class ImageStrip(Widget):
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.get_screen()
+        screen = self.__buffer #self.get_screen()
 
         arrow_up, arrow_down = self.__arrows
         arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
@@ -276,7 +322,7 @@ class ImageStrip(Widget):
         
         x, y = self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.get_screen()
+        screen = self.__buffer #self.get_screen()
 
         arrow_up, arrow_down = self.__arrows
         arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
@@ -292,13 +338,11 @@ class ImageStrip(Widget):
                            arrow_width, arrow_height)
         
         
-    def __render_slider(self):
-
-        if (not self.may_render()): return
+    def __render_scrollbar(self):
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.get_screen()
+        screen = self.__buffer
 
         if (self.__totalsize > 0):
             percent = self.__offset / float(self.__totalsize)
@@ -310,24 +354,96 @@ class ImageStrip(Widget):
         y1 = int(h * percent)
         y2 = int(y1 + slider_size)
 
-        if (self.__bg):
-            screen.draw_subpixbuf(self.__bg,
-                                  w - 2, 0, x + w - 2, y,
-                                  2, y1)
-            if (y2 < h):
-                screen.draw_subpixbuf(self.__bg,
-                                      w - 2, y2, x + w - 2, y + y2,
-                                      2, max(0, h - y2))
-        #end if
+        slider_width, nil = self.__scrollbar_pmap.get_size()
+        slider_width /= 2
 
-        screen.fill_area(x + w - 2, y, 2, y1 - y, "#cccccc")
-        screen.fill_area(x + w - 2, y + y1, 2, y2 - y1 + 1, "#444444")
+        screen.copy_pixmap(self.__scrollbar_pmap,
+                           0, 0,
+                           x + w - slider_width, y,
+                           slider_width, h)
+        screen.copy_pixmap(self.__scrollbar_pmap,
+                           slider_width, 0, x + w - slider_width, y + y1,
+                           slider_width, y2 - y1 + 1)
 
+
+    
+    def __render_floating_item(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.__buffer
         
+        try:        
+            item = self.__images[self.__floating_index]
+        except:
+            return
+
+        pmap = item.get_pixmap()
+        fw, fh = pmap.get_size()
+        fx = x + (w - fw) / 2
+        fy = y + self.__floating_position - fh / 2
+        self.__buffer.draw_pixmap(pmap, fx, fy)
+
+
+    def __render_buffered(self, screen, offset, height):
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        #screen = self.get_screen()
+
+        TEMPORARY_PIXMAP.copy_pixmap(self.__buffer, x, y, x, y, w, h)
+
+        #TEMPORARY_PIXMAP.copy_pixmap(self.__buffer, x - 8, y, x - 8, y, 8, h)
+
+        if (self.__scrollbar_pmap):
+            self.__render_scrollbar()
+            
+        if (self.__floating_index >= 0):
+            self.__render_floating_item()
+
+        if (self.__cap_top):
+            cw, ch = self.__cap_top_size
+            #TEMPORARY_PIXMAP.copy_pixmap(self.__buffer,
+            #                             x, y, 0, 0, cw, ch)        
+            self.__buffer.draw_pixbuf(self.__cap_top, x, y, w, ch)
+            
+        if (self.__cap_bottom):
+            cw, ch = self.__cap_bottom_size
+            #TEMPORARY_PIXMAP.copy_pixmap(self.__buffer,
+            #                             x, y + h - ch, 0, 200, cw, ch)
+            self.__buffer.draw_pixbuf(self.__cap_bottom, x, y + h - ch, w, ch)
+            
+        #screen.copy_pixmap(self.__buffer, x, y, x, y, w, h)
+        screen.copy_pixmap(self.__buffer, x, y + offset, x, y + offset, w, height)
+
+        #self.__buffer.copy_pixmap(TEMPORARY_PIXMAP, x - 8, y, x - 8, y, 8, h)
+        
+        #if (self.__cap_top):
+        #    cw, ch = self.__cap_top_size
+        #    self.__buffer.copy_pixmap(TEMPORARY_PIXMAP,
+        #                              0, 0, x, y, cw, ch)
+
+        #if (self.__cap_bottom):
+        #    cw, ch = self.__cap_bottom_size
+        #    self.__buffer.copy_pixmap(TEMPORARY_PIXMAP,
+        #                              0, 200, x, y + h - ch, cw, ch)
+
+        self.__buffer.copy_pixmap(TEMPORARY_PIXMAP, x, y, x, y, w, h)
+
         
     def render_this(self):
-    
-        self.render_full()
+
+        def f(screen):
+            w, h = self.get_size()
+            self.__render_handler = None
+            self.render_full()
+            self.__render_buffered(screen, 0, h)
+
+        #if (not self.__render_handler):
+        #    self.__render_handler = gobject.timeout_add(0, f, self.get_screen())
+        f(self.get_screen())
+        
+        #screen.copy_pixmap(self.__buffer, x, y, x, y, w, h)
         
         
     def render_full(self):
@@ -338,20 +454,20 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         self.__render(0, h)
         if (self.__arrows):
-            self.__render_arrows()
-        
-        
-        
+            self.__render_arrows()      
+
+
     def __render(self, render_offset, render_height):
    
         if (not self.may_render()): return
+        #print "RENDER", self, render_offset, render_height
 
         blocksize = self.__itemsize + self.__gapsize
         render_to = render_offset + render_height
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.get_screen()
+        screen = self.__buffer #self.get_screen()
         
         while (self.__images and render_offset < render_to):            
             idx = ((self.__offset + render_offset) / blocksize)
@@ -367,18 +483,30 @@ class ImageStrip(Widget):
             remain = min(self.__itemsize - img_offset, render_to - render_offset)
 
             if (remain > 0):
-                pbuf = self.__images[idx]
-                screen.draw_subpixbuf(pbuf, 0, img_offset, x, y + render_offset,
-                                      pbuf.get_width(), remain)
+                pmap = self.__images[idx]
+                pw, ph = pmap.get_size()
+                pmap = pmap.get_pixmap()
+
+                img_width = pw
+                offx = (w - pw) / 2
+                if (self.__floating_index != idx):
+                    screen.copy_pixmap(pmap, 0, img_offset,
+                                       x + offx, y + render_offset,
+                                       pw, remain)
+                else:
+                    screen.fill_area(x + offx, y + render_offset, pw, remain,
+                                     self.__bg_color)
 
             render_offset += (remain + self.__gapsize)
         #end while
         
-        if (self.__bg):
+        if (self.__bg_color):
             if (render_offset < render_to):
-                screen.draw_subpixbuf(self.__bg,
-                                      0, render_offset, x, y + render_offset,
-                                      w, render_to - render_offset)
+                screen.fill_area(x, y + render_offset, w, render_to - render_offset,
+                                 self.__bg_color)
+                #screen.draw_subpixbuf(self.__bg,
+                #                      0, render_offset, x, y + render_offset,
+                #                      w, render_to - render_offset)
         
             gap_offset = 0 - (self.__offset % blocksize) - self.__gapsize
 
@@ -394,23 +522,24 @@ class ImageStrip(Widget):
                     remain = min(self.__gapsize, h - render_offset)
                     
                 if (remain > 0):
-                    screen.draw_subpixbuf(self.__bg,
-                                       0, render_offset, x, y + render_offset,
-                                       min(w, self.__bg.get_width()),
-                                       min(remain, self.__bg.get_height()))
+                    screen.fill_area(x, y + render_offset, w, remain,
+                                     self.__bg_color)
+                    #screen.draw_subpixbuf(self.__bg,
+                    #                   0, render_offset, x, y + render_offset,
+                    #                   min(w, self.__bg.get_width()),
+                    #                   min(remain, self.__bg.get_height()))
 
                 gap_offset += blocksize
             #end while
         #end if
-    
-        if (self.__show_slider):
-            self.__render_slider()
-        
+                
         
     def move(self, nil, delta):
     
-        if (not self.__is_scrolling.isSet()):
+        #if (not self.__is_scrolling.isSet()):
+        if (not self.__scroll_to_item_handler):
             self.__move(nil, delta)
+
         
         
     def __move(self, nil, delta):
@@ -418,18 +547,14 @@ class ImageStrip(Widget):
         Scrolls the image strip by the given positive or negative amount.
         """
                 
-        #if (not self.__images): return     
-
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
         
         if (not (self.__wrap_around and h < self.__totalsize)):
             if (self.__offset + delta > self.__totalsize - h):
-                #delta = self.__totalsize - self.__height - self.__offset
                 return
             elif (self.__offset + delta < 0):
-                #delta = self.__offset
                 return
         #end if
 
@@ -446,18 +571,19 @@ class ImageStrip(Widget):
             self.__unrender_arrows()
             
         if (delta > 0):
-            screen.copy_buffer(screen, x, y + delta, x, y,
-                               self.__itemwidth, h - delta)
+            self.__buffer.move_area(x, y + delta, w, h - delta,
+                                    0, -delta)
             self.__render(h - delta, delta)
 
         elif (delta < 0):
-            screen.copy_buffer(screen, x, y, x, y + abs(delta),
-                               self.__itemwidth, h - abs(delta))
+            self.__buffer.move_area(x, y, w, h - abs(delta),
+                                    0, abs(delta))
             self.__render(0, abs(delta))
             
         if (self.__arrows):
             self.__render_arrows()
 
+        self.__render_buffered(screen, 0, h)
 
 
     def scroll_to_item(self, idx):
@@ -467,25 +593,36 @@ class ImageStrip(Widget):
 
         w, h = self.get_size()
 
-        # offset must be between these values to make the item visible
-        offset2 = (self.__itemsize + self.__gapsize) * idx
-        offset1 = offset2 - (h - self.__itemsize)
         
-        if (self.__totalsize > 2 * h):
-            offset1 += h / 3
-            offset2 -= h / 3
-        
-        offset3 = offset1 + self.__totalsize
-        offset4 = offset2 + self.__totalsize
-        
-        def f(idx):
+        def f():
+            idx = self.__scroll_to_item_index
             offset = self.__offset
+
+            # offset must be between these values to make the item visible
+            # item is at upper border
+            offset2 = (self.__itemsize + self.__gapsize) * idx # + self.__itemsize
+            # item is at bottom border
+            offset1 = offset2 - (h - self.__itemsize) #+ self.__itemsize
+
+            if (self.__cap_top):
+                offset2 -= self.__cap_top_size[1]
+            if (self.__cap_bottom):
+                offset1 += self.__cap_bottom_size[1]
+            
+            #if (self.__totalsize > 2 * h):
+            #    offset1 += h / 3
+            #    offset2 -= h / 3
+            
+            offset3 = offset1 + self.__totalsize
+            offset4 = offset2 + self.__totalsize
+
 
             if (offset1 <= self.__offset <= offset2 or 
                 offset3 <= self.__offset <= offset4):
-                self.__is_scrolling.clear()
+                self.__scroll_to_item_handler = None
                 return False                
            
+            # how far would we have to scroll up or down?
             distance1 = offset1 - self.__offset
             distance2 = offset2 - self.__offset
             if (self.__wrap_around):
@@ -495,6 +632,7 @@ class ImageStrip(Widget):
                 distance3 = distance1
                 distance4 = distance2
             
+            # determine shortest distance
             def c(a,b): return cmp(abs(a), abs(b))
             distances = [distance1, distance2, distance3, distance4]
             distances.sort(c)
@@ -507,22 +645,29 @@ class ImageStrip(Widget):
             elif (distance > 0):
                 self.__move(0, min(h, max(1, delta)))
             else:
-                self.__is_scrolling.clear()
+                self.__scroll_to_item_handler = None
+                #self.__is_scrolling.clear()
                 return False
 
             if (self.__offset == offset):
                 # nothing moved
-                self.__is_scrolling.clear()
+                self.__scroll_to_item_handler = None
+                #self.__is_scrolling.clear()
                 return False
                 
             #print offset, offset1, offset2, self.__totalsize, distance, distances
 
             return True
 
-        if (not self.__is_scrolling.isSet()):
-            self.__is_scrolling.set()
-            gobject.timeout_add(5, f, idx)
-            while (self.__is_scrolling.isSet()): gtk.main_iteration()
+        self.__scroll_to_item_index = idx
+        if (not self.__scroll_to_item_handler):
+            self.__scroll_to_item_handler = gobject.timeout_add(5, f)
+            #while (self.__scroll_to_item_handler): gtk.main_iteration()
+
+        #if (not self.__is_scrolling.isSet()):
+        #    self.__is_scrolling.set()
+        #    gobject.timeout_add(5, f, idx)
+        #    while (self.__is_scrolling.isSet()): gtk.main_iteration()
             
             
     def fx_slide_in(self, wait = True):

@@ -7,6 +7,9 @@ import gtk
 import pango
 import os
 
+# versions of theme formats this release works with
+_COMPATIBILITY = ["danube"]
+
 
 _THEMES_DIR = os.path.dirname(__file__)
 _USER_THEMES_DIR = os.path.expanduser("~/.mediabox/themes")
@@ -29,13 +32,22 @@ def list_themes():
             path = os.path.join(themes_dir, d)
             if (os.path.isdir(path) and not d.startswith(".")):
                 preview = os.path.join(path, "PREVIEW.png")
-                name, description = _get_info(path)
-                themes.append((d, preview, name, description))
+                name, description, compat = _get_info(path)
+                if (_is_compatible(compat)):
+                    themes.append((d, preview, name, description))
         #end for
     #end for
         
     return themes
 
+
+def _is_compatible(compat):
+
+    for c in compat:
+        if (c in _COMPATIBILITY):
+            return True
+    #end for
+    return False
 
 
 def _read_colors(themepath):
@@ -84,7 +96,7 @@ def _read_fonts(themepath):
 
 def _get_info(themepath):
 
-    name, description = (os.path.basename(themepath), "")
+    name, description, compat = (os.path.basename(themepath), "", [])
 
     try:
         lines = open(os.path.join(themepath, "info")).readlines()
@@ -102,9 +114,12 @@ def _get_info(themepath):
         elif (line.startswith("description:")):
             idx = line.find(":")
             description = line[idx + 1:].strip()
+        elif (line.startswith("compatible:")):
+            idx = line.find(":")
+            compat = line[idx + 1:].split()
     #end for
     
-    return (name, description)
+    return (name, description, compat)
         
 
     
@@ -115,7 +130,8 @@ def set_theme(name):
     theme_dir = _DEFAULT_THEME_DIR
     for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
         theme_dir = os.path.join(themes_dir, name)
-        if (os.path.exists(theme_dir)):
+        name, description, compat = _get_info(theme_dir)
+        if (os.path.exists(theme_dir) and _is_compatible(compat)):
             break
     #end for
 
@@ -129,10 +145,6 @@ def set_theme(name):
         except:
             pass
     #end for
-
-    # define some subregions
-    _subregion("panel_bg", panel, 20, 0, 760, 80)
-    _subregion("panel_button_bg", panel, 20, 0, 80, 80)
 
     # read fonts and colors
     _read_fonts(theme_dir)

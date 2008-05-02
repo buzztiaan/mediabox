@@ -1,3 +1,6 @@
+import time
+
+
 class Widget(object):
     """
     Base class for GDK based lightweight widgets.
@@ -6,6 +9,10 @@ class Widget(object):
     EVENT_BUTTON_PRESS = 0
     EVENT_BUTTON_RELEASE = 1
     EVENT_MOTION = 2
+    
+    
+    # static flag for blocking event handling
+    __events_blocked = [False]
     
 
     def __init__(self, esens):
@@ -28,17 +35,28 @@ class Widget(object):
         
     def __on_action(self, etype, px, py):
     
+        if (self.__events_blocked[0]): return
+        
         x, y = self.get_screen_pos()
         handlers = self.__event_handlers.get(etype, [])
         for cb, args in handlers:
             try:
-                px -= x
-                py -= y
-                cb(px, py, *args)
+                px2 = px - x
+                py2 = py - y
+                cb(px2, py2, *args)
             except:
                 import traceback; traceback.print_exc()
                 pass
         #end for
+
+
+    def set_events_blocked(self, value):
+        """
+        Sets the global flag for blocking events. While events are blocked,
+        no event handling takes place by the Widget class.
+        """
+    
+        self.__events_blocked[0] = value
     
     
     def get_children(self):
@@ -80,12 +98,14 @@ class Widget(object):
     def set_zone(self, ident, x, y, w, h):
     
         #print "ZONE", x, y, w, h, ident
-        self.__event_sensor.set_zone(ident, x, y, w, h, self.__on_action)
+        self.__event_sensor.set_zone(ident, x, y, w, h, time.time(),
+                                     self.__on_action)
         
         
     def set_enabled(self, value):
         
         self.__is_enabled = value
+        #print self, value
         self.__check_zone()
         
         for c in self.__children:
@@ -207,6 +227,12 @@ class Widget(object):
         return self.__size
         
         
+    def set_geometry(self, x, y, w, h):
+    
+        self.set_pos(x, y)
+        self.set_size(w, h)
+
+
     def get_physical_size(self):
     
         return self.__size

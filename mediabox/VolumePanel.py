@@ -1,5 +1,5 @@
 from Panel import Panel
-from ui.Pixmap import Pixmap
+from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 import theme
 
 import gtk
@@ -20,7 +20,7 @@ class VolumePanel(Panel):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        buf = Pixmap(None, w, h)
+        buf = TEMPORARY_PIXMAP #Pixmap(None, w, h)
         
         buf.draw_pixbuf(theme.panel, 0, 0)
         #self.set_volume(self.__volume_level)

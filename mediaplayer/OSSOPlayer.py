@@ -193,6 +193,7 @@ class _OSSOPlayer(GenericMediaPlayer):
         if (self.__idle_counter == 500):
             self.__idle_counter = 0
             self.__heartbeat_running = False
+            self.close()
             print "player closed due to idle timeout"            
             return False
            
@@ -318,7 +319,7 @@ class _OSSOPlayer(GenericMediaPlayer):
         if (ctx_id != -1):
             self.__context_id = ctx_id
         else:
-            self.__context_id += 1
+            self.__context_id = self._new_context_id()
         print "CTX", self.__context_id
         return self.__context_id
         
@@ -334,8 +335,8 @@ class _OSSOPlayer(GenericMediaPlayer):
            
         if (not self.__playing):
             self.__position_valid = False
-            self.set_volume(self.__volume)
             self.__current_player.play()
+            self.set_volume(self.__volume)            
         
         
     def pause(self):
@@ -351,7 +352,9 @@ class _OSSOPlayer(GenericMediaPlayer):
 
     def close(self):
     
-        self.stop()
+        self.stop()        
+        self.__context_id = 0
+        #os.system("killall osso-media-server")
 
 
 

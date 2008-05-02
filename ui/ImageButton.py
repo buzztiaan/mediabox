@@ -1,5 +1,5 @@
 from Widget import Widget
-from Pixmap import Pixmap
+from Pixmap import Pixmap, TEMPORARY_PIXMAP
 
 
 class ImageButton(Widget):
@@ -13,7 +13,7 @@ class ImageButton(Widget):
         self.__img2 = img2
     
         Widget.__init__(self, esens)
-        self.set_size(80, 80)
+        self.set_size(70, 60)
         self.connect(self.EVENT_BUTTON_PRESS, self.__on_click, True)
         self.connect(self.EVENT_BUTTON_RELEASE, self.__on_click, False)               
     
@@ -23,7 +23,7 @@ class ImageButton(Widget):
     
         Widget.set_size(self, w ,h)
         self.__bg = Pixmap(None, w, h)
-        self.__buffer = Pixmap(None, w, h)
+        self.__buffer = TEMPORARY_PIXMAP #Pixmap(None, w, h)
     
         
     def render_this(self):

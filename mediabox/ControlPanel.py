@@ -1,7 +1,9 @@
-from Panel import Panel
+from ui.Widget import Widget
+from ui.HBox import HBox
 from ui.ImageButton import ImageButton
 from ui.Label import Label
 from ui.ProgressBar import ProgressBar
+from utils.Observable import Observable
 
 import panel_actions
 import theme
@@ -11,7 +13,7 @@ import gtk
 import pango
 
 
-class ControlPanel(Panel):   
+class ControlPanel(Widget, Observable):   
 
     def __init__(self, esens):
     
@@ -19,8 +21,22 @@ class ControlPanel(Panel):
         self.__items = []
         self.__all_items = []
         
+        self.__background = None
+        
     
-        Panel.__init__(self, esens)
+        Widget.__init__(self, esens)
+        self.__box = HBox(esens)
+        self.__box.set_spacing(8)
+        self.__box.set_alignment(self.__box.ALIGN_RIGHT)
+        self.add(self.__box)        
+
+        self.__btn_toggle_playlist = self.__add_button(theme.btn_playlist_1,
+                                                       theme.btn_playlist_2,
+                 lambda x,y:self.update_observer(panel_actions.TOGGLE_PLAYLIST))
+
+        self.__btn_toggle_albums = self.__add_button(theme.btn_albums_1,
+                                                     theme.btn_albums_2,
+                 lambda x,y:self.update_observer(panel_actions.TOGGLE_PLAYLIST))
         
         self.__btn_play = self.__add_button(theme.btn_play_1,
                                             theme.btn_play_2,
@@ -44,15 +60,17 @@ class ControlPanel(Panel):
                       lambda x,y:self.update_observer(panel_actions.ZOOM_FIT))
 
         self.__progress = ProgressBar(esens)
+        self.__progress.set_visible(False)
         self.__progress.connect(self.__progress.EVENT_BUTTON_RELEASE,
                                 self.__on_set_position)
-        self.add(self.__progress)
+        self.__box.add(self.__progress)
         self.__all_items.append(self.__progress)
 
         self.__tuner = ProgressBar(esens, False)
+        self.__tuner.set_visible(False)
         self.__tuner.connect(self.__progress.EVENT_BUTTON_RELEASE,
                             self.__on_tune)
-        self.add(self.__tuner)
+        self.__box.add(self.__tuner)
         self.__all_items.append(self.__tuner)
 
         self.__btn_previous = self.__add_button(theme.btn_previous_1,
@@ -73,12 +91,36 @@ class ControlPanel(Panel):
                    lambda x,y:self.update_observer(panel_actions.FORCE_SPEAKER))
 
 
+
+    def set_bg(self, bg):
+    
+        self.__background = bg
+        self.render()
+
+
+    def set_size(self, w, h):
+    
+        Widget.set_size(self, w, h)
+        self.__box.set_size(w - 20, h)
+        
+
+    def render_this(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+    
+        screen.draw_frame(theme.panel, x, y, w, h, True,
+                          screen.TOP | screen.BOTTOM)
+
+
+
     def __add_button(self, icon, icon_active, cb):
     
         btn = ImageButton(self.__event_sensor, icon, icon_active)
         btn.connect(self.EVENT_BUTTON_RELEASE, cb)
         btn.set_visible(False)
-        self.add(btn)
+        self.__box.add(btn)
         self.__all_items.append(btn)
 
         return btn
@@ -133,20 +175,16 @@ class ControlPanel(Panel):
         if (capabilities & caps.FORCING_SPEAKER):
             self.__items.append(self.__btn_speaker)
 
-        w, h = self.get_size()
-        
-        width = 0
+        if (capabilities & caps.PLAYLIST):
+            self.__items.append(self.__btn_toggle_playlist)
+            
+        if (capabilities & caps.ALBUMS):
+            self.__items.append(self.__btn_toggle_albums)
+
         for item in self.__items:
-            width += item.get_size()[0]
-        
-        x = w - width - 20
-        for item in self.__items:
-            nil, y = item.get_pos()
-            item.set_pos(x, y)
             item.set_visible(True)
-            x += item.get_size()[0]
         
-        self.render()
+        #self.render()
 
 
     def set_playing(self, value):

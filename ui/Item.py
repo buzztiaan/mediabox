@@ -1,4 +1,4 @@
-from Pixmap import Pixmap
+from Pixmap import Pixmap, TEMPORARY_PIXMAP
 import theme
 
 import gtk
@@ -6,43 +6,21 @@ import gobject
 import pango
 
 
-class Item(gtk.gdk.Pixbuf):
-    """
-    Class for rendering a list item.
-    """
 
-    __defer_list = []   # this is a static variable shared by all instances
+class Item(object):
 
-
-    def __init__(self, width, height):
+    def __init__(self):
 
         self.__normal_bg = None
         self.__hilighted_bg = None
         self.__is_hilighted = False
         
-        self.__width = width
-        self.__height = height
+        self.__canvas = None
+      
         
-        self.__canvas = Pixmap(None, width, height)
-        
-        self.__initialized = False
+    def set_canvas(self, canvas):
     
-        gtk.gdk.Pixbuf.__init__(self, gtk.gdk.COLORSPACE_RGB, False, 8,
-                                width, height)
-
-        #if (not self.__defer_list):
-        #    gobject.idle_add(self.__defer_handler)            
-        #self.__defer_list.append(self)
-        
-        
-    def __defer_handler(self):
-    
-        i = self.__defer_list.pop(0)
-        i.get_width()
-        if (self.__defer_list):
-            return True
-        else:
-            return False
+        self.__canvas = canvas
 
 
     def set_graphics(self, normal, hilighted):
@@ -51,53 +29,47 @@ class Item(gtk.gdk.Pixbuf):
         self.__hilighted_bg = hilighted
 
 
+    def get_size(self):
+    
+        return self.__canvas.get_size()
+
 
     def set_hilighted(self, value):
     
         if (value != self.__is_hilighted):
             self.__is_hilighted = value
-            self._render_item()
+            self.render()
             
-            
+           
     def is_hilighted(self):
     
         return self.__is_hilighted
-
-
-    def get_width(self):
-    
-        if (not self.__initialized): self.__initialize()
-        return gtk.gdk.Pixbuf.get_width(self)
-
-
-    def subpixbuf(self, *args):
-    
-        if (not self.__initialized): self.__initialize()
-        return gtk.gdk.Pixbuf.subpixbuf(self, *args)
-
-
-    def _render_item(self):
-
-        self._render(self.__canvas)
-        self.__canvas.render_on_pixbuf(self)
-        #import gc; gc.collect()
         
         
-    def _render(self, canvas):
+    def render(self):
+
+        if (not self.__canvas): return
         
-        canvas.fill_area(0, 0, self.__width, self.__height, "#ffffff")        
+        self.__canvas.invalidate_cache(self)
+        w, h = self.__canvas.get_size()    
+        self.__canvas.fill_area(0, 0, w, h, "#ffffff")        
 
         background = self.__is_hilighted and self.__hilighted_bg \
                                           or self.__normal_bg
 
         if (background):
-            self.__canvas.draw_subpixbuf(background, 0, 0, 0, 0,
-                                         self.__width, self.__height)
-
-
-
-    def __initialize(self):
+            self.__canvas.draw_frame(background, 0, 0, w, h, True)
+        
+        self.render_this(self.__canvas)
+        
+        
+    def render_this(self, canvas):
     
-        self.__initialized = True
-        self._render_item()
+        pass
 
+
+    def get_pixmap(self):
+    
+        self.__canvas.prepare(self)
+        return self.__canvas
+        

@@ -15,7 +15,8 @@ class EventSensor(object):
         
         gtkwidget.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                              gtk.gdk.BUTTON_RELEASE_MASK |
-                             gtk.gdk.POINTER_MOTION_MASK)
+                             gtk.gdk.POINTER_MOTION_MASK |
+                             gtk.gdk.POINTER_MOTION_HINT_MASK)
 
 
 
@@ -23,6 +24,9 @@ class EventSensor(object):
 
         px, py = src.get_pointer()
         zone = self.__get_zone_at(px, py)
+        #zones = self.__get_zones_at(px, py)
+        #print zones
+        #for zone in zones:
         if (zone):
             cb, args = zone
             cb(Widget.EVENT_BUTTON_PRESS, px, py, *args)
@@ -47,21 +51,35 @@ class EventSensor(object):
             cb, args = zone
             cb(Widget.EVENT_MOTION, px, py, *args)
     
+    
+    def __get_zones_at(self, px, py):
+    
+        zones = []
+        for x, y, w, h, cb, args in self.__zones.values():
+            if (x <= px <= x + w and y <= py <= y + h):
+                zones.append((cb, args))
+                
+        return zones
         
         
     def __get_zone_at(self, px, py):
     
-        for x, y, w, h, cb, args in self.__zones.values():
-            if (x <= px <= x + w and y <= py <= y + h):
-                return (cb, args)
-                
-        return None
+        zone = None
+        zone_tstamp = 0
+        
+        for x, y, w, h, tstamp, cb, args in self.__zones.values():
+            if (x <= px <= x + w and y <= py <= y + h and tstamp > zone_tstamp):
+                zone = (cb, args)
+                zone_tstamp = tstamp
+        #end for
+        
+        return zone
         
         
-    def set_zone(self, ident, x, y, w, h, cb, *args):
+    def set_zone(self, ident, x, y, w, h, tstamp, cb, *args):
     
         #print "ZONE", ident, x, y, w, h
-        self.__zones[ident] = (x, y, w, h, cb, args)
+        self.__zones[ident] = (x, y, w, h, tstamp, cb, args)
         
         
     def remove_zone(self, ident):

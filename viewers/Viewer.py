@@ -14,16 +14,17 @@ class Viewer(Widget, Observable):
     Abstract base class for media viewers.
     """
     
-    ICON = theme.dialog_error
-    ICON_ACTIVE = theme.viewer_none_active
+    ICON = None
+    ICON_ACTIVE = None
     PRIORITY = 999
     CAPS = caps.NONE
     
     
     OBS_TITLE = 0    
     OBS_POSITION = 1
-    OBS_FREQUENCY_MHZ = 2
-    OBS_VOLUME = 3
+    OBS_TIME = 2
+    OBS_FREQUENCY_MHZ = 3
+    OBS_VOLUME = 4
 
     OBS_REPORT_CAPABILITIES = 10    
     OBS_SET_COLLECTION = 11
@@ -84,6 +85,10 @@ class Viewer(Widget, Observable):
         
         
     def load(self, uri):
+    
+        pass
+       
+    def search(self, key):
     
         pass
         
@@ -152,13 +157,16 @@ class Viewer(Widget, Observable):
     
         pass
      
+     
+    def do_toggle_playlist(self):
+     
+        pass
+     
         
     def show(self):
     
         self.set_visible(True)
         self.__is_active = True
-        self.update_observer(self.OBS_TITLE, self.__title)
-        self.update_observer(self.OBS_POSITION, 0, 0)
         
         
     def hide(self):

@@ -1,22 +1,16 @@
 from viewers.Viewer import Viewer
 from VideoThumbnail import VideoThumbnail
-from mediaplayer.MPlayer import MPlayer
 import mediaplayer
 from mediabox import caps
+from ui.EventBox import EventBox
 from ui import dialogs
+from utils import maemo
 import theme
 
 import gtk
 import gobject
 import os
-import time
 
-
-try:
-    import hildon
-    _IS_MAEMO = True
-except:
-    _IS_MAEMO = False
 
 
 class VideoViewer(Viewer):
@@ -45,7 +39,7 @@ class VideoViewer(Viewer):
 
         Viewer.__init__(self, esens)                
       
-        # video screen        
+        # video screen
         self.__screen = gtk.DrawingArea()
         self.__screen.set_double_buffered(False)
         self.__screen.connect("expose-event", self.__on_expose)
@@ -53,13 +47,21 @@ class VideoViewer(Viewer):
                                  gtk.gdk.KEY_PRESS_MASK)
         self.__layout.put(self.__screen, 0, 0)
         
-        #self.connect(self.EVENT_BUTTON_PRESS, self.__on_drag_start)
+        self.__ebox = EventBox(esens)
+        self.add(self.__ebox)        
+        self.__ebox.connect(self.EVENT_BUTTON_PRESS, self.__on_click)
         
          
         
     def render_this(self):
             
         vx, vy, vw, vh = self.__get_video_rect()
+        self.__ebox.set_geometry(6, 34, vw, vh)
+
+        if (not self.__player or not self.__player.has_video()):
+            self.__layout.move(self.__screen, vx, vy)
+            self.__screen.set_size_request(vw, vh)        
+
         screen = self.get_screen()
 
         screen.fill_area(vx, vy, vw, vh, "#000000")        
@@ -67,10 +69,11 @@ class VideoViewer(Viewer):
         if (not self.__is_fullscreen):
             x, y, w, h = self.__get_frame_rect()
             screen.draw_rect(x, y, w, h, "#000000")
+            screen.fill_area(x + 2, y + 2, w - 4, h - 4, "#000000")
+        else:
+            screen.fill_area(vx, vy, vw, vh, "#000000")
     
-        if (not self.__player or not self.__player.has_video()):
-            self.__layout.move(self.__screen, vx, vy)
-            self.__screen.set_size_request(vw, vh)
+
             
 
 
@@ -86,15 +89,11 @@ class VideoViewer(Viewer):
 
             
             
-    def __on_drag_start(self, px, py):
+    def __on_click(self, px, py):
     
-        print "CLICKED"
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-
-        pos = px - x
-        self.update_observer(self.OBS_POSITION, pos, w)
-        
+        #vx, vy, vw, vh = self.__get_video_rect()
+        #if (vx <= px <= vx + vw and vy <= py <= py + vh):
+        self.do_fullscreen()
 
 
 
@@ -135,7 +134,7 @@ class VideoViewer(Viewer):
         elif (cmd == src.OBS_POSITION):
             ctx, pos, total = args            
             if (not self.__is_fullscreen and ctx == self.__context_id):
-                self.update_observer(self.OBS_POSITION, pos, total)
+                self.update_observer(self.OBS_TIME, pos, total)
 
         elif (cmd == src.OBS_EOF):
             ctx = args[0]
@@ -171,8 +170,8 @@ class VideoViewer(Viewer):
     
         x, y = self.get_screen_pos()
         w, h = self.get_size()
-        x += 4; y += 4
-        w -= 8; h -= 8
+        x += 4; y += 32
+        w -= 16; h -= 92
         return (x, y, w, h)
             
             
@@ -181,8 +180,8 @@ class VideoViewer(Viewer):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         if (not self.__is_fullscreen):
-            x += 6; y += 6
-            w -= 12; h -= 12
+            x += 6; y += 40
+            w -= 20; h -= 110
         return (x, y, w, h)
             
             
@@ -240,7 +239,6 @@ class VideoViewer(Viewer):
     def shutdown(self):
 
         # the music viewer already closes the player for us
-        #mediaplayer.close()
         pass
         
 
@@ -258,7 +256,7 @@ class VideoViewer(Viewer):
                 
                 self.__player = mediaplayer.get_player_for_uri(uri)
                 self.__player.set_window(self.__screen.window.xid)
-                if (_IS_MAEMO):
+                if (maemo.IS_MAEMO):
                     self.__player.set_options("-vo xv")
                     # the Nokia 770 would require something like this, instead
                     #self.__player.set_options("-ao gst -ac dspmp3 "
@@ -275,7 +273,7 @@ class VideoViewer(Viewer):
                     return
                                 
                 self.__player.set_volume(self.__volume)
-                self.__player.show_text(os.path.basename(uri), 2000)
+                #self.__player.show_text(os.path.basename(uri), 2000)
                 self.set_title(os.path.basename(uri))                
                 self.__uri = uri
                 
@@ -343,7 +341,22 @@ class VideoViewer(Viewer):
         self.__screen.hide()
 
 
+    def set_frozen(self, value):
+    
+        if (not value and self.is_active() and 
+              self.__player and self.__player.has_video()):
+            self.__screen.show()
+        else:
+            self.__screen.hide()
+            
+        Viewer.set_frozen(self, value)
+
+
     def do_fullscreen(self):
+        
+        # don't allow fullscreen when not playing anything
+        if (not self.__is_fullscreen and not self.__player.has_video()):
+            return
         
         self.__is_fullscreen = not self.__is_fullscreen        
         
@@ -352,12 +365,13 @@ class VideoViewer(Viewer):
         
         if (self.__is_fullscreen):
             self.update_observer(self.OBS_FULLSCREEN)
+            self.render()
         else:
             self.update_observer(self.OBS_UNFULLSCREEN)
-        
+            self.render()
         #while (gtk.events_pending()): gtk.main_iteration()        
         
-        self.update_observer(self.OBS_RENDER)
+            self.update_observer(self.OBS_RENDER)
 
         if (self.__player.has_video()):
             self.__scale_video()

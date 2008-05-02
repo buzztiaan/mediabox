@@ -41,6 +41,9 @@ class GenericMediaPlayer(_Observable):
     ERR_NOT_SUPPORTED = 3
     
     
+    __context_id = 0
+    
+    
     def __init__(self):
     
         pass
@@ -49,6 +52,13 @@ class GenericMediaPlayer(_Observable):
     def __repr__(self):
     
         return self.__class__.__name__
+
+
+    def _new_context_id(self):
+    
+        self.__context_id += 1
+        ctx_id = self.__context_id
+        return ctx_id
 
        
     def is_available(self):

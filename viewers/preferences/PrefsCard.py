@@ -13,8 +13,8 @@ class PrefsCard(Widget, Observable):
         self.__title = title
     
         Widget.__init__(self, esens)
-        self.set_pos(0, 50)
-        self.set_size(620, 350)
+        self.set_pos(0, 40)
+        self.set_size(630, 370)
         
 
     def get_title(self):

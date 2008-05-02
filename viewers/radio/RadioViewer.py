@@ -3,8 +3,7 @@ from ListItem import ListItem
 from RadioThumbnail import RadioThumbnail
 from FMRadioBackend import FMRadioBackend
 from InetRadioBackend import InetRadioBackend
-from ui.ItemList import ItemList
-from ui.KineticScroller import KineticScroller
+from mediabox.TrackList import TrackList
 from ui import dialogs
 from utils import maemo
 from mediabox import caps
@@ -42,17 +41,11 @@ class RadioViewer(Viewer):
         Viewer.__init__(self, esens)
 
         # stations list
-        self.__list = ItemList(esens, 600, 80)
+        self.__list = TrackList(esens)
         self.add(self.__list)
-        self.__list.set_size(600, 400)        
-        self.__list.set_pos(10, 0)
-        self.__list.set_background(theme.background.subpixbuf(185, 0, 600, 400))
-        self.__list.set_arrows(theme.arrows)
+        self.__list.set_geometry(10, 45, 600, 365)
+        self.__list.add_observer(self.__on_observe_list)
                 
-        kscr = KineticScroller(self.__list)
-        kscr.set_touch_area(0, 440)
-        kscr.add_observer(self.__on_observe_list)
-              
         # add backends
         backends = []
         if (maemo.get_product_code() in ["RX-34"]):
@@ -75,25 +68,21 @@ class RadioViewer(Viewer):
         #end for
         
         self.load(self.__items[0])
-        
+               
         
     def __on_observe_list(self, src, cmd, *args):
     
-        if (cmd == src.OBS_CLICKED):
-            px, py = args
-            if (px > 520):
-                idx = self.__list.get_index_at(py)
-                if (idx >= 0):
-                    response = dialogs.question("Remove",
-                                                "Remove this station?")
-                    if (response == 0):
-                        self.__current_radio.remove_station(idx)
-                    
-            elif (px > 420):
-                idx = self.__list.get_index_at(py)
-                if (idx >= 0):
-                    self.__list.hilight(idx)
-                    gobject.idle_add(self.__current_radio.set_station, idx)
+        if (cmd == src.OBS_PLAY_TRACK):
+            idx = args[0]
+            self.__list.hilight(idx)
+            gobject.idle_add(self.__current_radio.set_station, idx)
+
+        elif (cmd == src.OBS_REMOVE_TRACK):
+            idx = args[0]
+            response = dialogs.question("Remove",
+                                        "Remove this station?")
+            if (response == 0):
+                self.__current_radio.remove_station(idx)
 
                     
                     
@@ -146,16 +135,19 @@ class RadioViewer(Viewer):
             
     def __append_station(self, location, name):
 
-        item = ListItem(600, 80, name, location)
-        idx = self.__list.append_custom_item(item)
+        item = ListItem(name, location)
+        idx = self.__list.append_item(item)
         
 
 
     def __load_stations(self):
     
-        self.__list.clear_items()
+        self.__list.set_frozen(True)
+        self.__list.clear_items()        
         for location, name in self.__current_radio.get_stations():
             self.__append_station(location, name)
+        self.__list.set_frozen(False)
+        self.__list.render()
       
         
     def shutdown(self):

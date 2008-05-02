@@ -1,11 +1,9 @@
+from mediaplayer import AUDIO_FORMATS
 import thief
 
 import os
 import gtk
 
-
-_MUSIC_EXT = (".mp3", ".wav", ".wma", ".ogg",
-              ".aac", ".flac", ".m4a")
 
 
 def is_media(uri):
@@ -17,7 +15,7 @@ def is_media(uri):
         files = os.listdir(uri)
         for f in files:
             ext = os.path.splitext(f)[1]
-            if (ext.lower() in _MUSIC_EXT):
+            if (ext.lower() in AUDIO_FORMATS):
                 return True
         #end for
     except:
@@ -101,7 +99,7 @@ def __find_embedded_cover(uri):
     cnt = 0
     for f in os.listdir(dirpath):
         ext = os.path.splitext(f)[1]
-        if (not ext.lower() in _MUSIC_EXT): continue
+        if (not ext.lower() in AUDIO_FORMATS): continue
         if (cnt == 10): break
         
         tags = idtags.read(os.path.join(dirpath, f))

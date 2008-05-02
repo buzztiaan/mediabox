@@ -1,19 +1,20 @@
 from Widget import Widget
-from Label import Label
+#from Label import Label
+import theme
 
 import gtk
-import pango
-import theme
 
 
 class ProgressBar(Widget):
     """
-    Class for a progress bar with a text label.
+    Class for a progress bar.
     """
     
     def __init__(self, esens, show_time = True):
 
         self.__show_time = show_time
+        
+        self.__is_dragging = False
         
         self.__progress = 0
         self.__progress_width = 0        
@@ -22,24 +23,27 @@ class ProgressBar(Widget):
         Widget.__init__(self, esens)
         self.set_size(w, 80)
         
-        self.__label = Label(esens, "", theme.font_tiny,
-                             theme.color_fg_panel_text)
-        self.add(self.__label)
-        self.__label.set_pos(0, 0)
-        self.__label.set_size(w, 0)
+        self.connect(self.EVENT_BUTTON_PRESS, self.__on_button_press)
+        self.connect(self.EVENT_BUTTON_RELEASE, self.__on_button_release)
+        self.connect(self.EVENT_MOTION, self.__on_motion)
         
-        self.__pos_label = Label(esens, "", theme.font_tiny,
-                                 theme.color_fg_panel_text)
-        self.add(self.__pos_label)
-        self.__pos_label.set_pos(0, 24 + h)
-        self.__pos_label.set_size(50, 0)
         
-        self.__total_label = Label(esens, "", theme.font_tiny,
-                                   theme.color_fg_panel_text)
-        self.add(self.__total_label)
-        self.__total_label.set_pos(w - 100, 24 + h)
-        self.__total_label.set_size(100, 0)
-        self.__total_label.set_alignment(self.__total_label.RIGHT)
+    def __on_button_press(self, px, py):
+    
+        self.__is_dragging = True
+
+
+    def __on_button_release(self, px, py):
+    
+        self.__is_dragging = False
+
+
+    def __on_motion(self, px, py):
+            
+        if (self.__is_dragging):
+            px = max(0, px)
+            w, h = self.get_size()
+            self.set_position(px, w, dragged = True)
 
 
     def render_this(self):
@@ -54,8 +58,9 @@ class ProgressBar(Widget):
 
         
 
-    def set_position(self, pos, total):
+    def set_position(self, pos, total, dragged = False):
 
+        if (self.__is_dragging and not dragged): return
         if (pos == self.__progress): return
         if (not self.may_render()): return
         if (total == 0): return
@@ -82,27 +87,27 @@ class ProgressBar(Widget):
                              self.__progress_width - width, 32, "#000000")
         #end if
         
-        if (self.__show_time):
-            pos_m = pos / 60
-            pos_s = pos % 60
-            total_m = total / 60
-            total_s = total % 60      
-            self.__pos_label.set_text("%d:%02d" % (pos_m, pos_s))
-            self.__total_label.set_text("%d:%02d" % (total_m, total_s))
-        #end if
+        #if (self.__show_time):
+        #    pos_m = pos / 60
+        #    pos_s = pos % 60
+        #    total_m = total / 60
+        #    total_s = total % 60      
+        #    self.__pos_label.set_text("%d:%02d" % (pos_m, pos_s))
+        #    self.__total_label.set_text("%d:%02d" % (total_m, total_s))
+        ##end if
 
         self.__progress_width = width
         
         
 
 
-    def set_value(self, value, unit):
-    
-        self.__total_label.set_text("%03.2f %s" % (value, unit))
+    #def set_value(self, value, unit):
+    #
+    #    self.__total_label.set_text("%03.2f %s" % (value, unit))
 
 
 
-    def set_title(self, title):
-        
-        self.__label.set_text(title)
+    #def set_title(self, title):
+    #    
+    #    self.__label.set_text(title)
         

@@ -5,6 +5,7 @@ This package contains the media player backends.
 from DummyPlayer import DummyPlayer
 from MPlayer import MPlayer
 from OSSOPlayer import OSSOPlayer
+from utils import maemo
 
 import os
 
@@ -18,33 +19,40 @@ _PLAYERS = [_MPLAYER, _OMS, _DUMMY]
 _current_player = _DUMMY
 
 
-# map filetypes to player backends
-# TODO: make this configurable
-_MAPPING = {".3gp":           _OMS,
-            ".aac":           _OMS,
-            ".asf":           _MPLAYER,
-            ".avi":           _MPLAYER,
-            ".flac":          _MPLAYER,
-            ".flv":           _MPLAYER,
-            ".m3u":           _OMS,
-            ".m4a":           _OMS,
-            ".m4v":           _OMS,
-            ".mov":           _MPLAYER,
-            ".mp3":           _OMS,
-            ".mp4":           _OMS,
-            ".mpeg":          _MPLAYER,
-            ".mpg":           _MPLAYER,
-            ".ogg":           _MPLAYER,
-            ".pls":           _OMS,
-            ".ram":           _OMS,
-            ".rm":            _OMS,
-            ".rmvb":          _OMS,
-            ".wav":           _OMS,
-            ".wma":           _OMS,
-            ".wmv":           _MPLAYER,
-            ".wpl":           _OMS,
-            "unknown-stream": _MPLAYER}
-         
+
+AUDIO_FORMATS = { ".aac":           _OMS,
+                  ".flac":          _MPLAYER,
+                  ".m3u":           _OMS,
+                  ".m4a":           _OMS,
+                  ".mp2":           _OMS,
+                  ".mp3":           _OMS,
+                  ".ogg":           _MPLAYER,
+                  ".pls":           _OMS,
+                  ".ram":           _OMS,
+                  ".rm":            _OMS,
+                  ".wav":           _OMS,
+                  ".wma":           _OMS,
+                  ".wpl":           _OMS,
+                  "unknown-stream": _MPLAYER }
+
+VIDEO_FORMATS = { ".3gp":           _OMS,
+                  ".asf":           _MPLAYER,
+                  ".avi":           _MPLAYER,
+                  ".flv":           _MPLAYER,
+                  ".m4v":           _OMS,
+                  ".mov":           _MPLAYER,
+                  ".mp4":           _OMS,
+                  ".mpeg":          _MPLAYER,
+                  ".mpg":           _MPLAYER,
+                  ".rmvb":          _OMS,
+                  ".theora":        _MPLAYER,
+                  ".wmv":           _MPLAYER,
+                  "unknown-stream": _MPLAYER }
+
+if (not maemo.IS_MAEMO):
+    for k in AUDIO_FORMATS: AUDIO_FORMATS[k] = _MPLAYER
+    for k in VIDEO_FORMATS: VIDEO_FORMATS[k] = _MPLAYER    
+
 
 
 def get_player_for_uri(uri):
@@ -52,6 +60,10 @@ def get_player_for_uri(uri):
     Returns the appropriate player for the given uri or returns None
     if no appropriate player was found.
     """
+    
+    mapping = {}
+    mapping.update(AUDIO_FORMATS)
+    mapping.update(VIDEO_FORMATS)
     
     uri = uri.lower()
     if (uri.startswith("http:") or \
@@ -73,7 +85,7 @@ def get_player_for_uri(uri):
     else:
         filetype = os.path.splitext(uri)[-1]
         
-    player = _MAPPING.get(filetype, _DUMMY)
+    player = mapping.get(filetype, _DUMMY)
     print filetype, "... handled by", player
     _switch_player(player)
     
@@ -83,6 +95,7 @@ def get_player_for_uri(uri):
 def add_observer(observer):
 
     for player in _PLAYERS:
+        print player, observer
         player.add_observer(observer)
         
 

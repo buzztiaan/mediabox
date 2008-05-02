@@ -136,7 +136,7 @@ class _MPlayer(GenericMediaPlayer):
     
         if (HAVE_GOBJECT and not self.__heartbeat_running):
             self.__hearbeat_running = True
-            self.__player_values[_FILENAME] = "..."
+            #self.__player_values[_FILENAME] = "..."
             self.__heartbeat()
         
                         
@@ -180,14 +180,14 @@ class _MPlayer(GenericMediaPlayer):
             
             # check for end of file
             if (total > 0 and pos >= total):
-                if (self.__player_values[_FILENAME]):
-                    self.__next_time_check = now + 1
-                elif (now > self.__next_time_check):            
+                if (self.__player_values[_PERCENT_POSITION] > 99.999):
+                #    self.__next_time_check = now + 1
+                #elif (now > self.__next_time_check):            
                     self.__on_eof()
-                    self.__next_time_check = now + 1
+                #self.__next_time_check = now + 1
 
-                self.__player_values[_FILENAME] = None
-                self.__send_cmd("get_property filename")
+                #self.__player_values[_FILENAME] = None
+                self.__send_cmd("get_property percent_pos")
             #end if
 
             self.update_observer(self.OBS_POSITION, self.__context_id,
@@ -437,6 +437,7 @@ class _MPlayer(GenericMediaPlayer):
         self.__playing = False
         self.__has_video = False
         self.__has_audio = False
+        self.__context_id = 0
         self.update_observer(self.OBS_KILLED)
         
         #if (self.__stdin): self.__stdin.write("quit\n")
@@ -496,7 +497,7 @@ class _MPlayer(GenericMediaPlayer):
             self.__needs_restart = False
             if (self.__uri):
                 self.load(self.__uri, self.__context_id)
-                self.__playing = False
+                self.__playing = True
         
         if (not self.__stdin):
             self.__start_mplayer(self.__xid, self.__opts)        
@@ -512,6 +513,7 @@ class _MPlayer(GenericMediaPlayer):
         """
     
         self.__stop_mplayer()
+        self.__uri = ""
 
 
     def load(self, filename, ctx_id = -1):
@@ -537,24 +539,12 @@ class _MPlayer(GenericMediaPlayer):
         # reset position bar
         self.update_observer(self.OBS_POSITION, self.__context_id, 0, 0.01)
 
-        #cnt = 0
-        #while (not self.__playing and not self.__broken):
-        #    self.__collect_values()
-        #    time.sleep(0.01)
-        #    #print "CNT", cnt
-        #    if (cnt == 5000):
-        #        self.__broken = True
-        #        break
-        #        
-        #    cnt += 1
-        #end while
-        
         self.__timeout_point = time.time() + _CONNECTION_TIMEOUT
 
         if (ctx_id != -1):
             self.__context_id = ctx_id
         else:
-            self.__context_id +=1
+            self.__context_id = self._new_context_id()
         print "CTX", self.__context_id
         return self.__context_id
         

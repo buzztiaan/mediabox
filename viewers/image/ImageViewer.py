@@ -1,9 +1,10 @@
 from viewers.Viewer import Viewer
 from ui.KineticScroller import KineticScroller
 from ui.Label import Label
-from ui.Throbber import Throbber
+from mediabox.ThrobberDialog import ThrobberDialog
 from ImageThumbnail import ImageThumbnail
 from Image import Image
+from OverlayControls import OverlayControls
 from mediabox import caps
 import theme
 
@@ -40,28 +41,33 @@ class ImageViewer(Viewer):
         # image
         self.__image = Image(esens)
         self.__image.add_observer(self.__on_observe_image)
-        self.__image.set_pos(10, 10)
-        self.__image.set_size(600, 340)
+        self.__image.set_geometry(15, 42, 584, 366)
+        #self.__image.set_size(558, 340)
         self.__image.set_background(_BACKGROUND_COLOR)
         self.add(self.__image)
 
         kscr = KineticScroller(self.__image)
+        kscr.set_touch_area(0, 730)
 
         # not supported on maemo but nice to have elsewhere
         #kscr.connect("scroll-event", self.__on_mouse_wheel)
 
-        self.__throbber = Throbber(esens, theme.throbber)
+        self.__overlay_ctrls = OverlayControls(esens)
+        self.__overlay_ctrls.add_observer(self.__on_observe_overlay_ctrls)
+        self.__image.add(self.__overlay_ctrls)
+        self.__overlay_ctrls.set_visible(False)
+
+        self.__throbber = ThrobberDialog(esens)
+        self.__throbber.set_throbber(theme.throbber)
+        self.__throbber.set_text("Loading")
         self.add(self.__throbber)
-        self.__throbber.set_pos(10, 10)
-        self.__throbber.set_size(600, 340)
         self.__throbber.set_visible(False)
         
-        self.__label = Label(esens, "", theme.font_plain,
-                                        theme.color_fg_photo_label)
-        self.add(self.__label)
-        self.__label.set_alignment(self.__label.CENTERED)
-        self.__label.set_pos(20, 355)
-        self.__label.set_size(560, 0)
+        #self.__label = Label(esens, "", theme.font_plain,
+        #                                theme.color_fg_photo_label)
+        #self.add(self.__label)
+        #self.__label.set_alignment(self.__label.CENTERED)
+        #self.__label.set_pos(20, 380)
 
 
     def render_this(self):
@@ -70,9 +76,13 @@ class ImageViewer(Viewer):
         w, h = self.get_size()
         screen = self.get_screen()
         
+        #self.__image.set_size(584, 336) #w - 20, h - 60)
+        #self.__throbber.set_size(584, 336) #w - 20, h - 60)
+        #self.__label.set_size(w - 60, 0)
+        
         if (not self.__is_fullscreen):
-            screen.draw_frame(theme.viewer_image_frame, x + 4, y + 4,
-                              617, 397, True)
+            screen.draw_frame(theme.viewer_image_frame, x + 4, y + 30,
+                              612, 397, False)
         
 
     def __on_mouse_wheel(self, src, ev):        
@@ -92,11 +102,21 @@ class ImageViewer(Viewer):
             
         elif (cmd == src.OBS_END_LOADING):
             #self.update_observer(self.OBS_SHOW_PANEL)
-            self.__throbber.set_visible(False)            
+            self.__throbber.set_visible(False)
+            self.__image.render()
            
         elif (cmd == src.OBS_PROGRESS):        
             self.update_observer(self.OBS_SHOW_PROGRESS, *args)
             self.__throbber.rotate()
+
+
+    def __on_observe_overlay_ctrls(self, src, cmd, *args):
+    
+        if (cmd == src.OBS_PREVIOUS):
+            self.__previous_image()
+            
+        elif (cmd == src.OBS_NEXT):
+            self.__next_image()
             
             
     def __get_name(self, uri):
@@ -128,12 +148,7 @@ class ImageViewer(Viewer):
         idx += 1
         idx %= len(self.__items)
         self.__image.slide_from_right()
-        self.update_observer(self.OBS_SELECT_ITEM, idx)        
-        
-        
-    def __load(self, idx):
-    
-        self.load(self.__items[idx])
+        self.update_observer(self.OBS_SELECT_ITEM, idx)
             
 
     def clear_items(self):
@@ -153,12 +168,15 @@ class ImageViewer(Viewer):
 
 
     def load(self, item):
-      
+
         uri = item.uri
-        self.__image.load(uri)
-        self.__label.set_text(self.__get_name(uri))
+        self.__image.load(uri)        
+        #self.__label.set_text(self.__get_name(uri))
         self.__current_item = self.__items.index(item)
         self.__image.slide_from_right()
+        self.update_observer(self.OBS_TITLE, self.__get_name(uri))
+        self.update_observer(self.OBS_POSITION,
+                             self.__current_item + 1, len(self.__items))
 
 
     def do_enter(self):
@@ -218,20 +236,16 @@ class ImageViewer(Viewer):
         
         if (self.__is_fullscreen):
             self.update_observer(self.OBS_FULLSCREEN)
-            self.__label.set_visible(False)
+            #self.__label.set_visible(False)
+            self.__overlay_ctrls.set_visible(True)
             self.__image.set_background(_BACKGROUND_COLOR_FS)
-            self.__image.set_pos(0, 0)
-            self.__image.set_size(800, 480)
-            self.__throbber.set_pos(0, 0)
-            self.__throbber.set_size(800, 480)
+            self.__image.set_geometry(0, 0, 800, 480)
         else:
             self.update_observer(self.OBS_UNFULLSCREEN)
-            self.__label.set_visible(True)            
+            #self.__label.set_visible(True)
+            self.__overlay_ctrls.set_visible(False)
             self.__image.set_background(_BACKGROUND_COLOR)            
-            self.__image.set_pos(10, 10)
-            self.__image.set_size(600, 340)
-            self.__throbber.set_pos(10, 10)
-            self.__throbber.set_size(600, 340)
-
+            self.__image.set_geometry(15, 42, 584, 366)
+            
         self.update_observer(self.OBS_RENDER)
 

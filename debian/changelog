@@ -1,3 +1,12 @@
+mediabox (0.94.2) unstable; urgency=low
+
+  Fixed integer bug in gconf-workaround module (which is used where gconf
+  Python bindings are unavailable due to a packaging bug in pymaemo)
+  
+  Fixed bug in theme selector touch sensitivity
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 21 Feb 2008 20:40:00 +0100
+
 mediabox (0.94.1) unstable; urgency=low
 
   Added support for non-UTF-8 text encodings in ID3 tags
