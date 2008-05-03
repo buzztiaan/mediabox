@@ -1,6 +1,6 @@
 from ui.Widget import Widget
 from ui.HBox import HBox
-from ui.Image import Image
+from ui.ImageButton import ImageButton
 from ui.Label import Label
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from utils.Observable import Observable
@@ -33,9 +33,6 @@ class TabPanel(Widget, Observable):
         # icon widgets
         self.__icons = []
         
-        # images
-        self.__images = []
-        
         Widget.__init__(self, esens)
         self.__label = Label(esens,
                       "%s ver %s - %s" \
@@ -55,18 +52,13 @@ class TabPanel(Widget, Observable):
 
         if (idx != self.__index):            
             icon = self.__icons[self.__index]
-            img1, img2 = self.__images[self.__index]
-            icon.set_image(img1)
-
+            icon.set_active(False)
+ 
             icon = self.__icons[idx]
-            img1, img2 = self.__images[idx]
-            icon.set_image(img2)
-
+            icon.set_active(True)
+            
             self.__index = idx
-                  
-            self.render_at(TEMPORARY_PIXMAP, x, y)
-            screen.copy_pixmap(TEMPORARY_PIXMAP, x, y, x, y, w, h)
-        
+                         
         self.update_observer(self.OBS_TAB_SELECTED, idx)
 
 
@@ -74,19 +66,15 @@ class TabPanel(Widget, Observable):
     
         x, y = self.__pos        
 
-        if (len(self.__icons) == self.__index):
-            pbuf = v.ICON_ACTIVE
-        else:
-            pbuf = v.ICON
-
-        icon = Image(self.__esens, pbuf)
-        #icon.set_size(120, 120)
+        icon = ImageButton(self.__esens, v.ICON, v.ICON_ACTIVE, manual = True)
+        icon.set_size(120, 120)
         self.add(icon)
+        if (len(self.__icons) == self.__index):
+            icon.set_active(True)
         icon.connect(icon.EVENT_BUTTON_PRESS, self.__on_tab_selected,
                      len(self.__icons))
         self.__icons.append(icon)
-        self.__images.append((v.ICON, v.ICON_ACTIVE))
-        
+       
         offx = (128 - v.ICON.get_width()) / 2
         offy = (128 - v.ICON.get_height()) / 2
         icon.set_pos(10 + x * 128 + offx, 10 + y * 128 + offy)
@@ -110,8 +98,6 @@ class TabPanel(Widget, Observable):
         screen = self.get_screen()
        
         screen.fill_area(x, y, w, h, theme.color_bg)
-        #screen.draw_frame(theme.tab_panel, x, y, w, h, True)
-        #screen.draw_subpixbuf(theme.background, 0, 0, x, y, w, h)
 
 
 
