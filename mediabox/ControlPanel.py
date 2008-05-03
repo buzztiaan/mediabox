@@ -111,7 +111,7 @@ class ControlPanel(Widget, Observable):
         screen = self.get_screen()
     
         screen.draw_frame(theme.panel, x, y, w, h, True,
-                          screen.TOP | screen.BOTTOM)
+                          screen.TOP | screen.RIGHT)
 
 
 
@@ -184,7 +184,7 @@ class ControlPanel(Widget, Observable):
         for item in self.__items:
             item.set_visible(True)
         
-        #self.render()
+        self.render()
 
 
     def set_playing(self, value):

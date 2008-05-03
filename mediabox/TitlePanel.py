@@ -27,20 +27,20 @@ class TitlePanel(Widget):
         self.__info = Label(esens, "", theme.font_plain,
                             theme.color_fg_panel_text)
         self.__info.set_alignment(self.__title.RIGHT)
-        self.__info.set_geometry(500, 5, 100, 0)
+        self.__info.set_geometry(500, 5, 110, 0)
         self.add(self.__info)
 
         self.__buffer = Pixmap(None, 32, 32)
 
         self.__speaker = Image(esens, theme.speaker_volume)
-        self.__speaker.set_pos(510, 4)
+        self.__speaker.set_pos(520, 4)
         self.__speaker.set_visible(False)
         self.add(self.__speaker)
         
         self.__volume = Label(esens, "", theme.font_plain,
                               theme.color_fg_panel_text)
         self.__volume.set_alignment(self.__title.RIGHT)
-        self.__volume.set_geometry(550, 5, 50, 0)
+        self.__volume.set_geometry(560, 5, 50, 0)
         self.__volume.set_visible(False)
         self.add(self.__volume)
         

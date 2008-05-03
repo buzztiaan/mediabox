@@ -14,6 +14,7 @@ from ui.Image import Image
 from ui.Pixmap import Pixmap
 from ui.ImageStrip import ImageStrip
 from ui.KineticScroller import KineticScroller
+from ui import pixbuftools
 from ui import dialogs
 import panel_actions
 from Headset import Headset
@@ -102,17 +103,20 @@ class App(object):
         self.__splash.set_visible(True)
         self.__root_pane.add(self.__splash)
 
+        left_top = pixbuftools.make_frame(theme.panel, 170, 40, True,
+                                          pixbuftools.LEFT |
+                                          pixbuftools.BOTTOM)
+        left_bottom = pixbuftools.make_frame(theme.panel, 170, 70, True,
+                                          pixbuftools.TOP |
+                                          pixbuftools.LEFT)
+        pixbuftools.draw_pbuf(left_bottom, theme.btn_turn_1, 30, 15)
+
+
         # image strip       
         self.__strip = ImageStrip(self.__window, 10)
         self.__strip.set_geometry(0, 0, 170, 480)
         #self.__strip.set_caps(theme.panel_top_left, theme.panel_left)
-        from ui import pixbuftools
-        self.__strip.set_caps(
-            pixbuftools.make_frame(theme.panel, 170, 40, True,
-                                   pixbuftools.LEFT | pixbuftools.BOTTOM),
-            pixbuftools.make_frame(theme.panel, 170, 70, True,
-                                   pixbuftools.TOP | pixbuftools.BOTTOM)
-        )
+        self.__strip.set_caps(left_top, left_bottom)
         self.__strip.set_bg_color(theme.color_bg)
         self.__strip.set_visible(False)
         self.__root_pane.add(self.__strip)
@@ -127,9 +131,7 @@ class App(object):
         self.__root_pane.add(self.__thumbnailer)
 
         # title panel
-        self.__title_panel_left = Image(self.__window,
-                 pixbuftools.make_frame(theme.panel, 170, 40, True,
-                                        pixbuftools.LEFT | pixbuftools.BOTTOM))
+        self.__title_panel_left = Image(self.__window, left_top)
         self.__title_panel_left.set_geometry(0, 0, 170, 40)
         self.__title_panel_left.set_visible(False)
         
@@ -139,9 +141,7 @@ class App(object):
         self.__title_panel.set_visible(False)       
        
         # control panel
-        self.__panel_left = Image(self.__window,
-           pixbuftools.make_frame(theme.panel, 170, 70, True,
-                                  pixbuftools.TOP | pixbuftools.BOTTOM))
+        self.__panel_left = Image(self.__window, left_bottom)
         self.__panel_left.set_geometry(0, 410, 160, 70)
         self.__panel_left.connect(self.__panel_left.EVENT_BUTTON_PRESS,
                                   self.__on_menu_button)
@@ -558,7 +558,7 @@ class App(object):
             title = args[0]
             if (src.is_active()):
                 self.__title_panel.set_title(title)
-            self.__get_vstate().title = title
+                self.__get_vstate().title = title
     
         elif (cmd == src.OBS_TIME):
             pos, total = args
@@ -570,14 +570,14 @@ class App(object):
             if (src.is_active()):
                 self.__title_panel.set_info(info)
                 self.__ctrl_panel.set_position(pos, total)
-            self.__get_vstate().info = info
+                self.__get_vstate().info = info
     
         elif (cmd == src.OBS_POSITION):
             pos, total = args
             info = "%d / %d" % (pos, total)
             if (src.is_active()):
                 self.__title_panel.set_info(info)
-            self.__get_vstate().info = info
+                self.__get_vstate().info = info
             
         elif (cmd == src.OBS_FREQUENCY_MHZ):
             freq = args[0]
@@ -585,7 +585,7 @@ class App(object):
             if (src.is_active()):
                 self.__title_panel.set_info(info)
                 #self.__ctrl_panel.set_value(freq, unit)
-            self.__get_vstate().info = info
+                self.__get_vstate().info = info
             
         elif (cmd == src.OBS_VOLUME):
             percent = args[0]
@@ -622,16 +622,16 @@ class App(object):
         elif (cmd == src.OBS_UNFULLSCREEN):
             self.__set_view_mode(_MODE_NORMAL)
             
-        elif (cmd == src.OBS_SHOW_MESSAGE):
-            msg = args[0]
-            #self.__ctrlbar.show_message(msg)
+        #elif (cmd == src.OBS_SHOW_MESSAGE):
+        #    msg = args[0]
+        #    #self.__ctrlbar.show_message(msg)
             
-        elif (cmd == src.OBS_SHOW_PROGRESS):
-            value, total = args
-            #self.__ctrlbar.show_progress("Loading...", value, total)
+        #elif (cmd == src.OBS_SHOW_PROGRESS):
+        #    value, total = args
+        #    #self.__ctrlbar.show_progress("Loading...", value, total)
             
-        elif (cmd == src.OBS_SHOW_PANEL):
-            pass #self.__ctrlbar.show_panel()
+        #elif (cmd == src.OBS_SHOW_PANEL):
+        #    pass #self.__ctrlbar.show_panel()
 
         elif (cmd == src.OBS_STOP_PLAYING):
             issuer = args[0]
