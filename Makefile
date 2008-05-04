@@ -43,6 +43,7 @@ install-lib:
 	find ${_LIBDIR} -name ".svn" -exec rm -rf "{}" \; ; true
 	find ${_LIBDIR} -name "*~" -exec rm -f "{}" \; ; true
 	find ${_LIBDIR} -name "*.pyc" -exec rm -f "{}" \; ; true
+        find ${_LIBDIR} -name "*.xcf" -exec rm -f "{}" \; ; true
 	chmod a+x ${_LIBDIR}/${EXEC_FILE}
 	
 install-maemo:
