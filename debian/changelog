@@ -1,3 +1,21 @@
+mediabox (0.95) unstable; urgency=low
+
+  Playlist editor with support for drag-sorting
+
+  Huge memory and speed optimizations (folders with several hundred songs load
+  without problems)
+  
+  Music tracks are sorted by track number if available
+
+  Search-as-you-type for title text in albums and playlists (for models with
+  a keyboard)
+  
+  Revised UI based on user suggestions
+    
+  Bugfixes
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 04 May 2008 22:00:00 +0200
+
 mediabox (0.94.2) unstable; urgency=low
 
   Fixed integer bug in gconf-workaround module (which is used where gconf
