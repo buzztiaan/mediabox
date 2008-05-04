@@ -36,9 +36,9 @@ class ItemList(ImageStrip):
 
         canvas = self.__canvas
         item.set_canvas(canvas)
-        idx = self.append_image(item) #canvas)
         canvas.set_renderer(item, lambda x:item.render())
         self.__items.append(item)
+        idx = self.append_image(item)
         
         if (len(self.__items) < 30): self.__canvas.prepare(item)
         
