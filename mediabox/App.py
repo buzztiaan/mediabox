@@ -526,6 +526,7 @@ class App(object):
                 self.__tab_panel.fx_lower()
                 self.__root_pane.set_enabled(True)
                 self.__root_pane.set_frozen(False)
+                self.__root_pane.render_buffered()
 
 
     def __on_observe_viewer(self, src, cmd, *args):
@@ -540,7 +541,7 @@ class App(object):
             caps = args[0]
             if (src.is_active() and caps != self.__get_vstate().caps):
                 self.__ctrl_panel.set_capabilities(caps)
-                self.__get_vstate().caps = caps
+            self.__get_vstate(src).caps = caps
     
         elif (cmd == src.OBS_SCAN_MEDIA):
             force = args[0]
@@ -558,7 +559,7 @@ class App(object):
             title = args[0]
             if (src.is_active()):
                 self.__title_panel.set_title(title)
-                self.__get_vstate().title = title
+            self.__get_vstate(src).title = title
     
         elif (cmd == src.OBS_TIME):
             pos, total = args
@@ -570,22 +571,21 @@ class App(object):
             if (src.is_active()):
                 self.__title_panel.set_info(info)
                 self.__ctrl_panel.set_position(pos, total)
-                self.__get_vstate().info = info
+            self.__get_vstate(src).info = info
     
         elif (cmd == src.OBS_POSITION):
             pos, total = args
             info = "%d / %d" % (pos, total)
             if (src.is_active()):
                 self.__title_panel.set_info(info)
-                self.__get_vstate().info = info
+            self.__get_vstate(src).info = info
             
         elif (cmd == src.OBS_FREQUENCY_MHZ):
             freq = args[0]
             info = "%03.2f MHz" % freq
             if (src.is_active()):
                 self.__title_panel.set_info(info)
-                #self.__ctrl_panel.set_value(freq, unit)
-                self.__get_vstate().info = info
+            self.__get_vstate(src).info = info
             
         elif (cmd == src.OBS_VOLUME):
             percent = args[0]
@@ -610,11 +610,11 @@ class App(object):
             
         elif (cmd == src.OBS_SHOW_COLLECTION):
             self.__set_view_mode(_MODE_NORMAL)
-            self.__get_vstate().collection_visible = True
+            self.__get_vstate(src).collection_visible = True
 
         elif (cmd == src.OBS_HIDE_COLLECTION):
             self.__set_view_mode(_MODE_NO_STRIP)        
-            self.__get_vstate().collection_visible = False
+            self.__get_vstate(src).collection_visible = False
 
         elif (cmd == src.OBS_FULLSCREEN):
             self.__set_view_mode(_MODE_FULLSCREEN)
@@ -706,9 +706,12 @@ class App(object):
             self.__current_viewer.do_enter()
            
            
-    def __get_vstate(self):
+    def __get_vstate(self, viewer = None):
     
-        return self.__viewer_states[self.__current_viewer]
+        if (not viewer):
+            viewer = self.__current_viewer
+        return self.__viewer_states[viewer]
+                
             
             
     def __select_item(self, idx):

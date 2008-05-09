@@ -147,7 +147,7 @@ class RadioViewer(Viewer):
         for location, name in self.__current_radio.get_stations():
             self.__append_station(location, name)
         self.__list.set_frozen(False)
-        self.__list.render()
+        #self.__list.render()
       
         
     def shutdown(self):
@@ -163,6 +163,7 @@ class RadioViewer(Viewer):
         self.update_observer(self.OBS_REPORT_CAPABILITIES,
                              self.__current_radio.CAPS)
         self.__load_stations()
+        self.update_observer(self.OBS_RENDER)
         
 
     def do_enter(self):
