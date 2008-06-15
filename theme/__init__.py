@@ -3,9 +3,12 @@ This package contains the built-in graphics themes. Valid themes are detected
 automatically.
 """
 
+from Color import Color
+
 import gtk
 import pango
 import os
+
 
 # versions of theme formats this release works with
 _COMPATIBILITY = ["danube"]
@@ -65,10 +68,11 @@ def _read_colors(themepath):
         idx = line.find(":")
         name = line[:idx].strip()
         colorname = line[idx + 1:].strip()
-        try:
-            globals()[name] = colorname #gtk.gdk.color_parse(colorname)
-        except:
-            pass
+
+        if (name in globals()):
+            globals()[name].set_color(colorname)
+        else:
+            globals()[name] = Color(colorname)
     #end for
     
     
@@ -88,9 +92,15 @@ def _read_fonts(themepath):
         name = line[:idx].strip()
         fontname = line[idx + 1:].strip()
         try:
-            globals()[name] = pango.FontDescription(fontname)
+            font = pango.FontDescription(fontname)
         except:
             pass
+        else:
+            if (name in globals()):
+                globals()[name].merge(font, True)
+            else:
+                globals()[name] = font
+        
     #end for
 
 
@@ -141,19 +151,24 @@ def set_theme(name):
         name = os.path.splitext(i)[0]
         path = os.path.join(theme_dir, i)
         try:
-            globals()[name] = gtk.gdk.pixbuf_new_from_file(path)
+            pbuf = gtk.gdk.pixbuf_new_from_file(path)
+            #globals()[name] = gtk.gdk.pixbuf_new_from_file(path)
         except:
-            pass
+            continue
+        else:
+            if (name in globals()):
+                globals()[name].fill(0x00000000)
+                pbuf.scale(globals()[name], 0, 0,
+                           pbuf.get_width(), pbuf.get_height(), 0, 0, 1, 1,
+                           gtk.gdk.INTERP_NEAREST)
+            else:
+                globals()[name] = pbuf
+            del pbuf
     #end for
 
     # read fonts and colors
     _read_fonts(theme_dir)
     _read_colors(theme_dir)
-
-
-def _subregion(name, src, x, y, w, h):
-
-    globals()[name] = src.subpixbuf(x, y, w, h)
 
 
 set_theme("default")
