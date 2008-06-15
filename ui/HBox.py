@@ -8,12 +8,12 @@ class HBox(Widget):
     ALIGN_RIGHT = 2
     
 
-    def __init__(self, esens):
+    def __init__(self):
     
         self.__spacing = 0
         self.__alignment = self.ALIGN_CENTER
     
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
      
      
     def set_alignment(self, alignment):

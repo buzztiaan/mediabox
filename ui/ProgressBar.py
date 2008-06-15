@@ -10,7 +10,7 @@ class ProgressBar(Widget):
     Class for a progress bar.
     """
     
-    def __init__(self, esens, show_time = True):
+    def __init__(self, show_time = True):
 
         self.__show_time = show_time
         
@@ -20,7 +20,7 @@ class ProgressBar(Widget):
         self.__progress_width = 0        
         w, h = (theme.progress.get_width(), theme.progress.get_height())
         
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
         self.set_size(w, 80)
         
         self.connect(self.EVENT_BUTTON_PRESS, self.__on_button_press)
@@ -44,6 +44,16 @@ class ProgressBar(Widget):
             px = max(0, px)
             w, h = self.get_size()
             self.set_position(px, w, dragged = True)
+
+
+    def connect_changed(self, cb, *args):
+      
+        def f(px, py, *args):
+            w, h = self.get_size()
+            pos = max(0, min(99.9, px / float(w) * 100))
+            cb(pos, *args)
+      
+        self.connect(self.EVENT_BUTTON_RELEASE, f, *args)
 
 
     def render_this(self):

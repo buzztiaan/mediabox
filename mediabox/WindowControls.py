@@ -11,15 +11,14 @@ class WindowControls(Widget, Observable):
     OBS_CLOSE_WINDOW = 1
 
 
-    def __init__(self, esens):        
+    def __init__(self):        
     
         self.__buffer = None
         
     
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
         
-        btn_minimize = ImageButton(esens,
-                                   theme.window_minimize_1,
+        btn_minimize = ImageButton(theme.window_minimize_1,
                                    theme.window_minimize_2)
         btn_minimize.set_size(80, 80)
         btn_minimize.set_pos(10, 0)
@@ -27,8 +26,7 @@ class WindowControls(Widget, Observable):
         btn_minimize.connect(btn_minimize.EVENT_BUTTON_RELEASE,
                      lambda x,y:self.update_observer(self.OBS_MINIMIZE_WINDOW))
 
-        btn_close = ImageButton(esens,
-                                theme.window_close_1,
+        btn_close = ImageButton(theme.window_close_1,
                                 theme.window_close_2)
         btn_close.set_size(80, 80)
         btn_close.set_pos(110, 0)

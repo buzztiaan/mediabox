@@ -13,7 +13,7 @@ _HEIGHT = 40
 
 class ThrobberDialog(Widget):
 
-    def __init__(self, esens):
+    def __init__(self):
 
         self.__last_rotate = 0
     
@@ -30,10 +30,10 @@ class ThrobberDialog(Widget):
         self.__buffer = Pixmap(None, _WIDTH, _HEIGHT)        
     
     
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
         self.set_size(_WIDTH, _HEIGHT)
 
-        self.__label = Label(esens, "", theme.font_plain,
+        self.__label = Label("", theme.font_plain,
                              theme.color_fg_panel_text)
         self.__label.set_alignment(self.__label.CENTERED)
         self.__label.set_pos(10, 10)

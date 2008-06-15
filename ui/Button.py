@@ -4,7 +4,7 @@ from Pixmap import Pixmap
 
 class Button(Widget):
 
-    def __init__(self, esens, img1, img2):
+    def __init__(self, img1, img2):
     
         self.__bg = None
         self.__buffer = None
@@ -13,12 +13,11 @@ class Button(Widget):
         self.__img1 = img1
         self.__img2 = img2
     
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
         self.set_size(80, 80)
         self.connect(self.EVENT_BUTTON_PRESS, self.__on_click, True)
         self.connect(self.EVENT_BUTTON_RELEASE, self.__on_click, False)
-    
-    
+
     
     def set_size(self, w, h):
     

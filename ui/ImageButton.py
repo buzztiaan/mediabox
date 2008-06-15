@@ -4,7 +4,7 @@ from Pixmap import Pixmap, TEMPORARY_PIXMAP
 
 class ImageButton(Widget):
 
-    def __init__(self, esens, img1, img2, manual = False):
+    def __init__(self, img1, img2, manual = False):
     
         self.__bg = None
         self.__buffer = None
@@ -13,13 +13,17 @@ class ImageButton(Widget):
         self.__img1 = img1
         self.__img2 = img2
     
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
         self.set_size(70, 60)
         
         if (not manual):
             self.connect(self.EVENT_BUTTON_PRESS, self.__on_click, True)
             self.connect(self.EVENT_BUTTON_RELEASE, self.__on_click, False)               
     
+    
+    def _reload(self):
+    
+        self.set_images(self.__img1, self.__img2)
     
     
     def set_size(self, w, h):

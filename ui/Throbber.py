@@ -9,11 +9,11 @@ import theme
 
 class Throbber(Widget):
 
-    def __init__(self, esens, throbber):
+    def __init__(self, throbber):
     
         self.__last_rotate = 0
     
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
         
         self.__throbber = throbber
         self.__throbber_height = throbber.get_height()

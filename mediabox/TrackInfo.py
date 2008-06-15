@@ -13,24 +13,24 @@ _COVER_SIZE = 304
 
 class TrackInfo(Widget):
 
-    def __init__(self, esens):
+    def __init__(self):
     
         self.__cover = None
         self.__buffer = TEMPORARY_PIXMAP #Pixmap(None, 758, 400)
     
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
         
-        self.__title = Label(esens, "-", theme.font_headline,
+        self.__title = Label("-", theme.font_headline,
                              theme.color_fg_trackinfo)
         self.add(self.__title)
         self.__title.set_geometry(400, 34, 400 - 48, 0)
 
-        self.__album = Label(esens, "-", theme.font_plain,
+        self.__album = Label("-", theme.font_plain,
                              theme.color_fg_trackinfo)
         self.add(self.__album)
         self.__album.set_geometry(448, 94, 400 - 96, 0)
 
-        self.__artist = Label(esens, "-", theme.font_plain,
+        self.__artist = Label("-", theme.font_plain,
                               theme.color_fg_trackinfo)
         self.add(self.__artist)
         self.__artist.set_geometry(448, 134, 400 - 96, 0)

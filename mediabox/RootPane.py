@@ -9,11 +9,11 @@ import gobject
 
 class RootPane(Widget):
 
-    def __init__(self, esens):
+    def __init__(self):
     
         self.__buffer = Pixmap(None, 800, 480)
     
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
         self.set_size(800, 480)
 
 
@@ -35,10 +35,44 @@ class RootPane(Widget):
    
     def fx_fade_in(self, wait = True):
     
-        STEP = 32
+        STEP = 16
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
+        
+        pbuf1 = screen.render_on_pixbuf()
+        self.render_at(TEMPORARY_PIXMAP)
+        pbuf2 = TEMPORARY_PIXMAP.render_on_pixbuf()
+        finished = threading.Event()
+
+        for i in range(0, 255, STEP):
+            pbuf2.composite(pbuf1, 0, 0, w, h, 0, 0, 1, 1,
+                            gtk.gdk.INTERP_NEAREST, i)
+            screen.draw_pixbuf(pbuf1, 0, 0)
+            #del pbuf
+            #if (i > 0):
+            #    gobject.timeout_add(10, f, i - STEP)
+            #else:
+            #    finished.set()
+        return
+
+        def g(i):
+            i = min(255, i)        
+            pbuf = pbuf2.composite_color_simple(w, h, gtk.gdk.INTERP_NEAREST,
+                                                i, 1024, 0, 0)
+            screen.draw_pixbuf(pbuf, 0, 0)
+            del pbuf
+            if (i < 255):
+                gobject.timeout_add(10, g, i + STEP)
+            else:
+                finished.set()
+        
+        f(255 - STEP)
+        while (wait and not finished.isSet()): gtk.main_iteration()
+        finished = threading.Event()
+        g(STEP)
+        while (wait and not finished.isSet()): gtk.main_iteration()
+        return
         
         dst_pbuf = screen.render_on_pixbuf()
         buf = Pixmap(None, w, h)
@@ -48,7 +82,7 @@ class RootPane(Widget):
         
         def f(i, pbuf, dst_pbuf):
             i = min(255, i)
-            pbuf.composite(dst_pbuf, 0, 0, w, h, 0, 0, 1, 1,
+            pbuf.composite(dst_pbuf, 0, 0, w / 8, h / 8, 0, 0, 1, 1,
                            gtk.gdk.INTERP_NEAREST, i)
             screen.draw_subpixbuf(dst_pbuf, 0, 0, 0, 0, w, h)
             if (i < 255):

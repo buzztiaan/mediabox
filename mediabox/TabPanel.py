@@ -17,7 +17,7 @@ class TabPanel(Widget, Observable):
     OBS_TAB_SELECTED = 0
     
 
-    def __init__(self, esens):
+    def __init__(self):
     
         self.__buffer = Pixmap(None, 800, 480)
         
@@ -27,15 +27,13 @@ class TabPanel(Widget, Observable):
         
         self.__lock = threading.Event()
         
-        self.__esens = esens
         self.__pos = (0, 0)
         
         # icon widgets
         self.__icons = []
         
-        Widget.__init__(self, esens)
-        self.__label = Label(esens,
-                      "%s ver %s - %s" \
+        Widget.__init__(self)
+        self.__label = Label("%s ver %s - %s" \
                       % (values.NAME, values.VERSION, values.COPYRIGHT),
                       theme.font_micro, theme.color_fg_splash)
         self.add(self.__label)
@@ -66,7 +64,7 @@ class TabPanel(Widget, Observable):
     
         x, y = self.__pos        
 
-        icon = ImageButton(self.__esens, v.ICON, v.ICON_ACTIVE, manual = True)
+        icon = ImageButton(v.ICON, v.ICON_ACTIVE, manual = True)
         icon.set_size(120, 120)
         self.add(icon)
         if (len(self.__icons) == self.__index):

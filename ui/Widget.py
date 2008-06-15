@@ -13,14 +13,17 @@ class Widget(object):
     
     # static flag for blocking event handling
     __events_blocked = [False]
-    
 
-    def __init__(self, esens):
+
+    _esens = None
+        
+
+    def __init__(self):
     
         self.__children = []
         self.__parent = None
     
-        self.__event_sensor = esens
+        self.__event_sensor = self._esens
         self.__event_handlers = {}
         self.__is_enabled = True
         self.__is_frozen = False
@@ -32,22 +35,28 @@ class Widget(object):
         
         self.__screen = None
           
-        
-    def __on_action(self, etype, px, py):
-    
+          
+    def send_event(self, ev, *args):
+
         if (self.__events_blocked[0]): return
         
-        x, y = self.get_screen_pos()
-        handlers = self.__event_handlers.get(etype, [])
-        for cb, args in handlers:
+        handlers = self.__event_handlers.get(ev, [])
+        for cb, user_args in handlers:
             try:
-                px2 = px - x
-                py2 = py - y
-                cb(px2, py2, *args)
+                cb(*(args + user_args))
             except:
                 import traceback; traceback.print_exc()
-                pass
         #end for
+    
+        
+        
+    def __on_action(self, etype, px, py):
+
+        x, y = self.get_screen_pos()
+        px2 = px - x
+        py2 = py - y
+    
+        self.send_event(etype, px2, py2)
 
 
     def set_events_blocked(self, value):
@@ -194,6 +203,11 @@ class Widget(object):
         self.__check_zone()
 
 
+    def connect_clicked(self, cb, *args):
+        
+        self.connect(self.EVENT_BUTTON_RELEASE, lambda x,y:cb(), *args)
+
+
     def set_pos(self, x, y):
     
         self.__position = (x, y)
@@ -269,3 +283,31 @@ class Widget(object):
         self.set_screen(real_screen)
         self.set_pos(real_x, real_y)
         
+        
+    def propagate_theme_change(self):
+    
+        self._reload()
+        for c in self.__children:
+            c.propagate_theme_change()
+            
+            
+    def _reload(self):
+    
+        pass
+
+
+    def get_event_sensor(self):
+    
+        return self.__event_sensor
+        
+        
+    def get_window(self):
+    
+        return self.get_event_sensor()
+        
+
+    @staticmethod
+    def set_event_sensor(esens):
+        
+        Widget._esens = esens
+

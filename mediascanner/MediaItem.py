@@ -15,7 +15,4 @@ class MediaItem(object):
         self.scantime = 0             # scan time
         self.thumbnail = ""           # thumbnail path
         self.thumbnail_pmap = None    # actual thumbnail pixmap
-        
-    # TODO: get rid of
-    def get_thumbnail(self): return self.thumbnail_pmap
-    
+

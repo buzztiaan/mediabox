@@ -23,6 +23,11 @@ class SharedPixmap(Pixmap):
         self.__renderers[ident] = renderer
         
         
+    def clear_cache(self):
+    
+        self.__cache = []
+    
+        
     def invalidate_cache(self, ident):
             
         self.__cache = [ (i, c) for i, c in self.__cache if i != ident ]
@@ -46,7 +51,7 @@ class SharedPixmap(Pixmap):
         # render if not in cache
         if (not from_cache):
             try:
-                self.__renderers[ident](self)
+                self.__renderers[ident]()
 
             except:
                 import traceback; traceback.print_exc()

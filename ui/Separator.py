@@ -3,11 +3,11 @@ from Widget import Widget
 
 class Separator(Widget):
 
-    def __init__(self, esens):
+    def __init__(self):
     
         self.__bg = None
     
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
         
 
     def set_background(self, bg):

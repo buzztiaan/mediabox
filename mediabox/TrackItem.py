@@ -25,6 +25,8 @@ class TrackItem(Item):
     List item for track items.
     """
 
+    BUTTON_MENU = "menu"
+
     # override these by your subclass
     _ITEMS_OPEN = []
     _ITEMS_CLOSED = []
@@ -97,6 +99,7 @@ class TrackItem(Item):
         
     def render_this(self, canvas):
     
+        Item.render_this(self, canvas)
         w, h = canvas.get_size()
         
         x = 0

@@ -1,5 +1,6 @@
 from MediaItem import MediaItem
 from utils.Observable import Observable
+from utils import logging
 
 # these modules handle the particular media types
 import video
@@ -9,7 +10,6 @@ import image
 import md5
 import os
 import time
-#import cPickle
     
 
 class _MediaScanner(Observable):
@@ -25,12 +25,7 @@ class _MediaScanner(Observable):
     
 
     def __init__(self):
-    
-        # table: path -> (md5sum, mediatype)
-        #try:
-        #    self.__media = cPickle.load(open("/tmp/mediabox-mediacache", "r"))
-        #except:
-        
+
         # time of the last scan
         self.__scantime = 0
         
@@ -122,12 +117,12 @@ class _MediaScanner(Observable):
         """
 
         collection = []
-        #self.__media = {}
+
         self.__scantime = int(time.time())
-        print "searching"
 
         for mediaroot, mediatypes in self.__media_roots:
             if (not os.path.exists(mediaroot)): continue
+            logging.info("scanning [%s] for media", mediaroot)
             
             try:
                 self.__process_media(mediatypes, mediaroot)
@@ -161,9 +156,7 @@ class _MediaScanner(Observable):
             if (item.scantime < self.__scantime):
                 del self.__media[key]
         #end for
-
-        #cPickle.dump(self.__media, open("/tmp/mediabox-mediacache", "w"))
-        
+       
         
     def __process_media(self, mediatypes, uri):
 

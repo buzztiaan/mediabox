@@ -9,6 +9,9 @@ import time
 
 class TrackList(ItemList, Observable):
 
+    EVENT_BUTTON_CLICKED = "button-clicked"
+    EVENT_ITEM_SELECTED = "item-selected"
+
     OBS_ITEM_BUTTON = 0
     OBS_ADD_ALBUM = 0
     OBS_PLAY_TRACK = 1
@@ -21,7 +24,7 @@ class TrackList(ItemList, Observable):
     OBS_SWAPPED = 7
     
 
-    def __init__(self, esens, with_drag_sort = False, with_header = False):
+    def __init__(self, with_drag_sort = False, with_header = False):
     
         # ignore clicks until the given time was reached
         self.__ignore_click_until = 0
@@ -29,7 +32,7 @@ class TrackList(ItemList, Observable):
         self.__open_item = -1
         self.__has_header = with_header
     
-        ItemList.__init__(self, esens, 80)
+        ItemList.__init__(self, 80)
         self.set_caps(theme.list_top, theme.list_bottom)
         self.set_bg_color(theme.color_bg)
         self.set_scrollbar(theme.list_scrollbar)
@@ -70,12 +73,17 @@ class TrackList(ItemList, Observable):
                 self.__open_item = -1
                 need_render = True
 
-            if (button == "menu"):
+            if (button == item.BUTTON_MENU):
                 item.open_menu()
                 self.__open_item = idx
-                handled = True
                 need_render = True
                 
+            else:
+                self.send_event(self.EVENT_BUTTON_CLICKED, item, idx, button)
+                
+            if (button): handled = True
+                
+            """
             elif (button == "add"):
                 if (idx == 0):
                     self.update_observer(self.OBS_ADD_ALBUM)
@@ -109,10 +117,21 @@ class TrackList(ItemList, Observable):
                 handled = True
 
             #end if
+            """
         #end if
 
         if (need_render): self.render()
         if (handled): self.__kscr.stop_scrolling()
 
         return handled
+
+
+    def connect_button_clicked(self, cb, *args):
+    
+        self.connect(self.EVENT_BUTTON_CLICKED, cb, *args)
+        
+        
+    def connect_item_selected(self, cb, *args):
+    
+        self.connect(self.EVENT_ITEM_SELECTED, cb, *args)
 

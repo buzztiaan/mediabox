@@ -9,7 +9,7 @@ import gtk
 
 class Thumbnailer(Widget):
 
-    def __init__(self, esens):
+    def __init__(self):
         """
         Class for providing visual feedback while thubmnails are being rendered.
         """
@@ -17,10 +17,10 @@ class Thumbnailer(Widget):
         self.__buffer = Pixmap(None, 160, 120)
         self.__bg = Pixmap(None, 160, 120)
     
-        Widget.__init__(self, esens)
+        Widget.__init__(self)
         self.set_size(800, 400)
        
-        self.__label = Label(esens, "", theme.font_tiny, theme.color_fg_item)
+        self.__label = Label("", theme.font_tiny, theme.color_fg_item)
         self.add(self.__label)
         self.__label.set_alignment(self.__label.RIGHT)
         self.__label.set_size(780, 0)

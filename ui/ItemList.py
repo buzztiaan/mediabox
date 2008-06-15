@@ -1,5 +1,4 @@
 from ImageStrip import ImageStrip
-from SharedPixmap import SharedPixmap
 
 
 class ItemList(ImageStrip):
@@ -7,17 +6,16 @@ class ItemList(ImageStrip):
     This class is a item list view based on the ImageStrip for smooth scrolling.
     """
 
-    def __init__(self, esens, itemsize):
+    def __init__(self, itemsize):
     
-        self.__canvas = None
         self.__height = itemsize
                       
         self.__items = []        
         self.__hilighted_item = -1
                 
-        ImageStrip.__init__(self, esens, 20)
+        ImageStrip.__init__(self, 20)
         self.set_wrap_around(False)
-       
+
         
     def clear_items(self):
     
@@ -31,25 +29,15 @@ class ItemList(ImageStrip):
     
         w, h = self.get_size()
         w -= 20
-        if (not self.__canvas):
-            self.__canvas = SharedPixmap(w, self.__height)
+        item.set_size(w, 80)
 
-        canvas = self.__canvas
-        item.set_canvas(canvas)
-        canvas.set_renderer(item, lambda x:item.render())
         self.__items.append(item)
         idx = self.append_image(item)
-        
-        if (len(self.__items) < 30): self.__canvas.prepare(item)
+
+        #if (len(self.__items) < 30): self.__canvas.prepare(item)
         
         return idx
-
-
-    def append_custom_item(self, item):
-
-        self.__items.append(item)        
-        return self.append_image(item)
-        
+     
         
     def get_item(self, idx):
     
@@ -94,6 +82,6 @@ class ItemList(ImageStrip):
             item = self.__items[idx]
             item.set_hilighted(True)
             self.__hilighted_item = idx
-            #self.render()
+            self.render()
             #self.scroll_to_item(idx)
 

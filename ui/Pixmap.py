@@ -199,7 +199,7 @@ class Pixmap(object):
         Fills the given area with the given color (opaquely).
         """
     
-        col = self.__cmap.alloc_color(color)
+        col = self.__cmap.alloc_color(str(color))
         self.__gc.set_foreground(col)
         self.__pixmap.draw_rectangle(self.__gc, True, x, y, w, h)
 
@@ -227,7 +227,7 @@ class Pixmap(object):
         Draws a line of the given color.
         """
     
-        col = self.__cmap.alloc_color(color)
+        col = self.__cmap.alloc_color(str(color))
         self.__gc.set_foreground(col)
         self.__pixmap.draw_line(self.__gc, x1, y1, x2, y2)
 
@@ -243,7 +243,7 @@ class Pixmap(object):
     
         w -= 1
         h -= 1
-        col = self.__cmap.alloc_color(color)
+        col = self.__cmap.alloc_color(str(color))
         self.__gc.set_foreground(col)
         self.__pixmap.draw_rectangle(self.__gc, False, x, y, w, h)
 
@@ -266,7 +266,7 @@ class Pixmap(object):
             _PANGO_LAYOUT.set_markup(text)
         else:
             _PANGO_LAYOUT.set_text(text)
-        self.__gc.set_foreground(self.__cmap.alloc_color(color))
+        self.__gc.set_foreground(self.__cmap.alloc_color(str(color)))
         
         rect_a, rect_b = _PANGO_LAYOUT.get_extents()
         nil, nil, w, h = rect_b
@@ -278,7 +278,8 @@ class Pixmap(object):
         self.__pixmap.draw_layout(self.__gc, x, y, _PANGO_LAYOUT)
 
         if (self.__buffered):        
-            self.__buffer_gc.set_foreground(self.__buffer_cmap.alloc_color(color))
+            self.__buffer_gc.set_foreground(
+                                       self.__buffer_cmap.alloc_color(str(color)))
             self.__buffer.draw_layout(self.__buffer_gc, x, y, _PANGO_LAYOUT)
         
         
@@ -462,7 +463,7 @@ class Pixmap(object):
         
 
 """
-The temporary pixmap is a large pixmap for temporary drawing operations.
+The temporary pixmap is a pixmap for temporary drawing operations.
 """
-TEMPORARY_PIXMAP = Pixmap(None, 1600, 960)
+TEMPORARY_PIXMAP = Pixmap(None, 800, 480)
 

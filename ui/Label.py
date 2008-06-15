@@ -13,7 +13,7 @@ class Label(Widget):
     RIGHT = 1
     CENTERED = 2
 
-    def __init__(self, esens, text, font, color):
+    def __init__(self, text, font, color):
     
         self.__text_pmap = None
         self.__bg = None
@@ -25,8 +25,13 @@ class Label(Widget):
         self.__font = font
         self.__color = color
     
-        Widget.__init__(self, esens)
-        self.__create_text_pmap()
+        Widget.__init__(self)
+        #self.__create_text_pmap()
+
+
+    def _reload(self):
+    
+        self.__is_new_text = True
 
 
     def __create_text_pmap(self):
@@ -47,9 +52,10 @@ class Label(Widget):
 
         if (not w): w = text_w
         if (not h): h = text_h
-            
-        self.__bg = Pixmap(None, w, h)
-        self.__bg.copy_buffer(screen, x, y, 0, 0, w, h)
+        
+        self.__bg = Pixmap(None, w, text_h)
+        y += (h - text_h) / 2
+        self.__bg.copy_buffer(screen, x, y, 0, 0, w, text_h)
 
 
     def __restore_background(self):
@@ -60,8 +66,13 @@ class Label(Widget):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
+        text_w, text_h = self.__text_pmap.get_size()
+
+        if (not w): w = text_w
+        if (not h): h = text_h
 
         bg_w, bg_h = self.__bg.get_size()
+        y += (h - text_h) / 2
         screen.copy_pixmap(self.__bg, 0, 0, x, y, bg_w, bg_h)
                 
 
@@ -86,7 +97,8 @@ class Label(Widget):
 
         # tile background
         for i in range(0, text_w, w):
-            self.__text_pmap.copy_pixmap(self.__bg, 0, 0, i - text_x, 0, w, h)
+            self.__text_pmap.copy_pixmap(self.__bg, 0, 0, i - text_x, 0,
+                                         w, text_h)
         
         # draw text
         self.__text_pmap.draw_text(self.__text, self.__font, 0, 0, self.__color)
@@ -119,7 +131,8 @@ class Label(Widget):
             if (self.__render_timer):
                 gobject.source_remove(self.__render_timer)        
             self.__render_text(0, 1)
-            
+
+
     def get_text(self):
     
         return self.__text
@@ -172,9 +185,9 @@ class Label(Widget):
             text_x = 0
             
         if (self.may_render()):
-            screen.copy_pixmap(self.__text_pmap, pos, 0, x + text_x, y,
+            text_y = (h - text_h) / 2
+            screen.copy_pixmap(self.__text_pmap, pos, 0, x + text_x, y + text_y,
                                min(text_w, w), text_h)
-
 
         # handle scrolling
         if (text_w > w and self.may_render()):
