@@ -12,7 +12,7 @@ class DeviceThumbnail(StripItem):
     def __init__(self, dev):
 
         self.__title = dev.get_name()
-        self.__icon = dev.get_icon() or theme.viewer_upnp_device
+        self.__icon = dev.get_icon() or theme.viewer_folders_device
         
         StripItem.__init__(self)
         self.set_size(160, 120)
