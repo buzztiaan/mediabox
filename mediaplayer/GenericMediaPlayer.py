@@ -21,18 +21,19 @@ class GenericMediaPlayer(_Observable):
 
     OBS_STARTED = 0
     OBS_KILLED = 1
-    OBS_ERROR = 2
+    OBS_SUSPENDED = 2
+    OBS_ERROR = 3
         
-    OBS_PLAYING = 3
-    OBS_STOPPED = 4
-    OBS_NEW_STREAM_TRACK = 5
-    OBS_EOF = 6
+    OBS_PLAYING = 4
+    OBS_STOPPED = 5
+    OBS_NEW_STREAM_TRACK = 6
+    OBS_EOF = 7
     
-    OBS_POSITION = 7
+    OBS_POSITION = 8
     
-    OBS_ASPECT = 8
+    OBS_ASPECT = 9
     
-    OBS_BUFFERING = 9
+    OBS_BUFFERING = 10
     
     # error codes
     ERR_INVALID = 0
@@ -97,6 +98,11 @@ class GenericMediaPlayer(_Observable):
         
         
     def load(self, uri):
+    
+        raise NotImplementedError
+       
+       
+    def resume(self, uri, pos):
     
         raise NotImplementedError
         

@@ -54,6 +54,7 @@ _FORMATS = (".avi", ".flv", ".mov", ".mpeg",
             ".m3u", ".pls", "unknown-stream")
 
 
+
 class _MPlayer(GenericMediaPlayer):
     """
     Singleton class for controlling and embedding mplayer in other applications.
@@ -76,7 +77,6 @@ class _MPlayer(GenericMediaPlayer):
         self.__has_video = False
         self.__has_audio = False
         self.__playing = False
-        self.__broken = False
         
         self.__volume = 50
         
@@ -89,13 +89,13 @@ class _MPlayer(GenericMediaPlayer):
         self.__video_aspect = 0
         
         self.__uri = ""
-        self.__position = 0
+        self.__position = -1
         self.__total_length = 0
         self.__time_of_check = 0
         
         self.__timeout_point = 0
-        self.__next_time_check = 0
-                
+        self.__suspension_point = None
+        
         self.__context_id = 0
         
         # table for collecting player values
@@ -113,18 +113,16 @@ class _MPlayer(GenericMediaPlayer):
         w, h = src.get_size()
         src.draw_rectangle(gc, False, w - 1, 0, 1, h)
         src.draw_rectangle(gc, False, 0, h - 1, w, 1)    
-        
+              
 
     def __on_eof(self):
         """
         Reacts on end-of-file.
         """
 
-        self.stop()
         self.__playing = False
-        self.__has_video = False
-        self.__has_audio = False
         print "REACHED EOF"
+        self.__suspension_point = (self.__uri, 0)
         self.update_observer(self.OBS_EOF, self.__context_id)
 
 
@@ -153,9 +151,9 @@ class _MPlayer(GenericMediaPlayer):
             now = time.time()
 
             # don't ask mplayer for the current position every time, because
-            # this is highly inefficient with Ogg Vorbis files
-            if (self.__position == 0):
-                try:            
+            # this is highly inefficient with Ogg Vorbis files            
+            if (self.__position < 0.1):
+                try:
                     pos, total = self.get_position()
                     self.__time_of_check = now
                 except:
@@ -163,6 +161,7 @@ class _MPlayer(GenericMediaPlayer):
 
                 self.__position = pos
                 self.__total_length = total
+                #print total, pos
                 
             else:
                 pos = self.__position + now - self.__time_of_check
@@ -209,12 +208,10 @@ class _MPlayer(GenericMediaPlayer):
         # close mplayer if we've been idle too long
         if (self.__idle_counter == 500):
             self.__idle_counter = 0
-            self.__stdin.close()
-            self.__stdout.close()
             self.__stop_mplayer()
             self.__heartbeat_running = False
-            self.__needs_restart = True
-            print "mplayer closed due to idle timeout"            
+            self.__suspension_point = (self.__uri, self.__position)
+            print "mplayer closed due to idle timeout"
             return False
            
         gobject.timeout_add(300, self.__heartbeat)        
@@ -416,6 +413,7 @@ class _MPlayer(GenericMediaPlayer):
         if (self.__xid != xid):
             self.__xid = xid
             self.__needs_restart = True
+            self.__suspension_point = None
 
 
     def set_options(self, opts):
@@ -426,6 +424,7 @@ class _MPlayer(GenericMediaPlayer):
         if (self.__opts != opts):
             self.__opts = opts
             self.__needs_restart = True
+            self.__suspension_point = None
         
         
         
@@ -437,7 +436,7 @@ class _MPlayer(GenericMediaPlayer):
         self.__playing = False
         self.__has_video = False
         self.__has_audio = False
-        self.__context_id = 0
+
         self.update_observer(self.OBS_KILLED)
         
         #if (self.__stdin): self.__stdin.write("quit\n")
@@ -495,12 +494,15 @@ class _MPlayer(GenericMediaPlayer):
         if (self.__needs_restart):        
             self.__stop_mplayer()
             self.__needs_restart = False
-            if (self.__uri):
-                self.load(self.__uri, self.__context_id)
-                self.__playing = True
-        
+
         if (not self.__stdin):
             self.__start_mplayer(self.__xid, self.__opts)        
+
+        if (self.__suspension_point):
+            uri, pos = self.__suspension_point
+            self.load(uri, self.__context_id)
+            self.seek(pos)
+            self.__playing = True
 
         
 
@@ -521,7 +523,8 @@ class _MPlayer(GenericMediaPlayer):
         Loads and plays the given media file.
         """
     
-        self.__uri = ""
+        self.__uri = ""        
+        self.__suspension_point = None
         self.__ensure_mplayer()
         
         self.__send_cmd("loadfile \"%s\"" % filename)
@@ -530,7 +533,7 @@ class _MPlayer(GenericMediaPlayer):
         self.__broken = False
         self.__has_video = False
         self.__has_audio = False
-        self.__position = 0
+        self.__position = -1
         self.__media_length = -1
         self.__uri = filename
 
@@ -590,11 +593,10 @@ class _MPlayer(GenericMediaPlayer):
             
         if (not self.__playing):
             self.__playing = True
-            self.__position = 0
-            self.__position = 0
             self.set_volume(self.__volume)
-            self.__send_cmd("play")            
+            self.__send_cmd("play")
             self.update_observer(self.OBS_PLAYING, self.__context_id)
+        self.__position = -1
         
         
     def pause(self):
@@ -605,12 +607,12 @@ class _MPlayer(GenericMediaPlayer):
         if (self.__playing):
             self.set_volume(self.__volume)
             self.__send_cmd("pause")
-            self.__position = 0
             self.update_observer(self.OBS_PLAYING, self.__context_id)
+            self.__position = -1
         else:
             self.__send_cmd("pause")
             self.update_observer(self.OBS_STOPPED, self.__context_id)
-        
+                    
         
     def stop(self):
 
@@ -627,17 +629,13 @@ class _MPlayer(GenericMediaPlayer):
         self.__ensure_mplayer()
         self.__send_cmd("seek %d 2" % pos)
         self.play()
-        self.__position = 0
-                
 
-        
-        
+
     def seek_percent(self, pos):
 
         self.__ensure_mplayer()    
         self.__send_cmd("seek %d 1" % pos)
         self.play()
-        self.__position = 0
 
 
 

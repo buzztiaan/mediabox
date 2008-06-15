@@ -6,6 +6,7 @@ from DummyPlayer import DummyPlayer
 from MPlayer import MPlayer
 from OSSOPlayer import OSSOPlayer
 from utils import maemo
+from utils import logging
 
 import os
 
@@ -86,7 +87,7 @@ def get_player_for_uri(uri):
         filetype = os.path.splitext(uri)[-1]
         
     player = mapping.get(filetype, _DUMMY)
-    print filetype, "... handled by", player
+    logging.info("'%s' handled by %s", filetype, `player`)
     _switch_player(player)
     
     return player
@@ -95,7 +96,7 @@ def get_player_for_uri(uri):
 def add_observer(observer):
 
     for player in _PLAYERS:
-        print player, observer
+        logging.debug("loading player backend %s", `player`)
         player.add_observer(observer)
         
 
