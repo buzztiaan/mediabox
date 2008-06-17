@@ -214,7 +214,7 @@ class AlbumViewer(Viewer):
             self.__list.set_visible(False)
             self.__playlist.set_visible(True)
             self.set_toolbar_set(self.__tbset_playlist)
-            self.emit_event(events.CORE_ACT_VIEW_MODE. viewmodes.NO_STRIP)
+            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
             self.emit_event(events.CORE_ACT_RENDER_ALL)
      
         else:
