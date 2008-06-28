@@ -117,6 +117,11 @@ class UPnPDevice(Device):
         return (self.__cds_proxy != None)
 
 
+    def get_prefix(self):
+    
+        return "upnp://%s" % self.__udn
+
+
     def get_icon(self):
 
         if (self.__icon_url):
@@ -138,11 +143,43 @@ class UPnPDevice(Device):
         
     def get_root(self):
     
-        return "0"
+        f = File(self)
+        f.path = "0"
+        f.mimetype = f.DIRECTORY
+        f.resource = ""
+        f.name = ""
+        
+        return f    
+
+
+    def get_file(self, path):
+
+        if (path.startswith("/")): path = path[1:]
+        didl, nil, nil, nil = self.__cds_proxy.Browse(path,
+                                                      "BrowseMetadata",
+                                                      "*", "0", "0", "")
+        entry = didl_lite.parse(didl)
+        ident, clss, child_count, res, title, artist, mimetype = entry[0]
+
+        f = File(self)
+        f.mimetype = mimetype
+        f.resource = res
+        f.name = title
+        f.info = artist
+        f.path = path
+
+        if (f.mimetype == f.DIRECTORY):
+            f.resource = ident
+        else:
+            f.resource = urlparse.urljoin(self.__url_base, res)
+        f.child_count = child_count
+
+        return f
         
         
     def ls(self, path):
     
+        if (path.startswith("/")): path = path[1:]
         try:
             didl = self.__didl_cache[path]
         except KeyError:
@@ -150,16 +187,17 @@ class UPnPDevice(Device):
                                                 "BrowseDirectChildren",
                                                 "*", "0", "0", "")
             self.__didl_cache[path] = didl
-            
+
         files = []
         for entry in didl_lite.parse(didl):
-            ident, clss, child_count, res, title, artist = entry
-            f = File()
+            ident, clss, child_count, res, title, artist, mimetype = entry
+            f = File(self)
+            f.mimetype = mimetype
+            f.resource = res or urlparse.urljoin(self.__url_base, ident)
             f.name = title
             f.info = artist
-            f.filetype = clss.startswith("object.container") \
-                       and f.DIRECTORY or f.FILE
-            if (f.filetype == f.DIRECTORY):
+
+            if (f.mimetype == f.DIRECTORY):
                 f.path = ident
             else:
                 f.path = urlparse.urljoin(self.__url_base, res)
@@ -168,6 +206,11 @@ class UPnPDevice(Device):
             
         return files
 
+
+    def get_fd(self, resource):
+    
+        fd = urllib.urlopen(resource)
+        return fd
 
 
 if (__name__ == "__main__"):   

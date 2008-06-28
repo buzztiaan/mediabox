@@ -39,6 +39,7 @@ class SSDPMonitor(Component):
     def __initialize_device(self, uuid, location):
 
         device = UPnPDevice(location)
+        logging.debug("propagating availability of device %s" % uuid)
         threads.run_unthreaded(self.emit_event,
                             events.CORE_EV_DEVICE_ADDED, uuid, device)
 
