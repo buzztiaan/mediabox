@@ -55,6 +55,11 @@ def _parse_item(node):
         res = node.get_pcdata("{%s}res" % _XMLNS_DIDL)
         clss = node.get_pcdata("{%s}class" % _XMLNS_UPNP)
         title = node.get_pcdata("{%s}title" % _XMLNS_DC)
+
+        res_node = node.get_child("{%s}res" % _XMLNS_DIDL)
+        protocol_info = res_node.get_attr("{%s}protocolInfo" % _XMLNS_DIDL)
+        mimetype = protocol_info.split(":")[2]
+        
     except:
         return None
 
@@ -63,7 +68,7 @@ def _parse_item(node):
     except:
         artist = ""
     
-    return (ident, clss, 0, res, title, artist)
+    return (ident, clss, 0, res, title, artist, mimetype)
     
         
 def _parse_container(node):
@@ -74,10 +79,12 @@ def _parse_container(node):
     
         clss = node.get_pcdata("{%s}class" % _XMLNS_UPNP)
         title = node.get_pcdata("{%s}title" % _XMLNS_DC)
+
     except:
+        import traceback; traceback.print_exc()
         return None
 
-    return (ident, clss, child_count, "", title, "")
+    return (ident, clss, child_count, "", title, "", "application/x-directory")
 
     
     
