@@ -40,6 +40,7 @@ class TrackItem(Item):
         self.__button_pos = []
     
         self.__icon = icon
+        self.__emblem = None
         self.__color_1 = "#000000"
         self.__color_2 = "#666666"
         self.__font = None
@@ -53,6 +54,11 @@ class TrackItem(Item):
            
         Item.__init__(self)
         
+
+    def set_emblem(self, emblem):
+    
+        self.__emblem = emblem
+
         
     def set_colors(self, col1, col2):
     
@@ -111,10 +117,13 @@ class TrackItem(Item):
 
         x += 8        
         if (self.__icon):
-            canvas.draw_pixbuf(self.__icon,
-                               x, (h - self.__icon.get_height()) / 2)
-            x += self.__icon.get_width()
+            canvas.fit_pixbuf(self.__icon, 4, 4, 120, 70)
+                               #x, (h - self.__icon.get_height()) / 2)
+            x += 120 #self.__icon.get_width()
             x += 12
+            
+            if (self.__emblem):
+                canvas.fit_pixbuf(self.__emblem, 70, 32, 48, 48)
         
         canvas.draw_text("%s\n<span color='%s'>%s</span>" \
                       % (self.__label, self.__color_2, self.__sublabel),
