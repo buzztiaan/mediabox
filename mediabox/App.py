@@ -156,8 +156,8 @@ class App(Component):
         
 
         # set up media scanner
-        mscanner = MediaScanner()
-        mscanner.add_observer(self.__on_observe_media_scanner)
+        #mscanner = MediaScanner()
+        #mscanner.add_observer(self.__on_observe_media_scanner)
        
 
         #from components import system
@@ -335,7 +335,7 @@ class App(Component):
         Scans the media root locations for media files. Will create thumbnails
         when missing.
         """
-
+        
         if (force_scan):
             self.__current_mediaroots = []
 
@@ -364,26 +364,23 @@ class App(Component):
         while (gtk.events_pending()): gtk.main_iteration()
 
 
-        mscanner = MediaScanner()
-        mscanner.set_thumb_folder(os.path.abspath(config.thumbdir()))
-               
-        mscanner.set_media_roots(mediaroots)
-
-        now = time.time()
-        mscanner.scan()
-        self.emit_event(events.CORE_EV_MEDIA_SCANNING_FINISHED, mscanner)
+        paths = []
+        for path, mtypes in mediaroots:
+            f = self.call_service(events.CORE_SVC_GET_FILE, path)
+            if (f): paths.append((f, mtypes))
+        #end for
+        self.emit_event(events.MEDIASCANNER_ACT_SCAN, paths)
+        
 
         while (gtk.events_pending()): gtk.main_iteration()
 
-        # update viewers        
-        now = time.time()
         for v in self.__viewers:
-            #v.update_media(mscanner)
             self.__viewer_states[v].thumbs_loaded = False
             self.__viewer_states[v].selected_item = -1
             self.__viewer_states[v].item_offset = 0
 
-        self.__set_view_mode(view_mode)
+        self.__set_view_mode(0) #view_mode)
+        print "SET VIEW MODE", view_mode
         if (self.__current_viewer):
             self.__current_viewer.set_visible(True)        
         self.__thumbnailer.set_visible(False)
@@ -484,15 +481,6 @@ class App(Component):
         return True
 
 
-    def __on_observe_media_scanner(self, src, cmd, *args):
-    
-        if (cmd == src.OBS_THUMBNAIL_GENERATED):
-            thumburi, uri = args
-            name = os.path.basename(uri)
-            self.__title_panel.set_title(name)
-            self.__thumbnailer.show_thumbnail(thumburi, name)
-
-
     def __on_observe_window_ctrls(self, src, cmd, *args):
     
         if (cmd == src.OBS_MINIMIZE_WINDOW):
@@ -554,6 +542,17 @@ class App(Component):
         if (event == events.CORE_ACT_SCAN_MEDIA):
             force = args[0]
             self.__scan_media(force)
+
+        elif (event == events.MEDIASCANNER_EV_THUMBNAIL_GENERATED):
+            thumburi, f = args
+            name = os.path.basename(f.name)
+            self.__title_panel.set_title(name)
+            self.__thumbnailer.show_thumbnail(thumburi, name)
+    
+        elif (event == events.CORE_EV_DEVICE_ADDED):
+            ident, dev = args
+            self.__scan_media(True)
+        
     
         elif (event == events.CORE_EV_THEME_CHANGED):
             self.__root_pane.propagate_theme_change()
@@ -622,10 +621,10 @@ class App(Component):
 
         self.__hilight_item(idx)
 
-        item = self.__current_collection[idx]
+        #item = self.__current_collection[idx]
         self.__get_vstate().selected_item = idx
         #self.__current_viewer.load(item)
-        self.emit_event(events.CORE_ACT_LOAD_ITEM, item)
+        self.emit_event(events.CORE_ACT_LOAD_ITEM, idx)
         self.__strip.scroll_to_item(idx)
 
 
@@ -694,7 +693,7 @@ class App(Component):
         """
 
         self.__hilight_item(-1)
-        thumbnails = [ item.thumbnail_pmap for item in collection ]
+        thumbnails = collection #[ item.thumbnail_pmap for item in collection ]
         
         vstate = self.__get_vstate()        
         if (not vstate.thumbs_loaded):
