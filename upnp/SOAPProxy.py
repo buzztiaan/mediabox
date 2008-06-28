@@ -1,4 +1,5 @@
 from MiniXML import MiniXML
+from utils import logging
 
 import urllib
 import urlparse
@@ -48,7 +49,7 @@ class SOAPProxy(object):
             #end for
             out += "</u:%s>" % name
             
-            #print "=== SOAP Request ===\n%s\n===" % (_SOAP_ENVELOPE % out)
+            logging.debug("=== SOAP Request ===\n%s\n===" % (_SOAP_ENVELOPE % out))
             return self.__post_soap(name, _SOAP_ENVELOPE % out)
         
         return f
@@ -104,7 +105,7 @@ class SOAPProxy(object):
     
         headers = response.getheaders()
         body = response.read()
-        #print "=== SOAP Response ===\n%s\n===" % body
+        logging.debug("=== SOAP Response ===\n%s\n===" % body)
         
         envelope = MiniXML(body).get_dom()
         resp = envelope.get_child().get_child()
