@@ -1,11 +1,12 @@
 from Preferences import Preferences
 from ConfigMediaRoot import ConfigMediaRoot
 from ConfigTheme import ConfigTheme
+from DirectoryService import DirectoryService
 
 
 def get_classes():
 
-    return [Preferences, ConfigMediaRoot, ConfigTheme]
+    return [Preferences, ConfigMediaRoot, ConfigTheme, DirectoryService]
     
     
 messages = [    
@@ -21,6 +22,9 @@ messages = [
     
     "CORE_EV_DEVICE_ADDED",     # (id, device)
     "CORE_EV_DEVICE_REMOVED",   # (id)
+    
+    "CORE_SVC_LIST_PATH",       # (path)
+    "CORE_SVC_GET_FILE",        # (path)
     
     "MEDIA_EV_PLAY",
     "MEDIA_EV_PAUSE",
