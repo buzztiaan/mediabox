@@ -675,6 +675,35 @@ class ImageStrip(Widget):
         if (not self.__scroll_to_item_handler):
             self.__scroll_to_item_handler = gobject.timeout_add(5, f)
 
+
+
+    def fx_slide(self, wait = True):
+    
+        STEP = 16
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+
+        slider_width, nil = self.__scrollbar_pmap.get_size()
+        slider_width /= 2
+        w -= slider_width
+
+        buf = Pixmap(None, w, h) #x + w, y + h)
+        self.render_at(buf)
+        finished = threading.Event()
+        
+        def f(i):
+            screen.copy_pixmap(screen, x + STEP, y, x, y, w - STEP, h)
+            screen.copy_pixmap(buf, i, 0, x + w - STEP, y, STEP, h)
+            if (i < w - STEP):
+                gobject.timeout_add(5, f, i + STEP)
+            else:
+                self.render()
+                finished.set()
+                
+        f(0)
+        while (wait and not finished.isSet()): gtk.main_iteration()
+
             
             
     def fx_slide_in(self, wait = True):
