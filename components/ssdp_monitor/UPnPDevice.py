@@ -1,4 +1,4 @@
-from device import Device, File
+from storage import Device, File
 from upnp.MiniXML import MiniXML
 from upnp.SOAPProxy import SOAPProxy
 from upnp import didl_lite

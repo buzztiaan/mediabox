@@ -1,4 +1,4 @@
-from device import Device, File
+from storage import Device, File
 from utils import mimetypes
 from utils import logging
 import theme
