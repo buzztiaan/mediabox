@@ -19,22 +19,14 @@ def _has_pid(pid):
     return os.path.exists("/proc/%s" % pid)
 
 
-def is_media(uri):
+def is_media(f):
 
-    try:
-        if (os.path.isdir(uri)):
-            return False
-        
-        elif (os.path.splitext(uri)[1].lower() in VIDEO_FORMATS):
-            return True
-            
-    except:
-        return False
+    return f.mimetype.startswith("video/")
         
         
-def make_thumbnail(uri, dest):
+def make_thumbnail(f, dest):
 
-    thumb = thief.steal_video(uri)
+    thumb = thief.steal_video(f.resource)
     
     if (thumb):
         shutil.copy(thumb, dest)
@@ -44,10 +36,10 @@ def make_thumbnail(uri, dest):
         cmd = "mplayer -idx -really-quiet -zoom -ss 10 -nosound " \
               "-vo jpeg:outdir=\"%s\" -frames 2 -vf scale=134:-3  \"%s\"" \
               " >/dev/null 2>&1 &\necho $!" \
-              % ("/tmp", uri)
+              % ("/tmp", f.resource)
         mplayer_pid = commands.getoutput(cmd)
 
-        print "thumbnailing", uri,
+        print "thumbnailing", f.resource,
         now = time.time()
         while (time.time() - now < 8 and _has_pid(mplayer_pid)):
             time.sleep(0.005)

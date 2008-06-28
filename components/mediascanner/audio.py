@@ -6,52 +6,49 @@ import gtk
 
 
 
-def is_media(uri):
+def is_media(f):
 
-    try:
-        if (not os.path.isdir(uri)):
-            return False
+    if (f.mimetype != f.DIRECTORY):
+        return False
         
-        files = os.listdir(uri)
-        for f in files:
-            ext = os.path.splitext(f)[1]
-            if (ext.lower() in AUDIO_FORMATS):
-                return True
-        #end for
-    except:
-        pass
-        
+    for c in f.get_children():
+        if (c.mimetype.startswith("audio/")):
+            f.mimetype = "audio/x-music-folder"
+            return True
+    #end for
+    
     return False
         
         
-def make_thumbnail(uri, dest):
+def make_thumbnail(f, dest):
 
     # look for an easy-to-steal cover
-    cover = thief.steal_cover(uri)
+    cover = thief.steal_cover(f.resource)
+    contents = []
     
-    # look for a cover file
+    # look for a cover file    
     if (not cover):
-        candidates = [ os.path.join(uri, ".folder.png"),
-                       os.path.join(uri, "folder.jpg"),
-                       os.path.join(uri, "cover.jpg"),
-                       os.path.join(uri, "cover.jpeg"),
-                       os.path.join(uri, "cover.png") ]
-
-        imgs = [ os.path.join(uri, f)
-                    for f in os.listdir(uri)
-                    if f.lower().endswith(".png") or
-                    f.lower().endswith(".jpg") ]
-
-        for c in candidates + imgs:
-            if (os.path.exists(c)):
+        contents = f.get_children()
+        candidates = (".folder.png", "folder.jpg", "cover.jpg",
+                      "cover.jpeg", "cover.png")
+        for c in contents:
+            print c.name
+            if (c.name in candidates):
                 cover = c
                 break
+        #end for
+    #end if
+    
+    if (not cover):
+        for c in contents:
+            if (c.mimetype.startswith("image/")):
+                cover = c
         #end for
     #end if
 
     # look for an embedded cover
     if (not cover):
-        pbuf = __find_embedded_cover(uri)
+        pbuf = __find_embedded_cover(contents)
         
     else:
         pbuf = __load_pbuf(cover)
@@ -72,7 +69,7 @@ def __load_pbuf(cover):
 
     loader = gtk.gdk.PixbufLoader()
     loader.connect("size-prepared", on_size_available)
-    fd = open(cover, "r")
+    fd = cover.get_fd()
     while (True):
         data = fd.read(50000)            
         if (data):
@@ -91,21 +88,16 @@ def __load_pbuf(cover):
         return None
 
 
-def __find_embedded_cover(uri):
+def __find_embedded_cover(contents):
 
     import idtags
     
-    dirpath = uri #os.path.dirname(uri)
-    cnt = 0
-    for f in os.listdir(dirpath):
-        ext = os.path.splitext(f)[1]
-        if (not ext.lower() in AUDIO_FORMATS): continue
-        if (cnt == 10): break
-        
-        tags = idtags.read(os.path.join(dirpath, f))
-        if ("PICTURE" in tags):
-            return __load_apic(tags["PICTURE"])
-        cnt += 1
+    for c in contents[:10]:
+        if (c.mimetype.startswith("audio/")):
+            tags = idtags.read(c.resource)
+            if ("PICTURE" in tags):
+                return __load_apic(tags["PICTURE"])
+        #end if
     #end for
     
     return None
