@@ -52,3 +52,8 @@ class Mediator(object):
     
         self.__event_bus.send_event(self, event, *args)
 
+
+    def call_service(self, svc, *args):
+    
+        return self.__event_bus.call_service(svc, *args)
+        

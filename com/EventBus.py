@@ -7,6 +7,7 @@ class _EventBus(object):
     def __init__(self):
     
         self.__mediators = []
+        self.__services = {}
 
 
     def add_mediator(self, mediator):
@@ -35,7 +36,26 @@ class _EventBus(object):
                 raise SyntaxError("mediator '%s' must specify pass type" \
                                   % mediator)
         #end for
-        
+
+
+    def call_service(self, svc, *args):
+    
+        try:
+            handler = self.__services[svc]
+        except:
+            for mediator in self.__mediators:
+                try:
+                    ret = mediator.handle_event(svc, *args)
+                except:
+                    pass
+                if (ret != None):
+                    self.__services[svc] = mediator
+                    return ret
+            #end for
+            raise ValueError("no such service: %s" % svc)
+        else:
+            return handler.handle_event(svc, *args)
+            
         
 _singleton = _EventBus()
 def EventBus(): return _singleton
