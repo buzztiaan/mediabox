@@ -4,6 +4,7 @@ Lightweight logger
 
 import time
 
+
 OFF = 0         # log nothing
 ERROR = 1       # log errors
 WARNING = 2     # log errors and warnings
@@ -23,7 +24,10 @@ def set_level(level):
 def _log(ltype, s):
 
     now = time.time()
-    print "%.3f - %s --- %s" % (now, ltype, s)
+    msecs = (now - int(now)) * 1000
+    now = time.strftime("%F %T", time.localtime(now))
+    print "%s.%03d - %s --- %s" % (now, msecs, ltype, s)
+
 
 def error(msg, *args):
 
