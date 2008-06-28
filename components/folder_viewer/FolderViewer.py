@@ -3,7 +3,6 @@ from DeviceThumbnail import DeviceThumbnail
 from LocalDevice import LocalDevice
 from ListItem import ListItem
 from mediabox.TrackList import TrackList
-from mediascanner.MediaItem import MediaItem
 from ui.ImageButton import ImageButton
 from ui import dialogs
 from mediabox.ThrobberDialog import ThrobberDialog
@@ -62,7 +61,7 @@ class FolderViewer(Viewer):
               
         self.__update_device_list()  
         import gobject
-        gobject.idle_add(self.emit_event, events.CORE_EV_DEVICE_ADDED, 0, LocalDevice())
+        #gobject.idle_add(self.emit_event, events.CORE_EV_DEVICE_ADDED, 0, LocalDevice())
         
         
     def __add_device(self, ident, device):

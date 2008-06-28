@@ -19,7 +19,6 @@ from ui.ImageStrip import ImageStrip
 from ui.KineticScroller import KineticScroller
 from ui import pixbuftools
 from ui import dialogs
-from mediascanner.MediaScanner import MediaScanner
 import config
 import values
 from utils import maemo
@@ -153,12 +152,7 @@ class App(Component):
         self.__window_ctrls.set_geometry(600, 0, 200, 80)
         self.__window_ctrls.set_visible(False)
         self.__window_ctrls.add_observer(self.__on_observe_window_ctrls)
-        
-
-        # set up media scanner
-        #mscanner = MediaScanner()
-        #mscanner.add_observer(self.__on_observe_media_scanner)
-       
+             
 
         #from components import system
         #compclass = system.get_component()

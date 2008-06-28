@@ -1,4 +1,4 @@
-from Preferences import Preferences
+#from Preferences import Preferences
 from ConfigMediaRoot import ConfigMediaRoot
 from ConfigTheme import ConfigTheme
 from DirectoryService import DirectoryService
@@ -6,7 +6,7 @@ from DirectoryService import DirectoryService
 
 def get_classes():
 
-    return [Preferences, ConfigMediaRoot, ConfigTheme, DirectoryService]
+    return [ConfigMediaRoot, ConfigTheme, DirectoryService]
     
     
 messages = [    
