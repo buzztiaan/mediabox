@@ -1,15 +1,29 @@
 class File(object):
 
-    FILE = 0
-    DIRECTORY = 1
+    FILE = "application/x-other"
+    DIRECTORY = "application/x-directory"
     
 
-    def __init__(self):
+    def __init__(self, device):
     
+        self.__device = device
+        self.path = ""
+
         self.name = ""
         self.child_count = 0
         self.info = ""
-        self.filetype = self.FILE
-        self.mimetype = "application/x-other"
-        self.path = ""
+        self.mimetype = self.FILE
+        self.emblem = None
+        self.resource = ""
+        self.md5 = ""
 
+        
+    def get_children(self):
+    
+        return self.__device.ls(self.path)
+
+
+    def get_fd(self):
+    
+        return self.__device.get_fd(self.resource)
+        
