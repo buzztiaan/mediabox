@@ -91,14 +91,13 @@ class ImageViewer(Viewer):
 
     def handle_event(self, event, *args):
                
-        if (event == events.CORE_EV_MEDIA_SCANNING_FINISHED):
-            mscanner = args[0]
-            self.__update_media(mscanner)
+        if (event == events.MEDIASCANNER_EV_SCANNING_FINISHED):
+            self.__update_media()
 
         if (self.is_active()):
             if (event == events.CORE_ACT_LOAD_ITEM):
-                item = args[0]
-                self.__load(item)
+                idx = args[0]
+                self.__load(self.__items[idx])
         
             if (event == events.HWKEY_EV_INCREMENT):
                 self.__zoom_in()
@@ -183,22 +182,25 @@ class ImageViewer(Viewer):
         self.__items = []
 
 
-    def __update_media(self, mscanner):
+    def __update_media(self):
     
+        media = self.call_service(events.MEDIASCANNER_SVC_GET_MEDIA,
+                                  ["image/"])
         self.__items = []
+        thumbnails = []
         self.__current_item = -1
-        for item in mscanner.get_media(mscanner.MEDIA_IMAGE):
-            if (not item.thumbnail_pmap):
-                tn = ImageThumbnail(item.thumbnail)
-                item.thumbnail_pmap = tn
-            self.__items.append(item)
+        for f in media:
+            thumb = self.call_service(events.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+            tn = ImageThumbnail(thumb)
+            self.__items.append(f)
+            thumbnails.append(tn)
         #end for
-        self.set_collection(self.__items)
+        self.set_collection(thumbnails)
 
 
     def __load(self, item):
 
-        uri = item.uri
+        uri = item.resource
         self.__image.load(uri)        
         #self.__label.set_text(self.__get_name(uri))
         self.__current_item = self.__items.index(item)

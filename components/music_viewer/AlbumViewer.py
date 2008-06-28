@@ -21,7 +21,6 @@ import os
 
 
 
-
 # view modes
 _VIEW_ALBUMS = 0
 _VIEW_PLAYLIST = 1
@@ -151,16 +150,16 @@ class AlbumViewer(Viewer):
         if (event == events.CORE_EV_APP_SHUTDOWN):
             mediaplayer.close()
             
-        elif (event == events.CORE_EV_MEDIA_SCANNING_FINISHED):
-            mscanner = args[0]
-            self.__update_media(mscanner)
+        elif (event == events.MEDIASCANNER_EV_SCANNING_FINISHED):
+            self.__update_media()
     
         elif (event == events.MEDIA_EV_PLAY):
             self.__player.stop()
     
         if (self.is_active()):
             if (event == events.CORE_ACT_LOAD_ITEM):
-                item = args[0]
+                idx = args[0]
+                item = self.__items[idx]
                 self.__load(item)
         
             if (event == events.HWKEY_EV_INCREMENT):
@@ -183,15 +182,21 @@ class AlbumViewer(Viewer):
         self.__items = []
 
 
-    def __update_media(self, mscanner):
+    def __update_media(self):
     
         self.__items = []
-        for item in mscanner.get_media(mscanner.MEDIA_AUDIO):
-            if (not item.thumbnail_pmap):
-                tn = AlbumThumbnail(item.thumbnail, item.name)
-                item.thumbnail_pmap = tn
-            self.__items.append(item)
-        self.set_collection(self.__items)
+        thumbnails = []
+        
+        media = self.call_service(events.MEDIASCANNER_SVC_GET_MEDIA,
+                                  ["audio/"])
+        for f in media:
+            thumb = self.call_service(events.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+            tn = AlbumThumbnail(thumb, f.name)
+            self.__items.append(f)
+            thumbnails.append(tn)
+        #end for
+        self.set_collection(thumbnails)
+
        
        
     def do_toggle_playlist(self):
@@ -602,7 +607,7 @@ class AlbumViewer(Viewer):
         Loads the given album.
         """
 
-        uri = item.uri
+        uri = item.resource
         if (uri == self.__current_album_uri): return
         
         self.__current_album_uri = uri
@@ -616,15 +621,15 @@ class AlbumViewer(Viewer):
         self.__current_index = -1
                
         # find tracks
-        files = os.listdir(uri)
+        files = item.get_children()
         tracks = []
         for f in files:      
-            filepath = os.path.join(uri, f)
-            ext = os.path.splitext(f)[-1].lower()
+            filepath = f.resource #os.path.join(uri, f)
+            #ext = os.path.splitext(f)[-1].lower()
 
-            if (ext in mediaplayer.AUDIO_FORMATS):
+            if (f.mimetype.startswith("audio/")):
                 tags = idtags.read(filepath) or {}
-                title = tags.get("TITLE", f)
+                title = tags.get("TITLE", f.name)
                 artist = tags.get("ARTIST", "")
                 album = tags.get("ALBUM", "")
                 try:
@@ -636,12 +641,13 @@ class AlbumViewer(Viewer):
                    
                 trk = _Track()
                 trk.uri = filepath
+                print "path", filepath
                 trk.trackno = trackno
                 trk.title = title
                 trk.artist = artist
                 trk.album = album
-                trk.icon_uri = item.thumbnail
-                trk.icon = item.thumbnail_pmap
+                #trk.icon_uri = item.thumbnail
+                #trk.icon = item.thumbnail_pmap
                 tracks.append(trk)
                 self.__throbber.rotate()
 
@@ -656,8 +662,8 @@ class AlbumViewer(Viewer):
         tracks.sort(lambda a,b: cmp((a.trackno, a.uri), (b.trackno, b.uri)))
         
         # make album header
-        item = AlbumHeader(self.__find_cover(uri),
-                           os.path.basename(uri), len(tracks))
+        item = AlbumHeader(None, #self.__find_cover(item),
+                           item.name, len(tracks))
         self.__list.append_item(item)
         
         # build track list
