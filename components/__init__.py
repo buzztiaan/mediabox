@@ -39,7 +39,7 @@ def load_components():
         try:
             mod = __import__(path)
             classes = mod.get_classes()
-        except ImportError:
+        except:
             logging.error("could not load component [%s]", path)
             import traceback; traceback.print_exc()
 
