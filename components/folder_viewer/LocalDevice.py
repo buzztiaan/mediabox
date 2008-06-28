@@ -123,7 +123,7 @@ class LocalDevice(Device):
             else:
                 ext = os.path.splitext(f)[-1].lower()
                 item.mimetype = mimetypes.lookup_ext(ext)
-                item.emblem = theme.filetype_image
+                #item.emblem = theme.filetype_image
             items.append(item)
         #end for
         
