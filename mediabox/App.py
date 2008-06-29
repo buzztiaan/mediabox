@@ -545,7 +545,7 @@ class App(Component):
     
         elif (event == events.CORE_EV_DEVICE_ADDED):
             ident, dev = args
-            self.__scan_media(True)
+            gobject.timeout_add(0, self.__scan_media, True)
         
     
         elif (event == events.CORE_EV_THEME_CHANGED):
