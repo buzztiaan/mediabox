@@ -17,7 +17,7 @@ class ImageStrip(Widget):
 
     def __init__(self, gapsize):
     
-        self.__arrows = None
+        self.__arrows = (None, None, None, None)
         self.__arrows_save_under = None
         self.__scrollbar_pmap = None
         self.__scrollbar_pbuf = None
@@ -107,23 +107,42 @@ class ImageStrip(Widget):
             self.__cap_bottom_size = (bottom.get_width(), bottom.get_height())
         
         
-    def set_arrows(self, arrows):
+    def set_arrows(self, arrows, arrows_off):
         """
-        Sets arrow graphics from the given pixbuf.
+        Sets arrow graphics from the given pixbufs. If 'arrows_off' is given,
+        it must be the same size as 'arrows'.
         """
     
+        arrow_up = None
+        arrow_down = None
+        arrow_off_up = None
+        arrow_off_down = None
+        
         if (arrows):
             w, h = arrows.get_width(), arrows.get_height()
             h2 = h / 2
             arrow_up = arrows.subpixbuf(0, 0, w, h2)
             arrow_down = arrows.subpixbuf(0, h2, w, h2)
-            self.__arrows = (arrow_up, arrow_down)
+
+            if (arrows_off):
+                arrow_off_up = arrows_off.subpixbuf(0, 0, w, h2)
+                arrow_off_down = arrows_off.subpixbuf(0, h2, w, h2)
+            #end if
             
             pmap1 = Pixmap(None, w, h2)
             pmap2 = Pixmap(None, w, h2)
             self.__arrows_save_under = (pmap1, pmap2)
-        else:
-            self.__arrows = None
+        #end if
+
+        self.__arrows = (arrow_up, arrow_down, arrow_off_up, arrow_off_down)
+
+
+    def get_arrows (self):
+        """
+        Returns the arrow graphics or None if no arrows were set.
+        """
+
+        return self.__arrows
 
 
     def set_scrollbar(self, pbuf):
@@ -327,7 +346,9 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         screen = self.__buffer #self.get_screen()
 
-        arrow_up, arrow_down = self.__arrows
+        arrow_up, arrow_down, arrow_off_up, arrow_off_down = self.__arrows
+        if (not arrow_up): return
+        
         arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
         
         pmap1, pmap2 = self.__arrows_save_under
@@ -339,10 +360,16 @@ class ImageStrip(Widget):
 
         if (self.__offset > 0):
             screen.draw_pixbuf(arrow_up, x + (w - arrow_width) / 2, y)
+        elif (arrow_off_up):
+            screen.draw_pixbuf(arrow_off_up, x + (w - arrow_width) / 2, y)
 
         if (self.__offset < self.__totalsize - h):
             screen.draw_pixbuf(arrow_down,
                                x + (w - arrow_width) / 2, y + h - arrow_height)
+        elif (arrow_off_down):
+            screen.draw_pixbuf(arrow_off_down,
+                               x + (w - arrow_width) / 2, y + h - arrow_height)
+            
 
 
     def __unrender_arrows(self):
@@ -353,7 +380,7 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         screen = self.__buffer #self.get_screen()
 
-        arrow_up, arrow_down = self.__arrows
+        arrow_up, arrow_down, nil, nil = self.__arrows
         arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
 
         pmap1, pmap2 = self.__arrows_save_under
@@ -441,14 +468,12 @@ class ImageStrip(Widget):
         
     def render_this(self):
 
-        def f(screen):
-            w, h = self.get_size()
-            self.__render_handler = None
+        w, h = self.get_size()
+        screen = self.get_screen()
+        self.__render_handler = None
 
-            self.render_full()
-            self.__render_buffered(screen, 0, h)
-
-        f(self.get_screen())
+        self.render_full()
+        self.__render_buffered(screen, 0, h)
         
         
         
@@ -460,22 +485,25 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         self.__render(0, h)
 
-        if (self.__arrows):
+        if (self.__arrows[0]):
             self.__render_arrows()      
 
 
     def __render(self, render_offset, render_height):
+        """
+        Renders the given portion to the offscreen buffer.
+        """
    
         if (not self.may_render()): return
-        #print "RENDER", self, render_offset, render_height
 
         blocksize = self.__itemsize + self.__gapsize
         render_to = render_offset + render_height
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.__buffer #self.get_screen()
+        screen = self.__buffer
 
+        # render items
         while (self.__images and render_offset < render_to):            
             idx = ((self.__offset + render_offset) / blocksize)
 
@@ -487,48 +515,72 @@ class ImageStrip(Widget):
 
             img_offset = (self.__offset + render_offset) % blocksize
 
+            
+            # compute the remaining visible part of the item            
             remain = min(self.__itemsize - img_offset, render_to - render_offset)
-
             if (remain > 0):
+                # prepare item
                 item = self.__images[idx]
                 self.__shared_pmap.prepare(item)
                 pw, ph = item.get_size()
-                #pmap = pmap.get_pixmap()
 
-                img_width = pw
+                # center it
                 offx = (w - pw) / 2
+
                 if (self.__floating_index != idx):
+                    # render item
                     screen.copy_pixmap(self.__shared_pmap, 0, img_offset,
                                        x + offx, y + render_offset,
                                        pw, remain)
                 else:
+                    # leave a gap where the floating item would have been
                     screen.fill_area(x + offx, y + render_offset, pw, remain,
                                      self.__bg_color)
 
+                # fill the empty space at the sides if the item was centered
+                if (offx > 0 and self.__bg_color):
+                    screen.fill_area(x, y + render_offset,
+                                     offx, remain,
+                                     self.__bg_color)
+                    screen.fill_area(x + offx + pw, y + render_offset,
+                                     offx, remain,
+                                     self.__bg_color)
+            #end if
+            
             render_offset += (remain + self.__gapsize)
         #end while
         
+        # render the space not covered by items
         if (self.__bg_color):
+
+            # fill the space beneath the items, if any
             if (render_offset < render_to):
                 screen.fill_area(x, y + render_offset, w, render_to - render_offset,
                                  self.__bg_color)
                 #screen.draw_subpixbuf(self.__bg,
                 #                      0, render_offset, x, y + render_offset,
                 #                      w, render_to - render_offset)
-        
-            gap_offset = 0 - (self.__offset % blocksize) - self.__gapsize
+            #end if
 
+            # compute position of first gap
+            gap_offset = 0 - (self.__offset % blocksize) - self.__gapsize
+            
+            # render gap by gap
             while (gap_offset < h):
                 if (gap_offset + self.__gapsize < 0):
+                    # gap is off screen
                     gap_offset += self.__gapsize + self.__itemsize
                     continue
                 elif (gap_offset < 0):
+                    # gap is partially on screen
                     render_offset = 0
                     remain = self.__gapsize - abs(gap_offset)
                 else:
+                    # gap is on screen
                     render_offset = gap_offset
                     remain = min(self.__gapsize, h - render_offset)
                     
+                # render gap if visible
                 if (remain > 0):
                     screen.fill_area(x, y + render_offset, w, remain,
                                      self.__bg_color)
@@ -536,6 +588,7 @@ class ImageStrip(Widget):
                     #                   0, render_offset, x, y + render_offset,
                     #                   min(w, self.__bg.get_width()),
                     #                   min(remain, self.__bg.get_height()))
+                #end if
 
                 gap_offset += blocksize
             #end while
@@ -575,7 +628,7 @@ class ImageStrip(Widget):
 
         if (not self.may_render()): return
 
-        if (self.__arrows):
+        if (self.__arrows[0]):
             self.__unrender_arrows()
             
         if (delta > 0):
@@ -588,7 +641,7 @@ class ImageStrip(Widget):
                                     0, abs(delta))
             self.__render(0, abs(delta))
             
-        if (self.__arrows):
+        if (self.__arrows[0]):
             self.__render_arrows()
 
         self.__render_buffered(screen, 0, h)
@@ -677,7 +730,7 @@ class ImageStrip(Widget):
 
 
 
-    def fx_slide(self, wait = True):
+    def fx_slide_left(self, wait = True):
     
         STEP = 16
         x, y = self.get_screen_pos()
@@ -695,6 +748,35 @@ class ImageStrip(Widget):
         def f(i):
             screen.copy_pixmap(screen, x + STEP, y, x, y, w - STEP, h)
             screen.copy_pixmap(buf, i, 0, x + w - STEP, y, STEP, h)
+            if (i < w - STEP):
+                gobject.timeout_add(5, f, i + STEP)
+            else:
+                self.render()
+                finished.set()
+                
+        f(0)
+        while (wait and not finished.isSet()): gtk.main_iteration()
+
+
+
+    def fx_slide_right(self, wait = True):
+    
+        STEP = 16
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+
+        slider_width, nil = self.__scrollbar_pmap.get_size()
+        slider_width /= 2
+        w -= slider_width
+
+        buf = Pixmap(None, w, h) #x + w, y + h)
+        self.render_at(buf)
+        finished = threading.Event()
+        
+        def f(i):
+            screen.copy_pixmap(screen, x, y, x + STEP, y, w - STEP, h)
+            screen.copy_pixmap(buf, w - i, 0, x, y, STEP, h)
             if (i < w - STEP):
                 gobject.timeout_add(5, f, i + STEP)
             else:
