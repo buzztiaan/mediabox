@@ -43,6 +43,11 @@ def load_components():
             logging.error("could not load component [%s]", path)
             import traceback; traceback.print_exc()
 
+        if (hasattr(mod, "messages")):
+            for msg in mod.messages:
+                events.register(msg)
+                logging.debug("registering message [%s]", msg)
+
         if (not isinstance(classes, list)):
             logging.error("function %s.get_classes() must return a list", path)
             continue
@@ -56,11 +61,6 @@ def load_components():
                 import traceback; traceback.print_exc()
         #end for
             
-        if (hasattr(mod, "messages")):
-            for msg in mod.messages:
-                events.register(msg)
-                logging.debug("registering message [%s]", msg)
-
         sys.path = syspath
     #end for
         
