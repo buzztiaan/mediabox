@@ -1,6 +1,5 @@
 from com import Viewer, events
 from DeviceThumbnail import DeviceThumbnail
-from LocalDevice import LocalDevice
 from ListItem import ListItem
 from mediabox.TrackList import TrackList
 from ui.ImageButton import ImageButton
@@ -8,26 +7,37 @@ from ui import dialogs
 from mediabox.ThrobberDialog import ThrobberDialog
 import mediaplayer
 from utils import threads
+from utils import logging
 import theme
 
 import md5
 import os
 import time
 import threading
+import urllib
+import gtk
+import gobject
 
 
 class FolderViewer(Viewer):
+    """
+    Viewer component for browsing storage devices with style.
+    """
 
     PATH = os.path.dirname(__file__)
     ICON = theme.viewer_folders
     ICON_ACTIVE = theme.viewer_folders_active
     PRIORITY = 0
     
+    __GO_PARENT = 0
+    __GO_CHILD = 1
+    __GO_NEW = 2
+    
 
     def __init__(self):
     
         # table of devices: id -> rootpath
-        self.__devices = {"0": LocalDevice()}
+        self.__devices = {}
         
         # the currently selected device and path stack
         self.__current_device = None
@@ -58,17 +68,12 @@ class FolderViewer(Viewer):
 
         tbset = self.new_toolbar_set(self.__btn_back)
         self.set_toolbar_set(tbset)
-              
-        self.__update_device_list()  
-        import gobject
-        #gobject.idle_add(self.emit_event, events.CORE_EV_DEVICE_ADDED, 0, LocalDevice())
         
-        
+
     def __add_device(self, ident, device):
 
-        if (device.has_content_directory()):
-            self.__devices[ident] = device
-            self.__update_device_list()
+        self.__devices[ident] = device
+        self.__update_device_list()
         
         
     def __remove_device(self, uuid):
@@ -112,7 +117,7 @@ class FolderViewer(Viewer):
                     self.__current_device = dev
                     root = dev.get_root()
                     self.__path_stack = [root]
-                    self.__load(root)
+                    self.__load(root, self.__GO_NEW)
                 
                 
     def __on_item_button(self, item, idx, button):
@@ -122,35 +127,78 @@ class FolderViewer(Viewer):
             if (entry.mimetype == entry.DIRECTORY):
                 path = entry.path
                 self.__path_stack.append(entry)
-                self.__load(entry)
+                self.__load(entry, self.__GO_CHILD)
             else:
                 uri = entry.resource
                 player = mediaplayer.get_player_for_uri(uri)
                 player.load_audio(uri)
+                print "PLAYING", uri
             
     def __on_btn_back(self):
     
         if (len(self.__path_stack) > 1):
             self.__path_stack.pop()
-            self.__load(self.__path_stack[-1])
+            self.__load(self.__path_stack[-1], self.__GO_PARENT)
 
 
     def __lookup_icon(self, entry):
-    
-        from mediabox import config
-        import gtk
-        m = md5.new(entry.path)
-        path = os.path.join(config.thumbdir(), m.hexdigest() + ".jpg")
+
+        if (entry.thumbnail):
+            print "loading thumbnail", entry.thumbnail
+            
+            loader = gtk.gdk.PixbufLoader()
+            fd = urllib.urlopen(entry.thumbnail)            
+            loader.write(fd.read())
+            loader.close()
+            fd.close()
+            pbuf = loader.get_pixbuf()
         
-        if (os.path.exists(path)):
-            icon = gtk.gdk.pixbuf_new_from_file(path)
+            return pbuf
+        
         else:
-            icon = None
+            # TODO: this is a hack! clean up!
+            from mediabox import config
+            m = md5.new(entry.path)
+            path = os.path.join(config.thumbdir(), m.hexdigest() + ".jpg")
+            
+            if (os.path.exists(path)):
+                icon = gtk.gdk.pixbuf_new_from_file(path)
+            else:
+                icon = None
 
-        return icon
+            return icon
 
 
-    def __load(self, path):
+    def __item_loader(self, path, items):
+    
+        # abort if the user has changed the directory again
+        if (self.__path_stack[-1] != path): return
+        
+        entry = items.pop(0)
+        self.__add_item(entry)
+        
+        if (items):
+            gobject.idle_add(self.__item_loader, path, items)
+
+
+    def __add_item(self, entry):
+
+        if (entry.mimetype == entry.DIRECTORY):
+            icon = self.__lookup_icon(entry) or theme.filetype_folder
+            info = "%d items" % entry.child_count
+        else:                
+            icon = self.__lookup_icon(entry) or theme.filetype_audio
+            info = entry.info
+    
+        item = ListItem(icon, entry.name, info)
+        item.set_emblem(entry.emblem)
+        self.__list.append_item(item)
+        self.__items.append(entry)
+    
+    
+
+
+    def __load(self, path, direction):
         
         def loader_thread(path, entries, finished):
             try:        
@@ -162,6 +210,7 @@ class FolderViewer(Viewer):
 
         
         def comparator(a, b):
+            # place directories on top
             if (a.mimetype == a.DIRECTORY and
                 b.mimetype != a.DIRECTORY):
                 return -1
@@ -172,8 +221,6 @@ class FolderViewer(Viewer):
                 return cmp(a.name, b.name)
 
         self.__list.set_frozen(True)                
-        self.__list.clear_items()
-
         self.__throbber.set_text("Retrieving Directory")
         self.__throbber.set_visible(True)
         self.__throbber.render()
@@ -185,48 +232,53 @@ class FolderViewer(Viewer):
         now = time.time()
         aborted = False
         while (not finished.isSet()):
-            if (time.time() - now >= 30):
+            if (time.time() - now >= 20):
                 aborted = True
                 break
             self.__throbber.rotate()        
         #end while
         
-        self.__throbber.set_text("Processing")
-        entries.sort(comparator)
-        
-        for entry in entries:
-            if (entry.mimetype == entry.DIRECTORY):
-                icon = self.__lookup_icon(entry) or theme.filetype_folder
-                info = "%d items" % entry.child_count
-            else:                
-                icon = self.__lookup_icon(entry) or theme.filetype_audio
-                info = entry.info
-        
-            item = ListItem(icon, entry.name, info)
-            item.set_emblem(entry.emblem)
-            self.__list.append_item(item)
-            self.__items.append(entry)
-            
-            self.__throbber.rotate()
-        #end for
-
+        #self.__throbber.set_text("Processing")
         self.__throbber.set_visible(False)
         self.__list.set_frozen(False)
+        self.__list.render()
+
+        entries.sort(comparator)
         
-        self.__list.fx_slide()
-        #self.__list.render()
-        
+        entries1 = entries[:5]
+        entries2 = entries[5:]
+
+        self.__list.set_frozen(True)
+        self.__list.clear_items()
+        for entry in entries1:
+            self.__add_item(entry)           
+            #self.__throbber.rotate()
+        #end for
+        self.__list.set_frozen(False)
+
         if (aborted):
             dialogs.error("Timeout", "Connection timed out.")
-        
-        
+
+        else:
+            if (direction == self.__GO_PARENT):
+                self.__list.fx_slide_right()
+            elif (direction == self.__GO_CHILD):
+                self.__list.fx_slide_left()
+            else:
+                self.__list.render()
+                                
+            if (entries2):
+                gobject.idle_add(self.__item_loader, path, entries2)
+
+
     def search(self, key):
     
         idx = 0
         for item in self.__items:
             if (key in item.name.lower()):
                 self.__list.scroll_to_item(idx)
-                print "found", item.name, "for", key
+                logging.info("search: found '%s' for '%s'" % (item.name, key))
                 break
             idx += 1
-        #end for        
+        #end for
+
