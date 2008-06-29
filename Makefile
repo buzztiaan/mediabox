@@ -31,6 +31,8 @@ _ICONDIR=${DESTDIR}/usr/share/icons/hicolor/scalable/apps
 
 
 clean:
+	find . -name "*.pyc" -exec rm "{}" \;
+	find . -name "*~" -exec rm "{}" \;
 	@true
 
 all:
