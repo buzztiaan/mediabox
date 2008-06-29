@@ -10,6 +10,7 @@ _EXT_TABLE = {
     ".ogg":         "audio/x-vorbis+ogg",
 
     ".avi":         "video/x-msvideo",
+    ".flv":         "video/x-flash-video",
     ".mpg":         "video/mpeg",
 }
 
