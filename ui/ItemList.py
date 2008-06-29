@@ -6,14 +6,14 @@ class ItemList(ImageStrip):
     This class is a item list view based on the ImageStrip for smooth scrolling.
     """
 
-    def __init__(self, itemsize):
+    def __init__(self, itemsize, gapsize = 32):
     
         self.__height = itemsize
                       
         self.__items = []        
         self.__hilighted_item = -1
                 
-        ImageStrip.__init__(self, 20)
+        ImageStrip.__init__(self, gapsize)
         self.set_wrap_around(False)
 
         
@@ -29,7 +29,7 @@ class ItemList(ImageStrip):
     
         w, h = self.get_size()
         w -= 20
-        item.set_size(w, 80)
+        item.set_size(w, self.__height)
 
         self.__items.append(item)
         idx = self.append_image(item)
@@ -41,7 +41,10 @@ class ItemList(ImageStrip):
         
     def get_item(self, idx):
     
-        return self.__items[idx]
+        try:
+            return self.__items[idx]
+        except:
+            return None
                
         
     def remove_item(self, idx):
