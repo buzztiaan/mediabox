@@ -1,13 +1,15 @@
 from com import Component, events
 from UPnPDevice import UPnPDevice
 from upnp import ssdp
+from upnp.MiniXML import MiniXML
 from utils import logging
 from utils import threads
 
+import urllib
 import gobject
 
 
-_SCHEMA_CONTENT_DIRECTORY = "urn:schemas-upnp-org:service:ContentDirectory:1"
+_NS_DESCR = "urn:schemas-upnp-org:device-1-0"
 
 
 class SSDPMonitor(Component):
@@ -36,14 +38,24 @@ class SSDPMonitor(Component):
         self.__idle_timer = 0
             
             
-    def __initialize_device(self, uuid, location):
-
-        device = UPnPDevice(location)
-        logging.debug("propagating availability of device %s" % uuid)
-        threads.run_unthreaded(self.emit_event,
-                            events.CORE_EV_DEVICE_ADDED, uuid, device)
-
+    def __check_device(self, uuid, location):
+        """
+        Thread for checking the given UPnP device by retrieving and parsing its
+        description XML. Announces the availability of new devices.
+        """
         
+        logging.debug("loading UPnP device description '%s'", location)
+        xml = urllib.urlopen(location).read()
+        dom = MiniXML(xml, _NS_DESCR).get_dom()
+
+        dev_node = dom.get_child("{%s}device" % _NS_DESCR)
+        device_type = dev_node.get_pcdata("{%s}deviceType" % _NS_DESCR)
+        logging.info("discovered UPnP device of type [%s]" % device_type)
+
+        logging.debug("propagating availability of device [%s]" % uuid)
+        threads.run_unthreaded(self.emit_event,
+                      events.SSDP_EV_DEVICE_DISCOVERED, uuid, device_type,
+                      location, dom)
             
             
     def __check_ssdp(self):
@@ -61,23 +73,20 @@ class SSDPMonitor(Component):
                 uuid = usn
                 urn = ""
 
-            if (urn == _SCHEMA_CONTENT_DIRECTORY or urn == "upnp:rootdevice"):
-                if (event == ssdp.SSDP_ALIVE):
-                    logging.info("UPnP device %s is ALIVE", uuid)
-                    if (not uuid in self.__servers):
-                        self.__servers[uuid] = location
-                        threads.run_threaded(self.__initialize_device,
-                                          uuid, location)
-                        #device = UPnPDevice(location)
-                        #self.emit_event(events.CORE_EV_DEVICE_ADDED, uuid, device)
+            if (event == ssdp.SSDP_ALIVE):
+                logging.debug("UPnP device %s is ALIVE", uuid)
+                if (not uuid in self.__servers):
+                    self.__servers[uuid] = location
+                    threads.run_threaded(self.__check_device,
+                                        uuid, location)
 
-                elif (event == ssdp.SSDP_BYEBYE):
-                    logging.info("UPnP device %s is GONE", uuid)
-                    if (uuid in self.__servers):
-                        del self.__servers[uuid]
-                        self.emit_event(events.CORE_EV_DEVICE_REMOVED, uuid)
-                #end if
+            elif (event == ssdp.SSDP_BYEBYE):
+                logging.debug("UPnP device %s is GONE", uuid)
+                if (uuid in self.__servers):
+                    del self.__servers[uuid]
+                    self.emit_event(events.SSDP_EV_DEVICE_GONE, uuid)
             #end if
+
         #end if
         
         if (self.__idle_timer < 10000):
