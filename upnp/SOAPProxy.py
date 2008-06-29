@@ -85,6 +85,8 @@ class SOAPProxy(object):
             if (arg_name): action_args.append(arg_name)
         #end for
         
+        logging.debug("SOAPAction: %s(%s)" \
+                      % (action_name, ", ".join(action_args)))
         self.__signatures[action_name] = action_args
                 
 
