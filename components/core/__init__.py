@@ -1,12 +1,24 @@
+from com import Component, events
 #from Preferences import Preferences
 from ConfigMediaRoot import ConfigMediaRoot
 from ConfigTheme import ConfigTheme
 from DirectoryService import DirectoryService
 
 
+class Init(Component):
+    
+    def __init__(self):
+    
+        Component.__init__(self)
+        import gobject
+        from LocalDevice import LocalDevice
+        gobject.timeout_add(0, self.emit_event, events.CORE_EV_DEVICE_ADDED,
+                            "localhost", LocalDevice())
+
+
 def get_classes():
 
-    return [ConfigMediaRoot, ConfigTheme, DirectoryService]
+    return [Init, ConfigMediaRoot, ConfigTheme, DirectoryService]
     
     
 messages = [    
