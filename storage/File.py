@@ -16,6 +16,7 @@ class File(object):
         self.emblem = None
         self.resource = ""
         self.md5 = ""
+        self.thumbnail = ""
 
         
     def get_children(self):
