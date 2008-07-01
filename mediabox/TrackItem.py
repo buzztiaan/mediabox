@@ -54,6 +54,11 @@ class TrackItem(Item):
            
         Item.__init__(self)
         
+        
+    def set_icon(self, icon):
+    
+        self.__icon = icon
+        
 
     def set_emblem(self, emblem):
     
