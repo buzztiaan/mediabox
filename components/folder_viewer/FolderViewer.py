@@ -8,6 +8,7 @@ from mediabox.ThrobberDialog import ThrobberDialog
 import mediaplayer
 from utils import threads
 from utils import logging
+from utils.Downloader import Downloader
 import theme
 
 import md5
@@ -45,8 +46,11 @@ class FolderViewer(Viewer):
         
         self.__device_items = []
         
-        # items of the current directory
+        # file items of the current directory
         self.__items = []
+    
+        # table: url -> item receiving the thumbnail
+        self.__items_downloading_thumbnails = {}
     
         Viewer.__init__(self)
         
@@ -133,7 +137,8 @@ class FolderViewer(Viewer):
                 player = mediaplayer.get_player_for_uri(uri)
                 player.load_audio(uri)
                 print "PLAYING", uri
-            
+
+
     def __on_btn_back(self):
     
         if (len(self.__path_stack) > 1):
@@ -141,32 +146,45 @@ class FolderViewer(Viewer):
             self.__load(self.__path_stack[-1], self.__GO_PARENT)
 
 
+    def __on_download_thumbnail(self, cmd, url, *args):
+    
+        if (cmd == Downloader().DOWNLOAD_FINISHED):
+            item = self.__items_downloading_thumbnails.get(url)
+            if (not item): return
+
+            data = args[0]
+            loader = gtk.gdk.PixbufLoader()
+            loader.write(data)
+            loader.close()
+            pbuf = loader.get_pixbuf()
+            
+            item.set_icon(pbuf)
+            item.render()
+            del pbuf
+            self.__list.render()
+        #end if
+         
+         
+    def __download_icon(self, item, url):
+
+        self.__items_downloading_thumbnails[url] = item
+        downloader = Downloader()
+        downloader.get_async(url, self.__on_download_thumbnail)
+
+
     def __lookup_icon(self, entry):
 
-        if (entry.thumbnail):
-            print "loading thumbnail", entry.thumbnail
-            
-            loader = gtk.gdk.PixbufLoader()
-            fd = urllib.urlopen(entry.thumbnail)            
-            loader.write(fd.read())
-            loader.close()
-            fd.close()
-            pbuf = loader.get_pixbuf()
+        # TODO: this is a hack! clean up!
+        from mediabox import config
+        m = md5.new(entry.path)
+        path = os.path.join(config.thumbdir(), m.hexdigest() + ".jpg")
         
-            return pbuf
-        
+        if (os.path.exists(path)):
+            icon = gtk.gdk.pixbuf_new_from_file(path)
         else:
-            # TODO: this is a hack! clean up!
-            from mediabox import config
-            m = md5.new(entry.path)
-            path = os.path.join(config.thumbdir(), m.hexdigest() + ".jpg")
-            
-            if (os.path.exists(path)):
-                icon = gtk.gdk.pixbuf_new_from_file(path)
-            else:
-                icon = None
+            icon = None
 
-            return icon
+        return icon
 
 
     def __item_loader(self, path, items):
@@ -175,13 +193,16 @@ class FolderViewer(Viewer):
         if (self.__path_stack[-1] != path): return
         
         entry = items.pop(0)
-        self.__add_item(entry)
+        self.__add_file(entry)
         
         if (items):
             gobject.idle_add(self.__item_loader, path, items)
 
 
-    def __add_item(self, entry):
+    def __add_file(self, entry):
+        """
+        Adds the given file item to the list.
+        """
 
         if (entry.mimetype == entry.DIRECTORY):
             icon = self.__lookup_icon(entry) or theme.filetype_folder
@@ -194,6 +215,9 @@ class FolderViewer(Viewer):
         item.set_emblem(entry.emblem)
         self.__list.append_item(item)
         self.__items.append(entry)
+        
+        if (entry.thumbnail):
+            self.__download_icon(item, entry.thumbnail)
     
     
 
@@ -226,6 +250,8 @@ class FolderViewer(Viewer):
         self.__throbber.render()
 
         self.__items = []
+        self.__items_downloading_thumbnails.clear()
+        
         finished = threading.Event()
         entries = []
         threads.run_threaded(loader_thread, path, entries, finished)
@@ -245,15 +271,14 @@ class FolderViewer(Viewer):
 
         entries.sort(comparator)
         
+        # add the first 5 items at once and the rest in the background
         entries1 = entries[:5]
         entries2 = entries[5:]
 
         self.__list.set_frozen(True)
         self.__list.clear_items()
         for entry in entries1:
-            self.__add_item(entry)           
-            #self.__throbber.rotate()
-        #end for
+            self.__add_file(entry)
         self.__list.set_frozen(False)
 
         if (aborted):
