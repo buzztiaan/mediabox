@@ -95,16 +95,16 @@ class VideoViewer(Viewer):
         if (event == events.CORE_EV_APP_SHUTDOWN):
             mediaplayer.close()
 
-        elif (event == events.CORE_EV_MEDIA_SCANNING_FINISHED):
-            mscanner = args[0]
-            self.__update_media(mscanner)
+        elif (event == events.MEDIASCANNER_EV_SCANNING_FINISHED):
+            self.__update_media()
     
         elif (event == events.MEDIA_EV_PLAY):
             self.__player.stop()
     
         if (self.is_active()):
             if (event == events.CORE_ACT_LOAD_ITEM):
-                item = args[0]
+                idx = args[0]
+                item = self.__items[idx]
                 self.__load(item)
         
             if (event == events.HWKEY_EV_INCREMENT):
@@ -290,15 +290,20 @@ class VideoViewer(Viewer):
         self.__items = []
 
 
-    def __update_media(self, mscanner):
+    def __update_media(self):
     
         self.__items = []
-        for item in mscanner.get_media(mscanner.MEDIA_VIDEO):
-            if (not item.thumbnail_pmap):
-                tn = VideoThumbnail(item.thumbnail, item.name)
-                item.thumbnail_pmap = tn
-            self.__items.append(item)
-        self.set_collection(self.__items)
+        thumbnails = []
+        
+        media = self.call_service(events.MEDIASCANNER_SVC_GET_MEDIA,
+                                  ["video/"])        
+        for f in media:
+            thumb = self.call_service(events.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+            tn = VideoThumbnail(thumb, f.name)
+            self.__items.append(f)
+            thumbnails.append(tn)
+        #end for
+        self.set_collection(thumbnails)
         
 
     def __load(self, item):
@@ -311,7 +316,7 @@ class VideoViewer(Viewer):
     
         def f():
             if (self.__screen.window.xid):
-                uri = item.uri
+                uri = item.resource
                 if (uri == self.__uri): return
                 
                 self.__player = mediaplayer.get_player_for_uri(uri)
