@@ -90,6 +90,7 @@ class _Downloader(object):
                 percentage = (100 * bytes_read / max(0.1, float(total_size)))
                 threads.run_unthreaded(cb, self.DOWNLOAD_STATUS, url,
                                        bytes_read, total_size, percentage)
+                threads.keep_alive()
             #end while
 
             fd.close()
@@ -122,7 +123,7 @@ class _Downloader(object):
     def get_async(self, url, cb, timeout = 0):
         """
         Retrieves the given URL asynchronous and invokes the given callback
-        handler. If timeout is non-zero, the download is cancelled if it the
+        handler. If timeout is non-zero, the download is cancelled if the
         host doesn't respond within the given time frame.
         """
 
