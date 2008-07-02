@@ -352,23 +352,23 @@ class ImageStrip(Widget):
         arrow_width, arrow_height = arrow_up.get_width(), arrow_up.get_height()
         
         pmap1, pmap2 = self.__arrows_save_under
-        pmap1.copy_pixmap(screen, x + (w - arrow_width) / 2, y, 0, 0,
+        pmap1.copy_pixmap(screen, x + (w - arrow_width), y, 0, 0,
                           arrow_width, arrow_height)
         pmap2.copy_pixmap(screen,
-                          x + (w - arrow_width) / 2, y + h - arrow_height, 0, 0,
+                          x + (w - arrow_width), y + h - arrow_height, 0, 0,
                           arrow_width, arrow_height)        
 
         if (self.__offset > 0):
-            screen.draw_pixbuf(arrow_up, x + (w - arrow_width) / 2, y)
+            screen.draw_pixbuf(arrow_up, x + (w - arrow_width), y)
         elif (arrow_off_up):
-            screen.draw_pixbuf(arrow_off_up, x + (w - arrow_width) / 2, y)
+            screen.draw_pixbuf(arrow_off_up, x + (w - arrow_width), y)
 
-        if (self.__offset < self.__totalsize - h):
+        if (self.__offset < self.__totalsize - h - 10):
             screen.draw_pixbuf(arrow_down,
-                               x + (w - arrow_width) / 2, y + h - arrow_height)
+                               x + (w - arrow_width), y + h - arrow_height)
         elif (arrow_off_down):
             screen.draw_pixbuf(arrow_off_down,
-                               x + (w - arrow_width) / 2, y + h - arrow_height)
+                               x + (w - arrow_width), y + h - arrow_height)
             
 
 
@@ -386,11 +386,11 @@ class ImageStrip(Widget):
         pmap1, pmap2 = self.__arrows_save_under
         screen.copy_pixmap(pmap1,
                            0, 0,
-                           x + (w - arrow_width) / 2, y,
+                           x + (w - arrow_width), y,
                            arrow_width, arrow_height)
         screen.copy_pixmap(pmap2,
                            0, 0,
-                           x + (w - arrow_width) / 2, y + h - arrow_height,
+                           x + (w - arrow_width), y + h - arrow_height,
                            arrow_width, arrow_height)
         
         
