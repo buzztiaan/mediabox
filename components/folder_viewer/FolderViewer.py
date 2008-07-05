@@ -174,14 +174,11 @@ class FolderViewer(Viewer):
 
     def __lookup_icon(self, entry):
 
-        # TODO: this is a hack! clean up!
-        from mediabox import config
-        m = md5.new(entry.path)
-        path = os.path.join(config.thumbdir(), m.hexdigest() + ".jpg")
-        
-        if (os.path.exists(path)):
+        path = self.call_service(events.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
+
+        try:        
             icon = gtk.gdk.pixbuf_new_from_file(path)
-        else:
+        except:
             icon = None
 
         return icon
