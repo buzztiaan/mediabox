@@ -67,7 +67,6 @@ class MediaScanner(Component):
         self.emit_event(events.MEDIASCANNER_EV_SCANNING_STARTED)
         
         for mediaroot, mediatypes in mediaroots:
-            #if (not os.path.exists(mediaroot)): continue
             logging.info("scanning [%s] for media", mediaroot.resource)
             
             try:
@@ -76,14 +75,13 @@ class MediaScanner(Component):
                 import traceback; traceback.print_exc()
                 pass
 
-            logging.info("finished scanning [%s]", mediaroot.resource)
+            logging.debug("finished scanning [%s]", mediaroot.resource)
         #end for
 
         # get rid of items which haven't been found now
         for key, item in self.__media.items():
             if (self.__scantimes.get(key, self.__scantime) < self.__scantime):
                 del self.__media[key]
-                #self.__thumbnailer.remove_thumbnail(key)
         #end for
         
         self.emit_event(events.MEDIASCANNER_EV_SCANNING_FINISHED)
