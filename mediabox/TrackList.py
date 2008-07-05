@@ -83,41 +83,6 @@ class TrackList(ItemList, Observable):
                 
             if (button): handled = True
                 
-            """
-            elif (button == "add"):
-                if (idx == 0):
-                    self.update_observer(self.OBS_ADD_ALBUM)
-                else:
-                    if (self.__has_header):
-                        self.update_observer(self.OBS_ADD_TRACK, idx - 1)
-                    else:
-                        self.update_observer(self.OBS_ADD_TRACK, idx)
-                handled = True
-                    
-            elif (button == "play"):
-                if (self.__has_header):            
-                    self.update_observer(self.OBS_PLAY_TRACK, idx - 1)
-                else:
-                    self.update_observer(self.OBS_PLAY_TRACK, idx)
-                handled = True
-
-            elif (button == "remove"):
-                if (self.__has_header):            
-                    self.update_observer(self.OBS_REMOVE_TRACK, idx - 1)
-                else:
-                    self.update_observer(self.OBS_REMOVE_TRACK, idx)
-                handled = True
-                
-            elif (button == "remove-preceeding"):
-                self.update_observer(self.OBS_REMOVE_PRECEEDING_TRACKS, idx)
-                handled = True
-                
-            elif (button == "remove-following"):
-                self.update_observer(self.OBS_REMOVE_FOLLOWING_TRACKS, idx)
-                handled = True
-
-            #end if
-            """
         #end if
 
         if (need_render): self.render()
