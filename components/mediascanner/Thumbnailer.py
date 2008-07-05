@@ -1,5 +1,6 @@
 import os
 import gtk
+import md5
 
 
 class Thumbnailer(object):
@@ -104,7 +105,10 @@ class Thumbnailer(object):
         """
         Returns the path for the thumbnail for the given file.
         """
-        
+
+        if (not f.md5):
+            f.md5 = md5.new(f.path).hexdigest()
+            
         thumb = self.__thumb_folder + "/" + f.md5 + ".jpg"
         return thumb
 
