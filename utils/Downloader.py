@@ -1,3 +1,76 @@
+from GAsyncHTTPConnection import GAsyncHTTPConnection
+
+
+class _Downloader(object):
+    """
+    Singleton object for an asynchronous HTTP downloader.
+    Concurrency is achieved by using threadless asynchronous GObject IO
+    callbacks. Thanks to Hugo Calleja for this.
+    """
+    
+
+    CONNECTING = 0
+    SIZE_AVAILABLE = 1
+    DOWNLOAD_STARTED = 2
+    DOWNLOAD_FINISHED = 3
+    DOWNLOAD_STATUS = 4
+    DOWNLOAD_CANCELLED = 5
+    TIMEOUT = 6
+    ERROR = 7
+
+
+    def __download_cb(self, success, conn, response, url, cb):
+    
+        if (success):
+            cb(self.DOWNLOAD_FINISHED, url, response.get_body)
+        else:
+            cb(self.ERROR, url)
+    
+
+    def get_async(self, url, cb, timeout = 0):
+        """
+        Retrieves the given URL asynchronously and invokes the given callback
+        handler. If timeout is non-zero, the download is cancelled if the
+        host doesn't respond within the given time frame.
+        """
+
+        # TODO: supply timeout to GAsync
+        downloader = GAsyncHTTPConnection(url, "\r\n\r\n",
+                                          self.__download_cb, url, cb)
+
+
+    def get(self, url):
+        """
+        Convenience method for downloading a file synchronously.
+        Returns None if an error occured during download.
+        """
+
+        finished = threading.Event()
+        data = [None]
+        
+        def f(cmd, *args):
+            if (cmd == self.DOWNLOAD_FINISHED):
+                data[0] = args[1]
+                finished.set()
+            elif (cmd == self.ERROR):
+                finished.set()
+            elif (cmd == self.TIMEOUT):
+                finished.set()
+
+        self.get_async(url, f)
+        while (not finished.isSet()): gtk.main_iteration()
+
+        return data[0]
+
+
+
+
+#
+# This is a thread-based implementation of the Downloader
+#
+
+
+
 import threads
 import logging
 
@@ -12,7 +85,7 @@ import time
 _MAX_WORKERS = 4
 
 
-class _Downloader(object):
+class _Thread_Based_Downloader(object):
     """
     Singleton object for an asynchronous HTTP downloader.
     """
@@ -122,7 +195,7 @@ class _Downloader(object):
 
     def get_async(self, url, cb, timeout = 0):
         """
-        Retrieves the given URL asynchronous and invokes the given callback
+        Retrieves the given URL asynchronously and invokes the given callback
         handler. If timeout is non-zero, the download is cancelled if the
         host doesn't respond within the given time frame.
         """
@@ -134,7 +207,7 @@ class _Downloader(object):
         
     def get(self, url):
         """
-        Convenience method for downloading a file synchronous.
+        Convenience method for downloading a file synchronously.
         Returns None if an error occured during download.
         """
 
@@ -153,7 +226,7 @@ class _Downloader(object):
         self.get_async(url, f)
         while (not finished.isSet()): gtk.main_iteration()
 
-        return data[0]    
+        return data[0]
 
 
 
