@@ -26,7 +26,16 @@ def _log(ltype, s):
     now = time.time()
     msecs = (now - int(now)) * 1000
     now = time.strftime("%F %T", time.localtime(now))
-    print "%s.%03d - %s --- %s" % (now, msecs, ltype, s)
+    print "%s.%03d - %s ---" % (now, msecs, ltype),
+    
+    first_line = True
+    for line in s.splitlines():
+        if (first_line):
+            print line
+            first_line = False
+        else:
+            print ">   " + line
+    #end for
 
 
 def error(msg, *args):
