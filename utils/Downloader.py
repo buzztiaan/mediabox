@@ -1,7 +1,8 @@
 from GAsyncHTTPConnection import GAsyncHTTPConnection
+import urlparse
 
 
-class _Downloader(object):
+class _Threadless_Downloader(object):
     """
     Singleton object for an asynchronous HTTP downloader.
     Concurrency is achieved by using threadless asynchronous GObject IO
@@ -19,10 +20,11 @@ class _Downloader(object):
     ERROR = 7
 
 
-    def __download_cb(self, success, conn, response, url, cb):
+    def __download_cb(self, success, conn, response, *args):
     
+        url, cb = args
         if (success):
-            cb(self.DOWNLOAD_FINISHED, url, response.get_body)
+            cb(self.DOWNLOAD_FINISHED, url, response.get_body())
         else:
             cb(self.ERROR, url)
     
@@ -34,8 +36,15 @@ class _Downloader(object):
         host doesn't respond within the given time frame.
         """
 
+        urlparts = urlparse.urlparse(url)
+        host = urlparts.netloc
+        path = urlparts.path
+        port = urlparts.port or 80
+
         # TODO: supply timeout to GAsync
-        downloader = GAsyncHTTPConnection(url, "\r\n\r\n",
+        downloader = GAsyncHTTPConnection(host, port,
+                                          "GET %s HTTP/1.1\r\n"
+                                          "Host: %s\r\n\r\n" % (path, host),
                                           self.__download_cb, url, cb)
 
 
@@ -78,6 +87,7 @@ from Queue import Queue
 import threading
 import urllib2
 import time
+import gtk
 
 
 
@@ -85,7 +95,7 @@ import time
 _MAX_WORKERS = 4
 
 
-class _Thread_Based_Downloader(object):
+class _Threaded_Downloader(object):
     """
     Singleton object for an asynchronous HTTP downloader.
     """
@@ -150,6 +160,7 @@ class _Thread_Based_Downloader(object):
             while (True):
                 # TODO: we should use non-blocking IO for detecting timeouts
                 new_data = fd.read(4096)
+                print len(new_data)
                 if (not new_data):
                     # reached EOF
                     break
@@ -230,6 +241,16 @@ class _Thread_Based_Downloader(object):
 
 
 
-_singleton = _Downloader()
+_singleton = _Threadless_Downloader()
 def Downloader(): return _singleton
 
+
+if (__name__ == "__main__"):
+    import gobject
+    def f():
+        data = Downloader().get("http://img.youtube.com/vi/heIReJJgFMc/2.jpg")
+        print "RECEIVED:", len(data)
+        gtk.main_quit()
+        
+    gobject.idle_add(f)
+    gtk.main()
