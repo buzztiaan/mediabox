@@ -24,6 +24,7 @@ def __parse_ssdp_event(data):
 
     lines = data.splitlines()
     method = lines[0].upper()
+    logging.debug("SSDP notification:\n%s" % data)
 
     if (method.startswith("NOTIFY ") or method.startswith("HTTP/")):    
         values = {}
@@ -42,7 +43,7 @@ def __parse_ssdp_event(data):
         else:
             event = SSDP_ALIVE
             
-        return (event, values["LOCATION"], values["USN"])
+        return (event, values.get("LOCATION", ""), values["USN"])
         
     else:
         return None

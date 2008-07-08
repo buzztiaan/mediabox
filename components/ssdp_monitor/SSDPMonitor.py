@@ -1,7 +1,7 @@
 from com import Component, events
-from UPnPDevice import UPnPDevice
 from upnp import ssdp
 from upnp.MiniXML import MiniXML
+from upnp.DeviceDescription import DeviceDescription
 from utils import logging
 from utils import threads
 
@@ -48,16 +48,15 @@ class SSDPMonitor(Component):
         xml = urllib.urlopen(location).read()
         dom = MiniXML(xml, _NS_DESCR).get_dom()
 
-        dev_node = dom.get_child("{%s}device" % _NS_DESCR)
-        device_type = dev_node.get_pcdata("{%s}deviceType" % _NS_DESCR)
-        logging.info("discovered UPnP device of type [%s]" % device_type)
+        descr = DeviceDescription(location, dom)
+        logging.info("discovered UPnP device [%s] of type [%s]" \
+                     % (descr.get_friendly_name(), descr.get_device_type()))
 
-        logging.debug("propagating availability of device [%s]" % uuid)
+        logging.debug("propagating availability of device [%s]" % uuid)        
         threads.run_unthreaded(self.emit_event,
-                      events.SSDP_EV_DEVICE_DISCOVERED, uuid, device_type,
-                      location, dom)
-            
-            
+                               events.SSDP_EV_DEVICE_DISCOVERED, uuid, descr)
+
+
     def __check_ssdp(self):
     
         self.__idle_timer += 1
@@ -65,8 +64,6 @@ class SSDPMonitor(Component):
         ssdp_event = ssdp.poll_event()
         if (ssdp_event):
             event, location, usn = ssdp_event
-            logging.debug("SSDP event: type %s, location %s, usn %s",
-                          event, location, usn)
             if ("::" in usn):
                 uuid, urn = usn.split("::")
             else:
@@ -78,7 +75,7 @@ class SSDPMonitor(Component):
                 if (not uuid in self.__servers):
                     self.__servers[uuid] = location
                     threads.run_threaded(self.__check_device,
-                                        uuid, location)
+                                         uuid, location)
 
             elif (event == ssdp.SSDP_BYEBYE):
                 logging.debug("UPnP device %s is GONE", uuid)

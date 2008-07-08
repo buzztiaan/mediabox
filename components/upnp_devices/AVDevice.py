@@ -2,6 +2,7 @@ from storage import Device, File
 from upnp.MiniXML import MiniXML
 from upnp.SOAPProxy import SOAPProxy
 from upnp import didl_lite
+from utils import mimetypes
 from utils import logging
 
 import urllib
@@ -11,6 +12,7 @@ import gtk
 
 
 _NS_DESCR = "urn:schemas-upnp-org:device-1-0"
+_SERVICE_CONTENT_DIRECTORY_1 = "urn:schemas-upnp-org:service:ContentDirectory:1"
 
 
 class AVDevice(Device):
@@ -22,121 +24,36 @@ class AVDevice(Device):
     DEVICE_TYPES = ["urn:schemas-upnp-org:device:MediaServer:1"]
 
 
-    def __init__(self, location, descr):
+    def __init__(self, descr):
         """
         Builds a new UPnP device object from the given description URL.
         """
+
+        self.__description = descr
     
         # cache for DIDL responses
         self.__didl_cache = {}
-    
-        self.__location = location
-        
-        self.__device_type = ""
-        self.__udn = ""
-        self.__friendly_name = ""
-        self.__manufacturer = ""
-        self.__model_name = ""
-        self.__model_number = ""
-        self.__model_description = ""
-        self.__presentation_url = "" 
-        self.__url_base = ""
-        
-        self.__icon_url = ""
-        
-        self.__cds_proxy = None
 
+        try:
+            self.__cds_proxy = descr.get_service_proxy(_SERVICE_CONTENT_DIRECTORY_1)
+        except KeyError:
+            self.__cds_proxy = None
 
         Device.__init__(self)
-        self.__parse_description(descr)
 
-
-            
-    def __parse_description(self, dom):
-    
-        self.__url_base = dom.get_pcdata("{%s}URLBase" % _NS_DESCR).strip()
-        if (not self.__url_base):
-            self.__url_base = self.__location[:self.__location.rfind("/")]
-        
-        device = dom.get_child("{%s}device" % _NS_DESCR)
-        self.__device_type = device.get_pcdata("{%s}deviceType" % _NS_DESCR)
-        self.__udn = device.get_pcdata("{%s}UDN" % _NS_DESCR)
-        self.__friendly_name = device.get_pcdata("{%s}friendlyName" % _NS_DESCR)
-        self.__manufacturer = device.get_pcdata("{%s}manufacturer" % _NS_DESCR)
-        self.__model_name = device.get_pcdata("{%s}modelName" % _NS_DESCR)
-        self.__model_number = device.get_pcdata("{%s}modelNumber" % _NS_DESCR)
-        self.__model_description = device.get_pcdata("{%s}modelDescription" % _NS_DESCR)
-        self.__presentation_url = device.get_pcdata("{%s}presentationURL" % _NS_DESCR)
-
-        svclist = device.get_child("{%s}serviceList" % _NS_DESCR)
-        for service in svclist.get_children():
-            svctype = service.get_pcdata("{%s}serviceType" % _NS_DESCR)
-            scpd_url = urlparse.urljoin(self.__url_base,
-                                 service.get_pcdata("{%s}SCPDURL" % _NS_DESCR))
-            ctrl_url = urlparse.urljoin(self.__url_base,
-                              service.get_pcdata("{%s}controlURL" % _NS_DESCR))
-      
-            
-            if (svctype == "urn:schemas-upnp-org:service:ContentDirectory:1" or
-                svctype == "urn:schemas-upnp-org:service:ContentDirectory:2"):
-                self.__cds_proxy = SOAPProxy(ctrl_url, svctype, scpd_url)
-
-        #end for
-
-        # load icon if available
-        icons = device.get_child("{%s}iconList" % _NS_DESCR)
-        if (icons):
-            self.__icon_url = urlparse.urljoin(self.__url_base,
-                                           self.__load_icon(icons))
-              
-              
-    def __load_icon(self, node):
-        
-        def icon_comparator(icon1, icon2):       
-            mimetype1 = icon1.get_pcdata("{%s}mimetype" % _NS_DESCR)
-            width1 = int(icon1.get_pcdata("{%s}width" % _NS_DESCR))
-            height1 = int(icon1.get_pcdata("{%s}height" % _NS_DESCR))
-            area1 = width1 * height1
-
-            mimetype2 = icon2.get_pcdata("{%s}mimetype" % _NS_DESCR)
-            width2 = int(icon2.get_pcdata("{%s}width" % _NS_DESCR))
-            height2 = int(icon2.get_pcdata("{%s}height" % _NS_DESCR))
-            area2 = width2 * height2
-            
-            # sort by mimetype and size (PNG is preferred because it
-            # supports transparency)
-            if (mimetype1 == mimetype2):
-                return cmp(area1, area2)
-            else:
-                if (mimetype1 == "image/png"):
-                    return 1
-                else:
-                    return -1
-            #end if
-
-
-        icons = node.get_children()
-        icons.sort(icon_comparator)
-        preferred_icon = icons[-1]
-        
-        return preferred_icon.get_pcdata("{%s}url" % _NS_DESCR)
-
-
-    def has_content_directory(self):
-    
-        return (self.__cds_proxy != None)
 
 
     def get_prefix(self):
     
-        return "upnp://%s" % self.__udn
+        return "upnp://%s" % self.__description.get_udn()
 
 
     def get_icon(self):
 
-        if (self.__icon_url):
+        icon_url = self.__description.get_icon_url(96, 96)
+        if (icon_url):
             loader = gtk.gdk.PixbufLoader()
-            loader.write(urllib.urlopen(self.__icon_url).read())
+            loader.write(urllib.urlopen(icon_url).read())
             loader.close()
             icon = loader.get_pixbuf()
             del loader
@@ -148,7 +65,7 @@ class AVDevice(Device):
         
     def get_name(self):
     
-        return self.__friendly_name
+        return self.__description.get_friendly_name()
         
         
     def get_root(self):
@@ -171,6 +88,8 @@ class AVDevice(Device):
         entry = didl_lite.parse(didl)
         ident, clss, child_count, res, title, artist, mimetype = entry[0]
 
+        url_base = self.__description.get_url_base()
+
         f = File(self)
         f.mimetype = mimetype
         f.resource = res
@@ -181,7 +100,7 @@ class AVDevice(Device):
         if (f.mimetype == f.DIRECTORY):
             f.resource = ident
         else:
-            f.resource = urlparse.urljoin(self.__url_base, res)
+            f.resource = urlparse.urljoin(url_base, res)
         f.child_count = child_count
 
         return f
@@ -199,18 +118,24 @@ class AVDevice(Device):
             self.__didl_cache[path] = didl
 
         files = []
+        url_base = self.__description.get_url_base()
         for entry in didl_lite.parse(didl):
             ident, clss, child_count, res, title, artist, mimetype = entry
             f = File(self)
             f.mimetype = mimetype
-            f.resource = res or urlparse.urljoin(self.__url_base, ident)
+            f.resource = res or urlparse.urljoin(url_base, ident)
             f.name = title
             f.info = artist
 
             if (f.mimetype == f.DIRECTORY):
                 f.path = ident
             else:
-                f.path = urlparse.urljoin(self.__url_base, res)
+                f.path = urlparse.urljoin(url_base, res)
+                
+            if (f.mimetype in ["application/octet-stream"]):
+                ext = os.path.splitext(f.name)[-1]
+                f.mimetype = mimetypes.lookup_ext(ext)
+                
             f.child_count = child_count
             files.append(f)
             

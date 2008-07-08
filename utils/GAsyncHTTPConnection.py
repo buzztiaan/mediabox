@@ -99,7 +99,6 @@ class GAsyncHTTPConnection (object):
                 value = l[idx + 1:].strip()
                 headers[key] = value
         #end for
-        print headers
 
         if ( "CONTENT-LENGTH" in headers ) :
             body_length = int(headers["CONTENT-LENGTH"])
@@ -131,7 +130,6 @@ class GAsyncHTTPConnection (object):
         
         body += readed
 
-        print len(body), body_length
         if ( len(body) < body_length ):  #More body to be recieved
             self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__recieve_more_body, body, body_length, status_header, headers)
             self.__timeout_callback_id = gobject.timeout_add (10000, self.__timeout)
@@ -199,6 +197,7 @@ def parse_addr (addr):
     #path = urlparts[2]
 
     print urlparts
-    return (urlparts.netloc, urlparts.port, urlparts.path)
+    netloc = urlparts.netloc.split(":")[0]
+    return (netloc, urlparts.port, urlparts.path)
 
 
