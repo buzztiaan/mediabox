@@ -50,9 +50,9 @@ class KineticScroller(Observable):
         # whether the impulse handler is running
         self.__impulse_handler_running = False
 
-        child.connect(child.EVENT_BUTTON_PRESS, self.__on_drag_start)
-        child.connect(child.EVENT_BUTTON_RELEASE, self.__on_drag_stop)
-        child.connect(child.EVENT_MOTION, self.__on_drag)
+        child.connect_button_pressed(self.__on_drag_start)
+        child.connect_button_released(self.__on_drag_stop)
+        child.connect_pointer_moved(self.__on_drag)
 
 
     def impulse(self, force_x, force_y):
@@ -69,6 +69,7 @@ class KineticScroller(Observable):
     def stop_scrolling(self):
     
         self.__delta_s = (0, 0)
+        self.__is_dragging = False
             
 
     def enable_kinetic(self, value):

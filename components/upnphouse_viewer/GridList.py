@@ -24,7 +24,7 @@ class GridList(ItemList):
 
         self.set_arrows (arrows, arrows_off)
         
-        self.connect(self.EVENT_BUTTON_RELEASE, self.__on_button_release)
+        self.connect_button_released(self.__on_button_release)
 
     def append_button(self, grid_button):
 

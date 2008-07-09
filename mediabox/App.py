@@ -131,8 +131,7 @@ class App(Component):
         # control panel
         self.__panel_left = Image(None)
         self.__panel_left.set_geometry(0, 410, 160, 70)
-        self.__panel_left.connect(self.__panel_left.EVENT_BUTTON_PRESS,
-                                  self.__on_menu_button)
+        self.__panel_left.connect_button_pressed(self.__on_menu_button)
         self.__panel_left.set_visible(False)
         
         self.__ctrl_panel = ControlPanel()
@@ -543,9 +542,9 @@ class App(Component):
             self.__title_panel.set_title(name)
             self.__thumbnailer.show_thumbnail(thumburi, name)
     
-        elif (event == events.CORE_EV_DEVICE_ADDED):
-            ident, dev = args
-            gobject.timeout_add(0, self.__scan_media, True)
+        #elif (event == events.CORE_EV_DEVICE_ADDED):
+        #    ident, dev = args
+        #    gobject.timeout_add(0, self.__scan_media, True)
         
     
         elif (event == events.CORE_EV_THEME_CHANGED):

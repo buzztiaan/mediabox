@@ -37,6 +37,10 @@ class Widget(object):
           
           
     def send_event(self, ev, *args):
+        """
+        Sends the given event. The widget emits the event to all event handlers
+        registered for the event.
+        """
 
         if (self.__events_blocked[0]): return
         
@@ -78,6 +82,12 @@ class Widget(object):
         self.__children.append(child)
         child.set_parent(self)
         child.set_screen(self.get_screen())
+        self.__check_zone()
+        
+        
+    def remove(self, child):
+    
+        self.__children.remove(child)
         self.__check_zone()
         
         
@@ -194,7 +204,11 @@ class Widget(object):
             c.__check_zones()
 
         
-    def connect(self, etype, cb, *args):
+    def _connect(self, etype, cb, *args):
+        """
+        Connects a callback to an event type. This is a low-level function
+        and should only be used when implementing new widgets.
+        """
     
         if (not etype in self.__event_handlers):
             self.__event_handlers[etype] = []
@@ -205,7 +219,31 @@ class Widget(object):
 
     def connect_clicked(self, cb, *args):
         
-        self.connect(self.EVENT_BUTTON_RELEASE, lambda x,y:cb(), *args)
+        self._connect(self.EVENT_BUTTON_RELEASE,
+                      lambda x,y,*a:cb(*a),
+                      *args)
+
+
+    def connect_button_pressed(self, cb, *args):
+    
+        self._connect(self.EVENT_BUTTON_PRESS,
+                      lambda x,y,*a:cb(x, y, *a),
+                      *args)
+                     
+                     
+    def connect_button_released(self, cb, *args):
+    
+        self._connect(self.EVENT_BUTTON_RELEASE,
+                      lambda x,y,*a:cb(x, y, *a),
+                      *args)
+
+
+    def connect_pointer_moved(self, cb, *args):
+    
+        self._connect(self.EVENT_MOTION,
+                      lambda x,y,*a:cb(x, y, *a),
+                      *args)
+    
 
 
     def set_pos(self, x, y):

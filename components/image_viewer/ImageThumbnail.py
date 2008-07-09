@@ -1,4 +1,5 @@
 from ui.StripItem import StripItem
+from mediabox import thumbnail
 import theme
 
 import gtk
@@ -17,13 +18,7 @@ class ImageThumbnail(StripItem):
     def render_this(self, cnv):
     
         cnv.fill_area(0, 0, 160, 120, theme.color_bg)
-
-        cnv.draw_pixbuf(theme.viewer_image_frame, 0, 0)
-        try:
-            cnv.fit_pixbuf(gtk.gdk.pixbuf_new_from_file(self.__thumb),
-                           7, 7, 142, 102)
-        except:
-            pass
+        thumbnail.draw_decorated(cnv, 0, 0, 160, 120, self.__thumb, "image/*")
 
         if (self.is_hilighted()):
             cnv.draw_pixbuf(theme.selection_frame, 0, 0)

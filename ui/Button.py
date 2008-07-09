@@ -15,8 +15,8 @@ class Button(Widget):
     
         Widget.__init__(self)
         self.set_size(80, 80)
-        self.connect(self.EVENT_BUTTON_PRESS, self.__on_click, True)
-        self.connect(self.EVENT_BUTTON_RELEASE, self.__on_click, False)
+        self.connect_button_pressed(self.__on_click, True)
+        self.connect_button_released(self.__on_click, False)
 
     
     def set_size(self, w, h):

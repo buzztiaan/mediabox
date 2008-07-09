@@ -7,8 +7,6 @@ import os
 import commands
 
 
-_ROOT_PATH = "MENU"
-
 
 class LocalDevice(Device):
 
@@ -79,6 +77,24 @@ class LocalDevice(Device):
         return items
         
         
+    def __ls_mmcs(self):
+    
+        items = []
+        for f in [ f for f in os.listdir("/media")
+                   if os.path.isdir(os.path.join("/media", f)) ]:
+            path = os.path.join("/media", f)
+            item = File(self)
+            item.path = path
+            item.resource = path
+            item.child_count = self.__get_child_count(path)
+            item.name = f
+            item.mimetype = File.DIRECTORY
+            items.append(item)
+        #end for
+        
+        return items
+        
+        
     def get_file(self, path):
 
         item = File(self)
@@ -100,8 +116,11 @@ class LocalDevice(Device):
         
     def ls(self, path):
                    
-        if (path == _ROOT_PATH):
+        if (path == "MENU"):
             return self.__ls_menu()
+            
+        elif (path == "MMC"):
+            return self.__ls_mmcs()
     
         logging.debug("listing [%s]" % path)
         try:

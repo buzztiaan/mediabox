@@ -28,3 +28,8 @@ class File(object):
     
         return self.__device.get_fd(self.resource)
         
+        
+    def get_resource(self):
+    
+        return self.__device.get_resource(self.resource)
+        

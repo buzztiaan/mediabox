@@ -11,7 +11,7 @@ class ItemList(ImageStrip):
         self.__height = itemsize
                       
         # TODO: maintaining this list is apparently not necessary anymore...
-        self.__items = []
+        #self.__items = []
         
         self.__hilighted_item = -1
                 
@@ -24,7 +24,7 @@ class ItemList(ImageStrip):
         Clears this list.
         """
     
-        self.__items = []
+        #self.__items = []
         self.__hilighted_item = -1
         self.set_images([])
         #self.__canvas = None
@@ -39,7 +39,7 @@ class ItemList(ImageStrip):
         w -= 20
         item.set_size(w, self.__height)
 
-        self.__items.append(item)
+        #self.__items.append(item)
         idx = self.append_image(item)
 
         #if (len(self.__items) < 30): self.__canvas.prepare(item)
@@ -59,7 +59,7 @@ class ItemList(ImageStrip):
         if (self.__hilighted_item == idx):
             item.set_hilighted(True)
 
-        self.__items[idx] = item
+        #self.__items[idx] = item
         self.replace_image(idx, item)
 
 
@@ -69,7 +69,8 @@ class ItemList(ImageStrip):
         """
     
         try:
-            return self.__items[idx]
+            #return self.__items[idx]
+            return self.get_image(idx)
         except:
             return None
                
@@ -79,7 +80,7 @@ class ItemList(ImageStrip):
         Removes the list item at the given position.
         """
     
-        self.__items.pop(idx)
+        #self.__items.pop(idx)
         self.remove_image(idx)
 
         if (idx == self.__hilighted_item):
@@ -94,9 +95,9 @@ class ItemList(ImageStrip):
         """
    
         ImageStrip.swap(self, idx1, idx2)
-        temp = self.__items[idx1]
-        self.__items[idx1] = self.__items[idx2]
-        self.__items[idx2] = temp
+        #temp = self.__items[idx1]
+        #self.__items[idx1] = self.__items[idx2]
+        #self.__items[idx2] = temp
         if (self.__hilighted_item == idx1):
             self.__hilighted_item = idx2
         elif (self.__hilighted_item == idx2):
@@ -111,13 +112,13 @@ class ItemList(ImageStrip):
 
         if (self.__hilighted_item >= 0):
             try:
-                item = self.__items[self.__hilighted_item]
+                item = self.get_image(self.__hilighted_item) #self.__items[self.__hilighted_item]
                 item.set_hilighted(False)
             except:
                 pass
                 
         if (idx >= 0):
-            item = self.__items[idx]
+            item = self.get_image(idx) #self.__items[idx]
             item.set_hilighted(True)
             self.__hilighted_item = idx
             self.render()

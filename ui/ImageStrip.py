@@ -524,8 +524,11 @@ class ImageStrip(Widget):
                 self.__shared_pmap.prepare(item)
                 pw, ph = item.get_size()
 
-                # center it
-                offx = (w - pw) / 2
+                # center it, unless the item is wider than the strip
+                if (pw < w):
+                    offx = (w - pw) / 2
+                else:
+                    offx = 0
 
                 if (self.__floating_index != idx):
                     # render item
@@ -753,10 +756,11 @@ class ImageStrip(Widget):
             else:
                 self.render()
                 finished.set()
-                
-        f(0)
-        while (wait and not finished.isSet()): gtk.main_iteration()
 
+        self.set_events_blocked(True)                
+        f(0)        
+        while (wait and not finished.isSet()): gtk.main_iteration()
+        self.set_events_blocked(False)
 
 
     def fx_slide_right(self, wait = True):
@@ -782,10 +786,11 @@ class ImageStrip(Widget):
             else:
                 self.render()
                 finished.set()
-                
+
+        self.set_events_blocked(True)                
         f(0)
         while (wait and not finished.isSet()): gtk.main_iteration()
-
+        self.set_events_blocked(False)
             
             
     def fx_slide_in(self, wait = True):

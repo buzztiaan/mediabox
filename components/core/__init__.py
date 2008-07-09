@@ -3,6 +3,7 @@ from com import Component, events
 from ConfigMediaRoot import ConfigMediaRoot
 from ConfigTheme import ConfigTheme
 from DirectoryService import DirectoryService
+from MediaWidgetRegistry import MediaWidgetRegistry
 
 
 class Init(Component):
@@ -18,7 +19,8 @@ class Init(Component):
 
 def get_classes():
 
-    return [Init, ConfigMediaRoot, ConfigTheme, DirectoryService]
+    return [Init, ConfigMediaRoot, ConfigTheme, DirectoryService,
+            MediaWidgetRegistry]
     
     
 messages = [    
@@ -37,6 +39,8 @@ messages = [
     
     "CORE_SVC_LIST_PATH",       # (path)
     "CORE_SVC_GET_FILE",        # (path)
+    
+    "MEDIAWIDGETREGISTRY_SVC_GET_WIDGET",      # (caller_id, mimetype)
     
     "MEDIA_EV_PLAY",
     "MEDIA_EV_PAUSE",

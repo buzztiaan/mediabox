@@ -23,9 +23,9 @@ class ProgressBar(Widget):
         Widget.__init__(self)
         self.set_size(w, 80)
         
-        self.connect(self.EVENT_BUTTON_PRESS, self.__on_button_press)
-        self.connect(self.EVENT_BUTTON_RELEASE, self.__on_button_release)
-        self.connect(self.EVENT_MOTION, self.__on_motion)
+        self.connect_button_pressed(self.__on_button_press)
+        self.connect_button_released(self.__on_button_release)
+        self.connect_pointer_moved(self.__on_motion)
         
         
     def __on_button_press(self, px, py):
@@ -53,7 +53,7 @@ class ProgressBar(Widget):
             pos = max(0, min(99.9, px / float(w) * 100))
             cb(pos, *args)
       
-        self.connect(self.EVENT_BUTTON_RELEASE, f, *args)
+        self.connect_button_released(f, *args)
 
 
     def render_this(self):

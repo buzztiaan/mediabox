@@ -69,8 +69,7 @@ class TabPanel(Widget, Observable):
         self.add(icon)
         if (len(self.__icons) == self.__index):
             icon.set_active(True)
-        icon.connect(icon.EVENT_BUTTON_PRESS, self.__on_tab_selected,
-                     len(self.__icons))
+        icon.connect_button_pressed(self.__on_tab_selected, len(self.__icons))
         self.__icons.append(icon)
        
         offx = (128 - v.ICON.get_width()) / 2

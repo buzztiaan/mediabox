@@ -1,4 +1,5 @@
 from ui.StripItem import StripItem
+from mediabox import thumbnail
 import theme
 
 import os
@@ -20,11 +21,8 @@ class VideoThumbnail(StripItem):
         
     def render_this(self, cnv):
 
-        cnv.draw_pixbuf(theme.viewer_video_film, 0, 0)
-        try:
-            cnv.fit_pixbuf(gtk.gdk.pixbuf_new_from_file(self.__thumb), 13, 4, 134, 112)
-        except:
-            pass
+        cnv.fill_area(0, 0, 160, 120, theme.color_bg)
+        thumbnail.draw_decorated(cnv, 0, 0, 160, 120, self.__thumb, "video/*")
 
         if (self.is_hilighted()):
             cnv.draw_pixbuf(theme.selection_frame, 0, 0)

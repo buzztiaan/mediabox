@@ -66,3 +66,14 @@ class Device(object):
     
         raise NotImplementedError
         
+        
+        
+    def get_resource(self, resource):
+        """
+        Returns the resource URI to access the given resource. Usually this
+        method just returns the given resource. But sometimes (e.g. YouTube),
+        this URI has to be specially determined.
+        """
+        
+        return resource
+        

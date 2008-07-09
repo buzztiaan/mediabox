@@ -78,7 +78,8 @@ class TrackList(ItemList, Observable):
                 self.__open_item = idx
                 need_render = True
                 
-            else:
+            elif (button):
+                self.__kscr.stop_scrolling()
                 self.send_event(self.EVENT_BUTTON_CLICKED, item, idx, button)
                 
             if (button): handled = True
@@ -93,10 +94,10 @@ class TrackList(ItemList, Observable):
 
     def connect_button_clicked(self, cb, *args):
     
-        self.connect(self.EVENT_BUTTON_CLICKED, cb, *args)
+        self._connect(self.EVENT_BUTTON_CLICKED, cb, *args)
         
         
     def connect_item_selected(self, cb, *args):
     
-        self.connect(self.EVENT_ITEM_SELECTED, cb, *args)
+        self._connect(self.EVENT_ITEM_SELECTED, cb, *args)
 

@@ -25,7 +25,7 @@ class OverlayControls(Widget, Observable):
         ebox = EventBox()
         ebox.set_geometry(730, 0, 70, 480)
         self.add(ebox)
-        ebox.connect(self.EVENT_BUTTON_RELEASE, self.__on_click)
+        ebox.connect_button_released(self.__on_click)
 
 
     def __on_click(self, px, py):

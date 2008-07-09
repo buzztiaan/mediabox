@@ -1,5 +1,8 @@
 from ui.Item import Item
+import thumbnail
 import theme
+
+import os
 
 
 _CLOSED = 0
@@ -34,12 +37,13 @@ class TrackItem(Item):
     _BUTTONS = []
 
 
-    def __init__(self, icon, label, sublabel):
+    def __init__(self, icon, mimetype, label, sublabel):
 
         self.__state = _CLOSED
         self.__button_pos = []
     
         self.__icon = icon
+        self.__mimetype = mimetype
         self.__emblem = None
         self.__color_1 = "#000000"
         self.__color_2 = "#666666"
@@ -120,9 +124,12 @@ class TrackItem(Item):
             x += 24
             
 
-        x += 8        
+        x += 8
         if (self.__icon):
-            canvas.fit_pixbuf(self.__icon, 4, 4, 120, 70)
+            icon = thumbnail.draw_decorated(canvas, 4, 4, 120, 70,
+                                            self.__icon, self.__mimetype)
+
+            #canvas.fit_pixbuf(icon, 4, 4, 120, 70)
                                #x, (h - self.__icon.get_height()) / 2)
             x += 120 #self.__icon.get_width()
             x += 12

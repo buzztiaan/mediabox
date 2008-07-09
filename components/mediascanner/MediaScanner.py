@@ -54,7 +54,11 @@ class MediaScanner(Component):
             f = args[0]
             return self.__thumbnailer.get_thumbnail_path(f)
 
-
+        elif (ev == events.MEDIASCANNER_SVC_SET_THUMBNAIL):
+            f, pbuf = args
+            thumbpath = self.__thumbnailer.get_thumbnail_path(f)
+            pbuf.save(thumbpath, "jpeg")
+            return thumbpath
 
 
     def __scan(self, mediaroots):

@@ -3,7 +3,8 @@ from EventBus import EventBus
 
 class Mediator(object):
     """
-    Base class for mediator objects.
+    Base class for mediator objects, i.e. object which receive messages and
+    emit messages.
     """
 
     PASS_TYPE_INVALID = 0

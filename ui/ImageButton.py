@@ -17,8 +17,8 @@ class ImageButton(Widget):
         self.set_size(70, 60)
         
         if (not manual):
-            self.connect(self.EVENT_BUTTON_PRESS, self.__on_click, True)
-            self.connect(self.EVENT_BUTTON_RELEASE, self.__on_click, False)               
+            self.connect_button_pressed(self.__on_click, True)
+            self.connect_button_released(self.__on_click, False)               
     
     
     def _reload(self):

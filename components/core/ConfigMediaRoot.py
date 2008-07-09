@@ -43,7 +43,7 @@ class ConfigMediaRoot(Configurator):
         btn_add = Button(theme.button_1, theme.button_2)
         btn_add.set_pos(10, 290)
         btn_add.set_size(300, 80)
-        btn_add.connect(btn_add.EVENT_BUTTON_RELEASE, self.__on_add_folder)        
+        btn_add.connect_clicked(self.__on_add_folder)        
         self.add(btn_add)
 
         hbox = HBox()
@@ -56,7 +56,7 @@ class ConfigMediaRoot(Configurator):
         btn_rescan = Button(theme.button_1, theme.button_2)
         btn_rescan.set_pos(310, 290)
         btn_rescan.set_size(300, 80)
-        btn_rescan.connect(btn_rescan.EVENT_BUTTON_RELEASE, self.__on_rescan)        
+        btn_rescan.connect_clicked(self.__on_rescan)        
         self.add(btn_rescan)
 
         hbox = HBox()
@@ -81,7 +81,7 @@ class ConfigMediaRoot(Configurator):
             #self.__list.overlay_image(idx, theme.remove, 540, 24)
 
 
-    def __on_add_folder(self, x, y):
+    def __on_add_folder(self):
     
         try:
             # Maemo
@@ -111,7 +111,7 @@ class ConfigMediaRoot(Configurator):
         dirchooser.destroy()            
 
 
-    def __on_rescan(self, src, cmd, *args):
+    def __on_rescan(self):
     
         self.emit_event(events.CORE_ACT_SCAN_MEDIA, True)
 

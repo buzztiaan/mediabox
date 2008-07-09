@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 from utils import logging
-logging.set_level(logging.DEBUG)
+logging.set_level(logging.INFO)
 
 
 logging.debug("initializing application")

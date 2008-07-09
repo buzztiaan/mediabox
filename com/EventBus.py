@@ -47,6 +47,7 @@ class _EventBus(object):
                 try:
                     ret = mediator.handle_event(svc, *args)
                 except:
+                    import traceback; traceback.print_exc()
                     pass
                 if (ret != None):
                     self.__services[svc] = mediator

@@ -1,5 +1,6 @@
 from ui.StripItem import StripItem
 from ui.Pixmap import Pixmap
+from mediabox import thumbnail
 import theme
 
 import os
@@ -20,17 +21,8 @@ class AlbumThumbnail(StripItem):
     def render_this(self, cnv):
 
         cnv.fill_area(0, 0, 160, 120, theme.color_bg)
-
-        if (os.path.exists(self.__thumb)):
-            cnv.draw_pixbuf(theme.viewer_music_frame, 20, 0)
-            try:
-                cnv.fit_pixbuf(gtk.gdk.pixbuf_new_from_file(self.__thumb),
-                               23, 3, 109, 109)
-            except:
-                pass
-
-        else:
-            cnv.fit_pixbuf(theme.viewer_music_unknown, 0, 0, 160, 120)
+        thumbnail.draw_decorated(cnv, 0, 0, 160, 120, self.__thumb,
+                                 "application/x-directory")
 
         if (self.is_hilighted()):
             cnv.draw_pixbuf(theme.selection_frame, 0, 0)

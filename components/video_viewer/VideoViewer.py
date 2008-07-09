@@ -51,7 +51,7 @@ class VideoViewer(Viewer):
         
         self.__ebox = EventBox()
         self.add(self.__ebox)        
-        self.__ebox.connect(self.EVENT_BUTTON_PRESS, self.__on_click)
+        self.__ebox.connect_button_pressed(self.__on_click)
         
         
         # toolbar

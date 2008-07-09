@@ -25,9 +25,9 @@ class DragSorter(Observable):
         self.__render_handler_id = None
         self.__need_render = False
         
-        child.connect(child.EVENT_BUTTON_PRESS, self.__on_drag_start)
-        child.connect(child.EVENT_BUTTON_RELEASE, self.__on_drag_stop)
-        child.connect(child.EVENT_MOTION, self.__on_drag)
+        child.connect_button_pressed(self.__on_drag_start)
+        child.connect_button_released(self.__on_drag_stop)
+        child.connect_pointer_moved(self.__on_drag)
 
     
     def __auto_scroll_on(self, direction):

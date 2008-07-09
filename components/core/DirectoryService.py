@@ -29,7 +29,7 @@ class DirectoryService(Component):
             idx = path.find("/", idx + 3)
             prefix = path[:idx]
             path = path[idx:]
-            print "PREFIX", prefix, "PATH", path
+            #print "PREFIX", prefix, "PATH", path
             
             try:
                 return self.__prefixes[prefix].ls(path)
@@ -38,17 +38,17 @@ class DirectoryService(Component):
             
         elif (ev == events.CORE_SVC_GET_FILE):
             path = args[0]
-            print "GET FILE", path
+            #print "GET FILE", path
             if (path.startswith("/")): path = "file://" + path
                         
             idx = path.find("://")
             idx = path.find("/", idx + 3)
             prefix = path[:idx]
             path = path[idx:]
-            print "PREFIX", prefix, "PATH", path
+            #print "PREFIX", prefix, "PATH", path
            
             try:
-                print self.__prefixes, prefix, path
+                #print self.__prefixes, prefix, path
                 return self.__prefixes[prefix].get_file(path)
             except:
                 return 0

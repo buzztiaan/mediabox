@@ -1,14 +1,15 @@
 from com import Viewer, events
 from DeviceThumbnail import DeviceThumbnail
+from PlayerPane import PlayerPane
 from ListItem import ListItem
 from mediabox.TrackList import TrackList
 from ui.ImageButton import ImageButton
 from ui import dialogs
 from mediabox.ThrobberDialog import ThrobberDialog
-import mediaplayer
 from utils import threads
 from utils import logging
 from utils.Downloader import Downloader
+from mediabox import viewmodes
 import theme
 
 import md5
@@ -55,7 +56,7 @@ class FolderViewer(Viewer):
         Viewer.__init__(self)
         
         self.__list = TrackList()
-        self.__list.set_geometry(0, 40, 610, 370)
+        self.__list.set_geometry(0, 40, 560, 370)
         self.add(self.__list)
         
         self.__list.connect_button_clicked(self.__on_item_button)
@@ -65,6 +66,13 @@ class FolderViewer(Viewer):
         self.__throbber.set_visible(False)
         self.add(self.__throbber)
         
+        # player pane
+        self.__player_pane = PlayerPane()
+        self.add(self.__player_pane)
+        self.__player_pane.connect_clicked(self.__on_click_player_pane)
+        self.__set_show_player(False)
+        
+        
         # toolbar
         self.__btn_back = ImageButton(theme.btn_previous_1,
                                       theme.btn_previous_2)
@@ -72,6 +80,34 @@ class FolderViewer(Viewer):
 
         tbset = self.new_toolbar_set(self.__btn_back)
         self.set_toolbar_set(tbset)
+
+
+    
+    def __set_show_player(self, value):
+    
+        w, h = self.__player_pane.get_size()
+
+        if (value):
+            #if (w < 100):
+            self.__list.set_geometry(0, 40, 180, 370)
+            self.__player_pane.set_geometry(180, 0, 620, 480)
+            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+        else:
+            #if (w > 100):
+            self.__list.set_geometry(0, 40, 560, 370)
+            self.__player_pane.set_geometry(580, 0, 40, 480)
+            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+
+        self.emit_event(events.CORE_ACT_RENDER_ALL)
+
+
+    def __on_click_player_pane(self):
+            
+        w, h = self.__player_pane.get_size()    
+        if (w > 100):
+            self.__set_show_player(False)
+        else:
+            self.__set_show_player(True)
         
 
     def __add_device(self, ident, device):
@@ -133,10 +169,18 @@ class FolderViewer(Viewer):
                 self.__path_stack.append(entry)
                 self.__load(entry, self.__GO_CHILD)
             else:
-                uri = entry.resource
-                player = mediaplayer.get_player_for_uri(uri)
-                player.load_audio(uri)
-                print "PLAYING", uri
+                uri = entry.get_resource()
+                
+                # get media widget
+                media_widget = self.call_service(
+                               events.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
+                               0, entry.mimetype)
+                logging.debug("using media widget [%s] for MIME type %s" \
+                              % (str(media_widget), entry.mimetype))
+                self.add(media_widget)
+                self.__player_pane.set_media_widget(media_widget)
+                self.__set_show_player(True)
+                media_widget.load(uri)
 
 
     def __on_btn_back(self):
@@ -149,39 +193,37 @@ class FolderViewer(Viewer):
     def __on_download_thumbnail(self, cmd, url, *args):
     
         if (cmd == Downloader().DOWNLOAD_FINISHED):
-            item = self.__items_downloading_thumbnails.get(url)
+            f, item = self.__items_downloading_thumbnails.get(url)
             if (not item): return
 
             data = args[0]
+            print "DOWNLOADED", len(data)
             loader = gtk.gdk.PixbufLoader()
             loader.write(data)
             loader.close()
             pbuf = loader.get_pixbuf()
             
-            item.set_icon(pbuf)
-            item.render()
+            thumbpath = self.call_service(events.MEDIASCANNER_SVC_SET_THUMBNAIL,
+                                          f, pbuf)
             del pbuf
+            item.set_icon(thumbpath)
+            item.render()
+
             self.__list.render()
         #end if
          
          
-    def __download_icon(self, item, url):
+    def __download_icon(self, item, f):
 
-        self.__items_downloading_thumbnails[url] = item
+        url = f.thumbnail
+        self.__items_downloading_thumbnails[url] = (f, item)
         downloader = Downloader()
         downloader.get_async(url, self.__on_download_thumbnail)
 
 
     def __lookup_icon(self, entry):
 
-        path = self.call_service(events.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
-
-        try:        
-            icon = gtk.gdk.pixbuf_new_from_file(path)
-        except:
-            icon = None
-
-        return icon
+        return self.call_service(events.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
 
 
     def __item_loader(self, path, items):
@@ -202,19 +244,19 @@ class FolderViewer(Viewer):
         """
 
         if (entry.mimetype == entry.DIRECTORY):
-            icon = self.__lookup_icon(entry) or theme.filetype_folder
+            icon = self.__lookup_icon(entry)
             info = "%d items" % entry.child_count
         else:                
-            icon = self.__lookup_icon(entry) or theme.filetype_audio
+            icon = self.__lookup_icon(entry)
             info = entry.info
     
-        item = ListItem(icon, entry.name, info)
+        item = ListItem(icon, entry.mimetype, entry.name, info)
         item.set_emblem(entry.emblem)
         self.__list.append_item(item)
         self.__items.append(entry)
         
         if (entry.thumbnail):
-            self.__download_icon(item, entry.thumbnail)
+            self.__download_icon(item, entry)
     
     
 
