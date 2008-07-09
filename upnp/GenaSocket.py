@@ -170,7 +170,7 @@ class _GenaSocket(object):
             host, port, path = parse_addr(ev_url)
             GAsyncHTTPConnection(host, port,
                                 _GENA_UNSUBSCRIBE % (path, host, sid),
-                                lambda abc:True)
+                                lambda a,b,c:True)
             del self.__handlers[sid]
             del self.__sids[cb]
             del self.__event_urls[sid]

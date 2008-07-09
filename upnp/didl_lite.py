@@ -9,7 +9,7 @@ _XMLNS_DIDL = "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"
 _XMLNS_UPNP = "urn:schemas-upnp-org:metadata-1-0/upnp/"
 _XMLNS_DC = "http://purl.org/dc/elements/1.1/"
 
-
+"""
 class _Item(object):
     def __init__(self):
         self.title = ""
@@ -18,7 +18,7 @@ class _Item(object):
         self.child_count = 0
         self.res = ""
         self.clss = ""
-
+"""
 
 def parse(xml):
     """
