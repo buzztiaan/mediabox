@@ -1,5 +1,5 @@
 from Component import Component
-import events
+import msgs
 from ui.Widget import Widget
 from mediabox.ToolbarSet import ToolbarSet
 
@@ -44,28 +44,28 @@ class Viewer(Component, Widget):
 
         self.__current_tbar_set = tbset
         if (self.__is_active):
-            self.emit_event(events.CORE_ACT_SET_TOOLBAR, tbset)
+            self.emit_event(msgs.CORE_ACT_SET_TOOLBAR, tbset)
 
 
     def set_title(self, title):
     
         self.__title = title
         if (self.__is_active):
-            self.emit_event(events.CORE_ACT_SET_TITLE, title)
+            self.emit_event(msgs.CORE_ACT_SET_TITLE, title)
             
 
     def set_info(self, info):
     
         self.__info = info            
         if (self.__is_active):
-            self.emit_event(events.CORE_ACT_SET_INFO, info)
+            self.emit_event(msgs.CORE_ACT_SET_INFO, info)
             
             
     def set_collection(self, collection):
     
         self.__collection = collection
         if (self.__is_active):
-            self.emit_event(events.CORE_ACT_SET_COLLECTION, collection)
+            self.emit_event(msgs.CORE_ACT_SET_COLLECTION, collection)
             
 
     def show(self):

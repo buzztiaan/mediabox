@@ -1,4 +1,4 @@
-from com import Component, events
+from com import Component, msgs
 from utils import maemo
 from Headset import Headset
 
@@ -25,22 +25,22 @@ class System(Component):
     def __on_mount_mmc(self, arg):
     
         print "MOUNT", arg
-        self.emit_event(events.SYSTEM_EV_DRIVE_MOUNTED)
+        self.emit_event(msgs.SYSTEM_EV_DRIVE_MOUNTED)
 
 
 
     def __on_observe_headset(self, src, cmd, *args):
     
         if (cmd == src.OBS_BUTTON_PRESSED):
-            self.emit_event(events.HWKEY_EV_HEADSET)
+            self.emit_event(msgs.HWKEY_EV_HEADSET)
             
             
             
     def handle_event(self, event, *args):
     
-        if (event == events.SYSTEM_ACT_FORCE_SPEAKER_ON):
+        if (event == msgs.SYSTEM_ACT_FORCE_SPEAKER_ON):
             self.__headset.set_force_speaker(True)
             
-        elif (event == events.SYSTEM_ACT_FORCE_SPEAKER_OFF):
+        elif (event == msgs.SYSTEM_ACT_FORCE_SPEAKER_OFF):
             self.__headset.set_force_speaker(False)
 

@@ -1,4 +1,4 @@
-from com import Component, MediaWidgetFactory, events
+from com import Component, MediaWidgetFactory, msgs
 
 
 class MediaWidgetRegistry(Component):
@@ -51,14 +51,14 @@ class MediaWidgetRegistry(Component):
     
     def handle_event(self, ev, *args):
     
-        if (ev == events.COM_EV_COMPONENT_LOADED):
+        if (ev == msgs.COM_EV_COMPONENT_LOADED):
             component = args[0]
             if (isinstance(component, MediaWidgetFactory)):
                 print "found media widget factory:", component
                 self.__factories.append(component)
     
     
-        elif (ev == events.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET):
+        elif (ev == msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET):
             caller_id, mimetype = args
             
             

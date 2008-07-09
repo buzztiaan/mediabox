@@ -1,4 +1,4 @@
-from com import Viewer, events
+from com import Viewer, msgs
 from DeviceThumbnail import DeviceThumbnail
 from PlayerPane import PlayerPane
 from ListItem import ListItem
@@ -91,14 +91,14 @@ class FolderViewer(Viewer):
             #if (w < 100):
             self.__list.set_geometry(0, 40, 180, 370)
             self.__player_pane.set_geometry(180, 0, 620, 480)
-            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
         else:
             #if (w > 100):
             self.__list.set_geometry(0, 40, 560, 370)
             self.__player_pane.set_geometry(580, 0, 40, 480)
-            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
 
-        self.emit_event(events.CORE_ACT_RENDER_ALL)
+        self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
 
     def __on_click_player_pane(self):
@@ -141,16 +141,16 @@ class FolderViewer(Viewer):
 
     def handle_event(self, event, *args):
     
-        if (event == events.CORE_EV_DEVICE_ADDED):
+        if (event == msgs.CORE_EV_DEVICE_ADDED):
             ident, device = args
             self.__add_device(ident, device)
             
-        elif (event == events.CORE_EV_DEVICE_REMOVED):
+        elif (event == msgs.CORE_EV_DEVICE_REMOVED):
             uuid = args[0]
             self.__remove_device(uuid)
             
         if (self.is_active()):
-            if (event == events.CORE_ACT_LOAD_ITEM):
+            if (event == msgs.CORE_ACT_LOAD_ITEM):
                 idx = args[0]
                 dev = self.__device_items[idx]
                 if (dev):
@@ -173,7 +173,7 @@ class FolderViewer(Viewer):
                 
                 # get media widget
                 media_widget = self.call_service(
-                               events.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
+                               msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
                                0, entry.mimetype)
                 logging.debug("using media widget [%s] for MIME type %s" \
                               % (str(media_widget), entry.mimetype))
@@ -203,7 +203,7 @@ class FolderViewer(Viewer):
             loader.close()
             pbuf = loader.get_pixbuf()
             
-            thumbpath = self.call_service(events.MEDIASCANNER_SVC_SET_THUMBNAIL,
+            thumbpath = self.call_service(msgs.MEDIASCANNER_SVC_SET_THUMBNAIL,
                                           f, pbuf)
             del pbuf
             item.set_icon(thumbpath)
@@ -223,7 +223,7 @@ class FolderViewer(Viewer):
 
     def __lookup_icon(self, entry):
 
-        return self.call_service(events.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
+        return self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
 
 
     def __item_loader(self, path, items):

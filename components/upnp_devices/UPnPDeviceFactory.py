@@ -1,4 +1,4 @@
-from com import Component, events
+from com import Component, msgs
 
 from AVDevice import AVDevice
 from BinaryLight import BinaryLight
@@ -15,7 +15,7 @@ class UPnPDeviceFactory(Component):
 
     def handle_event(self, ev, *args):
     
-        if (ev == events.SSDP_EV_DEVICE_DISCOVERED):
+        if (ev == msgs.SSDP_EV_DEVICE_DISCOVERED):
             uuid, descr = args
 
             device_type = descr.get_device_type()
@@ -23,14 +23,14 @@ class UPnPDeviceFactory(Component):
 
             if (device_type in AVDevice.DEVICE_TYPES):
                 device = AVDevice(descr)
-                self.emit_event(events.CORE_EV_DEVICE_ADDED, uuid, device)
+                self.emit_event(msgs.CORE_EV_DEVICE_ADDED, uuid, device)
 
             elif (device_type in DimmableLight.DEVICE_TYPES):
                 device = DimmableLight(descr)
 
 
-        elif (ev == events.SSDP_EV_DEVICE_GONE):
+        elif (ev == msgs.SSDP_EV_DEVICE_GONE):
             uuid = args[0]
             # TODO: don't emit this event when the device isn't a AV device
-            self.emit_event(events.CORE_EV_DEVICE_REMOVED, uuid)
+            self.emit_event(msgs.CORE_EV_DEVICE_REMOVED, uuid)
 

@@ -1,4 +1,4 @@
-from com import Configurator, events
+from com import Configurator, msgs
 from ui.ItemList import ItemList
 from ui.KineticScroller import KineticScroller
 from ThemeListItem import ThemeListItem
@@ -66,5 +66,5 @@ class ConfigTheme(Configurator):
                 self.__throbber.rotate()
                 theme.set_theme(self.__themes[idx])
                 self.__throbber.set_visible(False)
-                self.emit_event(events.CORE_EV_THEME_CHANGED)
+                self.emit_event(msgs.CORE_EV_THEME_CHANGED)
 

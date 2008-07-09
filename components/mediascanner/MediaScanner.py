@@ -1,4 +1,4 @@
-from com import Component, events
+from com import Component, msgs
 from Thumbnailer import Thumbnailer
 from mediabox import config
 from utils import logging
@@ -41,20 +41,20 @@ class MediaScanner(Component):
         
     def handle_event(self, ev, *args):
     
-        if (ev == events.MEDIASCANNER_ACT_SCAN):
+        if (ev == msgs.MEDIASCANNER_ACT_SCAN):
             mediaroots = args[0]
             self.__scan(mediaroots)
             return True
             
-        elif (ev == events.MEDIASCANNER_SVC_GET_MEDIA):
+        elif (ev == msgs.MEDIASCANNER_SVC_GET_MEDIA):
             mime_types = args[0]
             return self.__get_media(mime_types)
             
-        elif (ev == events.MEDIASCANNER_SVC_GET_THUMBNAIL):
+        elif (ev == msgs.MEDIASCANNER_SVC_GET_THUMBNAIL):
             f = args[0]
             return self.__thumbnailer.get_thumbnail_path(f)
 
-        elif (ev == events.MEDIASCANNER_SVC_SET_THUMBNAIL):
+        elif (ev == msgs.MEDIASCANNER_SVC_SET_THUMBNAIL):
             f, pbuf = args
             thumbpath = self.__thumbnailer.get_thumbnail_path(f)
             pbuf.save(thumbpath, "jpeg")
@@ -68,7 +68,7 @@ class MediaScanner(Component):
 
         self.__thumbnailer.set_thumb_folder(os.path.abspath(config.thumbdir()))
         self.__scantime = int(time.time())
-        self.emit_event(events.MEDIASCANNER_EV_SCANNING_STARTED)
+        self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_STARTED)
         
         for mediaroot, mediatypes in mediaroots:
             logging.info("scanning [%s] for media", mediaroot.resource)
@@ -88,7 +88,7 @@ class MediaScanner(Component):
                 del self.__media[key]
         #end for
         
-        self.emit_event(events.MEDIASCANNER_EV_SCANNING_FINISHED)
+        self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
         
         
     def __process_media(self, mediatypes, path, seen):
@@ -137,7 +137,7 @@ class MediaScanner(Component):
                     else:
                         self.__thumbnailer.unmark_as_unavailable(path)
                     
-                        self.emit_event(events.MEDIASCANNER_EV_THUMBNAIL_GENERATED,
+                        self.emit_event(msgs.MEDIASCANNER_EV_THUMBNAIL_GENERATED,
                                    self.__thumbnailer.get_thumbnail_path(path),
                                    path)
                 

@@ -1,4 +1,4 @@
-from EventBus import EventBus
+from MessageBus import MessageBus
 
 
 class Mediator(object):
@@ -15,7 +15,7 @@ class Mediator(object):
     def __init__(self):
     
         self.__pass_type = self.PASS_TYPE_PASS_ON
-        self.__event_bus = EventBus()
+        self.__event_bus = MessageBus()
         self.__event_bus.add_mediator(self)
 
 

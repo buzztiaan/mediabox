@@ -1,4 +1,4 @@
-from com import Configurator, events
+from com import Configurator, msgs
 from MediaListItem import MediaListItem
 from ui.ItemList import ItemList
 from ui.KineticScroller import KineticScroller
@@ -113,7 +113,7 @@ class ConfigMediaRoot(Configurator):
 
     def __on_rescan(self):
     
-        self.emit_event(events.CORE_ACT_SCAN_MEDIA, True)
+        self.emit_event(msgs.CORE_ACT_SCAN_MEDIA, True)
 
 
     def __on_observe_list(self, src, cmd, *args):

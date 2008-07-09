@@ -1,4 +1,4 @@
-from com import Viewer, events
+from com import Viewer, msgs
 from ui.KineticScroller import KineticScroller
 from SunClock import SunClock
 from mediabox import viewmodes
@@ -48,7 +48,7 @@ class Clock(Viewer):
         if (self.may_render()):
             today = time.strftime("%A - %x", time.localtime())
             self.set_title(today)
-            self.emit_event(events.CORE_ACT_RENDER_ALL)
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
             return True
         else:
             self.__is_ticking = False
@@ -58,7 +58,7 @@ class Clock(Viewer):
     def show(self):
     
         Viewer.show(self)
-        self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)        
+        self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)        
                    
         self.__tick()
         if (not self.__is_ticking):

@@ -1,4 +1,4 @@
-from com import Viewer, Configurator, events
+from com import Viewer, Configurator, msgs
 from mediascanner.MediaItem import MediaItem
 from PrefsThumbnail import PrefsThumbnail
 import theme
@@ -52,13 +52,13 @@ class Preferences(Viewer):
 
     def handle_event(self, event, *args):
     
-        if (event == events.COM_EV_COMPONENT_LOADED):
+        if (event == msgs.COM_EV_COMPONENT_LOADED):
             comp = args[0]
             if (isinstance(comp, Configurator)):
                 self.__register_configurator(comp)
             
         if (self.is_active()):
-            if (event == events.CORE_ACT_LOAD_ITEM):
+            if (event == msgs.CORE_ACT_LOAD_ITEM):
                 item = args[0]
                 self.__load_item(item)
 

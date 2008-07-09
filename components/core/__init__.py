@@ -1,4 +1,4 @@
-from com import Component, events
+from com import Component, msgs
 #from Preferences import Preferences
 from ConfigMediaRoot import ConfigMediaRoot
 from ConfigTheme import ConfigTheme
@@ -13,7 +13,7 @@ class Init(Component):
         Component.__init__(self)
         import gobject
         from LocalDevice import LocalDevice
-        gobject.timeout_add(0, self.emit_event, events.CORE_EV_DEVICE_ADDED,
+        gobject.timeout_add(0, self.emit_event, msgs.CORE_EV_DEVICE_ADDED,
                             "localhost", LocalDevice())
 
 

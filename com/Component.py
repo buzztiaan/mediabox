@@ -1,5 +1,5 @@
 from Mediator import Mediator
-import events
+import msgs
 
 class Component(Mediator):
     """

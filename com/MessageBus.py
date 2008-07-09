@@ -1,4 +1,4 @@
-class _EventBus(object):
+class _MessageBus(object):
     """
     Singleton class for an event bus. This class is intented to be used by
     the Mediator class only.
@@ -58,5 +58,5 @@ class _EventBus(object):
             return handler.handle_event(svc, *args)
             
         
-_singleton = _EventBus()
-def EventBus(): return _singleton
+_singleton = _MessageBus()
+def MessageBus(): return _singleton

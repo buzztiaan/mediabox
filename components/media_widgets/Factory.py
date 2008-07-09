@@ -1,4 +1,4 @@
-from com import MediaWidgetFactory, events
+from com import MediaWidgetFactory, msgs
 from VideoWidget import VideoWidget
 
 

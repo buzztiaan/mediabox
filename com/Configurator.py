@@ -1,5 +1,5 @@
 from Component import Component
-import events
+import msgs
 from ui.Widget import Widget
 
 

@@ -1,4 +1,4 @@
-from com import Component, Viewer, events
+from com import Component, Viewer, msgs
 import components
 from utils import logging
 
@@ -200,7 +200,7 @@ class App(Component):
         viewers = []
         for c in components.load_components():
             logging.debug("loaded component [%s]", `c`)
-            self.emit_event(events.COM_EV_COMPONENT_LOADED, c)
+            self.emit_event(msgs.COM_EV_COMPONENT_LOADED, c)
 
             if (isinstance(c, Viewer)):
                 viewers.append(c)
@@ -359,10 +359,10 @@ class App(Component):
 
         paths = []
         for path, mtypes in mediaroots:
-            f = self.call_service(events.CORE_SVC_GET_FILE, path)
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
             if (f): paths.append((f, mtypes))
         #end for
-        self.emit_event(events.MEDIASCANNER_ACT_SCAN, paths)
+        self.emit_event(msgs.MEDIASCANNER_ACT_SCAN, paths)
         
 
         while (gtk.events_pending()): gtk.main_iteration()
@@ -416,13 +416,13 @@ class App(Component):
         if (key == "Escape"):
             self.__try_quit()
         elif (key == "Return"):
-            self.emit_event(events.HWKEY_EV_ENTER)
+            self.emit_event(msgs.HWKEY_EV_ENTER)
         elif (key == "F6"):            
-            self.emit_event(events.HWKEY_EV_FULLSCREEN)
+            self.emit_event(msgs.HWKEY_EV_FULLSCREEN)
         elif (key == "F7"):
-            self.emit_event(events.HWKEY_EV_INCREMENT)
+            self.emit_event(msgs.HWKEY_EV_INCREMENT)
         elif (key == "F8"):
-            self.emit_event(events.HWKEY_EV_DECREMENT)
+            self.emit_event(msgs.HWKEY_EV_DECREMENT)
             
         elif (key == "Up"):
             self.__kscr.impulse(0, 7.075)
@@ -431,7 +431,7 @@ class App(Component):
             
         elif (key == "XF86Headset"):
             #self.__current_viewer.do_enter()
-            self.emit_event(events.HWKEY_EV_HEADSET)
+            self.emit_event(msgs.HWKEY_EV_HEADSET)
             
         
         elif (key == "BackSpace"):
@@ -527,43 +527,43 @@ class App(Component):
 
     def handle_event(self, event, *args):
     
-        #if (event == events.COMPONENT_LOADED):
+        #if (event == msgs.COMPONENT_LOADED):
         #    component = args[0]
             #if (isinstance(component, Viewer)):
             #    self.__add_viewer(component)
     
-        if (event == events.CORE_ACT_SCAN_MEDIA):
+        if (event == msgs.CORE_ACT_SCAN_MEDIA):
             force = args[0]
             self.__scan_media(force)
 
-        elif (event == events.MEDIASCANNER_EV_THUMBNAIL_GENERATED):
+        elif (event == msgs.MEDIASCANNER_EV_THUMBNAIL_GENERATED):
             thumburi, f = args
             name = os.path.basename(f.name)
             self.__title_panel.set_title(name)
             self.__thumbnailer.show_thumbnail(thumburi, name)
     
-        #elif (event == events.CORE_EV_DEVICE_ADDED):
+        #elif (event == msgs.CORE_EV_DEVICE_ADDED):
         #    ident, dev = args
         #    gobject.timeout_add(0, self.__scan_media, True)
         
     
-        elif (event == events.CORE_EV_THEME_CHANGED):
+        elif (event == msgs.CORE_EV_THEME_CHANGED):
             self.__root_pane.propagate_theme_change()
             self.__prepare_collection_caps()
             #self.__root_pane.render_buffered()
             self.__root_pane.fx_fade_in()
     
-        elif (event == events.CORE_ACT_RENDER_ALL):
+        elif (event == msgs.CORE_ACT_RENDER_ALL):
             self.__root_pane.render_buffered()
             self.drop_event()
 
-        elif (event == events.CORE_ACT_VIEW_MODE):
+        elif (event == msgs.CORE_ACT_VIEW_MODE):
             mode = args[0]
             self.__set_view_mode(mode)
             self.drop_event()
 
    
-        elif (event == events.SYSTEM_EV_DRIVE_MOUNTED):
+        elif (event == msgs.SYSTEM_EV_DRIVE_MOUNTED):
             def f():
                 self.__scan_media(True)
                 self.__media_scan_scheduled = False
@@ -573,15 +573,15 @@ class App(Component):
                 gobject.timeout_add(500, f)
 
 
-        elif (event == events.CORE_ACT_SET_TITLE):
+        elif (event == msgs.CORE_ACT_SET_TITLE):
             title = args[0]
             self.__title_panel.set_title(title)
 
-        elif (event == events.CORE_ACT_SET_INFO):
+        elif (event == msgs.CORE_ACT_SET_INFO):
             info = args[0]
             self.__title_panel.set_info(info)
 
-        elif (event == events.CORE_ACT_SET_COLLECTION):
+        elif (event == msgs.CORE_ACT_SET_COLLECTION):
             items = args[0]
             self.__current_collection = items
             self.__set_collection(items)
@@ -589,15 +589,15 @@ class App(Component):
             self.__saved_image = None
             self.__saved_image_index = -1
            
-        elif (event == events.CORE_ACT_SELECT_ITEM):
+        elif (event == msgs.CORE_ACT_SELECT_ITEM):
             idx = args[0]
             self.__select_item(idx)
 
-        elif (event == events.CORE_ACT_SET_TOOLBAR):
+        elif (event == msgs.CORE_ACT_SET_TOOLBAR):
             tbset = args[0]
             self.__ctrl_panel.set_toolbar_set(tbset)
 
-        elif (event == events.CORE_EV_VOLUME_CHANGED):
+        elif (event == msgs.CORE_EV_VOLUME_CHANGED):
             percent = args[0]
             self.__title_panel.set_volume(percent)
             
@@ -617,7 +617,7 @@ class App(Component):
         #item = self.__current_collection[idx]
         self.__get_vstate().selected_item = idx
         #self.__current_viewer.load(item)
-        self.emit_event(events.CORE_ACT_LOAD_ITEM, idx)
+        self.emit_event(msgs.CORE_ACT_LOAD_ITEM, idx)
         self.__strip.scroll_to_item(idx)
 
 
@@ -730,6 +730,6 @@ class App(Component):
     
         result = dialogs.question("Exit", "Really quit?")
         if (result == 0):
-            self.emit_event(events.CORE_EV_APP_SHUTDOWN)
+            self.emit_event(msgs.CORE_EV_APP_SHUTDOWN)
             gtk.main_quit()
 

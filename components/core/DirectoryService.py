@@ -1,4 +1,4 @@
-from com import Component, events
+from com import Component, msgs
 
 
 class DirectoryService(Component):
@@ -21,7 +21,7 @@ class DirectoryService(Component):
         
     def handle_event(self, ev, *args):
     
-        if (ev == events.CORE_SVC_LIST_PATH):
+        if (ev == msgs.CORE_SVC_LIST_PATH):
             path = args[0]
             if (path.startswith("/")): path = "file://" + path
             
@@ -36,7 +36,7 @@ class DirectoryService(Component):
             except:
                 return []
             
-        elif (ev == events.CORE_SVC_GET_FILE):
+        elif (ev == msgs.CORE_SVC_GET_FILE):
             path = args[0]
             #print "GET FILE", path
             if (path.startswith("/")): path = "file://" + path
@@ -55,11 +55,11 @@ class DirectoryService(Component):
 
             
             
-        elif (ev == events.CORE_EV_DEVICE_ADDED):
+        elif (ev == msgs.CORE_EV_DEVICE_ADDED):
             ident, device = args
             self.__prefixes[device.get_prefix()] = device
         
-        elif (ev == events.CORE_EV_DEVICE_REMOVED):
+        elif (ev == msgs.CORE_EV_DEVICE_REMOVED):
             ident = args[0]
             try:
                 prefix = self.__idents[ident]

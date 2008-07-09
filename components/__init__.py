@@ -1,4 +1,4 @@
-from com import events
+from com import msgs
 from utils import logging
 
 import os
@@ -45,7 +45,7 @@ def load_components():
 
         if (hasattr(mod, "messages")):
             for msg in mod.messages:
-                events.register(msg)
+                msgs.register(msg)
                 logging.debug("registering message [%s]", msg)
 
         if (not isinstance(classes, list)):

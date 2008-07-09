@@ -1,4 +1,4 @@
-from com import Viewer, events
+from com import Viewer, msgs
 
 from VideoThumbnail import VideoThumbnail
 import mediaplayer
@@ -92,31 +92,31 @@ class VideoViewer(Viewer):
 
     def handle_event(self, event, *args):
     
-        if (event == events.CORE_EV_APP_SHUTDOWN):
+        if (event == msgs.CORE_EV_APP_SHUTDOWN):
             mediaplayer.close()
 
-        elif (event == events.MEDIASCANNER_EV_SCANNING_FINISHED):
+        elif (event == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             self.__update_media()
     
-        elif (event == events.MEDIA_EV_PLAY):
+        elif (event == msgs.MEDIA_EV_PLAY):
             self.__player.stop()
     
         if (self.is_active()):
-            if (event == events.CORE_ACT_LOAD_ITEM):
+            if (event == msgs.CORE_ACT_LOAD_ITEM):
                 idx = args[0]
                 item = self.__items[idx]
                 self.__load(item)
         
-            if (event == events.HWKEY_EV_INCREMENT):
+            if (event == msgs.HWKEY_EV_INCREMENT):
                 self.__on_increment()
                 
-            elif (event == events.HWKEY_EV_DECREMENT):
+            elif (event == msgs.HWKEY_EV_DECREMENT):
                 self.__on_decrement()
                 
-            elif (event == events.HWKEY_EV_ENTER):
+            elif (event == msgs.HWKEY_EV_ENTER):
                 self.__player.pause()
                 
-            elif (event == events.HWKEY_EV_FULLSCREEN):
+            elif (event == msgs.HWKEY_EV_FULLSCREEN):
                 self.__on_fullscreen()
                 
         #end if
@@ -295,10 +295,10 @@ class VideoViewer(Viewer):
         self.__items = []
         thumbnails = []
         
-        media = self.call_service(events.MEDIASCANNER_SVC_GET_MEDIA,
+        media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                   ["video/"])        
         for f in media:
-            thumb = self.call_service(events.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+            thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
             tn = VideoThumbnail(thumb, f.name)
             self.__items.append(f)
             thumbnails.append(tn)
@@ -308,7 +308,7 @@ class VideoViewer(Viewer):
 
     def __load(self, item):
 
-        self.emit_event(events.MEDIA_EV_PLAY)
+        self.emit_event(msgs.MEDIA_EV_PLAY)
         #self.update_observer(self.OBS_STOP_PLAYING, self)
         
         #self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
@@ -352,7 +352,7 @@ class VideoViewer(Viewer):
         if (self.__volume + 5 <= 100):
             self.__volume += 5
         self.__player.set_volume(self.__volume)
-        self.emit_event(events.CORE_EV_VOLUME_CHANGED, self.__volume)
+        self.emit_event(msgs.CORE_EV_VOLUME_CHANGED, self.__volume)
 
         if (self.__is_fullscreen):
             self.__player.show_text("Volume %d %%" % self.__volume, 500)
@@ -363,7 +363,7 @@ class VideoViewer(Viewer):
         if (self.__volume - 5 >= 0):
             self.__volume -= 5
         self.__player.set_volume(self.__volume)
-        self.emit_event(events.CORE_EV_VOLUME_CHANGED, self.__volume)
+        self.emit_event(msgs.CORE_EV_VOLUME_CHANGED, self.__volume)
 
         if (self.__is_fullscreen):
             self.__player.show_text("Volume %d %%" % self.__volume, 500)
@@ -416,14 +416,14 @@ class VideoViewer(Viewer):
         while (gtk.events_pending()): gtk.main_iteration()
         
         if (self.__is_fullscreen):
-            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
             self.render()
         else:
-            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)            
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)            
             self.render()
         #while (gtk.events_pending()): gtk.main_iteration()        
         
-            self.emit_event(events.CORE_ACT_RENDER_ALL)
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
         if (self.__player.has_video()):
             self.__scale_video()

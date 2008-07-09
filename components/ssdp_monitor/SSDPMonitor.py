@@ -1,4 +1,4 @@
-from com import Component, events
+from com import Component, msgs
 from upnp import ssdp
 from upnp.MiniXML import MiniXML
 from upnp.DeviceDescription import DeviceDescription
@@ -54,7 +54,7 @@ class SSDPMonitor(Component):
 
         logging.debug("propagating availability of device [%s]" % uuid)        
         threads.run_unthreaded(self.emit_event,
-                               events.SSDP_EV_DEVICE_DISCOVERED, uuid, descr)
+                               msgs.SSDP_EV_DEVICE_DISCOVERED, uuid, descr)
 
 
     def __check_ssdp(self):
@@ -81,7 +81,7 @@ class SSDPMonitor(Component):
                 logging.debug("UPnP device %s is GONE", uuid)
                 if (uuid in self.__servers):
                     del self.__servers[uuid]
-                    self.emit_event(events.SSDP_EV_DEVICE_GONE, uuid)
+                    self.emit_event(msgs.SSDP_EV_DEVICE_GONE, uuid)
             #end if
 
         #end if

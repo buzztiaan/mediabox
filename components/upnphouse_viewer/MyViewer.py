@@ -1,4 +1,4 @@
-from com import Viewer, events
+from com import Viewer, msgs
 from mediabox import viewmodes
 #from ui.KineticScroller import KineticScroller
 #from SunClock import SunClock
@@ -101,7 +101,7 @@ class MyViewer(Viewer):
 
     def render_this(self):
         
-        self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+        self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()

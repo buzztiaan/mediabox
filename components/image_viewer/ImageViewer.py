@@ -1,4 +1,4 @@
-from com import Viewer, events
+from com import Viewer, msgs
 from ui.KineticScroller import KineticScroller
 from ui.Label import Label
 from ui.ImageButton import ImageButton
@@ -91,24 +91,24 @@ class ImageViewer(Viewer):
 
     def handle_event(self, event, *args):
                
-        if (event == events.MEDIASCANNER_EV_SCANNING_FINISHED):
+        if (event == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             self.__update_media()
 
         if (self.is_active()):
-            if (event == events.CORE_ACT_LOAD_ITEM):
+            if (event == msgs.CORE_ACT_LOAD_ITEM):
                 idx = args[0]
                 self.__load(self.__items[idx])
         
-            if (event == events.HWKEY_EV_INCREMENT):
+            if (event == msgs.HWKEY_EV_INCREMENT):
                 self.__zoom_in()
                 
-            elif (event == events.HWKEY_EV_DECREMENT):
+            elif (event == msgs.HWKEY_EV_DECREMENT):
                 self.__zoom_out()
                 
-            elif (event == events.HWKEY_EV_ENTER):
+            elif (event == msgs.HWKEY_EV_ENTER):
                 self.__next_image()
                 
-            elif (event == events.HWKEY_EV_FULLSCREEN):
+            elif (event == msgs.HWKEY_EV_FULLSCREEN):
                 self.__on_fullscreen()
                 
         #end if        
@@ -163,7 +163,7 @@ class ImageViewer(Viewer):
         idx -= 1
         if (idx == -1): idx = len(self.__items) - 1
         self.__image.slide_from_left()
-        self.emit_event(events.CORE_ACT_SELECT_ITEM, idx)
+        self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
 
 
     def __next_image(self):
@@ -174,7 +174,7 @@ class ImageViewer(Viewer):
         idx += 1
         idx %= len(self.__items)
         self.__image.slide_from_right()
-        self.emit_event(events.CORE_ACT_SELECT_ITEM, idx)
+        self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
             
 
     def clear_items(self):
@@ -184,13 +184,13 @@ class ImageViewer(Viewer):
 
     def __update_media(self):
     
-        media = self.call_service(events.MEDIASCANNER_SVC_GET_MEDIA,
+        media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                   ["image/"])
         self.__items = []
         thumbnails = []
         self.__current_item = -1
         for f in media:
-            thumb = self.call_service(events.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+            thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
             tn = ImageThumbnail(thumb)
             self.__items.append(f)
             thumbnails.append(tn)
@@ -237,16 +237,16 @@ class ImageViewer(Viewer):
         
         if (self.__is_fullscreen):
             #self.__label.set_visible(False)
-            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
             self.__overlay_ctrls.set_visible(True)
             self.__image.set_background(_BACKGROUND_COLOR_FS)
             self.__image.set_geometry(0, 0, 800, 480)
         else:
             #self.__label.set_visible(True)
-            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
             self.__overlay_ctrls.set_visible(False)
             self.__image.set_background(_BACKGROUND_COLOR)            
             self.__image.set_geometry(15, 42, 584, 366)
         
-        self.emit_event(events.CORE_ACT_RENDER_ALL)            
+        self.emit_event(msgs.CORE_ACT_RENDER_ALL)            
 

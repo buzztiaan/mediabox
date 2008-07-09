@@ -1,4 +1,4 @@
-from com import Viewer, events
+from com import Viewer, msgs
 
 from mediabox.TrackList import TrackList
 from AlbumHeader import AlbumHeader
@@ -147,31 +147,31 @@ class AlbumViewer(Viewer):
 
     def handle_event(self, event, *args):
     
-        if (event == events.CORE_EV_APP_SHUTDOWN):
+        if (event == msgs.CORE_EV_APP_SHUTDOWN):
             mediaplayer.close()
             
-        elif (event == events.MEDIASCANNER_EV_SCANNING_FINISHED):
+        elif (event == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             self.__update_media()
     
-        elif (event == events.MEDIA_EV_PLAY):
+        elif (event == msgs.MEDIA_EV_PLAY):
             self.__player.stop()
     
         if (self.is_active()):
-            if (event == events.CORE_ACT_LOAD_ITEM):
+            if (event == msgs.CORE_ACT_LOAD_ITEM):
                 idx = args[0]
                 item = self.__items[idx]
                 self.__load(item)
         
-            if (event == events.HWKEY_EV_INCREMENT):
+            if (event == msgs.HWKEY_EV_INCREMENT):
                 self.__on_increment()
                 
-            elif (event == events.HWKEY_EV_DECREMENT):
+            elif (event == msgs.HWKEY_EV_DECREMENT):
                 self.__on_decrement()
                 
-            elif (event == events.HWKEY_EV_ENTER):
+            elif (event == msgs.HWKEY_EV_ENTER):
                 self.__player.pause()
                 
-            elif (event == events.HWKEY_EV_FULLSCREEN):
+            elif (event == msgs.HWKEY_EV_FULLSCREEN):
                 self.__on_fullscreen()
                 
         #end if
@@ -187,10 +187,10 @@ class AlbumViewer(Viewer):
         self.__items = []
         thumbnails = []
         
-        media = self.call_service(events.MEDIASCANNER_SVC_GET_MEDIA,
+        media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                   ["audio/"])
         for f in media:
-            thumb = self.call_service(events.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+            thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
             tn = AlbumThumbnail(thumb, f.name)
             self.__items.append(f)
             thumbnails.append(tn)
@@ -219,15 +219,15 @@ class AlbumViewer(Viewer):
             self.__list.set_visible(False)
             self.__playlist.set_visible(True)
             self.set_toolbar_set(self.__tbset_playlist)
-            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
-            self.emit_event(events.CORE_ACT_RENDER_ALL)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
      
         else:
             self.__list.set_visible(True)
             self.__playlist.set_visible(False)
             self.set_toolbar_set(self.__tbset_albums)
-            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-            self.emit_event(events.CORE_ACT_RENDER_ALL)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
 
     def __on_observe_player(self, src, cmd, *args):
@@ -541,7 +541,7 @@ class AlbumViewer(Viewer):
         if (trk.uri == self.__current_uri): return
 
         #self.update_observer(self.OBS_STOP_PLAYING, self)
-        self.emit_event(events.MEDIA_EV_PLAY)
+        self.emit_event(msgs.MEDIA_EV_PLAY)
         self.__player = mediaplayer.get_player_for_uri(trk.uri)
 
         self.__player.set_window(-1)
@@ -717,7 +717,7 @@ class AlbumViewer(Viewer):
         if (self.__volume + 5 <= 100):
             self.__volume += 5
         self.__player.set_volume(self.__volume)
-        self.emit_event(events.CORE_EV_VOLUME_CHANGED, self.__volume)
+        self.emit_event(msgs.CORE_EV_VOLUME_CHANGED, self.__volume)
         
         
     def __on_decrement(self):
@@ -725,7 +725,7 @@ class AlbumViewer(Viewer):
         if (self.__volume - 5 >= 0):
             self.__volume -= 5
         self.__player.set_volume(self.__volume)
-        self.emit_event(events.CORE_EV_VOLUME_CHANGED, self.__volume)
+        self.emit_event(msgs.CORE_EV_VOLUME_CHANGED, self.__volume)
         
     
     def do_set_position(self, pos):
@@ -757,10 +757,10 @@ class AlbumViewer(Viewer):
             self.__playlist.set_visible(False)
             self.__trackinfo.set_visible(True)
             self.set_toolbar_set(self.__tbset_fullscreen)
-            self.emit_event(events.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
-            self.emit_event(events.CORE_ACT_RENDER_ALL)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
         else:            
             self.__trackinfo.set_visible(False)
             self.__set_view_mode(self.__view_mode)
-            self.emit_event(events.CORE_ACT_RENDER_ALL)
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
