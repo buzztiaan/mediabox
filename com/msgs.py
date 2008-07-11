@@ -9,16 +9,16 @@ def _id_to_name(ident):
     """
     Returns the name of the message given by the ID.
     This is an expensive operation and should only be used when logging
-    error messages to the console. Even then, this method should only be
+    error messages to the console. Even then, this function should only be
     used by the com subsystem internally.
     """
 
-    for k, v in globals():
+    for k, v in globals().items():
         if (v == ident):
             return k
     #end for
     
-    return ""
+    return "<undefined>"
 
 
 def register(name):
