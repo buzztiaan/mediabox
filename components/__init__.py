@@ -31,7 +31,7 @@ def load_components():
     """
     
     components = []
-    
+    all_classes = []    
     for path in _list_paths():
         syspath = sys.path[:]
         sys.path = [_COMPONENTS_PATH] + syspath
@@ -52,16 +52,26 @@ def load_components():
             logging.error("function %s.get_classes() must return a list", path)
             continue
 
-        for c in classes:
-            try:
-                components.append(c())
-            except:
-                logging.error("could not instantiate class [%s] of [%s]",
-                              `c`, path)
-                import traceback; traceback.print_exc()
+        all_classes += classes
+        #for c in classes:
+        #    try:
+        #        components.append(c())
+        #    except:
+        #        logging.error("could not instantiate class [%s] of [%s]",
+        #                      `c`, path)
+        #        import traceback; traceback.print_exc()
         #end for
             
         sys.path = syspath
+    #end for
+
+    for c in all_classes:
+        try:
+            components.append(c())
+        except:
+            logging.error("could not instantiate class [%s] of [%s]",
+                          `c`, path)
+            import traceback; traceback.print_exc()
     #end for
         
     return components

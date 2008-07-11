@@ -31,7 +31,7 @@ class MediaScanner(Component):
         # table: path -> item
         self.__media = {}
         
-        self.__thumbnailer = Thumbnailer()    
+        self.__thumbnailer = Thumbnailer()
         self.__media_roots = []
         
     
@@ -101,7 +101,7 @@ class MediaScanner(Component):
         seen[path] = True
         
         # skip thumbnail folder
-        if (path.resource == config.thumbdir()):
+        if (path.resource == self.__thumbnailer.get_thumb_folder()):
             return
                
         # process directory recursively

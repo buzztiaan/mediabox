@@ -10,7 +10,8 @@ import time
 class TrackList(ItemList, Observable):
 
     EVENT_BUTTON_CLICKED = "button-clicked"
-    EVENT_ITEM_SELECTED = "item-selected"
+    EVENT_ITEM_CLICKED = "item-clicked"
+    #EVENT_ITEM_SELECTED = "item-selected"
 
     OBS_ITEM_BUTTON = 0
     OBS_ADD_ALBUM = 0
@@ -32,7 +33,7 @@ class TrackList(ItemList, Observable):
         self.__open_item = -1
         self.__has_header = with_header
     
-        ItemList.__init__(self, 80)
+        ItemList.__init__(self, 90, 20)
         self.set_caps(theme.list_top, theme.list_bottom)
         self.set_bg_color(theme.color_bg)
         self.set_scrollbar(theme.list_scrollbar)
@@ -81,6 +82,9 @@ class TrackList(ItemList, Observable):
             elif (button):
                 self.__kscr.stop_scrolling()
                 self.send_event(self.EVENT_BUTTON_CLICKED, item, idx, button)
+
+            else:
+                self.send_event(self.EVENT_ITEM_CLICKED, item, idx, x, y)
                 
             if (button): handled = True
                 
@@ -96,8 +100,12 @@ class TrackList(ItemList, Observable):
     
         self._connect(self.EVENT_BUTTON_CLICKED, cb, *args)
         
+    def connect_item_clicked(self, cb, *args):
         
-    def connect_item_selected(self, cb, *args):
-    
-        self._connect(self.EVENT_ITEM_SELECTED, cb, *args)
+        self._connect(self.EVENT_ITEM_CLICKED, cb, *args)
+   
+        
+    #def connect_item_selected(self, cb, *args):
+    # 
+    #    self._connect(self.EVENT_ITEM_SELECTED, cb, *args)
 

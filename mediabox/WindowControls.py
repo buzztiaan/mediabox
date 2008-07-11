@@ -23,16 +23,16 @@ class WindowControls(Widget, Observable):
         btn_minimize.set_size(80, 80)
         btn_minimize.set_pos(10, 0)
         self.add(btn_minimize)
-        btn_minimize.connect_clicked(
-                     lambda x,y:self.update_observer(self.OBS_MINIMIZE_WINDOW))
+        btn_minimize.connect_clicked(self.update_observer,
+                                     self.OBS_MINIMIZE_WINDOW)
 
         btn_close = ImageButton(theme.window_close_1,
                                 theme.window_close_2)
         btn_close.set_size(80, 80)
         btn_close.set_pos(110, 0)
         self.add(btn_close)
-        btn_close.connect_clicked(
-                        lambda x,y:self.update_observer(self.OBS_CLOSE_WINDOW))
+        btn_close.connect_clicked(self.update_observer,
+                                  self.OBS_CLOSE_WINDOW)
 
         
 

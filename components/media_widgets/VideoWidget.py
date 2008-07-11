@@ -185,10 +185,10 @@ class VideoWidget(MediaWidget):
          
         #print ratio, w, h, w2, h2
         if (w2 > w):
-            self.__screen.set_size_request(w, h2)
+            if (w > 0): self.__screen.set_size_request(w, h2)
             w2, h2 = w, h2
         else:
-            self.__screen.set_size_request(w2, h)
+            if (w2 > 0): self.__screen.set_size_request(w2, h)
             w2, h2 = w2, h
 
         self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)

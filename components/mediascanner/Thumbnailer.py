@@ -12,6 +12,14 @@ class Thumbnailer(object):
     
         self.__thumb_folder = ""
 
+
+
+    def get_thumb_folder(self):
+        """
+        Returns the path of the thumbnail folder.
+        """
+        
+        return self.__thumb_folder
        
 
     def set_thumb_folder(self, path):

@@ -59,6 +59,7 @@ class FolderViewer(Viewer):
         self.__list.set_geometry(0, 40, 560, 370)
         self.add(self.__list)
         
+        self.__list.connect_item_clicked(self.__on_item_clicked)
         self.__list.connect_button_clicked(self.__on_item_button)
 
         self.__throbber = ThrobberDialog()
@@ -88,15 +89,16 @@ class FolderViewer(Viewer):
         w, h = self.__player_pane.get_size()
 
         if (value):
-            #if (w < 100):
-            self.__list.set_geometry(0, 40, 180, 370)
+            self.__list.set_geometry(10, 40, 160, 370)
             self.__player_pane.set_geometry(180, 0, 620, 480)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
         else:
-            #if (w > 100):
             self.__list.set_geometry(0, 40, 560, 370)
             self.__player_pane.set_geometry(580, 0, 40, 480)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+
+        for item in self.__list.get_items():
+            item.set_thin_mode(value)
 
         self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
@@ -156,18 +158,29 @@ class FolderViewer(Viewer):
                 if (dev):
                     self.__current_device = dev
                     root = dev.get_root()
-                    self.__path_stack = [root]
+                    self.__path_stack = [[root, 0]]
                     self.__load(root, self.__GO_NEW)
                 
+                
+    def __on_item_clicked(self, item, idx, px, py):
+
+        w, h = self.__player_pane.get_size()    
+        if (px >= 80 and w > 100):
+            self.__on_item_button(item, idx, item.BUTTON_PLAY)
+            
+                            
                 
     def __on_item_button(self, item, idx, button):
     
         if (button == item.BUTTON_PLAY):
             entry = self.__items[idx]
+            self.__list.hilight(idx)
+
             if (entry.mimetype == entry.DIRECTORY):
                 path = entry.path
-                self.__path_stack.append(entry)
-                self.__load(entry, self.__GO_CHILD)
+                self.__path_stack[-1][1] = self.__list.get_offset()
+                self.__path_stack.append([entry, 0])
+                gobject.timeout_add(250, self.__load, entry, self.__GO_CHILD)
             else:
                 uri = entry.get_resource()
                 
@@ -187,7 +200,8 @@ class FolderViewer(Viewer):
     
         if (len(self.__path_stack) > 1):
             self.__path_stack.pop()
-            self.__load(self.__path_stack[-1], self.__GO_PARENT)
+            path, list_offset = self.__path_stack[-1]
+            self.__load(path, self.__GO_PARENT)
 
 
     def __on_download_thumbnail(self, cmd, url, *args):
@@ -229,13 +243,16 @@ class FolderViewer(Viewer):
     def __item_loader(self, path, items):
     
         # abort if the user has changed the directory again
-        if (self.__path_stack[-1] != path): return
+        if (self.__path_stack[-1][0] != path): return
         
         entry = items.pop(0)
         self.__add_file(entry)
         
         if (items):
             gobject.idle_add(self.__item_loader, path, items)
+        else:
+            #self.__list.set_offset(self.__path_stack[-1][1])
+            pass
 
 
     def __add_file(self, entry):
@@ -250,8 +267,7 @@ class FolderViewer(Viewer):
             icon = self.__lookup_icon(entry)
             info = entry.info
     
-        item = ListItem(icon, entry.mimetype, entry.name, info)
-        item.set_emblem(entry.emblem)
+        item = ListItem(entry, icon)
         self.__list.append_item(item)
         self.__items.append(entry)
         

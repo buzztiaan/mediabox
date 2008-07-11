@@ -4,6 +4,9 @@ import theme
 
 
 class Item(StripItem):
+    """
+    Base class for regular hilightable list items.
+    """
 
     def __init__(self):
 

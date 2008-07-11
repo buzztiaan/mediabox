@@ -174,6 +174,11 @@ class ImageStrip(Widget):
         return self.__images[idx]
         
         
+    def get_images(self):
+    
+        return self.__images[:]
+        
+        
     def set_images(self, images):
         """
         Sets the list of images to be displayed by the image strip.

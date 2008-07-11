@@ -24,6 +24,12 @@ class StripItem(object):
         self.__canvas = canvas
         self.__canvas.set_renderer(self, self.render)
         
+        
+    def invalidate(self):
+    
+        if (self.__canvas):
+            self.__canvas.invalidate_cache(self)
+        
 
     def render(self):
     
