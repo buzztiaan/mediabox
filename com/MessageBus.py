@@ -53,7 +53,8 @@ class _MessageBus(object):
                     self.__services[svc] = mediator
                     return ret
             #end for
-            raise ValueError("no such service: %s" % svc)
+            import msgs
+            raise ValueError("no such service: %s" % msgs._id_to_name(svc))
         else:
             return handler.handle_event(svc, *args)
             
