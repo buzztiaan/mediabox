@@ -37,17 +37,16 @@ class GAsyncHTTPConnection (object):
 
     def __del__(self):
     
-        try:
-            if ( self.__working_callback_id > 0 ):  gobject.source_remove (self.__working_callback_id)
-            if ( self.__timeout_callback_id > 0 ):  gobject.source_remove (self.__timeout_callback_id)
-        except:
-            pass
+        if ( self.__working_callback_id > 0 ):  gobject.source_remove (self.__working_callback_id)
+        if ( self.__timeout_callback_id > 0 ):  gobject.source_remove (self.__timeout_callback_id)
         self.__socket.close()
 
 
     def __timeout (self):
 
         gobject.source_remove (self.__working_callback_id)
+        self.__working_callback_id = 0
+        self.__timeout_callback_id = 0
         self.__socket.close()
         print 'DEBUG: HTTP connection TIMEOUT'
         self.__return_callback (False, self, None, self.__return_arguments)
@@ -134,7 +133,7 @@ class GAsyncHTTPConnection (object):
             self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__recieve_more_body, body, body_length, status_header, headers)
             self.__timeout_callback_id = gobject.timeout_add (10000, self.__timeout)
 
-            return (False)  #The callback will be triggered again
+            return (False)
 
         self.__timeout_callback_id = 0
         self.__working_callback_id = 0

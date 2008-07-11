@@ -1,5 +1,6 @@
 from utils.GAsyncHTTPConnection import GAsyncHTTPConnection, parse_addr
 from utils import logging
+from upnp.MiniXML import MiniXML
 
 import socket
 import commands
@@ -101,45 +102,48 @@ class _GenaSocket(object):
     
         cnx, addr = sock.accept()
         
-        # lists are passed by reference, so we use a list to hold the data
-        data = [""]
-        gobject.io_add_watch(cnx, gobject.IO_IN, self.__on_receive_data, data)
+        event = NewEvent ( cnx, self.__process_event_body, self.__finish_event_processing )
+        #TODO does event need to be referenced?
         
         return True
-        
-        
-    def __on_receive_data(self, cnx, condition, data):
-    
-        data[0] += cnx.recv(4096)
-        
-        # TODO: this check for EOF is bad; improve it
-        if (data[0].strip()[-1] == ">"):
-            print "closing socket"
-            cnx.close()
-            self.__process_event(data[0])
-            return False
+
+
+    def __process_event_body (self, event_instance, body, uuid):
+
+        if not uuid in self.__handlers :
+            event_instance.send_answer ( "HTTP/1.1 412 Precondition Failed" )
+            return
+
+        envelope = MiniXML(body).get_dom()
+        resp = envelope.get_child()
             
-        else:
-            return True
+        for entry in resp.get_children():
+            signal_name = "changed::"
+            signal_name += entry.get_name().lower()
+            self.__handlers[uuid] ( signal_name, entry.get_child().get_value() )
+            print 'signal emited', signal_name, entry.get_child().get_value()
 
+        event_instance.send_answer ( "HTTP/1.1 200 OK" )
 
-    def __process_event(self, data):
-    
-        print "received", data
+        
+    def __finish_event_processing (self, success, event_instance):
+
+        pass
             
             
     def __on_receive_confirmation(self, success, cnx, response, ev_url, cb):
     
         if (success):
-            print response.get_status()
-            print response.get_headers()
-            sid = response.get_header("SID")
-            logging.debug("received SID: %s" % sid)
-            self.__handlers[sid] = cb
-            self.__sids[cb] = sid
-            self.__event_urls[sid] = ev_url
+            if ( response.get_status().startswith ("HTTP/1.1 200 OK") ):
+                print response.get_status()
+                print response.get_headers()
+                sid = response.get_header("SID")
+                logging.debug("received SID: %s" % sid)
+                self.__handlers[sid] = cb
+                self.__sids[cb] = sid
+                self.__event_urls[sid] = ev_url
         
-            # TODO: schedule renewal
+                # TODO: schedule renewal
         
         
     def subscribe(self, ev_url, cb):
@@ -179,4 +183,167 @@ class _GenaSocket(object):
         
 _singleton = _GenaSocket()
 def GenaSocket(): return _singleton
+
+
+#Adding a header processing callback, this class can be extended to handle asyncronally any type of http incoming connection
+
+class NewEvent (object):
+    """
+    Class to handle incoming http request that the servers sent to announce events (changes on the values of the variables)
+
+    body_processing_callback, is called when the complete body has been recieved, so it can process it and sent the appropiate answer.
+        It has three arguments (event_instance, body, uuid):
+        - event_instance is this same instance, and is provided so the callback can send an answer to the server
+        - body, is the body of the message
+        - uuid, is the uuid of the subscription (NOT the uuid of the server)
+
+    final_callback is called when there is an error (timeout f.e.) or when the answer to the server has been sent correctly.
+        It has two arguments (success, event_instance)
+        - success, True if everything went fine, False otherwise
+        - event_instance, this same instance so it can be removed from the list where its holded
+    """
+
+    def __init__ (self, socket, body_processing_callback, final_callback):
+
+        self.__socket = socket
+        self.__body_processing_callback = body_processing_callback
+        self.__final_callback = final_callback
+
+        data = ""
+        self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__check_upnp_event, data)
+        self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+
+
+    def __del__(self):
+
+        if ( self.__working_callback_id > 0 ):  gobject.source_remove (self.__timeout_callback_id)
+        if ( self.__timeout_callback_id > 0 ):  gobject.source_remove (self.__working_callback_id)
+        self.__socket.close()
+
+
+    def __timeout (self):
+
+        if ( self.__working_callback_id > 0 ):  gobject.source_remove (self.__timeout_callback_id)
+        socket.close()
+        self.__working_callback_id = 0
+        self.__timeout_callback_id = 0
+        gobject.idle_add ( self.__execute_final_callback, False )
+        print 'DEBUG: Event http server timeout'
+        return (False)
+
+
+    def __check_upnp_event (self, socket, condition, data):
+
+        data += socket.recv(4096)
+
+        gobject.source_remove ( self.__timeout_callback_id )
+
+        index = data.find ('\r\n\r\n')
+
+        if ( index == -1 ) :  #the headers are not completely recieved yet, and so this callback needs to be called again when more data is available
+            self.__timeout_callback_id = gobject.timeout_add (10000, self.__timeout)
+            self.__working_callback_id = gobject.io_add_watch ( socket, gobject.IO_IN, self.__check_upnp_event, data )
+            return (False)
+
+        lines = data[:index+2].splitlines()
+        method = lines[0].upper()
+ 
+        if ( method.startswith("NOTIFY") ):
+
+            values = {}
+            for l in lines[1:]:
+                idx = l.find(":")
+                if not ( idx == -1 ):
+                    key = l[:idx].strip().upper()
+                    value = l[idx + 1:].strip()
+                    values[key] = value
+            #end for
+
+            if (not "NTS" in values):
+                self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, "HTTP/1.1 400 Bad Request", False)
+                self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+                return (False)
+
+            elif (not values["NTS"] == "upnp:propchange") :  #this socket should only recieve eventing messages but just for checking
+                self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, "HTTP/1.1 412 Precondition Failed", False)
+                self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+                return (False)
+
+            if ( "SID" in values) :
+                uuid = values["SID"]
+            else:
+                self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, "HTTP/1.1 412 Precondition Failed", False)
+                self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+                return (False)
+
+            if ( "CONTENT-LENGTH" in values ) :
+                body_length = int(values["CONTENT-LENGTH"])
+            else :
+                self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, "HTTP/1.1 411 Length Required", False)
+                self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+                return (False)
+
+            #TODO check event key for missing eventing message
+
+            if ( len(data[index+4:]) >= body_length ):
+                self.__working_callback_id = 0  #just for precaution in case the body_processing_callback is not correctly set
+                self.__timeout_callback_id = 0
+
+                self.__body_processing_callback (self, data[index+4:], uuid)
+                return (False)
+
+            else :
+                self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__get_more_data, data, uuid, body_length, index)
+                self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+
+            return (False)
+
+        #endif
+
+        #this socket can only handle notify requests.
+        self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, "HTTP/1.1 405 Method Not Allowed", False)
+        self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+        return (False)
+
+    def __get_more_data (self, socket, condition, data, uuid, body_length, index):
+
+        data += socket.recv(4096)
+
+        gobject.source_remove ( self.__timeout_callback_id )
+
+        if ( len(data[index+4:]) >= body_length ):
+            self.__working_callback_id = 0  #just for precaution in case the body_processing_callback is not correctly set
+            self.__timeout_callback_id = 0
+
+            self.__body_processing_callback (self, data[index+4:], uuid)
+            return (False)
+
+        self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+        self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__get_more_data, data, uuid, body_length, index)   #still more part of the body to arrive
+        return (False)
+
+    
+    def send_answer (self, response):
+
+        self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, response, True)  #trigger the callback when the socket can be written without blocking
+        self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+
+
+    def __send_event_response (self, socket, condition, response, success):
+
+        response = response + "\r\n\r\n"
+        socket.send (response)
+
+        gobject.source_remove ( self.__timeout_callback_id )
+        socket.close()
+        self.__working_callback_id = 0
+        self.__timeout_callback_id = 0
+        gobject.idle_add ( self.__execute_final_callback, success )
+        return (False)
+
+    def __execute_final_callback (self, success):
+
+        self.__final_callback (success, self)
+        return (False)
+
 
