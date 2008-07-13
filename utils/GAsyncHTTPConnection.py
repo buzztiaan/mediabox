@@ -25,6 +25,8 @@ class GAsyncHTTPConnection (object):
         self.__working_callback_id = 0
         self.__timeout_callback_id = 0
         
+        self.__transfer_encoding = ""
+        print data        
         try:
             self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__socket.connect ( (host, port or 80) )
@@ -102,10 +104,8 @@ class GAsyncHTTPConnection (object):
                 headers[key] = value
         #end for
 
-        if ( "CONTENT-LENGTH" in headers ) :
-            body_length = int(headers["CONTENT-LENGTH"])
-        else:
-            body_length = 0
+        body_length = int(headers.get("CONTENT-LENGTH", "0"))
+        self.__transfer_encoding = headers.get("TRANSFER-ENCODING", "").upper()
             
         body = response[index+4:]
 
@@ -126,17 +126,27 @@ class GAsyncHTTPConnection (object):
 
     def __recieve_more_body (self, socket, condition, body, body_length, status_header, headers):
 
-        readed = socket.recv (4096)
+        readed = socket.recv(4096)
 
-        gobject.source_remove (self.__timeout_callback_id)
-        
+        gobject.source_remove(self.__timeout_callback_id)
+
         body += readed
 
-        if ( len(body) < body_length and condition != gobject.IO_HUP):  #More body to be recieved
+        if (self.__transfer_encoding == "CHUNKED"):
+            if ("0\r\n\r\n" in readed[-6:]):
+                # end of transmission
+                print "end of chunked transmission"
+                condition = gobject.IO_HUP
+                
+        if ((not body_length or len(body) < body_length) and
+              condition != gobject.IO_HUP):  #More body to be recieved
             self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__recieve_more_body, body, body_length, status_header, headers)
             self.__timeout_callback_id = gobject.timeout_add (10000, self.__timeout)
 
             return (False)
+
+        if (self.__transfer_encoding == "CHUNKED"):
+            body = _dechunk(body)
 
         self.__timeout_callback_id = 0
         self.__working_callback_id = 0
@@ -197,6 +207,30 @@ class AsyncHTTPResponse (object):
             return None
 
 
+
+def _dechunk(body):
+    """
+    Removes chunk information from a chunked body.
+    """
+
+    out = ""
+    body = body.lstrip()
+    position = 0
+    while (True):
+        while (position < len(body) and body[position] in ("\r", "\n")):
+            position += 1
+        idx = body.find("\r\n", position)
+        chunk_size = int(body[position:idx], 16)
+        if (chunk_size == 0):
+            break
+        position = idx + 2
+        out += body[position:position + chunk_size]
+        position += chunk_size
+    #end while
+    
+    return out
+
+
 #Utility function
 def parse_addr (addr):
         
@@ -211,6 +245,9 @@ def parse_addr (addr):
     #path = urlparts[2]
 
     netloc = urlparts.netloc.split(":")[0]
-    return (netloc, urlparts.port, urlparts.path)
+    path = urlparts.path
+    if (urlparts.query):
+        path += "?" + urlparts.query
+    return (netloc, urlparts.port, path)
 
 
