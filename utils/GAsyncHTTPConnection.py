@@ -1,5 +1,5 @@
 """
-Async HTTP connection arround gobject loop, developed for MediaBox
+Async HTTP connection around gobject loop, developed for MediaBox
 (c) 2008 Hugo Baldasano  <hugo.calleja@gmail.com>
 
 This package is licensed under the terms of the GNU LGPL.
@@ -15,18 +15,21 @@ class GAsyncHTTPConnection (object):
 
     """
     data has to be finished with a blank line, meaning that it should be finished like this: data = "The message we want to send, ..., end of the message\r\n\r\n"
-    return_callback has to be like this return_callback (success, connection, response, *args)
+    return_callback has to be like this return_callback (success, response, *args)
     """
 
     def __init__ (self, host, port, data, return_callback, *args):  #TODO improve the class with functions post_request, post_headers, etc...
     
         self.__return_callback = return_callback
         self.__return_arguments = args
+        self.__working_callback_id = 0
+        self.__timeout_callback_id = 0
         
         try:
             self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__socket.connect ( (host, port or 80) )
         except:
+            print host, port
             import traceback; traceback.print_exc()
             gobject.idle_add ( self.__execute_callback, False, None )
             return
@@ -49,7 +52,7 @@ class GAsyncHTTPConnection (object):
         self.__timeout_callback_id = 0
         self.__socket.close()
         print 'DEBUG: HTTP connection TIMEOUT'
-        self.__return_callback (False, self, None, self.__return_arguments)
+        self.__return_callback (False, None, *self.__return_arguments)
         return (False)
 
 
@@ -101,21 +104,21 @@ class GAsyncHTTPConnection (object):
 
         if ( "CONTENT-LENGTH" in headers ) :
             body_length = int(headers["CONTENT-LENGTH"])
-            body = response[index+4:]
+        else:
+            body_length = 0
+            
+        body = response[index+4:]
 
-            if ( len(body) < body_length ):  #More body to be recieved
-                self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__recieve_more_body, body, body_length, status_header, headers)
-                self.__timeout_callback_id = gobject.timeout_add (10000, self.__timeout)
-                return (False)
-
-        else :
-            body = None 
+        if (not body_length or len(body) < body_length):
+            self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN | gobject.IO_HUP, self.__recieve_more_body, body, body_length, status_header, headers)
+            self.__timeout_callback_id = gobject.timeout_add (10000, self.__timeout)
+            return (False)
 
         self.__timeout_callback_id = 0
         self.__working_callback_id = 0
 
         responseclass = AsyncHTTPResponse ( status_header, headers, body )
-        self.__return_callback (True, self, responseclass, *self.__return_arguments)
+        self.__return_callback (True, responseclass, *self.__return_arguments)
         #gobject.idle_add ( self.__execute_callback, True, response ) ????
 
         return (False)
@@ -129,7 +132,7 @@ class GAsyncHTTPConnection (object):
         
         body += readed
 
-        if ( len(body) < body_length ):  #More body to be recieved
+        if ( len(body) < body_length and condition != gobject.IO_HUP):  #More body to be recieved
             self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__recieve_more_body, body, body_length, status_header, headers)
             self.__timeout_callback_id = gobject.timeout_add (10000, self.__timeout)
 
@@ -139,13 +142,13 @@ class GAsyncHTTPConnection (object):
         self.__working_callback_id = 0
 
         responseclass = AsyncHTTPResponse ( status_header, headers, body )
-        self.__return_callback (True, self, responseclass, *self.__return_arguments)
+        self.__return_callback (True, responseclass, *self.__return_arguments)
         return (False)
 
 
     def __execute_callback (self, success, response) :
 
-        self.__return_callback (success, self, response, *self.__return_arguments)
+        self.__return_callback (success, response, *self.__return_arguments)
         return(False)
 
 
@@ -174,6 +177,18 @@ class AsyncHTTPResponse (object):
         return ( self.__headers )
 
 
+    # compatibility with http module
+    getheaders = get_headers
+
+    def read(self):
+            
+        return self.body
+        
+        
+    def close(self):
+    
+        pass
+
     def get_header (self, header_name):
 
         if header_name in self.__headers :
@@ -195,7 +210,6 @@ def parse_addr (addr):
     #    port = 0
     #path = urlparts[2]
 
-    print urlparts
     netloc = urlparts.netloc.split(":")[0]
     return (netloc, urlparts.port, urlparts.path)
 
