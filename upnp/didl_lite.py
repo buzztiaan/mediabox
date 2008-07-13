@@ -2,7 +2,9 @@
 Parser for DIDL-Lite directory data.
 """
 
-from MiniXML import MiniXML
+from utils.MiniXML import MiniXML
+
+import time
 
 
 _XMLNS_DIDL = "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"
@@ -34,6 +36,23 @@ def parse(xml):
     #end for
     
     return items
+    
+    
+    
+def parse_async(xml, cb, *args):
+    """
+    Parses the given DIDL-Lite XML asynchronously and calls the given
+    callback handler on each entry.
+    """
+    
+    def on_node(node):
+        item = _parse_entry(node)
+        if (item):
+            return cb(item, *args)
+        else:
+            return True
+            
+    MiniXML(xml, callback = on_node)
     
     
     

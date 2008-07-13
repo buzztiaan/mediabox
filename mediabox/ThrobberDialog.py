@@ -114,7 +114,8 @@ class ThrobberDialog(Widget):
             self.__render_current()
             self.__current_frame += 1
             self.__current_frame %= self.__number_of_frames
-            while(gtk.events_pending()): gtk.main_iteration()
+            while(gtk.events_pending() and time.time() - now < 0.1):
+                gtk.main_iteration()
         
             self.__last_rotate = now
         #end if

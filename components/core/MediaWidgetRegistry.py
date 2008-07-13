@@ -13,6 +13,9 @@ class MediaWidgetRegistry(Component):
     def __init__(self):
     
         self.__factories = []
+        
+        # table: (caller_id, clss) -> widget
+        self.__widget_cache = {}
     
         Component.__init__(self)
     
@@ -61,8 +64,6 @@ class MediaWidgetRegistry(Component):
         elif (ev == msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET):
             caller_id, mimetype = args
             
-            
-            
             # this is not time critical, so we simply iterate through a list
             factory = None
             for f in self.__factories:
@@ -77,6 +78,10 @@ class MediaWidgetRegistry(Component):
             #end for
             
             if (factory):
-                return factory.new_widget(mimetype)
+                clss = factory.get_widget_class(mimetype)
+                obj = self.__widget_cache.get((caller_id, clss)) or clss()
+                self.__widget_cache[(caller_id, clss)] = obj
+                return obj
             else:
                 return 0
+

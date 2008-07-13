@@ -24,6 +24,11 @@ class File(object):
         return self.__device.ls(self.path)
 
 
+    def get_children_async(self, cb, *args):
+        
+        self.__device.ls_async(self.path, cb, *args)
+
+
     def get_fd(self):
     
         return self.__device.get_fd(self.resource)

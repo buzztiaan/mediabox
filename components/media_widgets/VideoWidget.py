@@ -1,7 +1,10 @@
 from mediabox.MediaWidget import MediaWidget
 from ui.EventBox import EventBox
+from ui.ImageButton import ImageButton
+from ui.ProgressBar import ProgressBar
 import mediaplayer
 from utils import maemo
+import theme
 
 import gtk
 import gobject
@@ -9,7 +12,7 @@ import gobject
 
 class VideoWidget(MediaWidget):
     """
-    Widget for viewing videos.
+    Media widget for viewing videos.
     """
 
 
@@ -35,47 +38,69 @@ class VideoWidget(MediaWidget):
         self.__layout.put(self.__screen, 0, 0)
         
         self.__ebox = EventBox()
-        self.add(self.__ebox)        
-        self.__ebox.connect_clicked(self.__on_click)
+        self.add(self.__ebox)
+        self.__ebox.connect_button_pressed(self.__on_click)
 
 
+        # controls
+        self.__btn_play = ImageButton(theme.btn_play_1,
+                                      theme.btn_play_2)
+        self.__btn_play.connect_clicked(self.__on_play_pause)
+
+        self.__progress = ProgressBar()
+        self.__progress.connect_changed(self.__on_set_position)
+        
+        self._set_controls(self.__btn_play, self.__progress)
 
 
     def render_this(self):
+
+        while (gtk.events_pending()): gtk.main_iteration()
             
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()    
 
-        self.__ebox.set_size(w, h)
+        self.__ebox.set_geometry(0, 0, w, h)
 
-        fx, fy, fw, fh = x + 4, y + 32, w - 16, h - 92
-        vx, vy, vw, vh = x + 6, y + 40, w - 20, h - 110
+        fx, fy, fw, fh = x, y, w, h
+        vx, vy, vw, vh = x + 2, y + 2, w - 4, h - 4
 
         if (w < 800):
             screen.draw_rect(fx, fy, fw, fh, "#000000")
-            screen.fill_area(fx + 2, fy + 2, fw - 4, fh - 4, "#000000")
-            self.__layout.move(self.__screen, vx, vy)
-            self.__screen.set_size_request(vw, vh)
+            screen.fill_area(vx, vy, vw, vh, "#000000")
+            self.__layout.move(self.__screen, vx, vy  + 10)
+            self.__screen.set_size_request(vw, vh - 20)
         else:
             screen.fill_area(x, y, w, h, "#000000")
             self.__layout.move(self.__screen, x, y)
             self.__screen.set_size_request(w, h)
 
+        if (self.__player.has_video()):
+            self.__scale_video()            
+            self.__screen.show()
 
-    def set_visible(self, value):
+
+    def set_frozen(self, value):
     
-        if (value):
+        MediaWidget.set_frozen(self, value)
+        if (not value and self.may_render() and self.__player.has_video()):
             self.__screen.show()
         else:
             self.__screen.hide()
-            
-        MediaWidget.set_visible(self, value)
+
+
+    def set_visible(self, value):
+        
+        MediaWidget.set_visible(self, value)    
+        if (value):
+            pass
+        else:
+            self.__screen.hide()
 
         
     def __on_expose(self, src, ev):
     
-        return
         if (self.__player.has_video()):
             win = self.__screen.window
             gc = win.new_gc()
@@ -86,38 +111,44 @@ class VideoWidget(MediaWidget):
 
             
             
-    def __on_click(self):
-    
-        return
-        #vx, vy, vw, vh = self.__get_video_rect()
-        #if (vx <= px <= vx + vw and vy <= py <= py + vh):
-        self.__on_fullscreen()
+    def __on_click(self, px, py):
+            
+        self.send_event(self.EVENT_FULLSCREEN_TOGGLED)
 
 
 
     def __on_observe_player(self, src, cmd, *args):
            
-        """  
-        if (cmd == src.OBS_STARTED):
+        if (cmd == src.OBS_POSITION):
+            ctx, pos, total = args
+            if (ctx == self.__context_id):
+                pos_m = pos / 60
+                pos_s = pos % 60
+                total_m = total / 60
+                total_s = total % 60
+                info = "%d:%02d / %d:%02d" % (pos_m, pos_s, total_m, total_s)
+
+                self.send_event(self.EVENT_MEDIA_POSITION, info)
+                self.__progress.set_position(pos, total)
+
+        elif (cmd == src.OBS_STARTED):
             print "Started Player"
             self.__btn_play.set_images(theme.btn_play_1,
                                        theme.btn_play_2)
-            #self.update_observer(self.OBS_STATE_PAUSED)
             
         elif (cmd == src.OBS_KILLED):
             print "Killed Player"
             self.__uri = ""
-            self.set_title("")
+            #self.set_title("")
             self.__screen.hide()
             self.__btn_play.set_images(theme.btn_play_1,
                                        theme.btn_play_2)
-            #self.update_observer(self.OBS_STATE_PAUSED)
 
         elif (cmd == src.OBS_ERROR):
             ctx, err = args
             if (ctx == self.__context_id):
-                self.__show_error(err)
-                self.set_title("")
+                #self.__show_error(err)
+                #self.set_title("")
                 self.__screen.hide()
             
         elif (cmd == src.OBS_PLAYING):
@@ -126,7 +157,6 @@ class VideoWidget(MediaWidget):
                 print "Playing"
                 self.__btn_play.set_images(theme.btn_pause_1,
                                            theme.btn_pause_2)                
-                #self.update_observer(self.OBS_STATE_PLAYING)
             
         elif (cmd == src.OBS_STOPPED):
             ctx = args[0]
@@ -134,20 +164,7 @@ class VideoWidget(MediaWidget):
                 print "Stopped"
                 self.__btn_play.set_images(theme.btn_play_1,
                                            theme.btn_play_2)
-                #self.update_observer(self.OBS_STATE_PAUSED)
             
-        elif (cmd == src.OBS_POSITION):
-            ctx, pos, total = args            
-            if (not self.__is_fullscreen and ctx == self.__context_id):
-                pos_m = pos / 60
-                pos_s = pos % 60
-                total_m = total / 60
-                total_s = total % 60
-                info = "%d:%02d / %d:%02d" % (pos_m, pos_s, total_m, total_s)
-                self.set_info(info)
-
-                self.__progress.set_position(pos, total)
-
         elif (cmd == src.OBS_EOF):
             ctx = args[0]
             if (ctx == self.__context_id):        
@@ -155,17 +172,34 @@ class VideoWidget(MediaWidget):
                 self.__screen.hide()
 
                 # unfullscreen
-                if (self.__is_fullscreen): self.__on_fullscreen()
+                #if (self.__is_fullscreen): self.__on_fullscreen()
                 
                 self.__btn_play.set_images(theme.btn_play_1,
                                            theme.btn_play_2)                
-                #self.update_observer(self.OBS_STATE_PAUSED)
-        """   
-        if (cmd == src.OBS_ASPECT):
-            ctx, ratio = args            
+
+        elif (cmd == src.OBS_ASPECT):
+            ctx, ratio = args
             self.__aspect_ratio = ratio
             self.__set_aspect_ratio(ratio)
-            #self.__screen.show()
+
+
+    def __on_set_position(self, pos):
+    
+        self.__player.seek_percent(pos)
+
+
+    def __on_play_pause(self):
+    
+        self.__player.pause()
+
+
+    def __scale_video(self):
+        """
+        Scales the video to fill the available space while retaining the
+        original aspect ratio.
+        """
+           
+        self.__set_aspect_ratio(self.__aspect_ratio)
 
 
     def __set_aspect_ratio(self, ratio):
@@ -174,11 +208,17 @@ class VideoWidget(MediaWidget):
         """
     
         if (ratio == 0): return
-        
+
         #self.__screen.hide()
+        
         x, y = self.get_screen_pos()
         w, h = self.get_size()
-        x, y, w, h = x + 6, y + 40, w - 20, h - 110
+        if (w < 800):
+            x, y, w, h = x + 2, y + 2, w - 4, h - 4
+            y += 10
+            h -= 20
+        else:
+            x, y, w, h = x, y, w, h
 
         w2 = int(ratio * h)
         h2 = int(w / ratio)
@@ -195,6 +235,7 @@ class VideoWidget(MediaWidget):
         print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
         while (gtk.events_pending()): gtk.main_iteration()
+        self.__screen.show()
 
 
     def load(self, uri):
@@ -233,3 +274,4 @@ class VideoWidget(MediaWidget):
                 #self.update_observer(self.OBS_SHOW_PANEL)
                 
         gobject.idle_add(f)
+

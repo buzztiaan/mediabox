@@ -56,6 +56,28 @@ class Device(object):
         """
     
         raise NotImplementedError
+        
+        
+    def ls_async(self, path, cb, *args):
+        """
+        Lists the given path asynchronously by calling the given callback
+        on each item.
+        """
+
+        def do_async(files):
+            if (not files):
+                return False
+            f = files.pop(0)
+            v = cb(f, *args)
+            if (not v):
+                return False
+            else:
+                return True
+        
+        # override this by your implementation
+        files = self.ls(path)
+        import gobject
+        gobject.timeout_add(0, do_async, files)
 
 
     def get_fd(self, resource):

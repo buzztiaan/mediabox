@@ -213,6 +213,12 @@ class Widget(object):
         if (not etype in self.__event_handlers):
             self.__event_handlers[etype] = []
             
+        # don't allow the same callback twice
+        for c, a in self.__event_handlers[etype]:
+            if (c == cb):
+                return
+        #end for
+            
         self.__event_handlers[etype].append((cb, args))
         self.__check_zone()
 

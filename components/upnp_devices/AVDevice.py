@@ -104,10 +104,33 @@ class AVDevice(Device):
         f.child_count = child_count
 
         return f
+
+
+    def __build_file(self, url_base, entry):
+
+        ident, clss, child_count, res, title, artist, mimetype = entry
+        f = File(self)
+        f.mimetype = mimetype
+        f.resource = res or urlparse.urljoin(url_base, ident)
+        f.name = title
+        f.info = artist
+
+        if (f.mimetype == f.DIRECTORY):
+            f.path = ident
+        else:
+            f.path = urlparse.urljoin(url_base, res)
+            
+        if (f.mimetype in ["application/octet-stream"]):
+            ext = os.path.splitext(f.name)[-1]
+            f.mimetype = mimetypes.lookup_ext(ext)
+            
+        f.child_count = child_count    
         
-        
-    def ls(self, path):
-    
+        return f
+
+
+    def __get_didl(self, path):
+
         if (path.startswith("/")): path = path[1:]
         try:
             didl = self.__didl_cache[path]
@@ -116,30 +139,34 @@ class AVDevice(Device):
                                                 "BrowseDirectChildren",
                                                 "*", "0", "0", "")
             self.__didl_cache[path] = didl
-
+            
+        return didl
+    
+        
+        
+    def ls(self, path):
+    
+        didl = self.__get_didl(path)
         files = []
         url_base = self.__description.get_url_base()
         for entry in didl_lite.parse(didl):
-            ident, clss, child_count, res, title, artist, mimetype = entry
-            f = File(self)
-            f.mimetype = mimetype
-            f.resource = res or urlparse.urljoin(url_base, ident)
-            f.name = title
-            f.info = artist
-
-            if (f.mimetype == f.DIRECTORY):
-                f.path = ident
-            else:
-                f.path = urlparse.urljoin(url_base, res)
-                
-            if (f.mimetype in ["application/octet-stream"]):
-                ext = os.path.splitext(f.name)[-1]
-                f.mimetype = mimetypes.lookup_ext(ext)
-                
-            f.child_count = child_count
+            f = self.__build_file(url_base, entry)
             files.append(f)
             
         return files
+        
+        
+    def ls_async(self, path, cb, *args):
+
+        def f(entry):
+            f = self.__build_file(url_base, entry)
+            return cb(f, *args)
+            
+
+        didl = self.__get_didl(path)
+        files = []
+        url_base = self.__description.get_url_base()
+        didl_lite.parse_async(didl, f)
 
 
     def get_fd(self, resource):

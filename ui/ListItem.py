@@ -18,6 +18,15 @@ class ListItem(StripItem):
         self.__grip = None
         
         StripItem.__init__(self)
+
+
+    @staticmethod
+    def escape_xml(s):
+        
+        s = s.decode("utf-8", "replace").encode("utf-8")
+        return s.replace("<", "&lt;") \
+                .replace(">", "&gt;") \
+                .replace("&", "&amp;")
         
 
     def set_graphics(self, normal, hilighted):

@@ -22,6 +22,6 @@ class MediaWidgetFactory(Component):
         return []
 
 
-    def new_widget(self, mimetype):
+    def get_widget_class(self, mimetype):
     
         pass

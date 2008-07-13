@@ -22,8 +22,8 @@ class ListItem(ButtonListItem):
         self.__thin_mode = False
         self.__icon = thumbnail
         self.__emblem = f.emblem
-        self.__label = f.name
-        self.__sublabel = f.info
+        self.__label = self.escape_xml(f.name)
+        self.__sublabel = self.escape_xml(f.info)
         self.__mimetype = f.mimetype
         
         

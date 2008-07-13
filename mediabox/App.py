@@ -11,8 +11,6 @@ from TabPanel import TabPanel
 from WindowControls import WindowControls
 from Thumbnailer import Thumbnailer
 from ViewerState import ViewerState
-from ui.HBox import HBox
-from ui.VBox import VBox
 from ui.Image import Image
 from ui.Pixmap import Pixmap
 from ui.ImageStrip import ImageStrip
@@ -249,6 +247,7 @@ class App(Component):
             self.__strip.set_visible(True)
             if (self.__current_viewer):
                 self.__current_viewer.set_geometry(180, 0, 620, 480)
+                self.__get_vstate().collection_visible = True
             
         elif (view_mode == viewmodes.NO_STRIP):
             self.__title_panel_left.set_visible(True)
@@ -258,6 +257,7 @@ class App(Component):
             self.__strip.set_visible(False)
             if (self.__current_viewer):            
                 self.__current_viewer.set_geometry(0, 0, 800, 480)
+                self.__get_vstate().collection_visible = False
             
         elif (view_mode == viewmodes.FULLSCREEN):
             self.__title_panel_left.set_visible(False)
@@ -276,6 +276,7 @@ class App(Component):
             self.__strip.set_visible(False)
             if (self.__current_viewer):            
                 self.__current_viewer.set_geometry(0, 0, 800, 480)
+                self.__get_vstate().collection_visible = False
 
         self.__view_mode = view_mode
 
