@@ -102,6 +102,7 @@ class Dialog(gtk.Dialog):
         else:
             values = []            
         self.destroy()
+        while (gtk.events_pending()): gtk.main_iteration()
         
         return values
         
