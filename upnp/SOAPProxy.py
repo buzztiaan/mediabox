@@ -1,4 +1,5 @@
-from MiniXML import MiniXML
+from utils.GAsyncHTTPConnection import GAsyncHTTPConnection, parse_addr
+from utils.MiniXML import MiniXML
 from utils import logging
 
 import urllib
@@ -33,7 +34,19 @@ class SOAPProxy(object):
         self.__namespace = namespace
         self.__signatures = {}
         
+        # callback for async IO
+        self.__async_callback = None
+        
         self.__parse_scpd(scpdurl)
+
+
+    def set_async_cb(self, cb):
+        """
+        Sets a callback to be used for asynchronous IO. Set to None to disable
+        asynchronous IO. Asynchronous IO is disabled by default.
+        """
+    
+        self.__async_callback = cb
 
 
     def __getattr__(self, name):
@@ -48,9 +61,17 @@ class SOAPProxy(object):
                 cnt += 1
             #end for
             out += "</u:%s>" % name
-            
-            logging.debug("=== SOAP Request ===\n%s\n===" % (_SOAP_ENVELOPE % out))
-            return self.__post_soap(name, _SOAP_ENVELOPE % out)
+
+            data = _SOAP_ENVELOPE % out
+            logging.debug("=== SOAP Request ===\n%s\n===" % data)
+
+            if (self.__async_callback):
+                # we pass the async callback because in an async world the
+                # user may change the callback inbetween
+                self.__post_soap_async(name, data, self.__async_callback)
+                return None
+            else:
+                return self.__post_soap(name, data)
         
         return f
         
@@ -100,7 +121,7 @@ class SOAPProxy(object):
         else:
             return ""
 
-            
+           
     def __parse_soap_response(self, response):
     
         out = []
@@ -125,24 +146,12 @@ class SOAPProxy(object):
         return out
         
 
-
-
-
-        
-        
     def __post_soap(self, name, soap):
     
         length = len(soap)
         soap_action = "\"" + self.__namespace + "#" + name + "\""
-        
-        urlparts = urlparse.urlparse(self.__endpoint)
-        if (":" in urlparts[1]):
-            host, port = urlparts[1].split(":")
-            port = int(port)
-        else:
-            host = urlparts[1]
-            port = 0
-        path = urlparts[2]
+
+        host, port, path = parse_addr(self.__endpoint)
         
         if (port):
             conn = httplib.HTTPConnection(host, port)
@@ -163,6 +172,40 @@ class SOAPProxy(object):
         
         return values
 
+
+    def __post_soap_async(self, name, soap, async_cb):
+    
+        def on_soap_response(success, response, *args):
+            if (success and "200" in response.get_status()):
+                values = self.__parse_soap_response(response)                
+                try:
+                    async_cb(*values)
+                except:
+                    import traceback; traceback.print_exc()
+            #end if
+    
+        length = len(soap)
+        soap_action = "\"" + self.__namespace + "#" + name + "\""
+
+        host, port, path = parse_addr(self.__endpoint)
+        
+        out = ""
+        out += "POST %s HTTP/1.1\r\n" % path
+        if (port):
+            out += "Host: %s:%d\r\n" % (host, port)
+        else:
+            out += "Host: %s\r\n" % host            
+        out += "User-Agent: MediaBox\r\n"
+        out += "Content-Type: text/xml; charset=\"utf-8\"\r\n"
+        out += "Content-Length: %d\r\n" % length
+        out += "SOAPAction: %s\r\n" % soap_action
+        out += "\r\n"
+        out += soap
+        
+        GAsyncHTTPConnection(host, port,
+                             out,
+                             on_soap_response)
+                
 
 
 #p = SOAPProxy("http://192.168.0.102:49152/web/cds_control",
