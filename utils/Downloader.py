@@ -1,12 +1,11 @@
-from GAsyncHTTPConnection import GAsyncHTTPConnection
-import urlparse
+from GAsyncHTTPConnection import GAsyncHTTPConnection, parse_addr
 
 
 class _Threadless_Downloader(object):
     """
     Singleton object for an asynchronous HTTP downloader.
     Concurrency is achieved by using threadless asynchronous GObject IO
-    callbacks. Thanks to Hugo Calleja for this.
+    callbacks. Thanks to Hugo Baldasano for this.
     """
     
 
@@ -20,32 +19,31 @@ class _Threadless_Downloader(object):
     ERROR = 7
 
 
-    def __download_cb(self, success, conn, response, *args):
+    def __download_cb(self, success, response, *args):
     
-        url, cb = args
+        url, cb, user_args = args
         if (success):
-            cb(self.DOWNLOAD_FINISHED, url, response.get_body())
+            cb(self.DOWNLOAD_FINISHED, url, response.get_body(), *user_args)
         else:
-            cb(self.ERROR, url)
+            cb(self.ERROR, url, *user_args)
     
 
-    def get_async(self, url, cb, timeout = 0):
+    def get_async(self, url, cb, *args):
         """
         Retrieves the given URL asynchronously and invokes the given callback
-        handler. If timeout is non-zero, the download is cancelled if the
-        host doesn't respond within the given time frame.
+        handler.
         """
 
-        urlparts = urlparse.urlparse(url)
-        host = urlparts.netloc
-        path = urlparts.path
-        port = urlparts.port or 80
+        #urlparts = urlparse.urlparse(url)
+        #host = urlparts.netloc
+        #path = urlparts.path
+        #port = urlparts.port or 80
+        host, port, path = parse_addr(url)
 
-        # TODO: supply timeout to GAsync
         downloader = GAsyncHTTPConnection(host, port,
                                           "GET %s HTTP/1.1\r\n"
                                           "Host: %s\r\n\r\n" % (path, host),
-                                          self.__download_cb, url, cb)
+                                          self.__download_cb, url, cb, args)
 
 
     def get(self, url):
