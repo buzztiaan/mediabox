@@ -5,15 +5,20 @@ class MiniXML(object):
     XML parser.
     """
 
-    def __init__(self, data, namespace = ""):
+    def __init__(self, data, namespace = "", callback = None):
         """
         Creates a new MiniXML object and parses the given XML data.
         If a namespace is given, it is used as the default namespace unless
         the XML overrides the default namespace.
+        If a callback is given, the callback is being called every time a
+        node has been closed and is thus finished.
         """
 
         self.__data = data
         self.__position = 0
+        
+        self.__callback = callback
+        self.__cancelled = False
 
         self.__dom = None
         
@@ -37,29 +42,42 @@ class MiniXML(object):
 
     def __parse_document(self):
 
-        while (True):
-            # find next tag
-            index = self.__data.find("<", self.__position)            
-            if (index != -1):
-                # skip comments
-                if (self.__data[index:index + 4] == "<!--"):
-                    self.__position = self.__data.find("-->", index) + 3
-                    continue
-            
-                # read text up to next tag
-                self.__read_text(self.__position, index)
-                self.__position = index
+        if (self.__callback):
+            # run async
+            import gobject
+            gobject.timeout_add(0, self.__parser_iteration)
+        else:
+            # run sync
+            while (self.__parser_iteration()): pass
 
-                # check if its an opening or closing tag
-                if (self.__data[index + 1] == "/"):
-                    self.__close_tag()
-                else:
-                    self.__open_tag()
-            else:
-                break
-        #end while
+
+    def __parser_iteration(self):
+
+        if (self.__cancelled): return False
+
+        # find next tag
+        index = self.__data.find("<", self.__position)            
+        if (index != -1):
+            # skip comments
+            if (self.__data[index:index + 4] == "<!--"):
+                self.__position = self.__data.find("-->", index) + 3
+                return True
         
-        #print "NS Stack:", len(self.__ns_stack)
+            # read text up to next tag
+            self.__read_text(self.__position, index)
+            self.__position = index
+
+            # check if its an opening or closing tag
+            if (self.__data[index + 1] == "/"):
+                self.__close_tag()
+            else:
+                self.__open_tag()
+            
+            return True
+            
+        else:
+            return False
+            
 
 
     def __read_text(self, begin, end):
@@ -205,9 +223,16 @@ class MiniXML(object):
         index = self.__data.find(">", self.__position + 1)
         #tagname = self.__data[self.__position + 2:index].rstrip()
 
-        self.__pop_node()
+        node = self.__pop_node()
         self.__ns_stack.pop()
         self.__position = index + 1
+        
+        if (self.__callback):
+            try:
+                v = self.__callback(node)
+                if (not v): self.__cancelled = True
+            except:
+                import traceback; traceback.print_exc()
 
 
     def __push_node(self, node):
@@ -227,7 +252,7 @@ class MiniXML(object):
 
     def __pop_node(self):
 
-        self.__stack.pop()
+        return self.__stack.pop()
 
 
 
