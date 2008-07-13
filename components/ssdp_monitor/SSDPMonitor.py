@@ -1,11 +1,10 @@
 from com import Component, msgs
 from upnp import ssdp
-from upnp.MiniXML import MiniXML
+from utils.MiniXML import MiniXML
+from utils.Downloader import Downloader
 from upnp.DeviceDescription import DeviceDescription
 from utils import logging
-from utils import threads
 
-import urllib
 import gobject
 
 
@@ -21,47 +20,72 @@ class SSDPMonitor(Component):
     
         # table: UUID -> location
         self.__servers = {}
+        
+        # table of the devices currently being processed: UUID -> location
+        self.__processing = {}
 
-        self.__monitor_timer = None
+        self.__monitoring = False
+        self.__discovery_monitor = None
         self.__idle_timer = 0
     
         Component.__init__(self)
-        
+
 
     def handle_event(self, event, *args):
     
         # anything happened - wake up!
-        if (not self.__monitor_timer):
+        if (not self.__monitoring):
             logging.info("SSDP Monitor waking up")
-            self.__monitor_timer = gobject.timeout_add(1000, self.__check_ssdp)
+            nsock, dsock = ssdp.open_sockets()
+            gobject.timeout_add(0, self.__discovery_chain, dsock, 0)
+            gobject.io_add_watch(nsock, gobject.IO_IN, self.__check_ssdp)
+            self.__discovery_monitor = gobject.io_add_watch(dsock, gobject.IO_IN, self.__check_ssdp)            
+            self.__monitoring = True
             
-        self.__idle_timer = 0
+
+    def __discovery_chain(self, sock, i):
+    
+        if (i == 0):
+            ssdp.discover_devices()
+            gobject.timeout_add(3000, self.__discovery_chain, sock, i + 1)
+        elif (i == 1):
+            ssdp.discover_devices()
+            gobject.timeout_add(3000, self.__discovery_chain, sock, i + 1)
+        elif (i == 2):
+            gobject.source_remove(self.__discovery_monitor)
+            sock.close()
             
-            
-    def __check_device(self, uuid, location):
+
+    def __on_receive_description_xml(self, cmd, *args):
         """
-        Thread for checking the given UPnP device by retrieving and parsing its
+        Callback for checking the given UPnP device by parsing its
         description XML. Announces the availability of new devices.
         """
-        
-        logging.debug("loading UPnP device description '%s'", location)
-        xml = urllib.urlopen(location).read()
-        dom = MiniXML(xml, _NS_DESCR).get_dom()
 
-        descr = DeviceDescription(location, dom)
-        logging.info("discovered UPnP device [%s] of type [%s]" \
-                     % (descr.get_friendly_name(), descr.get_device_type()))
+        if (cmd == Downloader().DOWNLOAD_FINISHED):
+            location, xml, uuid = args
 
-        logging.debug("propagating availability of device [%s]" % uuid)        
-        threads.run_unthreaded(self.emit_event,
-                               msgs.SSDP_EV_DEVICE_DISCOVERED, uuid, descr)
-
-
-    def __check_ssdp(self):
+            # if the device is not in the processing table, it has said
+            # "bye bye" while processing the initialization; in that case
+            # simply ignore it
+            if (not uuid in self.__processing):
+                return
     
-        self.__idle_timer += 1
-        
-        ssdp_event = ssdp.poll_event()
+            del self.__processing[uuid]
+    
+            dom = MiniXML(xml, _NS_DESCR).get_dom()
+            descr = DeviceDescription(location, dom)
+            
+            # announce availability of device
+            logging.info("discovered UPnP device [%s] of type [%s]" \
+                         % (descr.get_friendly_name(), descr.get_device_type()))
+            logging.debug("propagating availability of device [%s]" % uuid)
+            self.emit_event(msgs.SSDP_EV_DEVICE_DISCOVERED, uuid, descr)            
+
+
+    def __check_ssdp(self, sock, cond):
+    
+        ssdp_event = ssdp.poll_event(sock)
         if (ssdp_event):
             event, location, usn = ssdp_event
             if ("::" in usn):
@@ -72,24 +96,25 @@ class SSDPMonitor(Component):
 
             if (event == ssdp.SSDP_ALIVE):
                 logging.debug("UPnP device %s is ALIVE", uuid)
-                if (not uuid in self.__servers):
+                if (not uuid in self.__servers and
+                      not uuid in self.__processing):
                     self.__servers[uuid] = location
-                    threads.run_threaded(self.__check_device,
-                                         uuid, location)
+                    self.__processing[uuid] = location
+
+                    Downloader().get_async(location,
+                                           self.__on_receive_description_xml,
+                                           uuid)
 
             elif (event == ssdp.SSDP_BYEBYE):
                 logging.debug("UPnP device %s is GONE", uuid)
                 if (uuid in self.__servers):
                     del self.__servers[uuid]
+                    if (uuid in self.__processing):
+                        del self.__processing[uuid]
                     self.emit_event(msgs.SSDP_EV_DEVICE_GONE, uuid)
             #end if
 
         #end if
         
-        if (self.__idle_timer < 10000):
-            return True
-        else:
-            self.__monitor_timer = None
-            logging.info("SSDP Monitor gone sleeping to save battery")
-            return False
+        return True
 

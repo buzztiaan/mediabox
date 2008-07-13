@@ -1,20 +1,56 @@
 from utils import logging
 import socket
-import time
 
 
 _SSDP_IP = "239.255.255.250"
 _SSDP_PORT = 1900
 _M_SEARCH = "M-SEARCH * HTTP/1.1\r\n" \
-            "MX: 5\r\n" \
             "HOST: 239.255.255.250:1900\r\n" \
             "MAN: \"ssdp:discover\"\r\n" \
+            "MX: 5\r\n" \
             "ST: upnp:rootdevice\r\n" \
             "\r\n"
 
 
 SSDP_ALIVE = 0
 SSDP_BYEBYE = 1
+
+
+
+def open_sockets():
+    """
+    Opens and returns the SSDP notification and discover sockets.
+    If the sockets are already open, they are just returned.
+    """
+    global _ssdp_socket, _discover_socket
+
+    if (not _ssdp_socket):
+        try:
+            _ssdp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
+                                         socket.IPPROTO_UDP)
+            _ssdp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            _ssdp_socket.bind((_SSDP_IP, _SSDP_PORT))
+        except:
+            logging.warning("cannot open socket for SSDP monitoring")
+            import traceback; traceback.print_exc()
+            
+    if (not _discover_socket):
+        try:
+            _discover_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        except:
+            logging.warning("cannot open socket for SSDP discovering")
+            import traceback; traceback.print_exc()
+    
+    return (_ssdp_socket, _discover_socket)
+
+
+
+def discover_devices():
+    """
+    Sends a M-SEARCH for discovering all available UPnP devices.
+    """
+    
+    _discover_socket.sendto(_M_SEARCH, (_SSDP_IP, _SSDP_PORT))
 
 
 
@@ -49,52 +85,20 @@ def __parse_ssdp_event(data):
         return None
 
 
-
-def poll_event():
-    global _discover_time
-
-    if (not _ssdp_socket): _open_sockets()
+def poll_event(sock):
+    """
+    Polls for SSDP notifications on the given socket and returns an SSDP
+    event tuple (event, location, usn) or None if no event was available.
+    """
     try:
-        data, addr = _ssdp_socket.recvfrom(1024)
+        data, addr = sock.recvfrom(1024)
     except socket.error:
-        try:
-            data, addr = _discover_socket.recvfrom(1024)
-        except socket.error:
-            return None
-
-    if (_discover_time > 0 and time.time() > _discover_time + 10):
-        _discover_time = 0
-        _discover_socket.close()
+        return None
 
     return __parse_ssdp_event(data)
-
-
-def _open_sockets():
-    global _ssdp_socket, _discover_socket, _discover_time
-
-    try:
-        _ssdp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        _ssdp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        _ssdp_socket.bind((_SSDP_IP, _SSDP_PORT))
-        _ssdp_socket.setblocking(False)
-    except:
-        logging.warning("cannot open socket for SSDP monitoring")
-        import traceback; traceback.print_exc()
-
-    try:
-        _discover_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        _discover_socket.setblocking(False)
-        _discover_socket.sendto(_M_SEARCH, (_SSDP_IP, _SSDP_PORT))
-        _discover_time = time.time()
-    except:
-        logging.warning("cannot open socket for SSDP discovering")
-        import traceback; traceback.print_exc()
-
-    
+   
 
 
 _ssdp_socket = None
 _discover_socket = None
-_discover_time = 0
-_open_sockets()
 
