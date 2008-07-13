@@ -35,33 +35,43 @@ class RowItem(Item):
     def set_spacing(self, spacing) :
 
         self.__spacing = spacing
-        self.render ()
+        self.myrender ()
 
 
     def set_initial_offset(self, initial_offset) :
 
         self.__my_initial_row_offset = initial_offset
-        self.render ()
+        self.myrender ()
 
 
     def append_button (self, grid_button) :
 
         grid_button.set_container (self)
         self.__button_list.append ( grid_button )
-        self.render ()
+        self.myrender ()
 
 
     def add_button (self, grid_button, position):
 
         grid_button.set_container (self)
         self.__button_list.insert (position, grid_button)
-        self.render ()
+        self.myrender ()
 
 
-    def remove_button (self, position):
+    def get_button_position_by_uuid (self, uuid):
+
+        for index, button in enumerate(self.__button_list) :
+
+            if ( button.upnp_uuid == uuid ):
+                return index
+
+        return (-1)
+
+
+    def remove_button_from_position (self, position):
 
         removed_button = self.__button_list.pop (position)
-        self.render ()
+        self.myrender ()
     
         if ( self.__button_list.__len__() < 1 ): empty = True
         else : empty = False
@@ -77,15 +87,21 @@ class RowItem(Item):
         for button in self.__button_list:
             x += button.get_active_image().get_width()
             
-            if (px < x):
-                return button
+            if (button.option_button_image == None):
+                if (px < x):
+                    return button, False
+            else:
+                if (px < x - 30):
+                    return button, False
+                if (px < x + 13):
+                    return button, True
 
             x += self.__spacing
             if (px < x): #if it hits between the buttons. Maybe it would be better to trigger a button from one half and the other from the other. Test with touchscreen.
-                return None
+                return None, False
         #end for
         
-        return None
+        return None, False
     
 
     def get_button_list (self):
@@ -94,7 +110,7 @@ class RowItem(Item):
 
     def myrender (self):
         self.render()
-        self.__gridlist.render_full()
+        self.__gridlist.render()
 
 
     def render_this(self, canvas):
@@ -109,6 +125,9 @@ class RowItem(Item):
 
             canvas.draw_pixbuf(image,
                                x, (h - image.get_height()) / 4 )
+
+            if ( one_button.option_button_image ):
+                canvas.draw_pixbuf(one_button.option_button_image, x + image.get_width() - 30, (h - 73) )
             
             #missing to center the text
             label = one_button.get_label()

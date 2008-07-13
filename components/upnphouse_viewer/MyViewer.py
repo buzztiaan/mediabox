@@ -3,13 +3,14 @@ from mediabox import viewmodes
 #from ui.KineticScroller import KineticScroller
 #from SunClock import SunClock
 
-from ui.Image import Image
-from ui.VBox import VBox
-from ui.HBox import HBox
-from ui.ImageButton import ImageButton
-from ui.EventBox import EventBox
+#from ui.Image import Image
+#from ui.VBox import VBox
+#from ui.HBox import HBox
+#from ui.ImageButton import ImageButton
+#from ui.EventBox import EventBox
 from GridList import GridList
-from GridButton import GridButton
+from buttons.BinaryLight_Button import BinaryLight_Button
+from buttons.DimmableLight_Button import DimmableLight_Button
 
 import theme
 
@@ -32,6 +33,8 @@ class MyViewer(Viewer):
 
     def __init__(self):
         
+        self.__devices = {}
+
         self.__on = gtk.gdk.pixbuf_new_from_file(
             os.path.join(_PATH, "on.png"))
 
@@ -57,47 +60,6 @@ class MyViewer(Viewer):
         self.__Gridlist.set_geometry(10, 40, 780, 370)
         self.add(self.__Gridlist)
 
-        button1 = GridButton ( 'Hola', self.__on, self.__off, 0 )
-        self.__Gridlist.append_button (button1)
-
-        button2 = GridButton ( 'Adeu', self.__on, self.__off, 1 )
-        self.__Gridlist.add_button (button2,0,0)
-
-        button3 = GridButton ( 'Que passa', self.__on, self.__off, 0 )
-        self.__Gridlist.append_button (button3)
-
-        button4 = GridButton ( 'Tio', self.__on, self.__off, 0 )
-        self.__Gridlist.append_button (button4)
-
-        button5 = GridButton ( 'Mola', self.__on, self.__off, 1 )
-        self.__Gridlist.add_button (button5,0,1)
-
-        button6 = GridButton ( 'Nen', self.__on, self.__off, 1 )
-        self.__Gridlist.append_button (button6)
-
-        button1 = GridButton ( 'A veure', self.__on, self.__off, 0 )
-        self.__Gridlist.add_button (button1,1,0)
-
-        button2 = GridButton ( 'que passa neng!', self.__on, self.__off, 1 )
-        self.__Gridlist.append_button (button2)
-
-        button3 = GridButton ( 'amb aixo', self.__on, self.__off, 0 )
-        self.__Gridlist.append_button (button3)
-
-        button4 = GridButton ( 'veurem', self.__on, self.__off, 0 )
-        self.__Gridlist.append_button (button4)
-
-        button1 = GridButton ( 'A veure', self.__on, self.__off, 0 )
-        self.__Gridlist.append_button (button1)
-
-        button2 = GridButton ( 'soc jo', self.__on, self.__off, 1 )
-        self.__Gridlist.add_button (button2, 0, 10)
-
-        button3 = GridButton ( 'amb aixo', self.__on, self.__off, 0 )
-        self.__Gridlist.append_button (button3)
-
-        button4 = GridButton ( 'es aquest 1-3', self.__on, self.__off, 0 )
-        self.__Gridlist.add_button (button4,0,1)
 
     def render_this(self):
         
@@ -108,6 +70,53 @@ class MyViewer(Viewer):
         screen = self.get_screen()
         
         screen.fill_area(x, y, w, h, "#FFFFFF")
+
+
+    def handle_event(self, event, *args):
+    
+        #if (event == events.CORE_EV_APP_SHUTDOWN):
+            #TODO unsubscribe from all devices
+    
+        if (event == msgs.SSDP_EV_DEVICE_DISCOVERED):
+            uuid, device = args
+            #if ( hasattr (device, 'hugos_attr') ):  #TODO better way to identify a upnp device
+            self.__select_device(uuid, device)
+
+        if (event == msgs.SSDP_EV_DEVICE_GONE ):
+            uuid = args[0]
+            self.__remove_device_button (uuid)
+
+        
+    def __select_device (self, uuid, device):
+
+        if ( device.get_device_type() == "urn:schemas-upnp-org:device:BinaryLight:0.9" ) :
+            self.__add_binary_light (uuid, device)
+        elif ( device.get_device_type() == "urn:schemas-upnp-org:device:DimmableLight:1" ) :
+            self.__add_dimmable_light (uuid, device)
+        else:
+            print 'None', device.get_device_type()
+
+
+    def __add_binary_light (self, uuid, device):
+
+        button = BinaryLight_Button ( device, self.__on, self.__off )
+        self.__Gridlist.append_button (button)  #TODO put in place, database needed
+
+
+    def __add_dimmable_light (self, uuid, device):
+
+        button = DimmableLight_Button ( device, self.__on, self.__off, self.__Gridlist.open_dialog ) #TODO do async
+        self.__Gridlist.append_button (button) #TODO put in place, database needed
+        
+
+    def __remove_device_button (self, uuid):
+
+        index, position = self.__Gridlist.get_button_index_and_position_by_uuid ( uuid )
+
+        if ( index >= 0 ) and ( position >= 0 ) :
+            self.__Gridlist.remove_dialog_by_uuid (uuid)
+            self.__Gridlist.remove_button_from_postion (index, position)
+
 
 """
     def __my_on_click (self, px, py, nothing):
