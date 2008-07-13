@@ -103,7 +103,6 @@ class _GenaSocket(object):
         cnx, addr = sock.accept()
         
         event = NewEvent ( cnx, self.__process_event_body, self.__finish_event_processing )
-        #TODO does event need to be referenced?
         
         return True
 
@@ -126,12 +125,12 @@ class _GenaSocket(object):
         event_instance.send_answer ( "HTTP/1.1 200 OK" )
 
         
-    def __finish_event_processing (self, success, event_instance):
+    def __finish_event_processing (self, success):
 
         pass
             
             
-    def __on_receive_confirmation(self, success, cnx, response, ev_url, cb):
+    def __on_receive_confirmation(self, success, response, ev_url, cb):
     
         if (success):
             if ( response.get_status().startswith ("HTTP/1.1 200 OK") ):
@@ -174,7 +173,7 @@ class _GenaSocket(object):
             host, port, path = parse_addr(ev_url)
             GAsyncHTTPConnection(host, port,
                                 _GENA_UNSUBSCRIBE % (path, host, sid),
-                                lambda a,b,c:True)
+                                lambda a,b:True)
             del self.__handlers[sid]
             del self.__sids[cb]
             del self.__event_urls[sid]
@@ -198,9 +197,8 @@ class NewEvent (object):
         - uuid, is the uuid of the subscription (NOT the uuid of the server)
 
     final_callback is called when there is an error (timeout f.e.) or when the answer to the server has been sent correctly.
-        It has two arguments (success, event_instance)
+        It has one argument (success)
         - success, True if everything went fine, False otherwise
-        - event_instance, this same instance so it can be removed from the list where its holded
     """
 
     def __init__ (self, socket, body_processing_callback, final_callback):
@@ -343,7 +341,7 @@ class NewEvent (object):
 
     def __execute_final_callback (self, success):
 
-        self.__final_callback (success, self)
+        self.__final_callback (success)
         return (False)
 
 

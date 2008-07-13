@@ -245,6 +245,7 @@ class ImageStrip(Widget):
 
         
     def overlay_image(self, idx, img, x, y):
+        # TODO: deprecated
 
         self.__images[idx].draw_pixbuf(img, x, y)
         self.render()
@@ -293,6 +294,29 @@ class ImageStrip(Widget):
                     index = -1
         
             return index
+            
+
+    def get_index_at_and_relpos(self, y):
+        """
+        Returns the index of the item at the given position or -1 if there's no
+        item at that position. Also returns, the per one percentage of the y position inside the row.
+        """
+        
+        if (not self.__images or y > self.__totalsize):
+            return -1, 0
+        else:
+            blocksize = self.__itemsize + self.__gapsize
+            pos = self.__offset + y            
+            index = (pos / blocksize)
+            inside_y = (float(pos) / blocksize) - index
+            
+            if (index < 0 or index >= len(self.__images)):
+                if (self.__wrap_around):
+                    index %= len(self.__images)
+                else:
+                    index = -1
+        
+            return index, inside_y
             
             
     def swap(self, idx1, idx2):
