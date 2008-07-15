@@ -1,8 +1,9 @@
 from storage import Device, File
 from utils.MiniXML import MiniXML
-from utils.Downloader import Downloader
 from utils import logging
 from ui.Dialog import Dialog
+from io.Downloader import Downloader
+from io.FileDownloader import FileDownloader
 import theme
 
 import gobject
@@ -174,8 +175,7 @@ class YouTube(Device):
 
         if (values):
             query = values[0]
-            Downloader().get_async(_VIDEO_SEARCH % query, on_receive_xml)
-
+            Downloader(_VIDEO_SEARCH % query, on_receive_xml)
 
         
     def ls(self, path):
@@ -201,5 +201,13 @@ class YouTube(Device):
             
     def get_resource(self, resource):
     
-        return self.__get_flv(resource)
+        def f(d, a, t):
+            print "%d / %d" % (a, t)
+        
+        flv = self.__get_flv(resource)
+        FileDownloader(flv, "/tmp/tube.flv", f)    
+        
+        import time
+        time.sleep(15)
+        return "/tmp/tube.flv"
 
