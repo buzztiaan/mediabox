@@ -47,10 +47,10 @@ class SSDPMonitor(Component):
     
         if (i == 0):
             ssdp.discover_devices()
-            gobject.timeout_add(3000, self.__discovery_chain, sock, i + 1)
+            gobject.timeout_add(6000, self.__discovery_chain, sock, i + 1)
         elif (i == 1):
             ssdp.discover_devices()
-            gobject.timeout_add(3000, self.__discovery_chain, sock, i + 1)
+            gobject.timeout_add(6000, self.__discovery_chain, sock, i + 1)
         elif (i == 2):
             gobject.source_remove(self.__discovery_monitor)
             sock.close()
