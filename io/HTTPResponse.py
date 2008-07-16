@@ -40,7 +40,9 @@ class HTTPResponse(object):
         else:
             self.__body += data
 
-        if (not data or len(self.__body) >= self.__content_length):
+        if (not data or 
+              (self.__content_length > 0 and
+               len(self.__body) >= self.__content_length)):
             self.__finished = True    
 
         print "FINISHED", self.__finished
@@ -54,25 +56,28 @@ class HTTPResponse(object):
                 size1 = min(len(data), self.__chunk_size_remaining)
                 self.__chunk_size_remaining -= size1
                 self.__body += data[:size1]
+                print "CHUNK", data[:size1]
                 data = data[size1:]
         
             else:
                 data = self.__incomplete_chunk_header + data
+                size1 = len(self.__incomplete_chunk_header)
                 self.__incomplete_chunk_header = ""
         
             # read in next chunk size
-            idx = data.find("\r\n", size1)
+            idx = data.find("\r\n", 1) #, size1)
             if (idx != -1):
                 # size line is complete
+                print "CS", data[:idx]
                 self.__chunk_size_remaining = \
-                                            int(data[size1:size1 + idx], 16)
+                                            int(data[:idx], 16)
                 data = data[idx + 2:]
             else:
                 self.__incomplete_chunk_header = data
                 break
                 
             # the final chunk is always of size 0
-            if (self.__remaining_chunk_size == 0):
+            if (self.__chunk_size_remaining == 0):
                 self.__finished = True
                 break
         #end while

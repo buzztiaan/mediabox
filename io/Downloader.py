@@ -25,10 +25,11 @@ class Downloader(HTTPConnection):
         
         if (status == 200):
             amount, total = resp.get_amount()
-            amount = min(amount, total)
             data = resp.read()
-            if (data or resp.finished()):
+            if (data):
                 cb(data, amount, total, *args)
+            if (resp.finished()):
+                cb("", amount, total, *args)
 
         elif (300 <= status < 310):
             location = resp.getheaders()["LOCATION"]

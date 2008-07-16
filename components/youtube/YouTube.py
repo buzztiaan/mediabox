@@ -118,10 +118,13 @@ class YouTube(Device):
 
     def __ls_search(self, cb, *args):
 
-        def on_receive_xml(cmd, uri, *args):
-            if (cmd == Downloader().DOWNLOAD_FINISHED):
-                xml = args[0]
-                MiniXML(xml, callback = on_receive_item)
+        def on_receive_xml(data, amount, total, xml):
+            print "XML", data, amount, total
+            xml[0] += data
+            if (data):
+                pass
+            else:
+                MiniXML(xml[0], callback = on_receive_item)
             #end if
         
         def on_receive_item(node):
@@ -175,7 +178,7 @@ class YouTube(Device):
 
         if (values):
             query = values[0]
-            Downloader(_VIDEO_SEARCH % query, on_receive_xml)
+            Downloader(_VIDEO_SEARCH % query, on_receive_xml, [""])
 
         
     def ls(self, path):
