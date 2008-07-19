@@ -87,7 +87,7 @@ def _get_fallback_thumbnail(mimetype):
     elif (mimetype.startswith("image/")):
         return theme.mb_filetype_image
     elif (mimetype.startswith("video/")):
-        return theme.mb_filetype_video
+        return None #theme.mb_filetype_video
     else:
         return theme.mb_filetype_unknown
 
