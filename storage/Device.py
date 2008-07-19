@@ -77,7 +77,7 @@ class Device(object):
         # override this by your implementation
         files = self.ls(path)
         import gobject
-        gobject.timeout_add(0, do_async, files)
+        gobject.idle_add(do_async, files)
 
 
     def get_fd(self, resource):
@@ -85,7 +85,7 @@ class Device(object):
         Returns a file descriptor for reading the given resource.
         This method may raise an exception to signalize failure or timeout.
         """
-    
+
         raise NotImplementedError
         
         
