@@ -19,13 +19,11 @@ class BinaryLight_Button (GridButton) :
 
     def button_clicked (self) :
 
-        self.__switch_power_service_proxy.set_async_cb(self.__do_nothing)
-
         if (self.__status == 0) :
-            self.__switch_power_service_proxy.SetTarget ( 1 )
+            self.__switch_power_service_proxy.SetTarget (self.__do_nothing, 1)
             #self.__switch_power_service_proxy.SetTarget ( 1 )
         else :        
-            self.__switch_power_service_proxy.SetTarget ( 0 )
+            self.__switch_power_service_proxy.SetTarget (self.__do_nothing, 0)
             #self.__switch_power_service_proxy.SetTarget ( 0 )
 
 

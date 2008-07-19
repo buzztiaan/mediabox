@@ -59,22 +59,20 @@ class DimmableLight_Button (GridButton) :
 
     def __change_state (self, new_state):
 
-        self.__switch_power_service_proxy.set_async_cb(self.__do_nothing)
-        self.__dimming_service_proxy.set_async_cb(self.__do_nothing)
         if ( new_state == 0 ):
             if ( self.__status == 1 ) :
-                self.__switch_power_service_proxy.SetTarget ( 0 )
+                self.__switch_power_service_proxy.SetTarget (self.__do_nothing, 0)
                 #self.__switch_power_service_proxy.SetTarget ( 0 )
 
         else :
 
             if ( abs (self.__dimming - new_state) > 5 ) :
 
-                self.__dimming_service_proxy.SetLoadLevelTarget ( new_state )
+                self.__dimming_service_proxy.SetLoadLevelTarget (self.__do_nothing, new_state)
                 #self.__dimming_service_proxy.SetLoadLevelTarget ( new_state )
 
             if ( self.__status == 0 ) :
-                self.__switch_power_service_proxy.SetTarget ( 1 )
+                self.__switch_power_service_proxy.SetTarget (self.__do_nothing, 1)
                 #self.__switch_power_service_proxy.SetTarget ( 1 )
 
 

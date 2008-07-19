@@ -1,8 +1,8 @@
-from ui.Item import Item
+from ui.ListItem import ListItem
 import theme
             
 
-class RowItem(Item):
+class RowItem(ListItem):
     """
     List item for track items.
     """
@@ -18,7 +18,7 @@ class RowItem(Item):
         self.__initial_offset = initial_offset
         self.__gridlist = gridlist        
 
-        Item.__init__(self)
+        ListItem.__init__(self)
         
         
     def set_colors(self, col1, col2):
@@ -115,7 +115,7 @@ class RowItem(Item):
 
     def render_this(self, canvas):
     
-        Item.render_this(self, canvas)
+        ListItem.render_this(self, canvas)
         w, h = canvas.get_size()
         
         x = self.__initial_offset -10  #dont know why but theres a extra offset and so the -10
