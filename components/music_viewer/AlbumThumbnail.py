@@ -24,12 +24,12 @@ class AlbumThumbnail(StripItem):
         
         cnv.fill_area(0, 0, 160, 120, theme.color_bg)
         thumbnail.draw_decorated(cnv, 0, 0, 160, 120, self.__thumb,
-                                 "application/x-directory")
+                                 "audio/x-music-folder")
 
         if (self.is_hilighted()):
-            cnv.draw_pixbuf(theme.selection_frame, 0, 0)
+            cnv.draw_pixbuf(theme.mb_selection_frame, 0, 0)
 
-        cnv.draw_pixbuf(theme.caption_bg, 0, 98)
+        cnv.draw_pixbuf(theme.mb_caption_bg, 0, 98)
         cnv.draw_text(self.__title, theme.font_tiny, 2, 96,
                        theme.color_fg_thumbnail_label)
         cnv.draw_pixbuf(theme.btn_load, 128, 88)

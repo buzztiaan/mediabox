@@ -134,7 +134,7 @@ class App(Component):
         
         self.__ctrl_panel = ControlPanel()
         self.__ctrl_panel.set_geometry(170, 410, 630, 70)
-        self.__ctrl_panel.set_bg(theme.panel)
+        self.__ctrl_panel.set_bg(theme.mb_panel)
         self.__ctrl_panel.set_visible(False)
 
         self.__prepare_collection_caps()
@@ -284,13 +284,13 @@ class App(Component):
 
     def __prepare_collection_caps(self):
     
-        left_top = pixbuftools.make_frame(theme.panel, 170, 40, True,
+        left_top = pixbuftools.make_frame(theme.mb_panel, 170, 40, True,
                                           pixbuftools.LEFT |
                                           pixbuftools.BOTTOM)
-        left_bottom = pixbuftools.make_frame(theme.panel, 170, 70, True,
+        left_bottom = pixbuftools.make_frame(theme.mb_panel, 170, 70, True,
                                           pixbuftools.TOP |
                                           pixbuftools.LEFT)
-        pixbuftools.draw_pbuf(left_bottom, theme.btn_turn_1, 30, 15)
+        pixbuftools.draw_pbuf(left_bottom, theme.mb_btn_turn_1, 30, 15)
 
         self.__title_panel_left.set_image(left_top)
         self.__panel_left.set_image(left_bottom)
@@ -466,7 +466,8 @@ class App(Component):
                                              self.__keyboard_search_string,
                                              2000)
 
-            self.__current_viewer.search(self.__keyboard_search_string)
+            self.emit_event(msgs.CORE_ACT_SEARCH_ITEM,
+                            self.__keyboard_search_string)
             
         
         else:

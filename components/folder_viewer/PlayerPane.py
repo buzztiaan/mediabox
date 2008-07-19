@@ -61,10 +61,7 @@ class PlayerPane(Widget):
     
         if (self.__current_media_widget):
             self.remove(self.__current_media_widget)
-    
-        w, h = self.get_size()
-    
-        self.add(mw)
-        
+
+        self.add(mw)       
         self.__current_media_widget = mw
 

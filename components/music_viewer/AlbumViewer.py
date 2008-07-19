@@ -52,8 +52,8 @@ class _Track(object):
 class AlbumViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
-    ICON = theme.viewer_music
-    ICON_ACTIVE = theme.viewer_music_active
+    ICON = theme.mb_viewer_audio
+    ICON_ACTIVE = theme.mb_viewer_audio_active
     PRIORITY = 20
     
 
@@ -161,8 +161,12 @@ class AlbumViewer(Viewer):
                 idx = args[0]
                 item = self.__items[idx]
                 self.__load(item)
+
+            elif (event == msgs.CORE_ACT_SEARCH_ITEM):
+                key = args[0]
+                self.__search(key)     
         
-            if (event == msgs.HWKEY_EV_INCREMENT):
+            elif (event == msgs.HWKEY_EV_INCREMENT):
                 self.__on_increment()
                 
             elif (event == msgs.HWKEY_EV_DECREMENT):
@@ -641,7 +645,7 @@ class AlbumViewer(Viewer):
                    
                 trk = _Track()
                 trk.uri = filepath
-                print "path", filepath
+                #print "path", filepath
                 trk.trackno = trackno
                 trk.title = title
                 trk.artist = artist
@@ -683,7 +687,7 @@ class AlbumViewer(Viewer):
         self.render()
 
 
-    def search(self, key):
+    def __search(self, key):
     
         if (self.__view_mode == _VIEW_ALBUMS):
             idx = 1  # 1 because the first list item is the header, not a track

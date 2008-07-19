@@ -79,7 +79,7 @@ class ThrobberDialog(Widget):
 
         x, y = self.get_screen_pos()
 
-        screen.draw_frame(theme.panel, x, y, w, h, True)
+        screen.draw_frame(theme.mb_panel, x, y, w, h, True)
 
         self.__save_under.copy_buffer(screen, x, y, 0, 0, w, h)
         self.__render_current()

@@ -46,22 +46,13 @@ def load_components():
         if (hasattr(mod, "messages")):
             for msg in mod.messages:
                 msgs.register(msg)
-                logging.debug("registering message [%s]", msg)
+                #logging.debug("registering message [%s]", msg)
 
         if (not isinstance(classes, list)):
             logging.error("function %s.get_classes() must return a list", path)
             continue
 
         all_classes += classes
-        #for c in classes:
-        #    try:
-        #        components.append(c())
-        #    except:
-        #        logging.error("could not instantiate class [%s] of [%s]",
-        #                      `c`, path)
-        #        import traceback; traceback.print_exc()
-        #end for
-            
         sys.path = syspath
     #end for
 

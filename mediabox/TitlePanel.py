@@ -50,7 +50,7 @@ class TitlePanel(Widget):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-        screen.draw_frame(theme.panel, x, y, w, h, True,
+        screen.draw_frame(theme.mb_panel, x, y, w, h, True,
                           screen.BOTTOM | screen.RIGHT)
 
 

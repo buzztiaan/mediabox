@@ -1,5 +1,7 @@
 from com import MediaWidgetFactory, msgs
 from VideoWidget import VideoWidget
+from AudioWidget import AudioWidget
+from ImageWidget import ImageWidget
 
 
 class Factory(MediaWidgetFactory):
@@ -23,4 +25,10 @@ class Factory(MediaWidgetFactory):
 
         if (mimetype.startswith("video/")):
             return VideoWidget
+            
+        elif (mimetype.startswith("audio/")):
+            return AudioWidget
+
+        elif (mimetype.startswith("image/")):
+            return ImageWidget
 

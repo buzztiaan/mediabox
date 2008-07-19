@@ -21,6 +21,6 @@ class ImageThumbnail(StripItem):
         thumbnail.draw_decorated(cnv, 0, 0, 160, 120, self.__thumb, "image/*")
 
         if (self.is_hilighted()):
-            cnv.draw_pixbuf(theme.selection_frame, 0, 0)
+            cnv.draw_pixbuf(theme.mb_selection_frame, 0, 0)
         
         cnv.draw_pixbuf(theme.btn_load, 128, 88)

@@ -1,5 +1,6 @@
 from com import Component, msgs
 from YouTube import YouTube
+from Prefs import Prefs
 
 import gobject
 
@@ -15,5 +16,5 @@ class Init(Component):
 
 def get_classes():
 
-    return [Init]
+    return [Init, Prefs]
 

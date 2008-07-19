@@ -1,16 +1,10 @@
 from com import Viewer, msgs
 
 from VideoThumbnail import VideoThumbnail
-import mediaplayer
 from mediabox import viewmodes
-from ui.EventBox import EventBox
-from ui.ImageButton import ImageButton
-from ui.ProgressBar import ProgressBar
 from ui import dialogs
-from utils import maemo
 import theme
 
-import gtk
 import gobject
 import os
 
@@ -19,8 +13,8 @@ import os
 class VideoViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
-    ICON = theme.viewer_video
-    ICON_ACTIVE = theme.viewer_video_active
+    ICON = theme.mb_viewer_video
+    ICON_ACTIVE = theme.mb_viewer_video_active
     PRIORITY = 10
 
 
@@ -29,77 +23,43 @@ class VideoViewer(Viewer):
         self.__is_fullscreen = False
     
         self.__items = []
-        self.__player = mediaplayer.get_player_for_uri("")
-        mediaplayer.add_observer(self.__on_observe_player)
-        self.__volume = 50
-
+        self.__video_widget = None
         self.__uri = ""
-        self.__context_id = 0
-        self.__aspect_ratio = 1.0
 
 
         Viewer.__init__(self)                
-        self.__layout = self.get_window()
-      
-        # video screen
-        self.__screen = gtk.DrawingArea()
-        self.__screen.set_double_buffered(False)
-        self.__screen.connect("expose-event", self.__on_expose)
-        self.__screen.set_events(gtk.gdk.BUTTON_PRESS_MASK |
-                                 gtk.gdk.KEY_PRESS_MASK)
-        self.__layout.put(self.__screen, 0, 0)
-        
-        self.__ebox = EventBox()
-        self.add(self.__ebox)        
-        self.__ebox.connect_button_pressed(self.__on_click)
-        
-        
-        # toolbar
-        self.__btn_play = ImageButton(theme.btn_play_1,
-                                      theme.btn_play_2)
-        self.__btn_play.connect_clicked(self.do_play_pause)
 
-        self.__progress = ProgressBar()
-        self.__progress.connect_changed(self.do_set_position)
-        
-        tbset = self.new_toolbar_set(self.__btn_play,
-                                     self.__progress)
-        self.set_toolbar_set(tbset)
-        
-         
+                
         
     def render_this(self):
-            
-        vx, vy, vw, vh = self.__get_video_rect()
-        self.__ebox.set_geometry(6, 34, vw, vh)
-
-        if (not self.__player or not self.__player.has_video()):
-            self.__layout.move(self.__screen, vx, vy)
-            self.__screen.set_size_request(vw, vh)        
-
-        screen = self.get_screen()
-
-        screen.fill_area(vx, vy, vw, vh, "#000000")        
-
-        if (not self.__is_fullscreen):
-            x, y, w, h = self.__get_frame_rect()
-            screen.draw_rect(x, y, w, h, "#000000")
-            screen.fill_area(x + 2, y + 2, w - 4, h - 4, "#000000")
+        
+        if (not self.__video_widget):
+            self.__video_widget = self.call_service(
+                                      msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
+                                      self, "video/*")
+            self.add(self.__video_widget)            
+            self.__video_widget.connect_fullscreen_toggled(self.__on_fullscreen)
+            self.__video_widget.connect_media_position(self.__on_media_position)
+            self.set_toolbar_set(self.__video_widget.get_controls())
+   
+        if (self.__is_fullscreen):
+            x, y = 0, 0
+            w, h = self.get_size()
         else:
-            screen.fill_area(vx, vy, vw, vh, "#000000")
+            x, y, w, h = self.__get_frame_rect()
+
+        self.__video_widget.set_geometry(x, y, w, h)
     
 
 
     def handle_event(self, event, *args):
     
-        if (event == msgs.CORE_EV_APP_SHUTDOWN):
-            mediaplayer.close()
-
-        elif (event == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
+        if (event == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             self.__update_media()
     
         elif (event == msgs.MEDIA_EV_PLAY):
-            self.__player.stop()
+            pass
+            #self.__player.stop()
     
         if (self.is_active()):
             if (event == msgs.CORE_ACT_LOAD_ITEM):
@@ -121,29 +81,14 @@ class VideoViewer(Viewer):
                 
         #end if
             
-            
 
 
-    def __on_expose(self, src, ev):
+    def __on_media_position(self, info):
     
-        if (self.__player.has_video()):
-            win = self.__screen.window
-            gc = win.new_gc()
-            cmap = win.get_colormap()
-            gc.set_foreground(cmap.alloc_color("#000000"))
-            x, y, w, h = ev.area
-            self.__player.handle_expose(win, gc, x, y, w, h)
+        self.set_info(info)
 
             
-            
-    def __on_click(self, px, py):
-    
-        #vx, vy, vw, vh = self.__get_video_rect()
-        #if (vx <= px <= vx + vw and vy <= py <= py + vh):
-        self.__on_fullscreen()
-
-
-
+           
     def __on_observe_player(self, src, cmd, *args):
     
         if (not self.is_active()): return            
@@ -232,9 +177,8 @@ class VideoViewer(Viewer):
 
     def __get_frame_rect(self):
     
-        x, y = self.get_screen_pos()
         w, h = self.get_size()
-        x += 4; y += 32
+        x = 4; y = 32
         w -= 16; h -= 92
         return (x, y, w, h)
             
@@ -247,42 +191,7 @@ class VideoViewer(Viewer):
             x += 6; y += 40
             w -= 20; h -= 110
         return (x, y, w, h)
-            
-            
-    def __set_aspect_ratio(self, ratio):
-        """
-        Sets the aspect ratio of the screen to the given value.
-        """
-    
-        if (ratio == 0): return
-        
-        #self.__screen.hide()
-        x, y, w, h = self.__get_video_rect()
-        w2 = int(ratio * h)
-        h2 = int(w / ratio)
-         
-        #print ratio, w, h, w2, h2
-        if (w2 > w):
-            self.__screen.set_size_request(w, h2)
-            w2, h2 = w, h2
-        else:
-            self.__screen.set_size_request(w2, h)
-            w2, h2 = w2, h
 
-        self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
-        print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
-        
-        while (gtk.events_pending()): gtk.main_iteration()
-
-
-    def __scale_video(self):
-        """
-        Scales the video to fill the available space while retaining the
-        original aspect ratio.
-        """
-            
-        self.__set_aspect_ratio(self.__aspect_ratio)
-        self.__player.set_window(self.__screen.window.xid)
 
 
     def clear_items(self):
@@ -312,37 +221,17 @@ class VideoViewer(Viewer):
         #self.update_observer(self.OBS_STOP_PLAYING, self)
         
         #self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
-        self.__screen.show()
+        #self.__screen.show()
     
         def f():
-            if (self.__screen.window.xid):
-                uri = item.resource
-                if (uri == self.__uri): return
-                
-                self.__player = mediaplayer.get_player_for_uri(uri)
-                self.__player.set_window(self.__screen.window.xid)
-                if (maemo.IS_MAEMO):
-                    self.__player.set_options("-vo xv")
-                    # the Nokia 770 would require something like this, instead
-                    #self.__player.set_options("-ao gst -ac dspmp3 "
-                    #                      "-vo xv,nokia770:fb_overlay_only:"
-                    #                      "x=%d:y=%d:w=%d:h=%d" % (x, y, w, h))
-                else:
-                    self.__player.set_options("-vo xv")
-                    
-                try:
-                    self.__context_id = self.__player.load_video(uri)
-                except:
-                    import traceback; traceback.print_exc()
-                    self.__screen.hide()
-                    return
-                                
-                self.__player.set_volume(self.__volume)
-                #self.__player.show_text(os.path.basename(uri), 2000)
-                self.set_title(os.path.basename(uri))                
-                self.__uri = uri
-                
-                #self.update_observer(self.OBS_SHOW_PANEL)
+            uri = item.resource
+            if (uri == self.__uri): return
+            
+            self.__video_widget.load(uri)                                
+            self.set_title(os.path.basename(uri))                
+            self.__uri = uri
+            
+            #self.update_observer(self.OBS_SHOW_PANEL)
                 
         gobject.idle_add(f)
                        
@@ -379,53 +268,14 @@ class VideoViewer(Viewer):
         self.__player.pause()
 
 
-    def show(self):
-    
-        Viewer.show(self)
-        if (self.__player and self.__player.has_video()):
-            self.__scale_video()
-            self.__screen.show()
-        
-        
-    def hide(self):
-    
-        Viewer.hide(self)
-        self.__screen.hide()
-
-
-    def set_frozen(self, value):
-    
-        if (not value and self.is_active() and 
-              self.__player and self.__player.has_video()):
-            self.__screen.show()
-        else:
-            self.__screen.hide()
-            
-        Viewer.set_frozen(self, value)
-
-
     def __on_fullscreen(self):
-        
-        # don't allow fullscreen when not playing anything
-        if (not self.__is_fullscreen and not self.__player.has_video()):
-            return
-        
+              
         self.__is_fullscreen = not self.__is_fullscreen        
-        
-        self.__screen.hide()
-        while (gtk.events_pending()): gtk.main_iteration()
         
         if (self.__is_fullscreen):
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
             self.render()
         else:
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)            
-            self.render()
-        #while (gtk.events_pending()): gtk.main_iteration()        
-        
             self.emit_event(msgs.CORE_ACT_RENDER_ALL)
-
-        if (self.__player.has_video()):
-            self.__scale_video()
-            self.__screen.show()
 

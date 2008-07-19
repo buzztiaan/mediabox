@@ -36,7 +36,6 @@ class TrackList(ItemList, Observable):
         ItemList.__init__(self, 90, 20)
         self.set_caps(theme.list_top, theme.list_bottom)
         self.set_bg_color(theme.color_bg)
-        self.set_scrollbar(theme.list_scrollbar)
         #self.set_arrows(theme.arrows)
                
         self.__kscr = KineticScroller(self)

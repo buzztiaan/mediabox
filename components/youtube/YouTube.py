@@ -7,6 +7,7 @@ from io.FileDownloader import FileDownloader
 import theme
 
 import gobject
+import gtk
 import urllib
 
 
@@ -57,6 +58,11 @@ class YouTube(Device):
             return t
         
         return ""        
+        
+        
+    def get_icon(self):
+    
+        return theme.youtube_device
         
         
     def get_prefix(self):
@@ -128,8 +134,10 @@ class YouTube(Device):
             #end if
         
         def on_receive_item(node):
+            while (gtk.events_pending()): gtk.main_iteration()
+            
             if (node.get_name() == "{%s}entry" % _XMLNS_ATOM):
-                print "got node", node
+                #print "got node", node
                 s = node.get_pcdata("{%s}id" % _XMLNS_ATOM)
                 ident = s[s.rfind("/") + 1:]        
             
@@ -154,7 +162,7 @@ class YouTube(Device):
                 f.mimetype = "video/x-flash-video"
                 f.resource = ident
                 f.name = title
-                f.info = content
+                f.info = "by %s" % authors
                 f.thumbnail = thumbnail
                 
                 try:
@@ -177,7 +185,7 @@ class YouTube(Device):
         values = dlg.wait_for_values()
 
         if (values):
-            query = values[0]
+            query = urllib.quote_plus(values[0])
             Downloader(_VIDEO_SEARCH % query, on_receive_xml, [""])
 
         
@@ -208,9 +216,11 @@ class YouTube(Device):
             print "%d / %d" % (a, t)
         
         flv = self.__get_flv(resource)
-        FileDownloader(flv, "/tmp/tube.flv", f)    
+        #from io.SocketDownloader import SocketDownloader
+        #FileDownloader(flv, "/tmp/tube.flv", f)
+        #SocketDownloader(flv, 5556, f)
         
-        import time
-        time.sleep(15)
-        return "/tmp/tube.flv"
+        #import time
+        #time.sleep(15)
+        return flv #"/tmp/tube.flv"
 

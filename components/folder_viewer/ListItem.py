@@ -11,10 +11,11 @@ class ListItem(ButtonListItem):
     BUTTON_PLAY = "play"
 
 
-    _ITEMS_CLOSED = [theme.item_btn_play]
-    _ITEMS_OPEN = []
+    _ITEMS_CLOSED = [theme.item_btn_menu]
+    _ITEMS_OPEN = [theme.item_btn_play]
 
-    _BUTTONS = [BUTTON_PLAY]
+    _BUTTONS = [ButtonListItem.BUTTON_MENU,
+                BUTTON_PLAY]
 
 
     def __init__(self, f, thumbnail):
@@ -28,8 +29,6 @@ class ListItem(ButtonListItem):
         
         
         ButtonListItem.__init__(self)
-        
-        self.set_graphics(theme.item, theme.item_active)
         self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
         self.set_font(theme.font_plain)
 
@@ -62,7 +61,7 @@ class ListItem(ButtonListItem):
                 cnv.fit_pixbuf(self.__emblem, 70, 32, 48, 48)
         
         if (self.__thin_mode):
-            cnv.draw_pixbuf(theme.caption_bg, 0, 68)
+            cnv.draw_pixbuf(theme.mb_caption_bg, 0, 68)
             cnv.draw_text(self.__label, theme.font_tiny, 2, 66,
                            theme.color_fg_thumbnail_label)
             cnv.draw_pixbuf(theme.btn_load, 98, 58)

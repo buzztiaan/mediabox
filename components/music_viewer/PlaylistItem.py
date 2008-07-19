@@ -34,7 +34,4 @@ class PlaylistItem(TrackItem):
         cover = cover.scale_simple(64, 64, gtk.gdk.INTERP_BILINEAR)
     
         TrackItem.__init__(self, cover, "", label, sublabel)
-        self.set_graphics(theme.item, theme.item_active)
-        self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
-        self.set_font(theme.font_plain)
         self.set_grip(theme.item_grip)

@@ -20,7 +20,7 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
         tx, ty, tw, th = 0, 0, _WIDTH, _HEIGHT
         frame = None
         
-    elif (mimetype.startswith("audio/")):
+    elif (mimetype == "audio/x-music-folder"):
         fx, fy = 20, 0
         tx, ty, tw, th = 23, 3, 109, 109
         frame = theme.viewer_music_frame
@@ -81,13 +81,13 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
 def _get_fallback_thumbnail(mimetype):
 
     if (mimetype == "application/x-directory"):
-        return theme.filetype_folder
+        return theme.mb_filetype_folder
     elif (mimetype.startswith("audio/")):
-        return theme.filetype_audio
+        return theme.mb_filetype_audio
     elif (mimetype.startswith("image/")):
-        return None
+        return theme.mb_filetype_image
     elif (mimetype.startswith("video/")):
-        return None
+        return theme.mb_filetype_video
     else:
-        return theme.filetype_audio
+        return theme.mb_filetype_unknown
 
