@@ -2,7 +2,8 @@ class MiniXML(object):
     """
     This is a tiny parser for a subset of XML with namespace support.
     This is useful when RAM is limited and we don't need a full-featured
-    XML parser.
+    XML parser. Well, actually, it's almost full-featured by now, while still
+    being tiny. :)
     """
 
     def __init__(self, data, namespace = "", callback = None):
@@ -45,7 +46,7 @@ class MiniXML(object):
         if (self.__callback):
             # run async
             import gobject
-            gobject.timeout_add(0, self.__parser_iteration)
+            gobject.timeout_add(10, self.__parser_iteration)
         else:
             # run sync
             while (self.__parser_iteration()): pass
@@ -54,7 +55,7 @@ class MiniXML(object):
     def __parser_iteration(self):
 
         if (self.__cancelled): return False
-
+        
         # find next tag
         index = self.__data.find("<", self.__position)            
         if (index != -1):
@@ -72,7 +73,7 @@ class MiniXML(object):
                 self.__close_tag()
             else:
                 self.__open_tag()
-            
+
             return True
             
         else:
@@ -339,9 +340,13 @@ class _Node(object):
         """
         
         try:
-            node = self.get_child(name)    
+            if (name):
+                node = self.get_child(name)
+            else:
+                node = self
             return node.get_child().get_value()
         except:
+            #import traceback; traceback.print_exc()
             return ""
         
 
