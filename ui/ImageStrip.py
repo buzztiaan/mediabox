@@ -64,13 +64,16 @@ class ImageStrip(Widget):
  
  
     def _reload(self):
+        """
+        Reload graphics when theme has changed.
+        """
 
         self.set_bg_color(self.__bg_color)
         if (self.__shared_pmap):
             self.__shared_pmap.clear_cache()
 
         #self.render_full()
-        #self.render()
+        self.render()
  
  
     def set_size(self, w, h):
@@ -203,7 +206,8 @@ class ImageStrip(Widget):
                 
             #self.__images = [ f for f in images ]
             self.__itemsize = self.__images[0].get_size()[1]
-            self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)
+        
+        self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)
                
         self.__offset = 0
         self.render()
@@ -221,6 +225,7 @@ class ImageStrip(Widget):
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)
 
 
+        if (len(self.__images) < 30): self.__shared_pmap.prepare(img)
         self.render()
         
         return len(self.__images) - 1
@@ -299,7 +304,8 @@ class ImageStrip(Widget):
     def get_index_at_and_relpos(self, y):
         """
         Returns the index of the item at the given position or -1 if there's no
-        item at that position. Also returns, the per one percentage of the y position inside the row.
+        item at that position. Also returns, the per one percentage of the
+        y position inside the row.
         """
         
         if (not self.__images or y > self.__totalsize):

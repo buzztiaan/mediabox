@@ -59,8 +59,8 @@ class MediaWidgetRegistry(Component):
             if (isinstance(component, MediaWidgetFactory)):
                 print "found media widget factory:", component
                 self.__factories.append(component)
-    
-    
+
+
         elif (ev == msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET):
             caller_id, mimetype = args
             
@@ -79,9 +79,12 @@ class MediaWidgetRegistry(Component):
             
             if (factory):
                 clss = factory.get_widget_class(mimetype)
-                obj = self.__widget_cache.get((caller_id, clss)) or clss()
-                self.__widget_cache[(caller_id, clss)] = obj
-                return obj
+                if (clss):
+                    obj = self.__widget_cache.get((caller_id, clss)) or clss()
+                    self.__widget_cache[(caller_id, clss)] = obj
+                    return obj
+                else:
+                    return 0
             else:
                 return 0
 

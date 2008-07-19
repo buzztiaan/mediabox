@@ -1,4 +1,5 @@
 from ImageStrip import ImageStrip
+import theme
 
 
 class ItemList(ImageStrip):
@@ -13,6 +14,15 @@ class ItemList(ImageStrip):
                 
         ImageStrip.__init__(self, gapsize)
         self.set_wrap_around(False)
+        self.set_scrollbar(theme.mb_list_scrollbar)
+
+
+    def set_size(self, w, h):
+    
+        for item in self.get_items():
+            item.set_size(w - 20, self.__height)
+            
+        ImageStrip.set_size(self, w, h)
 
         
     def clear_items(self):
@@ -34,8 +44,6 @@ class ItemList(ImageStrip):
         item.set_size(w, self.__height)
 
         idx = self.append_image(item)
-
-        #if (len(self.__items) < 30): self.__canvas.prepare(item)
         
         return idx
         

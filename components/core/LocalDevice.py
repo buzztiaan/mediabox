@@ -1,5 +1,6 @@
 from storage import Device, File
 from utils import mimetypes
+from utils import maemo
 from utils import logging
 import theme
 
@@ -39,7 +40,7 @@ class LocalDevice(Device):
 
     def get_icon(self):
     
-        return theme.viewer_folders_tablet
+        return theme.mb_device_n800
 
 
     def get_root(self):
@@ -57,10 +58,12 @@ class LocalDevice(Device):
     
         items = []
         for name, path, mimetype, emblem in \
-          [("Sounds", "/home/user/MyDocs/.sounds", File.DIRECTORY, theme.filetype_audio),
-           ("Videos", "/home/user/MyDocs/.videos", File.DIRECTORY, theme.filetype_video),
-           ("Images", "/home/user/MyDocs/.images", File.DIRECTORY, theme.filetype_image),
-           ("Documents", "/home/user/MyDocs/.documents", File.DIRECTORY, None),
+          [("Sounds", "/home/user/MyDocs/.sounds", File.DIRECTORY, theme.mb_filetype_audio),
+           ("Videos", "/home/user/MyDocs/.videos", File.DIRECTORY, theme.mb_filetype_video),
+           ("Images", "/home/user/MyDocs/.images", File.DIRECTORY, theme.mb_filetype_image),
+           ("Documents", maemo.IS_MAEMO and "/home/user/MyDocs/.documents"
+                                        or os.path.expanduser("~"),
+                                        File.DIRECTORY, None),
            ("Games", "/home/user/MyDocs/.games", File.DIRECTORY, None),
            ("System", "/", File.DIRECTORY, None),
            ("Memory Cards", "MMC", File.DIRECTORY, None)]:
@@ -116,6 +119,18 @@ class LocalDevice(Device):
         
     def ls(self, path):
                    
+        def comp(a, b):
+            if (a.mimetype != b.mimetype):
+                if (a.mimetype == a.DIRECTORY):
+                    return -1
+                elif (b.mimetype == b.DIRECTORY):
+                    return 1
+                else:
+                    return cmp(a.name.lower(), b.name.lower())
+            else:
+                return cmp(a.name.lower(), b.name.lower())
+                
+                   
         if (path == "MENU"):
             return self.__ls_menu()
             
@@ -143,8 +158,15 @@ class LocalDevice(Device):
                 ext = os.path.splitext(f)[-1].lower()
                 item.mimetype = mimetypes.lookup_ext(ext)
                 #item.emblem = theme.filetype_image
-            items.append(item)
+
+            if (item.mimetype.startswith("audio/") or
+                item.mimetype.startswith("image/") or
+                item.mimetype.startswith("video/") or
+                item.mimetype == item.DIRECTORY):
+                items.append(item)
         #end for
+        
+        items.sort(comp)
         
         return items
         

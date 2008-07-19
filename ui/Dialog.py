@@ -51,6 +51,7 @@ class Dialog(gtk.Dialog):
     def run(self):
     
         while (self.__response == None):
+            time.sleep(0.01)
             while (gtk.events_pending()): gtk.main_iteration()
             
         return self.__response

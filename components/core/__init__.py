@@ -1,6 +1,6 @@
 from com import Component, msgs
-#from Preferences import Preferences
-from ConfigMediaRoot import ConfigMediaRoot
+from Preferences import Preferences
+#from ConfigMediaRoot import ConfigMediaRoot
 from ConfigTheme import ConfigTheme
 from DirectoryService import DirectoryService
 from MediaWidgetRegistry import MediaWidgetRegistry
@@ -19,7 +19,7 @@ class Init(Component):
 
 def get_classes():
 
-    return [Init, ConfigMediaRoot, ConfigTheme, DirectoryService,
+    return [Init, Preferences, ConfigTheme, DirectoryService,
             MediaWidgetRegistry]
     
     
@@ -63,6 +63,7 @@ messages = [
     "CORE_ACT_SET_INFO",        # (info)
     "CORE_ACT_SET_COLLECTION",  # (collection)
     "CORE_ACT_SET_TOOLBAR",     # (toolbar_set)
+    "CORE_ACT_SEARCH_ITEM",     # (key)
     
     "CORE_EV_THEME_CHANGED",
 ]

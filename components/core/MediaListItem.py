@@ -14,7 +14,6 @@ class MediaListItem(Item):
            
         Item.__init__(self)
         self.set_size(w, h)
-        self.set_graphics(theme.item, theme.item_active)
         
         
     def set_mediatypes(self, mtypes):

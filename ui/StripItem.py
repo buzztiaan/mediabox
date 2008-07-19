@@ -1,4 +1,7 @@
 class StripItem(object):
+    """
+    Base class for items for the ImageStrip.
+    """
 
     def __init__(self):
     

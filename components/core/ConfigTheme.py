@@ -22,7 +22,6 @@ class ConfigTheme(Configurator):
         self.__list = ItemList(80)
         self.__list.set_caps(theme.list_top, theme.list_bottom)
         self.__list.set_bg_color(theme.color_bg)
-        self.__list.set_scrollbar(theme.list_scrollbar)        
         self.__list.set_geometry(0, 0, 610, 370)
         self.add(self.__list)
             

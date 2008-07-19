@@ -1,5 +1,4 @@
 from com import Viewer, Configurator, msgs
-from mediascanner.MediaItem import MediaItem
 from PrefsThumbnail import PrefsThumbnail
 import theme
 
@@ -7,15 +6,15 @@ import theme
 class Preferences(Viewer):
 
     PRIORITY = 9999
-    ICON = theme.viewer_prefs
-    ICON_ACTIVE = theme.viewer_prefs_active
+    ICON = theme.mb_viewer_prefs
+    ICON_ACTIVE = theme.mb_viewer_prefs_active
     
 
     def __init__(self):
     
         self.__current_configurator = None
         self.__configurators = []
-        self.__items = []
+        self.__thumbnails = []        
     
         Viewer.__init__(self)
         
@@ -27,18 +26,13 @@ class Preferences(Viewer):
 
         self.__configurators.append(comp)
 
-        item = MediaItem()
         tn = PrefsThumbnail(comp.ICON, comp.TITLE)
-        item.thumbnail_pmap = tn
-        self.__items.append(item)
+        self.__thumbnails.append(tn)
         
-        self.set_collection(self.__items)
+        self.set_collection(self.__thumbnails)
 
 
-    def __load_item(self, item):
-    
-        idx = self.__items.index(item)
-        configurator = self.__configurators[idx]
+    def __show_configurator(self, configurator):
         
         self.set_title(configurator.TITLE)
     
@@ -59,6 +53,7 @@ class Preferences(Viewer):
             
         if (self.is_active()):
             if (event == msgs.CORE_ACT_LOAD_ITEM):
-                item = args[0]
-                self.__load_item(item)
+                idx = args[0]
+                configurator = self.__configurators[idx]
+                self.__show_configurator(configurator)
 

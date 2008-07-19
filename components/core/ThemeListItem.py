@@ -1,8 +1,8 @@
-from ui.Item import Item
+from ui.ListItem import ListItem
 import theme
 
 
-class ThemeListItem(Item):
+class ThemeListItem(ListItem):
     """
     List item for media root folders.
     """
@@ -12,14 +12,13 @@ class ThemeListItem(Item):
         self.__preview = preview
         self.__label = label
            
-        Item.__init__(self)
+        ListItem.__init__(self)
         self.set_size(w, h)
-        self.set_graphics(theme.item, theme.item_active)
         
         
     def render_this(self, canvas):
     
-        Item.render_this(self, canvas)
+        ListItem.render_this(self, canvas)
     
         w, h = canvas.get_size()
         icon_y = (h - self.__preview.get_height()) / 2

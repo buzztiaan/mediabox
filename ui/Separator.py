@@ -2,6 +2,9 @@ from Widget import Widget
 
 
 class Separator(Widget):
+    """
+    Separator widget to put space between widgets.
+    """
 
     def __init__(self):
     

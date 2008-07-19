@@ -1,5 +1,4 @@
 from Component import Component
-import msgs
 from ui.Widget import Widget
 
 

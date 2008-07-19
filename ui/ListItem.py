@@ -9,15 +9,16 @@ class ListItem(StripItem):
 
     def __init__(self):
 
-        self.__normal_bg = None
-        self.__hilighted_bg = None
+        self.__normal_bg = theme.mb_listitem_bg
+        self.__hilighted_bg = theme.mb_listitem_bg_active
 
-        self.__color_1 = "#000000"
-        self.__color_2 = "#666666"
-        self.__font = None
+        self.__color_1 = theme.color_fg_item
+        self.__color_2 = theme.color_fg_item_2
+        self.__font = theme.font_plain
         self.__grip = None
         
         StripItem.__init__(self)
+
 
 
     @staticmethod

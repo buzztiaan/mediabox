@@ -1,3 +1,6 @@
+from exc import *
+
+
 class _MessageBus(object):
     """
     Singleton class for an event bus. This class is intented to be used by
@@ -54,7 +57,7 @@ class _MessageBus(object):
                     return ret
             #end for
             import msgs
-            raise ValueError("no such service: %s" % msgs._id_to_name(svc))
+            raise ServiceNotAvailableError(msgs._id_to_name(svc))
         else:
             return handler.handle_event(svc, *args)
             

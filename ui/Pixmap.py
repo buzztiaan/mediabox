@@ -350,15 +350,25 @@ class Pixmap(object):
         w3 = w / 3
         h3 = h / 3
 
-        tl = img.subpixbuf(0, 0, w3, h3)
-        t = img.subpixbuf(w3, 0, w3, h3)
-        tr = img.subpixbuf(w - w3, 0, w3, h3)
-        r = img.subpixbuf(w - w3, h3, w3, h3)
-        br = img.subpixbuf(w - w3, h - h3, w3, h3)
-        b = img.subpixbuf(w3, h - h3, w3, h3)
-        bl = img.subpixbuf(0, h - h3, w3, h3)
-        l = img.subpixbuf(0, h3, w3, h3)
-        c = img.subpixbuf(w3, h3, w3, h3)
+        tl = img.subpixbuf(0, 0, 10, 10)
+        t = img.subpixbuf(10, 0, w - 20, 10)
+        tr = img.subpixbuf(w - 10, 0, 10, 10)
+        r = img.subpixbuf(w - 10, 10, 10, h - 20)
+        br = img.subpixbuf(w - 10, h - 10, 10, 10)
+        b = img.subpixbuf(10, h - 10, w - 20, 10)
+        bl = img.subpixbuf(0, h - 10, 10, 10)
+        l = img.subpixbuf(0, 10, 10, h - 20)
+        c = img.subpixbuf(10, 10, w - 20, h - 20)
+
+        #tl = img.subpixbuf(0, 0, w3, h3)
+        #t = img.subpixbuf(w3, 0, w3, h3)
+        #tr = img.subpixbuf(w - w3, 0, w3, h3)
+        #r = img.subpixbuf(w - w3, h3, w3, h3)
+        #br = img.subpixbuf(w - w3, h - h3, w3, h3)
+        #b = img.subpixbuf(w3, h - h3, w3, h3)
+        #bl = img.subpixbuf(0, h - h3, w3, h3)
+        #l = img.subpixbuf(0, h3, w3, h3)
+        #c = img.subpixbuf(w3, h3, w3, h3)
 
         return (tl, t, tr, r, br, b, bl, l, c) 
 
