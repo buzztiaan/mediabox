@@ -10,21 +10,32 @@ class HTTPResponse(object):
         self.__status = int(status_header.split()[1])
         self.__headers = headers
         self.__body = ""
+        self.__body_length = 0
         
         self.__transfer_encoding = headers.get("TRANSFER-ENCODING", "").upper()
-        self.__content_length = int(headers.get("CONTENT-LENGTH", "0"))
+        self.__content_length = int(headers.get("CONTENT-LENGTH", "-1"))
         
         self.__chunk_size_remaining = 0
         self.__incomplete_chunk_header = ""
         
         self.__finished = False
         
-        self.__read_pos = 0
+        #self.__read_pos = 0
         
         
     def get_status(self):
     
         return self.__status
+        
+        
+    def get_header(self, h):
+    
+        return self.__headers.get(h, "")
+        
+        
+    def set_finished(self):
+    
+        self.__finished = True
         
     
     def finished(self):
@@ -39,12 +50,15 @@ class HTTPResponse(object):
         
         else:
             self.__body += data
+            self.__body_length += len(data)
 
-        if (not data or 
-              (self.__content_length > 0 and
-               len(self.__body) >= self.__content_length)):
-            self.__finished = True    
+            if (self.__content_length > 0):
+                if (self.__body_length >= self.__content_length):
+                    self.__finished = True
+            elif (self.__content_length == 0):
+                self.__finished = True
 
+        #print len(data), self.__body_length
         print "FINISHED", self.__finished
 
 
@@ -56,6 +70,7 @@ class HTTPResponse(object):
                 size1 = min(len(data), self.__chunk_size_remaining)
                 self.__chunk_size_remaining -= size1
                 self.__body += data[:size1]
+                self.__body_length += size1
                 print "CHUNK", data[:size1]
                 data = data[size1:]
         
@@ -85,19 +100,19 @@ class HTTPResponse(object):
        
     def get_amount(self):
     
-        body_length = len(self.__body)                    
-        return (body_length, self.__content_length)
+        return (self.__body_length, self.__content_length)
        
        
     def body_length(self):
     
-        return len(self.__body)
+        return self.__body_length
                
         
     def read(self):
     
-        data = self.__body[self.__read_pos:]
-        self.__read_pos += len(data)
+        data = self.__body#[self.__read_pos:]
+        #self.__read_pos += len(data)
+        self.__body = ""
 
         return data
         

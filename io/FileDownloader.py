@@ -4,6 +4,9 @@ from Downloader import Downloader
 class FileDownloader(Downloader):
     """
     Class for downloading to a file.
+
+    The user callback is invoked repeatedly as data comes in.
+    The transmission is finished when data = "" is passed to the callback.    
     """
     
     def __init__(self, url, dest, cb, *args):

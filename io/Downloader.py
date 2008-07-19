@@ -4,6 +4,9 @@ from HTTPConnection import HTTPConnection, parse_addr
 class Downloader(HTTPConnection):
     """
     Class for handling asynchronous GET operations.
+    
+    The user callback is invoked repeatedly as data comes in.
+    The transmission is finished when data = "" is passed to the callback.
     """
     
     def __init__(self, url, cb, *args):
