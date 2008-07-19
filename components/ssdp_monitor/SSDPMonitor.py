@@ -1,7 +1,7 @@
 from com import Component, msgs
 from upnp import ssdp
 from utils.MiniXML import MiniXML
-from utils.Downloader import Downloader
+from io import Downloader
 from upnp.DeviceDescription import DeviceDescription
 from utils import logging
 
@@ -56,15 +56,15 @@ class SSDPMonitor(Component):
             sock.close()
             
 
-    def __on_receive_description_xml(self, cmd, *args):
+    def __on_receive_description_xml(self, data, a, t, location, uuid, xml):
         """
         Callback for checking the given UPnP device by parsing its
         description XML. Announces the availability of new devices.
         """
 
-        if (cmd == Downloader().DOWNLOAD_FINISHED):
-            location, xml, uuid = args
-
+        if (data):
+            xml[0] += data
+        else:
             # if the device is not in the processing table, it has said
             # "bye bye" while processing the initialization; in that case
             # simply ignore it
@@ -73,7 +73,7 @@ class SSDPMonitor(Component):
     
             del self.__processing[uuid]
     
-            dom = MiniXML(xml, _NS_DESCR).get_dom()
+            dom = MiniXML(xml[0], _NS_DESCR).get_dom()
             descr = DeviceDescription(location, dom)
             
             # announce availability of device
@@ -101,9 +101,9 @@ class SSDPMonitor(Component):
                     self.__servers[uuid] = location
                     self.__processing[uuid] = location
 
-                    Downloader().get_async(location,
-                                           self.__on_receive_description_xml,
-                                           uuid)
+                    Downloader(location,
+                               self.__on_receive_description_xml,
+                               location, uuid, [""])
 
             elif (event == ssdp.SSDP_BYEBYE):
                 logging.debug("UPnP device %s is GONE", uuid)

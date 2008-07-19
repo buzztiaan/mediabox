@@ -9,7 +9,5 @@ def get_classes():
 messages = [
     "SSDP_EV_DEVICE_DISCOVERED",   # (uuid, DeviceDescription)
     "SSDP_EV_DEVICE_GONE",         # (uuid)
-    
-    "SSDP_SVC_SUBSCRIBE", # TODO: UPnP event subscription
 ]
 
