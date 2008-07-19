@@ -8,6 +8,7 @@ def get_classes():
     
 messages = [
     "MEDIASCANNER_ACT_SCAN",             # (mediaroots)
+    "MEDIASCANNER_ACT_SCAN_FILE",        # (file)
     
     "MEDIASCANNER_SVC_GET_MEDIA",        # (mimetypes: items)
     "MEDIASCANNER_SVC_GET_THUMBNAIL",    # (file: path)

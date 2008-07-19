@@ -44,7 +44,13 @@ class MediaScanner(Component):
         if (ev == msgs.MEDIASCANNER_ACT_SCAN):
             mediaroots = args[0]
             self.__scan(mediaroots)
-            return True
+            
+        elif (ev == msgs.MEDIASCANNER_ACT_SCAN_FILE):
+            f = args[0]
+            self.__process_media(self.MEDIA_VIDEO |
+                                 self.MEDIA_AUDIO |
+                                 self.MEDIA_IMAGE,
+                                 f, {}, notify = False)
             
         elif (ev == msgs.MEDIASCANNER_SVC_GET_MEDIA):
             mime_types = args[0]
@@ -91,7 +97,7 @@ class MediaScanner(Component):
         self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
         
         
-    def __process_media(self, mediatypes, path, seen):
+    def __process_media(self, mediatypes, path, seen, notify = True):
         """
         Checks the given path for the given mediatypes
         """
@@ -137,7 +143,9 @@ class MediaScanner(Component):
                     else:
                         self.__thumbnailer.unmark_as_unavailable(path)
                     
-                        self.emit_event(msgs.MEDIASCANNER_EV_THUMBNAIL_GENERATED,
+                        if (notify):
+                            self.emit_event(
+                                   msgs.MEDIASCANNER_EV_THUMBNAIL_GENERATED,
                                    self.__thumbnailer.get_thumbnail_path(path),
                                    path)
                 
