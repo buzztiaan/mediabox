@@ -1,9 +1,8 @@
-from utils.GAsyncHTTPConnection import GAsyncHTTPConnection, parse_addr
+from io import HTTPConnection, Downloader, parse_addr
 from utils.MiniXML import MiniXML
 from utils import logging
 
-import urllib
-import urlparse
+#import urllib
 import httplib
 
 
@@ -51,7 +50,7 @@ class SOAPProxy(object):
 
     def __getattr__(self, name):
     
-        def f(*args):
+        def f(cb, *args):
             out = ""
             out += "<u:%s xmlns:u=\"%s\">" % (name, self.__namespace)
             soap_args = self.__signatures[name]
@@ -65,10 +64,8 @@ class SOAPProxy(object):
             data = _SOAP_ENVELOPE % out
             logging.debug("=== SOAP Request ===\n%s\n===" % data)
 
-            if (self.__async_callback):
-                # we pass the async callback because in an async world the
-                # user may change the callback inbetween
-                self.__post_soap_async(name, data, self.__async_callback)
+            if (cb):
+                self.__post_soap_async(name, data, cb)
                 return None
             else:
                 return self.__post_soap(name, data)
@@ -78,10 +75,14 @@ class SOAPProxy(object):
         
     def __parse_scpd(self, scpdurl):
     
-        #print "SCPD", scpdurl
-        xml = urllib.urlopen(scpdurl).read()
-        scpd = MiniXML(xml, _XMLNS_UPNP).get_dom()
+        def on_download(data, s, t, xml):
+            xml[0] += data
         
+        xml = [""]
+        dl = Downloader(scpdurl, on_download, xml)
+        dl.wait_until_closed()
+
+        scpd = MiniXML(xml[0], _XMLNS_UPNP).get_dom()
         for c in scpd.get_children():
             name = c.get_name()
             if (name == "{%s}specVersion" % _XMLNS_UPNP):
@@ -122,12 +123,9 @@ class SOAPProxy(object):
             return ""
 
            
-    def __parse_soap_response(self, response):
+    def __parse_soap_response(self, body):
     
-        out = []
-    
-        headers = response.getheaders()
-        body = response.read()
+        out = []    
         logging.debug("=== SOAP Response ===\n%s\n===" % body)
         
         envelope = MiniXML(body).get_dom()
@@ -153,12 +151,14 @@ class SOAPProxy(object):
 
         host, port, path = parse_addr(self.__endpoint)
         
+        
         if (port):
             conn = httplib.HTTPConnection(host, port)
         else:
             conn = httplib.HTTPConnection(host)
 
         conn.putrequest("POST", path)
+        conn.putheader("Host", port and "%s:%d" % (host, port) or host)
         conn.putheader("User-Agent", "MediaBox")
         conn.putheader("Content-Type", "text/xml; charset=\"utf-8\"")
         conn.putheader("Content-Length", `length`)
@@ -168,16 +168,16 @@ class SOAPProxy(object):
         conn.send(soap)
 
         response = conn.getresponse()
-        values = self.__parse_soap_response(response)
+        values = self.__parse_soap_response(response.read())
         
         return values
 
 
     def __post_soap_async(self, name, soap, async_cb):
     
-        def on_soap_response(success, response, *args):
-            if (success and "200" in response.get_status()):
-                values = self.__parse_soap_response(response)                
+        def on_soap_response(resp):
+            if (resp.finished()):
+                values = self.__parse_soap_response(resp.read())
                 try:
                     async_cb(*values)
                 except:
@@ -188,23 +188,17 @@ class SOAPProxy(object):
         soap_action = "\"" + self.__namespace + "#" + name + "\""
 
         host, port, path = parse_addr(self.__endpoint)
-        
-        out = ""
-        out += "POST %s HTTP/1.1\r\n" % path
-        if (port):
-            out += "Host: %s:%d\r\n" % (host, port)
-        else:
-            out += "Host: %s\r\n" % host            
-        out += "User-Agent: MediaBox\r\n"
-        out += "Content-Type: text/xml; charset=\"utf-8\"\r\n"
-        out += "Content-Length: %d\r\n" % length
-        out += "SOAPAction: %s\r\n" % soap_action
-        out += "\r\n"
-        out += soap
-        
-        GAsyncHTTPConnection(host, port,
-                             out,
-                             on_soap_response)
+        conn = HTTPConnection(host, port)
+        conn.putrequest("POST", path)
+        conn.putheader("Host", port and "%s:%d" % (host, port) or host)
+        conn.putheader("User-Agent", "MediaBox")
+        conn.putheader("Content-Type", "text/xml; charset=\"utf-8\"")
+        conn.putheader("Content-Length", `length`)
+        conn.putheader("SOAPAction", soap_action)
+        conn.endheaders()
+
+        conn.send(soap, on_soap_response)
+
                 
 
 

@@ -1,4 +1,4 @@
-from utils.GAsyncHTTPConnection import GAsyncHTTPConnection, parse_addr
+from io import HTTPConnection, parse_addr
 from utils import logging
 from upnp.MiniXML import MiniXML
 
@@ -130,12 +130,12 @@ class _GenaSocket(object):
         pass
             
             
-    def __on_receive_confirmation(self, success, response, ev_url, cb):
+    def __on_receive_confirmation(self, response, ev_url, cb):
     
-        if (success):
-            if ( response.get_status().startswith ("HTTP/1.1 200 OK") ):
-                print response.get_status()
-                print response.get_headers()
+        if (response and response.finished()):
+            if ( response.get_status() == 200 ):
+                #print response.get_status()
+                #print response.get_headers()
                 sid = response.get_header("SID")
                 logging.debug("received SID: %s" % sid)
                 self.__handlers[sid] = cb
@@ -155,9 +155,9 @@ class _GenaSocket(object):
             self.__gena_socket = self.__create_gena_socket()
 
         host, port, path = parse_addr(ev_url)
-        GAsyncHTTPConnection(host, port,
-                             _GENA_SUBSCRIBE % (path, host, self.__gena_url),
-                             self.__on_receive_confirmation, ev_url, cb)
+        conn = HTTPConnection(host, port)
+        conn.send_raw(_GENA_SUBSCRIBE % (path, host, self.__gena_url),
+                      self.__on_receive_confirmation, ev_url, cb)
         
 
 
@@ -171,9 +171,10 @@ class _GenaSocket(object):
             ev_url = self.__event_urls[sid]
             
             host, port, path = parse_addr(ev_url)
-            GAsyncHTTPConnection(host, port,
-                                _GENA_UNSUBSCRIBE % (path, host, sid),
-                                lambda a,b:True)
+            conn = HTTPConnection(host, port)
+            conn.send_raw(_GENA_UNSUBSCRIBE % (path, host, sid),
+                          lambda a,b:True)
+
             del self.__handlers[sid]
             del self.__sids[cb]
             del self.__event_urls[sid]

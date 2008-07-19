@@ -49,7 +49,10 @@ class DeviceDescription(object):
 
         self.__icon_url = ""
         
-        self.__parse_description(dom)
+        try:
+            self.__parse_description(dom)
+        except:
+            import traceback; traceback.print_exc()
         
         
         
