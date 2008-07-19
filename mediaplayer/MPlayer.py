@@ -40,7 +40,7 @@ _MAX_VALUES = 34        # for the array length
 
 # connection timeout in seconds
 _CONNECTION_TIMEOUT = 30
-_LOGGING = False
+_LOGGING = True
 
 # path to the mplayer executable
 _MPLAYER = "/usr/bin/mplayer"
@@ -460,6 +460,7 @@ class _MPlayer(GenericMediaPlayer):
         cmd = "LANG=C %s -quiet -slave " \
               "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
               "-idle -osdlevel 0 -idx " \
+              "-cache 256 -cache-min 50 " \
               "-identify -wid %d %s 2>&1 3>/dev/null" % (_MPLAYER, xid, opts)
         p = subprocess.Popen([cmd],
                              shell=True, cwd="/tmp",
