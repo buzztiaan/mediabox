@@ -82,7 +82,7 @@ class AVDevice(Device):
     def get_file(self, path):
 
         if (path.startswith("/")): path = path[1:]
-        didl, nil, nil, nil = self.__cds_proxy.Browse(path,
+        didl, nil, nil, nil = self.__cds_proxy.Browse(None, path,
                                                       "BrowseMetadata",
                                                       "*", "0", "0", "")
         entry = didl_lite.parse(didl)
@@ -135,7 +135,7 @@ class AVDevice(Device):
         try:
             didl = self.__didl_cache[path]
         except KeyError:
-            didl, nil, nil, nil = self.__cds_proxy.Browse(path,
+            didl, nil, nil, nil = self.__cds_proxy.Browse(None, path,
                                                 "BrowseDirectChildren",
                                                 "*", "0", "0", "")
             self.__didl_cache[path] = didl
@@ -159,10 +159,10 @@ class AVDevice(Device):
     def ls_async(self, path, cb, *args):
 
         def f(entry):
-            f = self.__build_file(url_base, entry)
-            return cb(f, *args)
+            print entry       
+            item = self.__build_file(url_base, entry)
+            return cb(item, *args)
             
-
         didl = self.__get_didl(path)
         files = []
         url_base = self.__description.get_url_base()
