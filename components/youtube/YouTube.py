@@ -9,16 +9,35 @@ import theme
 import gobject
 import gtk
 import urllib
+import os
 
 
-_VIDEO_SEARCH = "http://gdata.youtube.com/feeds/api/videos/?vq=%s"
+_VIDEO_SEARCH = "http://gdata.youtube.com/feeds/api/videos/" \
+                "?start-index=%d&max-results=%d&vq=%s"
 _VIDEO_WATCH = "http://www.youtube.com/watch?v=%s"
 _VIDEO_FLV = "http://www.youtube.com/get_video?video_id=%s"
+_STD_FEEDS = "http://gdata.youtube.com/feeds/standardfeeds/" \
+             "%s?start-index=%d&max-results=%d"
 
 _XMLNS_ATOM = "http://www.w3.org/2005/Atom"
 _XMLNS_MRSS = "http://search.yahoo.com/mrss/"
+_XMLNS_OPENSEARCH = "http://a9.com/-/spec/opensearchrss/1.0/"
 
 
+_PAGE_SIZE = 25
+
+
+
+class _SearchContext(object):
+
+    def __init__(self):
+        
+        self.url = ""
+        self.previous_path = ""
+        self.next_path = ""
+        self.start_index = 1
+        self.page_size = _PAGE_SIZE
+        
 
 class YouTube(Device):
     """
@@ -28,6 +47,7 @@ class YouTube(Device):
     def __init__(self):
     
         pass
+
 
 
     def __get_flv(self, ident):
@@ -100,15 +120,25 @@ class YouTube(Device):
             item = items.pop(0)
             return cb(item, *args)
         
+        
+    def __parse_search_path(self, path):
+    
+        parts = path.split("/")
+        category_parts = parts[2].split(",")
+        category = category_parts[0]
+        params = category_parts[1:]
+        
+        return (category, params)
+        
 
     def __ls_menu(self):
     
         items = []
         for name, path, mimetype, emblem in \
-          [("Search", "/search", File.DIRECTORY, None),
-           ("Featured", "/featured", File.DIRECTORY, None),
-           ("Most viewed", "/mostviewed", File.DIRECTORY, None),
-           ("Top rated", "/toprated", File.DIRECTORY, None),
+          [("Search", "/search/video,,1", File.DIRECTORY, None),
+           ("Featured", "/search/recently_featured,1", File.DIRECTORY, None),
+           ("Most viewed", "/search/most_viewed,1", File.DIRECTORY, None),
+           ("Top rated", "/search/top_rated,1", File.DIRECTORY, None),
            ("Categories", "/categories", File.DIRECTORY, None)]:
             item = File(self)
             item.path = path
@@ -122,22 +152,41 @@ class YouTube(Device):
         return items
 
 
-    def __ls_search(self, cb, *args):
 
-        def on_receive_xml(data, amount, total, xml):
-            print "XML", data, amount, total
-            xml[0] += data
-            if (data):
-                pass
-            else:
-                MiniXML(xml[0], callback = on_receive_item)
-            #end if
-        
+    def __on_receive_xml(self, data, amount, total, ctx, xml, cb, *args):
+    
+        xml[0] += data
+        if (not data):
+            # finished loading
+            self.__parse_xml(xml[0], ctx, cb, *args)
+
+
+    def __parse_xml(self, xml, ctx, cb, *args):
+
         def on_receive_item(node):
-            while (gtk.events_pending()): gtk.main_iteration()
-            
-            if (node.get_name() == "{%s}entry" % _XMLNS_ATOM):
+            if (node.get_name() == "{%s}totalResults" % _XMLNS_OPENSEARCH):
+                # read total number of hits
+                total_results = int(node.get_pcdata())
+
+                if (ctx.start_index + _PAGE_SIZE < total_results):
+                    a = ctx.start_index + _PAGE_SIZE
+                    b = min(total_results, a + _PAGE_SIZE - 1)
+                    
+                    f = File(self)
+                    f.path = ctx.next_path
+                    f.mimetype = f.DIRECTORY
+                    f.name = "Next Results"
+                    f.info = "%d - %d of %d" % (a, b, total_results)
+                    
+                    return cb(f, *args)
+                #end if      
+
+        
+            elif (node.get_name() == "{%s}entry" % _XMLNS_ATOM):
                 #print "got node", node
+
+                #while (gtk.events_pending()): gtk.main_iteration()
+
                 s = node.get_pcdata("{%s}id" % _XMLNS_ATOM)
                 ident = s[s.rfind("/") + 1:]        
             
@@ -165,49 +214,88 @@ class YouTube(Device):
                 f.info = "by %s" % authors
                 f.thumbnail = thumbnail
                 
-                try:
-                    return cb(f, *args)
-                except:
-                    import traceback; traceback.print_exc()
-                    return False
+                return cb(f, *args)
+
             else:
                 return True            
 
+        
+        MiniXML(xml, callback = on_receive_item)        
 
-        # present search dialog            
-        dlg = Dialog()
-        dlg.add_entry("Keywords:", "")
-        # this has no effect on maemo, unless window positioning has been
-        # enabled on the window manager, in which case this is required to
-        # have the window appear on screen (easy-chroot-debian is known to
-        # switch on window positioning)
-        dlg.move(0, 0)
-        values = dlg.wait_for_values()
 
-        if (values):
-            query = urllib.quote_plus(values[0])
-            Downloader(_VIDEO_SEARCH % query, on_receive_xml, [""])
+
+    def __video_search(self, cb, args, query, start_index):
+        
+        if (not query):
+            # present search dialog            
+            dlg = Dialog()
+            dlg.add_entry("Keywords:", "")
+            # this has no effect on maemo, unless window positioning has been
+            # enabled on the window manager, in which case this is required to
+            # have the window appear on screen (easy-chroot-debian is known to
+            # switch on window positioning)
+            dlg.move(0, 0)
+            values = dlg.wait_for_values()
+
+            if (values):
+                query = urllib.quote_plus(values[0])
+            else:
+                return            
+        #end if
+
+        start_index = int(start_index)
+        
+        ctx = _SearchContext()
+        if (start_index > 1):
+            ctx.previous_path = "/search/video,%s,%d" \
+                                % (query, start_index - _PAGE_SIZE)
+        ctx.next_path = "/search/video,%s,%d" % (query, start_index + _PAGE_SIZE)
+        ctx.start_index = start_index
+
+        url = _VIDEO_SEARCH % (start_index, _PAGE_SIZE, query)
+        Downloader(url, self.__on_receive_xml, ctx, [""], cb, *args)
+
+
+    def __generic_search(self, name, cb, args, start_index):
+
+        start_index = int(start_index)
+        
+        ctx = _SearchContext()
+        if (start_index > 1):
+            ctx.previous_path = "/search/%s,%d" \
+                                % (name, start_index - _PAGE_SIZE)
+        ctx.next_path = "/search/%s,%d" % (name, start_index + _PAGE_SIZE)
+        ctx.start_index = start_index
+
+        url = _STD_FEEDS % (name, start_index, _PAGE_SIZE)
+        Downloader(url, self.__on_receive_xml, ctx, [""], cb, *args)
+    
+
+    def __ls_search(self, path, cb, *args):
+
+        category, params = self.__parse_search_path(path)
+        if (category == "video"):
+            self.__video_search(cb, args, *params)
+        elif (category == "recently_featured"):
+            self.__generic_search("recently_featured", cb, args, *params)
+        elif (category == "most_viewed"):
+            self.__generic_search("most_viewed", cb, args, *params)
+        elif (category == "top_rated"):
+            self.__generic_search("top_rated", cb, args, *params)
+
 
         
-    def ls(self, path):
-        
-        if (path == "/"):
-            return self.__ls_menu()
-            
-        elif (path == "/search"):
-            return self.__ls_search()
-
-        else:
-            return []
-
 
     def ls_async(self, path, cb, *args):
     
         if (path == "/"):
             gobject.timeout_add(0, self.__send_async, self.__ls_menu(),
                                 cb, *args)
-        elif (path == "/search"):
-            self.__ls_search(cb, *args)
+
+        #"%s/recently_featured?start-index=%d&max-results=%d"
+
+        elif (path.startswith("/search")):
+            self.__ls_search(path, cb, *args)
             
             
     def get_resource(self, resource):
