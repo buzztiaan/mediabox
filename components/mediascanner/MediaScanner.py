@@ -64,6 +64,7 @@ class MediaScanner(Component):
             f, pbuf = args
             thumbpath = self.__thumbnailer.get_thumbnail_path(f)
             pbuf.save(thumbpath, "jpeg")
+            print "saving thumbnail for %s as %s" % (f.name, thumbpath)
             return thumbpath
 
 

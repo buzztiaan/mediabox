@@ -6,7 +6,7 @@ import socket
 import urlparse
 
 
-_BUFFER_SIZE = 512 #4096
+_BUFFER_SIZE = 4096
  
     
 def parse_addr(addr):
@@ -139,7 +139,7 @@ class HTTPConnection(object):
     
         if (self.__timeout_handler):
             gobject.source_remove(self.__timeout_handler)
-        self.__timeout_handler = gobject.timeout_add(10000, self.__on_timeout)
+        #self.__timeout_handler = gobject.timeout_add(10000, self.__on_timeout)
         
         
     def __on_timeout(self):

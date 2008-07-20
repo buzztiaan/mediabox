@@ -317,7 +317,8 @@ class FolderViewer(Viewer):
             info = "%d items" % entry.child_count
             item = FolderItem(entry, icon)
         else:                
-            self.emit_event(msgs.MEDIASCANNER_ACT_SCAN_FILE, entry)
+            if (not entry.thumbnail):
+                self.emit_event(msgs.MEDIASCANNER_ACT_SCAN_FILE, entry)
             icon = self.__lookup_icon(entry)
             info = entry.info   
             item = ListItem(entry, icon)
@@ -330,7 +331,7 @@ class FolderViewer(Viewer):
             item.set_thin_mode(True)
         else:
             item.set_thin_mode(False)
-        
+
         if (entry.thumbnail):
             self.__download_icon(item, entry)
 

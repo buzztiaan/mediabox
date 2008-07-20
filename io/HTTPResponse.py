@@ -71,7 +71,7 @@ class HTTPResponse(object):
                 self.__chunk_size_remaining -= size1
                 self.__body += data[:size1]
                 self.__body_length += size1
-                print "CHUNK", data[:size1]
+                #print "CHUNK", data[:size1]
                 data = data[size1:]
         
             else:
@@ -83,7 +83,7 @@ class HTTPResponse(object):
             idx = data.find("\r\n", 1) #, size1)
             if (idx != -1):
                 # size line is complete
-                print "CS", data[:idx]
+                #print "CS", data[:idx]
                 self.__chunk_size_remaining = \
                                             int(data[:idx], 16)
                 data = data[idx + 2:]

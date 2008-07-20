@@ -1,27 +1,25 @@
-try:
-    # GNOME
-    import gconf
-except:
-    try:
-        # Maemo    
-        import gnome.gconf as gconf
-    except:
-        # last resort...
-        from utils import gconftool as gconf
+from Config import Config
 
 import os
 
 
-_CLIENT = gconf.client_get_default()
-_PREFIX = "/apps/maemo-mediabox/"
+
+_cfg = Config("",
+              [("mediaroot", Config.STRING_LIST,
+                             ["/home/user/MyDocs/.videos",
+                              "/home/user/MyDocs/.sounds",
+                              "/home/user/MyDocs/.images"]),
+               ("mediaroot_types", Config.INTEGER_LIST, []),
+               ("thumbnails_folder", Config.STRING, 
+                              os.path.expanduser("~/.thumbnails/mediabox")),
+               ("theme", Config.STRING, "default")]
+             )
 
 
 def mediaroot():
-    
-    roots = _CLIENT.get_list(_PREFIX + "mediaroot", gconf.VALUE_STRING) or \
-           ["/home/user/MyDocs/.videos", "/home/user/MyDocs/.sounds",
-            "/home/user/MyDocs/.images"]
-    mtypes = _CLIENT.get_list(_PREFIX + "mediaroot_types", gconf.VALUE_INT)
+
+    roots = _cfg["mediaroot"]
+    mtypes = _cfg["mediaroot_types"]
     
     ret = []
     while roots:
@@ -33,33 +31,33 @@ def mediaroot():
         ret.append((r, mtype))
     #end while
     
-    return ret
+    return ret    
 
-        
-def set_mediaroot(l):
 
+def set_mediaroot():
+    
     roots = []
     mtypes = []
     for r, mtype in l:
         roots.append(r)
         mtypes.append(mtype)
 
-    _CLIENT.set_list(_PREFIX + "mediaroot", gconf.VALUE_STRING, roots)
-    _CLIENT.set_list(_PREFIX + "mediaroot_types", gconf.VALUE_INT, mtypes)
+    _cfg["mediaroot"] = roots
+    _cfg["mediaroot_types"] = mtypes
+
 
 
 def thumbdir():
 
-    return _CLIENT.get_string(_PREFIX + "thumbnails_folder") or \
-        os.path.expanduser("~/.thumbnails/mediabox")
-        
+    return _cfg["thumbnails_folder"]
 
 
 def theme():
 
-    return _CLIENT.get_string(_PREFIX + "theme") or "default"
+    return _cfg["theme"]
     
+
 def set_theme(name):
 
-    _CLIENT.set_string(_PREFIX + "theme", name)
+    _cfg["theme"] = name
 

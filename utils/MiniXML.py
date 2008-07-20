@@ -43,10 +43,15 @@ class MiniXML(object):
 
     def __parse_document(self):
 
+        def f():
+            while (self.__parser_iteration()): pass
+
         if (self.__callback):
             # run async
             import gobject
-            gobject.timeout_add(10, self.__parser_iteration)
+            gobject.timeout_add(0, f)
+            #gobject.timeout_add(10, self.__parser_iteration)
+            
         else:
             # run sync
             while (self.__parser_iteration()): pass
@@ -55,7 +60,6 @@ class MiniXML(object):
     def __parser_iteration(self):
 
         if (self.__cancelled): return False
-        
         # find next tag
         index = self.__data.find("<", self.__position)            
         if (index != -1):
