@@ -179,7 +179,7 @@ class VideoViewer(Viewer):
     
         w, h = self.get_size()
         x = 4; y = 32
-        w -= 16; h -= 92
+        w -= 16; h -= 90
         return (x, y, w, h)
             
             
@@ -227,8 +227,8 @@ class VideoViewer(Viewer):
             uri = item.resource
             if (uri == self.__uri): return
             
-            self.__video_widget.load(uri)                                
-            self.set_title(os.path.basename(uri))                
+            self.__video_widget.load(item)
+            self.set_title(os.path.basename(uri))
             self.__uri = uri
             
             #self.update_observer(self.OBS_SHOW_PANEL)

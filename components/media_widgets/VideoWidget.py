@@ -238,11 +238,12 @@ class VideoWidget(MediaWidget):
         self.__screen.show()
 
 
-    def load(self, uri):
+    def load(self, item):
     
         self.__screen.show()
     
         def f():
+            uri = item.get_resource()
             if (self.__screen.window.xid):
                 if (uri == self.__uri): return
                 

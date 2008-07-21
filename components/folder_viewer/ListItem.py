@@ -9,13 +9,14 @@ class ListItem(ButtonListItem):
     """
 
     BUTTON_PLAY = "play"
+    BUTTON_ENQUEUE = "enqueue"
 
 
     _ITEMS_CLOSED = [theme.item_btn_menu]
-    _ITEMS_OPEN = [theme.item_btn_play]
+    _ITEMS_OPEN = [theme.item_btn_play, theme.item_btn_enqueue]
 
     _BUTTONS = [ButtonListItem.BUTTON_MENU,
-                BUTTON_PLAY]
+                BUTTON_PLAY, BUTTON_ENQUEUE]
 
 
     def __init__(self, f, thumbnail):
@@ -46,7 +47,6 @@ class ListItem(ButtonListItem):
     def set_thin_mode(self, value):
     
         self.__thin_mode = value
-        self.invalidate()
 
 
     def render_this(self, cnv):
@@ -61,11 +61,13 @@ class ListItem(ButtonListItem):
                 cnv.fit_pixbuf(self.__emblem, 70, 32, 48, 48)
         
         if (self.__thin_mode):
+            self.render_selection_frame(cnv)
             cnv.draw_pixbuf(theme.mb_caption_bg, 0, 68)
             cnv.draw_text(self.__label, theme.font_tiny, 2, 66,
                            theme.color_fg_thumbnail_label)
             cnv.draw_pixbuf(theme.btn_load, 98, 58)
         else:
+            self.render_selection_frame(cnv)
             self.render_label(cnv, 128, self.__label, self.__sublabel)
-            
+        
         self.render_buttons(cnv)

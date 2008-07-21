@@ -23,6 +23,7 @@ _XMLNS_ATOM = "http://www.w3.org/2005/Atom"
 _XMLNS_MRSS = "http://search.yahoo.com/mrss/"
 _XMLNS_OPENSEARCH = "http://a9.com/-/spec/opensearchrss/1.0/"
 
+_SEARCH_CACHE_DIR = os.path.expanduser("~/.mediabox/youtube/search-cache")
 
 _PAGE_SIZE = 25
 
@@ -37,7 +38,7 @@ class _SearchContext(object):
         self.next_path = ""
         self.start_index = 1
         self.page_size = _PAGE_SIZE
-        
+                
 
 class YouTube(Device):
     """
@@ -46,7 +47,10 @@ class YouTube(Device):
 
     def __init__(self):
     
-        pass
+        try:
+            os.makedirs(_SEARCH_CACHE_DIR)
+        except:
+            pass
 
 
 
@@ -129,6 +133,32 @@ class YouTube(Device):
         params = category_parts[1:]
         
         return (category, params)
+
+
+    def __get_cached_search(self, url):
+          
+        name = urllib.quote(url, "") + ".xml"
+        path = os.path.join(_SEARCH_CACHE_DIR, name.lower())
+        
+        print "looking for", path
+        
+        if (os.path.exists(path)):
+            return open(path).read()
+        else:
+            return None
+            
+            
+            
+    def __cache_search_result(self, url, xml):
+   
+        name = urllib.quote(url, "") + ".xml"
+        path = os.path.join(_SEARCH_CACHE_DIR, name.lower())
+
+        try:
+            open(path, "w").write(xml)
+        except:
+            pass
+            
         
 
     def __ls_menu(self):
@@ -158,6 +188,7 @@ class YouTube(Device):
         xml[0] += data
         if (not data):
             # finished loading
+            self.__cache_search_result(ctx.url, xml[0])
             self.__parse_xml(xml[0], ctx, cb, *args)
 
 
@@ -184,8 +215,6 @@ class YouTube(Device):
         
             elif (node.get_name() == "{%s}entry" % _XMLNS_ATOM):
                 #print "got node", node
-
-                #while (gtk.events_pending()): gtk.main_iteration()
 
                 s = node.get_pcdata("{%s}id" % _XMLNS_ATOM)
                 ident = s[s.rfind("/") + 1:]        
@@ -220,7 +249,7 @@ class YouTube(Device):
                 return True            
 
         
-        MiniXML(xml, callback = on_receive_item)        
+        MiniXML(xml, callback = on_receive_item)
 
 
 
@@ -251,9 +280,13 @@ class YouTube(Device):
                                 % (query, start_index - _PAGE_SIZE)
         ctx.next_path = "/search/video,%s,%d" % (query, start_index + _PAGE_SIZE)
         ctx.start_index = start_index
+        ctx.url = _VIDEO_SEARCH % (start_index, _PAGE_SIZE, query)
 
-        url = _VIDEO_SEARCH % (start_index, _PAGE_SIZE, query)
-        Downloader(url, self.__on_receive_xml, ctx, [""], cb, *args)
+        xml = self.__get_cached_search(ctx.url)
+        if (xml):
+            self.__parse_xml(xml, ctx, cb, *args)
+        else:
+            Downloader(ctx.url, self.__on_receive_xml, ctx, [""], cb, *args)
 
 
     def __generic_search(self, name, cb, args, start_index):
@@ -266,9 +299,13 @@ class YouTube(Device):
                                 % (name, start_index - _PAGE_SIZE)
         ctx.next_path = "/search/%s,%d" % (name, start_index + _PAGE_SIZE)
         ctx.start_index = start_index
+        ctx.url = _STD_FEEDS % (name, start_index, _PAGE_SIZE)
 
-        url = _STD_FEEDS % (name, start_index, _PAGE_SIZE)
-        Downloader(url, self.__on_receive_xml, ctx, [""], cb, *args)
+        xml = self.__get_cached_search(ctx.url)
+        if (xml):
+            self.__parse_xml(xml, ctx, cb, *args)
+        else:
+            Downloader(ctx.url, self.__on_receive_xml, ctx, [""], cb, *args)
     
 
     def __ls_search(self, path, cb, *args):

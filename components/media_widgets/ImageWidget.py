@@ -38,9 +38,6 @@ class ImageWidget(MediaWidget):
         kscr = KineticScroller(self.__image)
         kscr.set_touch_area(0, 730)
 
-        # not supported on maemo but nice to have elsewhere
-        #kscr.connect("scroll-event", self.__on_mouse_wheel)
-
         self.__overlay_ctrls = OverlayControls()
         self.__overlay_ctrls.add_observer(self.__on_observe_overlay_ctrls)
         self.__image.add(self.__overlay_ctrls)
@@ -79,14 +76,6 @@ class ImageWidget(MediaWidget):
             self.__image.set_geometry(11, 11, w - 28, h - 28)
 
 
-    def __on_mouse_wheel(self, src, ev):        
-    
-        if (ev.direction == gtk.gdk.SCROLL_UP):
-            self.increment()
-        elif (ev.direction == gtk.gdk.SCROLL_DOWN):
-            self.decrement()
-
-
     def __on_observe_image(self, src, cmd, *args):
     
         if (cmd == src.OBS_BEGIN_LOADING):
@@ -120,8 +109,10 @@ class ImageWidget(MediaWidget):
             
 
 
-    def load(self, uri):
+    def load(self, item):
 
+        uri = item.get_resource()
+        
         self.__image.load(uri)        
         #self.__label.set_text(self.__get_name(uri))
         #self.__current_item = self.__items.index(item)

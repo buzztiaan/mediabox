@@ -10,6 +10,7 @@ from mediabox.ThrobberDialog import ThrobberDialog
 from utils import logging
 from io import Downloader
 from mediabox import viewmodes
+import idtags
 import theme
 
 import os
@@ -119,6 +120,7 @@ class FolderViewer(Viewer):
         
         for item in self.__list.get_items():
             item.set_thin_mode(thin_mode)
+            item.invalidate()
         
         self.__view_mode = mode
         
@@ -239,8 +241,17 @@ class FolderViewer(Viewer):
                 self.__set_view_mode(_VIEWMODE_PLAYER_NORMAL)
                 self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
-                uri = entry.get_resource()
-                media_widget.load(uri)
+                if (entry.mimetype.startswith("audio/")):
+                    fd = entry.get_fd()
+                    entry.tags = idtags.read_fd(fd)
+                    fd.close()
+
+                media_widget.load(entry)
+
+
+        elif (button == item.BUTTON_ENQUEUE):
+            entry = self.__items[idx]
+            self.emit_event(msgs.PLAYLIST_ACT_APPEND, entry)
 
 
     def __on_media_position(self, info):
@@ -269,7 +280,7 @@ class FolderViewer(Viewer):
     
         data[0] += d
         if (not d):
-            f, item = self.__items_downloading_thumbnails.get(url)
+            f, item = self.__items_downloading_thumbnails.get(url, (None, None))
             if (not item): return
 
             data = data[0]
@@ -317,8 +328,8 @@ class FolderViewer(Viewer):
             info = "%d items" % entry.child_count
             item = FolderItem(entry, icon)
         else:                
-            if (not entry.thumbnail):
-                self.emit_event(msgs.MEDIASCANNER_ACT_SCAN_FILE, entry)
+            #if (not entry.thumbnail):
+            #    self.emit_event(msgs.MEDIASCANNER_ACT_SCAN_FILE, entry)
             icon = self.__lookup_icon(entry)
             info = entry.info   
             item = ListItem(entry, icon)
@@ -332,11 +343,14 @@ class FolderViewer(Viewer):
         else:
             item.set_thin_mode(False)
 
-        if (entry.thumbnail):
+        if (entry.thumbnail and not os.path.exists(icon)):
             self.__download_icon(item, entry)
 
 
     def __load(self, path, direction):
+        """
+        Loads the given path and displays its contents.
+        """
         
         def on_child(f, path, entries):
             # abort if the user has changed the directory again
@@ -355,10 +369,11 @@ class FolderViewer(Viewer):
         self.__list.clear_items()
         self.__list.set_frozen(False)
         
-        if (direction == self.__GO_PARENT):
-            self.__list.fx_slide_right()
-        elif (direction == self.__GO_CHILD):
-            self.__list.fx_slide_left()
+        #if (direction == self.__GO_PARENT):
+        #    self.__list.fx_slide_right()
+        #elif (direction == self.__GO_CHILD):
+        #    self.__list.fx_slide_left()
+        self.__list.render()
 
         entries = []
         try:
