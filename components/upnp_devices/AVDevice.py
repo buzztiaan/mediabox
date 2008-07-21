@@ -1,4 +1,5 @@
 from storage import Device, File
+from io import SeekableFD
 from upnp.MiniXML import MiniXML
 from upnp.SOAPProxy import SOAPProxy
 from upnp import didl_lite
@@ -113,6 +114,7 @@ class AVDevice(Device):
         f.mimetype = mimetype
         f.resource = res or urlparse.urljoin(url_base, ident)
         f.name = title
+        f.artist = artist
         f.info = artist
 
         if (f.mimetype == f.DIRECTORY):
@@ -172,7 +174,7 @@ class AVDevice(Device):
     def get_fd(self, resource):
     
         fd = urllib.urlopen(resource)
-        return fd
+        return SeekableFD(fd)
 
 
 if (__name__ == "__main__"):   
