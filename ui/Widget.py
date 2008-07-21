@@ -73,11 +73,18 @@ class Widget(object):
     
     
     def get_children(self):
+        """
+        Returns a list of all child widgets of this widget.
+        """
     
         return self.__children[:]
     
     
     def add(self, child):
+        """
+        Adds a new child to this widget. Every widget is a container and may
+        thus have child widgets.
+        """
         
         self.__children.append(child)
         child.set_parent(self)
@@ -86,22 +93,35 @@ class Widget(object):
         
         
     def remove(self, child):
+        """
+        Removes the given child widget from this widget.
+        """
     
         self.__children.remove(child)
         self.__check_zone()
         
         
     def set_parent(self, parent):
+        """
+        Sets the parent of this widget. You usually don't need this method.
+        """
     
         self.__parent = parent
         
         
     def get_parent(self):
+        """
+        Returns the parent of this widget. The parent of the root widget is
+        None.
+        """
     
         return self.__parent
                 
                 
     def set_screen(self, screen):
+        """
+        Changes the screen pixmap to render on.
+        """
     
         self.__screen = screen
         for c in self.__children:
@@ -110,6 +130,9 @@ class Widget(object):
         
         
     def get_screen(self):
+        """
+        Returns the current screen pixmap for rendering.
+        """
     
         return self.__screen
         
@@ -122,6 +145,10 @@ class Widget(object):
         
         
     def set_enabled(self, value):
+        """
+        Enables or disables this widget. A disabled widget is still visible
+        but does not react to user events.
+        """
         
         self.__is_enabled = value
         #print self, value
@@ -132,6 +159,10 @@ class Widget(object):
             
             
     def is_enabled(self):
+        """
+        Returns whether this widget is currently enabled and reacts to user
+        events.
+        """
     
         if (not self.is_visible()):
             return False
@@ -140,32 +171,51 @@ class Widget(object):
         
         
     def set_frozen(self, value):
+        """
+        Freezes or thaws this widget. A frozen widget does not get rendered.
+        This is useful for big update operations where you don't want the
+        widget to render itself after every single step.
+        """
     
         self.__is_frozen = value
         for c in self.__children:
             c.set_frozen(value)
         
     def is_frozen(self):
+        """
+        Returns whether this widget is currently frozen.
+        """
     
         return self.__is_frozen
         
-        
+
+    def set_visible(self, value):
+        """
+        Shows or hides this widget. An invisible widget does not get rendered
+        and does not react to events and all descendants are invisible as well.
+        """
+    
+        self.__is_visible = value
+        self.__check_zones()
+
+
     def is_visible(self):
+        """
+        Returns whether this widget is currently visible.
+        """
     
         if (not self._can_be_visible()):
             return False
         else:
             return self.__is_visible
         
-        
-    def set_visible(self, value):
-    
-        self.__is_visible = value
-        self.__check_zones()
-        
                         
                 
     def _can_be_visible(self):
+        """
+        Internal method for determining whether this widget can be visible.
+        If ancestor widget is invisible, then this widget is invisible as well.
+        """
     
         if (self.__parent):
             return self.__is_visible and self.__parent._can_be_visible()
@@ -183,6 +233,9 @@ class Widget(object):
 
 
     def may_render(self):
+        """
+        Returns whether this widget may currently render itself.
+        """
     
         return (self.__screen and self.is_visible() and not self.is_frozen())
         
@@ -253,17 +306,27 @@ class Widget(object):
 
 
     def set_pos(self, x, y):
+        """
+        Sets the position of this widget relative to its parent's coordinates.
+        """
     
         self.__position = (x, y)
         self.__check_zones()
         
         
     def get_pos(self):
+        """
+        Returns the position of this widget relative to its parent's coordinates.
+        """
     
         return self.__position
         
         
     def get_screen_pos(self):
+        """
+        Returns the absolute position of this widget, i.e. the position is
+        has on the root widget.
+        """
     
         if (self.__parent):
             parx, pary = self.__parent.get_screen_pos()
@@ -275,33 +338,55 @@ class Widget(object):
         
         
     def set_size(self, w, h):
+        """
+        Sets the size of this widget.
+        """
     
         self.__size = (w, h)
         self.__check_zone()
         
         
     def get_size(self):
+        """
+        Returns the size of this widget. With some widgets this may differ
+        from the physical size.
+        """
     
         return self.__size
         
         
     def set_geometry(self, x, y, w, h):
+        """
+        Convenience method for setting the position and size at the same time.
+        """
     
         self.set_pos(x, y)
         self.set_size(w, h)
 
 
     def get_physical_size(self):
+        """
+        Returns the physical size of this widget. Widgets whose physical size
+        can differ from the size must override this method. E.g. a height of
+        '0' means dynamic height for a label.
+        """
     
         return self.__size
 
     
     def render_this(self):
+        """
+        Widgets override this method for drawing operations. This is also the
+        correct place to change the geometry of child widgets dynamically.
+        """
     
         pass
 
 
     def render(self):
+        """
+        Renders this widget onto the current screen pixmap.
+        """
     
         if (not self.may_render()): return
         
@@ -311,7 +396,22 @@ class Widget(object):
                 c.render()
 
 
+    def render_all(self):
+        """
+        Renders the whole widget hierarchy.
+        """
+    
+        if (self.__parent):
+            self.__parent.render_all()
+        else:
+            self.render()
+
+
     def render_at(self, screen, x = 0, y = 0):
+        """
+        Renders this widget onto the given pixmap at the given position.
+        This is used for offscreen rendering.
+        """
     
         real_x, real_y = self.__position
         parent = self.__parent
@@ -329,6 +429,11 @@ class Widget(object):
         
         
     def propagate_theme_change(self):
+        """
+        Propagates a theme change along the entire widget hierarchy when
+        issued on the root widget. This causes all widgets to reload their
+        graphics.
+        """
     
         self._reload()
         for c in self.__children:
@@ -336,6 +441,11 @@ class Widget(object):
             
             
     def _reload(self):
+        """
+        Widgets which have to reload graphics when the theme changes have to
+        override this method so that they can get notified about a theme
+        change.
+        """
     
         pass
 
@@ -346,6 +456,9 @@ class Widget(object):
         
         
     def get_window(self):
+        """
+        Returns the GTK window of the widget hierarchy.
+        """
     
         return self.get_event_sensor()
         
