@@ -23,7 +23,7 @@ class ToolbarSet(object):
         """
 
         btn = ImageButton(icon1, icon2)        
-        btn.connect(btn.EVENT_BUTTON_RELEASE, lambda x,y:cb())
+        btn.connect_clicked(lambda :cb())
         self.__children.append(btn)
         return btn
         
@@ -35,7 +35,7 @@ class ToolbarSet(object):
         """
 
         btn = ImageButton(icon1, icon2)        
-        btn.connect(btn.EVENT_BUTTON_RELEASE, lambda x,y:cb())
+        btn.connect_clicked(lambda :cb())
         self.__children.append(btn)
         return btn
         
