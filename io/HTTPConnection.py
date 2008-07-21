@@ -21,16 +21,24 @@ def parse_addr(addr):
 
 
 
+_number_of_connections = 0
+_connection_queue = []
+
+_MAX_CONNECTIONS = 4
+
+
 class HTTPConnection(object):
     """
     Class for making asynchronous HTTP connections.
     
     The user callback is invoked repeatedly as data comes in. Check for
     response.finished() to see if the transmission is complete.    
-    """
+    """    
     
     def __init__(self, host, port = 80):
-           
+
+        self.__address = (host, port)
+
         self.__callback = None
         self.__user_args = []
         
@@ -42,8 +50,7 @@ class HTTPConnection(object):
         self.__socket_connected = False
         
         self.__is_aborted = False
-        
-        self.redirect(host, port)
+
         
 
     def redirect(self, host, port):
@@ -53,8 +60,11 @@ class HTTPConnection(object):
 
         def f(sock, host, port):
             try:
+                # this somehow causes high CPU load when running threaded...
+                # threading with PyGTK is really a mess
                 sock.connect((host, port or 80))
             except:
+                import traceback; traceback.print_exc()
                 threads.run_unthreaded(self.__abort,
                                        "Could not resolve hostname")
                 return
@@ -73,7 +83,9 @@ class HTTPConnection(object):
         # connecting to a socket is blocking and thus should be run in a
         # thread
         self.__socket_connected = False
-        threads.run_threaded(f, self.__sock, host, port)            
+        threads.run_threaded(f, self.__sock, host, port)
+
+        
 
 
     def wait_until_closed(self):
@@ -113,10 +125,10 @@ class HTTPConnection(object):
         self.__user_args = args
         self.__data += body    
 
-        self.__reset_timeout()
-        self.__io_watch = gobject.io_add_watch(self.__sock, gobject.IO_OUT,
-                                               self.__on_send_request,
-                                               [self.__data])
+        try:
+            self.__send(self.__data)
+        except:
+            import traceback; traceback.print_exc()
 
 
     def send_raw(self, raw, cb, *args):
@@ -125,10 +137,23 @@ class HTTPConnection(object):
         self.__user_args = args
         self.__data = raw
 
-        self.__reset_timeout()
-        self.__io_watch = gobject.io_add_watch(self.__sock, gobject.IO_OUT,
-                                               self.__on_send_request,
-                                               [self.__data])
+        self.__send(self.__data)
+
+
+    def __send(self, data):
+        global _number_of_connections, _connection_queue
+        
+        if (_number_of_connections >= _MAX_CONNECTIONS):
+            _connection_queue.append((self.__send, data))
+            
+        else:
+            _number_of_connections += 1
+
+            self.redirect(*self.__address)
+            self.__reset_timeout()
+            self.__io_watch = gobject.io_add_watch(self.__sock, gobject.IO_OUT,
+                                                   self.__on_send_request,
+                                                   [self.__data])
         
 
 
@@ -139,7 +164,7 @@ class HTTPConnection(object):
     
         if (self.__timeout_handler):
             gobject.source_remove(self.__timeout_handler)
-        #self.__timeout_handler = gobject.timeout_add(10000, self.__on_timeout)
+        self.__timeout_handler = gobject.timeout_add(10000, self.__on_timeout)
         
         
     def __on_timeout(self):
@@ -223,6 +248,7 @@ class HTTPConnection(object):
         elif (300 <= resp.get_status() < 310):
             # redirect needed
             self.__callback(resp, *self.__user_args)
+            self.__check_connection_queue()
 
         elif (resp.get_status() == 404):
             # file not found; abort
@@ -270,7 +296,7 @@ class HTTPConnection(object):
             gobject.source_remove(self.__timeout_handler)
 
         self.__callback(None, *self.__user_args)
-
+        self.__check_connection_queue()
 
 
     def __finish_download(self, resp):
@@ -283,7 +309,16 @@ class HTTPConnection(object):
             gobject.source_remove(self.__timeout_handler)
 
         #self.__callback(resp, *self.__user_args)
+        self.__check_connection_queue()
 
+
+    def __check_connection_queue(self):
+        global _number_of_connections, _connection_queue
+
+        _number_of_connections -= 1
+        if (_connection_queue):
+            f, data = _connection_queue.pop(0)
+            f(data)
 
 
 
