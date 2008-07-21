@@ -9,6 +9,7 @@ class StripItem(object):
         self.__height = 0
         self.__canvas = None
         self.__is_hilighted = False
+        self.__selection_frame = None
 
 
     def set_size(self, w, h):
@@ -26,6 +27,11 @@ class StripItem(object):
     
         self.__canvas = canvas
         self.__canvas.set_renderer(self, self.render)
+
+
+    def set_selection_frame(self, pbuf):
+    
+        self.__selection_frame = pbuf
         
         
     def invalidate(self):
@@ -39,6 +45,13 @@ class StripItem(object):
         if (self.__canvas):
             self.__canvas.invalidate_cache(self)
             self.render_this(self.__canvas)
+        
+        
+    def render_selection_frame(self, canvas):
+    
+        if (self.__is_hilighted and self.__selection_frame):
+            canvas.draw_frame(self.__selection_frame, 0, 0,
+                              self.__width, self.__height, True)
 
 
     def render_this(self, canvas):

@@ -65,4 +65,6 @@ class TrackItem(ButtonListItem):
                 canvas.fit_pixbuf(self.__emblem, 70, 32, 48, 48)
         
         self.render_label(canvas, x, self.__label, self.__sublabel)
+        self.render_selection_frame(canvas)
         self.render_buttons(canvas)
+        

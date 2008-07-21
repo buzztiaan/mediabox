@@ -12,3 +12,5 @@ This package is licensed under the terms of the GNU LGPL.
 from HTTPConnection import HTTPConnection, parse_addr
 from Downloader import Downloader
 from FileDownloader import FileDownloader
+from SeekableFD import SeekableFD
+

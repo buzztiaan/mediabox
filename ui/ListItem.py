@@ -10,7 +10,7 @@ class ListItem(StripItem):
     def __init__(self):
 
         self.__normal_bg = theme.mb_listitem_bg
-        self.__hilighted_bg = theme.mb_listitem_bg_active
+        self.__hilighted_bg = theme.mb_listitem_bg
 
         self.__color_1 = theme.color_fg_item
         self.__color_2 = theme.color_fg_item_2
@@ -18,7 +18,7 @@ class ListItem(StripItem):
         self.__grip = None
         
         StripItem.__init__(self)
-
+        self.set_selection_frame(theme.mb_selection_frame)
 
 
     @staticmethod

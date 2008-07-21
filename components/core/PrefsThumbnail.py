@@ -19,8 +19,7 @@ class PrefsThumbnail(StripItem):
 
         cnv.fit_pixbuf(self.__thumb, 0, 0, 160, 120)
 
-        if (self.is_hilighted()):
-            cnv.draw_pixbuf(theme.mb_selection_frame, 0, 0)
+        self.render_selection_frame(cnv)
 
         cnv.draw_pixbuf(theme.mb_caption_bg, 0, 98)
         cnv.draw_text(self.__title, theme.font_tiny, 2, 96,

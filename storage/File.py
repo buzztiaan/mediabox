@@ -10,6 +10,11 @@ class File(object):
         self.path = ""
 
         self.name = ""
+        
+        self.title = ""
+        self.artist = ""
+        self.album = ""
+        self.trackno = 0
         self.child_count = 0
         self.info = ""
         self.mimetype = self.FILE
@@ -17,6 +22,16 @@ class File(object):
         self.resource = ""
         self.md5 = ""
         self.thumbnail = ""
+        
+        self.tags = None
+
+
+    def __cmp__(self, other):
+    
+        if (other):
+            return cmp((self.name, self.resource), (other.name, other.resource))
+        else:
+            return 1
 
         
     def get_children(self):

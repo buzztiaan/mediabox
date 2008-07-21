@@ -451,7 +451,8 @@ class App(Component):
                                              2000)
 
             if (self.__keyboard_search_string):
-                self.__current_viewer.search(self.__keyboard_search_string)
+                self.emit_event(msgs.CORE_ACT_SEARCH_ITEM,
+                                self.__keyboard_search_string)
 
         
         elif (len(key) == 1 and ord(key) > 31):
@@ -711,11 +712,11 @@ class App(Component):
             vstate.thumbs_loaded = True
 
         # if the collection is empty, tell the user that she can add items
-        if (not collection):
-            gobject.idle_add(dialogs.info, "No items found!",
-                      "There are no items.\n"
-                      "Please go to Media Collection in the Preferences view\n"
-                      "to tell MediaBox where to look for your files.")
+        #if (not collection):
+        #    gobject.idle_add(dialogs.info, "No items found!",
+        #              "There are no items.\n"
+        #              "Please go to Media Collection in the Preferences view\n"
+        #              "to tell MediaBox where to look for your files.")
             
 
     def run(self):

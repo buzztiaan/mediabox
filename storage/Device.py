@@ -66,18 +66,19 @@ class Device(object):
 
         def do_async(files):
             if (not files):
-                return False
+                return# False
             f = files.pop(0)
             v = cb(f, *args)
             if (not v):
-                return False
+                return# False
             else:
-                return True
+                gobject.timeout_add(10, do_async, files)
+                #return True
         
         # override this by your implementation
         files = self.ls(path)
-        import gobject
-        gobject.idle_add(do_async, files)
+        import gobject        
+        gobject.timeout_add(0, do_async, files)
 
 
     def get_fd(self, resource):
