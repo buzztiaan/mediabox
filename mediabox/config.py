@@ -1,4 +1,4 @@
-from Config import Config
+from utils.Config import Config
 
 import os
 
