@@ -9,19 +9,15 @@ import id3v1tags
 import id3v2tags
 
 
-def read(filename):
 
-    try:
-        #print "Scanning", filename
-        fd = open(filename, "r")               
-    except:
-        return {}
-        
+def read_fd(fd):
+
     tagtype = fd.read(3)
     major, minor = fd.read(1), fd.read(1)
-    fd.seek(0)
 
     try:
+        fd.seek(0)
+
         if (tagtype == "Ogg"):
             return oggtags.read(fd)
         elif (tagtype == "fLa"):
@@ -42,7 +38,25 @@ def read(filename):
     
     except:
         import traceback; traceback.print_exc()
+        return {}
 
+
+
+def read(filename):
+
+    try:
+        #print "Scanning", filename
+        fd = open(filename, "r")               
+    except:
+        return {}
+
+    try:
+        return read_fd(fd)    
+
+    except:
+        import traceback; traceback.print_exc()
+        return {}
+        
     finally:
         fd.close()
         
