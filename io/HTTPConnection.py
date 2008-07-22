@@ -58,10 +58,16 @@ class HTTPConnection(object):
         Redirects this HTTP connection to another host.
         """
 
+        self.__address = (host, port)
+
+
+    def __connect(self, host, port):
+
         def f(sock, host, port):
             try:
                 # this somehow causes high CPU load when running threaded...
                 # threading with PyGTK is really a mess
+                print "connecting to", host, port or 80
                 sock.connect((host, port or 80))
             except:
                 import traceback; traceback.print_exc()
@@ -74,7 +80,6 @@ class HTTPConnection(object):
             self.__sock.close()
             
         try:
-            print host, port
             self.__sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except:
             import traceback; traceback.print_exc()
@@ -149,7 +154,7 @@ class HTTPConnection(object):
         else:
             _number_of_connections += 1
 
-            self.redirect(*self.__address)
+            self.__connect(*self.__address)
             self.__reset_timeout()
             self.__io_watch = gobject.io_add_watch(self.__sock, gobject.IO_OUT,
                                                    self.__on_send_request,
@@ -184,7 +189,7 @@ class HTTPConnection(object):
         http = data[0]
         length = sock.send(http)
         data[0] = http[length:]
-        print http
+        print "SENT", http
         if (data[0]):
             return True
 
@@ -210,7 +215,7 @@ class HTTPConnection(object):
         body = data[0][idx + 4:]
         lines = header.splitlines()
         status_header = lines[0].upper()
-        print header
+        print "HEADERS", header
 
         headers = {}
         for l in lines[1:]:
