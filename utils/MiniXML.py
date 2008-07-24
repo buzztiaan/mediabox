@@ -45,12 +45,13 @@ class MiniXML(object):
 
         def f():
             while (self.__parser_iteration()): pass
+            #if (self.__parser_iteration()):
+            #    gobject.idle_add(f)
 
         if (self.__callback):
             # run async
             import gobject
-            gobject.timeout_add(0, f)
-            #gobject.timeout_add(10, self.__parser_iteration)
+            f()
             
         else:
             # run sync
@@ -145,10 +146,8 @@ class MiniXML(object):
     
         for i in range(len(self.__ns_stack) - 1, 0, -1):
             ns_table = self.__ns_stack[i]
-            try:
+            if (ns in ns_table):
                 return ns_table[ns]
-            except KeyError:
-                pass
         #end for
 
         return ns
@@ -408,5 +407,5 @@ if (__name__ == "__main__"):
     import sys
     xml = open(sys.argv[1]).read()
     m = MiniXML(xml)
-    print m.get_dom()
+    #print m.get_dom()
     
