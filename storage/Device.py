@@ -61,24 +61,25 @@ class Device(object):
     def ls_async(self, path, cb, *args):
         """
         Lists the given path asynchronously by calling the given callback
-        on each item.
+        on each item. After processing every item, the implementation is
+        expected to return None to signalize the end.
         """
 
         def do_async(files):
-            if (not files):
-                return# False
-            f = files.pop(0)
-            v = cb(f, *args)
-            if (not v):
-                return# False
+            if (files):
+                f = files.pop(0)
+                v = cb(f, *args)            
+                if (not v):
+                    return
+                else:
+                    gobject.timeout_add(10, do_async, files)
             else:
-                gobject.timeout_add(10, do_async, files)
-                #return True
+                cb(None, *args)
         
         # override this by your implementation
         files = self.ls(path)
         import gobject        
-        gobject.timeout_add(0, do_async, files)
+        do_async(files)
 
 
     def get_fd(self, resource):
