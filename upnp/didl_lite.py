@@ -43,14 +43,20 @@ def parse_async(xml, cb, *args):
     """
     Parses the given DIDL-Lite XML asynchronously and calls the given
     callback handler on each entry.
+    Returns None after the last entry to signalize the end.
     """
     
+    open("/tmp/didl.xml", "w").write(xml)
     def on_node(node):
-        item = _parse_entry(node)
-        if (item):
-            return cb(item, *args)
+        if (node.get_name() == "{%s}DIDL-Lite" % _XMLNS_DIDL):
+            # finished parsing
+            return cb(None, *args)
         else:
-            return True
+            item = _parse_entry(node)
+            if (item):
+                return cb(item, *args)
+            else:
+                return True
             
     MiniXML(xml, callback = on_node)
     
