@@ -362,7 +362,7 @@ class FolderViewer(Viewer):
             if (f):
                 entries.append(f)
                 self.__add_file(f)
-            if (not f or len(entries == 4) or len(entries) % 25 == 0):
+            if (not f or len(entries) == 4 or len(entries) % 25 == 0):
                 self.__list.render()
             
             return True
