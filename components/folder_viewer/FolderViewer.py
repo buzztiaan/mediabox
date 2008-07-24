@@ -246,6 +246,7 @@ class FolderViewer(Viewer):
                     entry.tags = idtags.read_fd(fd)
                     fd.close()
 
+                print "LOADING", entry.name, entry.resource
                 media_widget.load(entry)
 
 
@@ -335,7 +336,9 @@ class FolderViewer(Viewer):
             item = ListItem(entry, icon)
             
         
+        self.__list.set_frozen(True)
         self.__list.append_item(item)
+        self.__list.set_frozen(False)
         self.__items.append(entry)
         
         if (self.__view_mode == _VIEWMODE_PLAYER_NORMAL):
@@ -356,8 +359,11 @@ class FolderViewer(Viewer):
             # abort if the user has changed the directory again
             if (self.__path_stack[-1][0] != path): return False
 
-            entries.append(f)
-            self.__add_file(f)
+            if (f):
+                entries.append(f)
+                self.__add_file(f)
+            if (not f or len(entries == 4) or len(entries) % 25 == 0):
+                self.__list.render()
             
             return True
         
@@ -365,15 +371,11 @@ class FolderViewer(Viewer):
         self.__items = []
         self.__items_downloading_thumbnails.clear()
                         
-        self.__list.set_frozen(True)
-        self.__list.clear_items()
-        self.__list.set_frozen(False)
-        
+        self.__list.clear_items()        
         #if (direction == self.__GO_PARENT):
         #    self.__list.fx_slide_right()
         #elif (direction == self.__GO_CHILD):
         #    self.__list.fx_slide_left()
-        self.__list.render()
 
         entries = []
         try:

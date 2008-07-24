@@ -58,6 +58,7 @@ class DeviceDescription(object):
         
     def __parse_description(self, dom):
     
+        print "parse descr"
         self.__url_base = dom.get_pcdata("{%s}URLBase" % _NS_DESCR).strip()
         if (not self.__url_base):
             # some devices make life hard and don't tell about their URL base

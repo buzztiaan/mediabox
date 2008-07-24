@@ -62,6 +62,7 @@ class SSDPMonitor(Component):
         description XML. Announces the availability of new devices.
         """
 
+        #print "receiving", len(data)
         if (data):
             xml[0] += data
         else:

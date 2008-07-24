@@ -151,7 +151,7 @@ class _MPlayer(GenericMediaPlayer):
             now = time.time()
 
             # don't ask mplayer for the current position every time, because
-            # this is highly inefficient with Ogg Vorbis files            
+            # this is highly inefficient with Ogg Vorbis files
             if (self.__position < 0.1):
                 try:
                     pos, total = self.get_position()

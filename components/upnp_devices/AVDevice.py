@@ -161,8 +161,10 @@ class AVDevice(Device):
     def ls_async(self, path, cb, *args):
 
         def f(entry):
-            print entry       
-            item = self.__build_file(url_base, entry)
+            if (entry):
+                item = self.__build_file(url_base, entry)
+            else:
+                item = None
             return cb(item, *args)
             
         didl = self.__get_didl(path)

@@ -2,8 +2,9 @@ from storage import Device, File
 from utils.MiniXML import MiniXML
 from utils import logging
 from ui.Dialog import Dialog
-from io.Downloader import Downloader
-from io.FileDownloader import FileDownloader
+from io import Downloader
+from io import FileDownloader
+from io import FileServer
 import theme
 
 import gobject
@@ -51,6 +52,9 @@ class YouTube(Device):
             os.makedirs(_SEARCH_CACHE_DIR)
         except:
             pass
+            
+        self.__fileserver = FileServer()
+        self.__flv_downloader = None
 
 
 
@@ -178,7 +182,8 @@ class YouTube(Device):
             item.emblem = emblem
             items.append(item)
         #end for
-        
+
+        items.append(None)        
         return items
 
 
@@ -243,7 +248,13 @@ class YouTube(Device):
                 f.info = "by %s" % authors
                 f.thumbnail = thumbnail
                 
+                #while (gtk.events_pending()): gtk.main_iteration()
+                
                 return cb(f, *args)
+
+            elif (node.get_name() == "{%s}feed" % _XMLNS_ATOM):
+                # finished parsing
+                cb (None, *args)
 
             else:
                 return True            
@@ -329,8 +340,6 @@ class YouTube(Device):
             gobject.timeout_add(0, self.__send_async, self.__ls_menu(),
                                 cb, *args)
 
-        #"%s/recently_featured?start-index=%d&max-results=%d"
-
         elif (path.startswith("/search")):
             self.__ls_search(path, cb, *args)
             
@@ -338,14 +347,14 @@ class YouTube(Device):
     def get_resource(self, resource):
     
         def f(d, a, t):
-            print "%d / %d" % (a, t)
-        
+            print "\r%d / %d         " % (a, t),
+            
         flv = self.__get_flv(resource)
-        #from io.SocketDownloader import SocketDownloader
-        #FileDownloader(flv, "/tmp/tube.flv", f)
-        #SocketDownloader(flv, 5556, f)
-        
-        #import time
-        #time.sleep(15)
-        return flv #"/tmp/tube.flv"
+
+        if (self.__flv_downloader):
+            self.__flv_downloader.cancel()
+            
+        self.__flv_downloader = FileDownloader(flv, "/media/mmc1/tube.flv", f)
+        self.__fileserver.allow("/media/mmc1/tube.flv", "/" + resource + ".flv")
+        return self.__fileserver.get_location() + "/" + resource + ".flv"
 
