@@ -59,7 +59,9 @@ class HTTPResponse(object):
                 self.__finished = True
 
         #print len(data), self.__body_length
-        print "FINISHED", self.__finished
+        #if (not data):
+        #    self.__finished = True
+        #print "FINISHED", self.__finished, self.__content_length, self.__body_length
 
 
     def __feed_chunked(self, data):
@@ -93,6 +95,7 @@ class HTTPResponse(object):
                 
             # the final chunk is always of size 0
             if (self.__chunk_size_remaining == 0):
+                print "detected NULL chunk"
                 self.__finished = True
                 break
         #end while

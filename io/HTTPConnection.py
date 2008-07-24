@@ -150,6 +150,7 @@ class HTTPConnection(object):
         
         if (_number_of_connections >= _MAX_CONNECTIONS):
             _connection_queue.append((self.__send, data))
+            print "queueing for later"
             
         else:
             _number_of_connections += 1
@@ -177,8 +178,18 @@ class HTTPConnection(object):
         Reacts on connection timeout.
         """
     
-        print "TIMEOUT"
         self.__abort("TIMEOUT")
+        
+        
+        
+    def cancel(self):
+        """
+        Aborts this connection. This is a no-op if the connection is already
+        closed.
+        """
+        
+        if (self.__sock):
+            self.__abort("cancelled")
         
         
     def __on_send_request(self, sock, cond, data):
@@ -241,8 +252,7 @@ class HTTPConnection(object):
             self.__callback(resp, *self.__user_args)
             
             if (not resp.finished()):
-                self.__io_watch = gobject.io_add_watch(sock,
-                                                gobject.IO_IN | gobject.IO_HUP,
+                self.__io_watch = gobject.io_add_watch(sock, gobject.IO_IN,
                                                        self.__on_receive_body,
                                                        resp)
 
@@ -268,25 +278,21 @@ class HTTPConnection(object):
 
         self.__reset_timeout()
 
-        if (cond == gobject.IO_HUP):
+        s = sock.recv(_BUFFER_SIZE)
+        if (not s):
             # server closed connection
             resp.set_finished()
+        resp.feed(s)
+        self.__callback(resp, *self.__user_args)
+
+        if (not resp.finished()):
+            # we're still waiting for data; read on
+            return True
+
+        else:
+            # finished downloading
             self.__finish_download(resp)
             return False
-            
-        else:            
-            s = sock.recv(_BUFFER_SIZE)
-            resp.feed(s)
-            self.__callback(resp, *self.__user_args)
-                    
-            if (not resp.finished()):
-                # we're still waiting for data; read on
-                return True
-
-            else:
-                # finished downloading
-                self.__finish_download(resp)
-                return False
 
 
     def __abort(self, error):
@@ -300,6 +306,7 @@ class HTTPConnection(object):
         if (self.__timeout_handler):
             gobject.source_remove(self.__timeout_handler)
 
+        print "Aborting connection:", error
         self.__callback(None, *self.__user_args)
         self.__check_connection_queue()
 
@@ -313,7 +320,8 @@ class HTTPConnection(object):
         if (self.__timeout_handler):
             gobject.source_remove(self.__timeout_handler)
 
-        #self.__callback(resp, *self.__user_args)
+        print "CALLING cb", resp
+        self.__callback(None, *self.__user_args)
         self.__check_connection_queue()
 
 

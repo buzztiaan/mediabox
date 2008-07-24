@@ -1,4 +1,5 @@
 from Downloader import Downloader
+import os
 
 
 class FileDownloader(Downloader):
@@ -6,13 +7,17 @@ class FileDownloader(Downloader):
     Class for downloading to a file.
 
     The user callback is invoked repeatedly as data comes in.
-    The transmission is finished when data = "" is passed to the callback.    
+    The transmission is finished when data = "" is passed to the callback.
+    
+    While the download is not yet finished, a .partial file signalizes this.
     """
     
     def __init__(self, url, dest, cb, *args):
     
         self.__fd = open(dest, "w")
+        self.__partial = dest + ".partial"
     
+        open(self.__partial, "w").write("")
         Downloader.__init__(self, url, self.__on_receive_data, cb, args)
         
         
@@ -26,6 +31,7 @@ class FileDownloader(Downloader):
         else:
             # finished downloading
             self.__fd.close()
+            os.unlink(self.__partial)
 
         cb(data, amount, total, *args)
 

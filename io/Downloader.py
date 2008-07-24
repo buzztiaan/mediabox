@@ -13,8 +13,10 @@ class Downloader(HTTPConnection):
     
         host, port, path = parse_addr(url)
         HTTPConnection.__init__(self, host, port)
-        self.putrequest("GET", path)
+        self.putrequest("GET", path, "HTTP/1.1")
         self.putheader("Host", port and "%s:%d" % (host, port) or host)
+        self.putheader("User-Agent", "MediaBox")
+        #self.putheader("Connection", "close")
         self.endheaders()
         self.send("", self.__on_receive_data, cb, args)
 
@@ -30,16 +32,20 @@ class Downloader(HTTPConnection):
             amount, total = resp.get_amount()
             data = resp.read()
             if (data):
+                #print data
                 cb(data, amount, total, *args)
-            if (resp.finished()):
+            
+            if (not data or resp.finished()):
                 cb("", amount, total, *args)
 
         elif (300 <= status < 310):
             location = resp.getheaders()["LOCATION"]
             host, port, path = parse_addr(location)
             self.redirect(host, port)
-            self.putrequest("GET", path)
+            self.putrequest("GET", path, "HTTP/1.1")
             self.putheader("Host", port and "%s:%d" % (host, port) or host)
+            self.putheader("User-Agent", "MediaBox")
+            #self.putheader("Connection", "close")
             self.endheaders()
             self.send("", self.__on_receive_data, cb, args)
             
