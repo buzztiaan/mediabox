@@ -1,12 +1,6 @@
 from GenericMediaPlayer import *
 
-try:
-    import gobject
-    HAVE_GOBJECT = True
-except:
-    HAVE_GOBJECT = False
-    
-
+import gobject
 import os
 import fcntl
 import subprocess
@@ -67,8 +61,6 @@ class _MPlayer(GenericMediaPlayer):
 
         GenericMediaPlayer.__init__(self)
 
-        self.__heartbeat_running = False
-    
         self.__xid = -1
         self.__opts = ""
         
@@ -89,14 +81,15 @@ class _MPlayer(GenericMediaPlayer):
         self.__video_aspect = 0
         
         self.__uri = ""
-        self.__position = -1
-        self.__total_length = 0
-        self.__time_of_check = 0
         
         self.__timeout_point = 0
         self.__suspension_point = None
         
         self.__context_id = 0
+
+        self.__collect_handler = None
+        self.__send_queue = []
+        self.__position_handler = None
         
         # table for collecting player values
         self.__player_values = [None] * _MAX_VALUES
@@ -126,95 +119,47 @@ class _MPlayer(GenericMediaPlayer):
         self.update_observer(self.OBS_EOF, self.__context_id)
 
 
-    def __run_heartbeat(self):
-        """
-        Runs the heartbeat function if GObject is available and it's not
-        already running.
-        """
-    
-        if (HAVE_GOBJECT and not self.__heartbeat_running):
-            self.__hearbeat_running = True
-            #self.__player_values[_FILENAME] = "..."
-            self.__heartbeat()
-        
-                        
+
+    def __update_position(self, timestamp):
+
+        if (self.__playing):    
+            pos = float(self.__player_values[_POSITION] or 0)
+            total = float(self.__player_values[_LENGTH] or 0)
+            pos += time.time() - timestamp
+            self.__player_values[_POSITION] = pos
             
-    def __heartbeat(self):
-        """
-        Regularly checks the player status and sends events to its listeners.
-        """
-
-        self.__collect_values()
-
-        if (self.__playing):
-            self.__idle_counter = 0            
-            now = time.time()
-
-            # don't ask mplayer for the current position every time, because
-            # this is highly inefficient with Ogg Vorbis files
-            if (self.__position < 0.1):
-                try:
-                    pos, total = self.get_position()
-                    self.__time_of_check = now
-                except:
-                    pos, total = 0, 0
-
-                self.__position = pos
-                self.__total_length = total
-                #print total, pos
-                
-            else:
-                pos = self.__position + now - self.__time_of_check
-                total = self.__total_length
-                self.__time_of_check = now
-                self.__position = pos
-            #end if
-
-            # check for new track in stream
-            if (self.__player_values[_ICY_INFO]):
-                title = self.__player_values[_ICY_INFO]
-                self.update_observer(self.OBS_NEW_STREAM_TRACK,
-                                     self.__context_id, title)
-                self.__player_values[_ICY_INFO] = None
-            
-            # check for end of file
-            if (total > 0 and pos >= total):
-                if (self.__player_values[_PERCENT_POSITION] > 99.999):
-                #    self.__next_time_check = now + 1
-                #elif (now > self.__next_time_check):            
-                    self.__on_eof()
-                #self.__next_time_check = now + 1
-
-                #self.__player_values[_FILENAME] = None
-                self.__send_cmd("get_property percent_pos")
-            #end if
+            self.__position_handler = \
+                  gobject.timeout_add(500, self.__update_position, time.time())
 
             self.update_observer(self.OBS_POSITION, self.__context_id,
                                  pos, total)
-    
-        else:
-            self.__idle_counter += 1
-            
-            # check for connection timeout
-            if (self.__timeout_point and not self.__broken and
-                time.time() > self.__timeout_point):
-                self.__timeout_point = 0
-                self.__broken = True
-                self.update_observer(self.OBS_ERROR, self.__context_id,
-                                     self.ERR_CONNECTION_TIMEOUT)
 
-        #end if
-        
-        # close mplayer if we've been idle too long
-        if (self.__idle_counter == 500):
-            self.__idle_counter = 0
-            self.__stop_mplayer()
-            self.__heartbeat_running = False
-            self.__suspension_point = (self.__uri, self.__position)
-            print "mplayer closed due to idle timeout"
-            return False
-           
-        gobject.timeout_add(300, self.__heartbeat)        
+            if (total > 0.001 and total - pos < 0.01):
+                self.__on_eof()
+                
+            if (total < 0.001):
+                self.__send_cmd("get_time_length")                
+
+        else:
+            self.__position_handler = None
+
+
+
+
+    def __on_position(self):
+    
+        if (not self.__position_handler):
+            self.__position_handler = \
+                 gobject.timeout_add(0, self.__update_position, time.time())
+
+
+
+    def __on_icy_info(self):
+    
+        title = self.__player_values[_ICY_INFO]
+        self.update_observer(self.OBS_NEW_STREAM_TRACK,
+                             self.__context_id, title)
+        self.__player_values[_ICY_INFO] = None    
 
 
     def __wait_for(self, key):
@@ -224,7 +169,7 @@ class _MPlayer(GenericMediaPlayer):
     
         cnt  = 0
         while (not self.__player_values[key] and cnt < 500):
-            self.__collect_values()
+            #self.__collect_values()
             time.sleep(0.001)
             cnt += 1
         print cnt
@@ -238,36 +183,52 @@ class _MPlayer(GenericMediaPlayer):
     def __send_cmd(self, data):
     
         if (_LOGGING): print "--> " + data
-        try:
-            self.__stdin.write(data + "\n")
-        except IOError:
-            # broken pipe
-            self.__stop_mplayer()
+        self.__stdin.write(data + "\n")
+        #self.__send_queue.append(data + "\n")
         
         
     def __read(self):
                 
-        data = self.__stdout.readline()
-        if (_LOGGING): print "    " + data[:-1]
+        data = self.__stdout.read(1)
+        #if (_LOGGING): print "    " + data[:-1]
         return data        
 
 
 
-    def __collect_values(self):        
+    def __on_collect_values(self, sock, cond, buf):
         
-        if (not self.__stdout): return
+        if (cond == gobject.IO_HUP):
+            self.__collect_handler = None
+            return False
+            
+        else:
+            buf[0] += self.__read()
+            idx = buf[0].find("\n")
+            while (idx >= 0):
+                line = buf[0][:idx]
+                buf[0] = buf[0][idx + 1:]
+                self.__parse_value(line)
+                idx = buf[0].find("\n")
+            #end while
+            
+            return True
+        #end if
         
-        # get all new data
-        for i in range(10):  # not more than ten in a row
-            try:
-                data = self.__read()
-            except IOError, err:
-                # no data left
-                break
-                
-            self.__parse_value(data)
-        #end for
         
+    def __on_send_values(self, sock, cond):
+    
+        if (cond == gobject.IO_HUP):
+            self.__send_handler = None
+            return False
+
+        elif (self.__send_queue):
+            item = self.__send_queue.pop(0)
+            self.__stdin.write(item)
+            return True
+            
+        else:
+            return True
+            
         
     def __read_ans(self, data):
 
@@ -285,8 +246,10 @@ class _MPlayer(GenericMediaPlayer):
         
     def __parse_value(self, data):
     
+        #print "PARSE", data
         if (data.startswith("ANS_TIME_POSITION")):
             self.__player_values[_POSITION] = self.__read_ans(data)
+            self.__on_position()
         if (data.startswith("ANS_PERCENT_POSITION")):
             self.__player_values[_PERCENT_POSITION] = self.__read_ans(data)
         elif (data.startswith("ANS_LENGTH")):
@@ -336,6 +299,7 @@ class _MPlayer(GenericMediaPlayer):
             name = data[idx + 11:].strip()
             self.__player_values[_NAME] = name
             self.__player_values[_ICY_INFO] = name
+            self.__on_icy_info()
 
         elif (data.startswith("Demuxer info Artist changed to ")):
             idx = data.find("changed to ")
@@ -343,11 +307,13 @@ class _MPlayer(GenericMediaPlayer):
             self.__player_values[_ARTIST] = artist
             self.__player_values[_ICY_INFO] = self.__player_values[_NAME] + \
                                               " - " + artist
+            self.__on_icy_info()
         
         elif (data.startswith("Starting playback...")):
             self.__playing = True
             self.__timeout_point = 0            
             self.set_volume(self.__volume)
+            self.__send_cmd("get_time_pos")
             self.update_observer(self.OBS_PLAYING, self.__context_id)
             
         elif (data.startswith("File not found: ")):
@@ -370,8 +336,6 @@ class _MPlayer(GenericMediaPlayer):
                                  self.ERR_INVALID)
 
 
-
-        
     def __parse_icy_info(self, data):
         
         key = "StreamTitle='"
@@ -388,7 +352,7 @@ class _MPlayer(GenericMediaPlayer):
             self.__player_values[key] = None
         cnt = 0
         while (self.__player_values[key] == None and cnt < 50):
-            self.__collect_values()
+            #self.__collect_values()
             time.sleep(0.001)
             cnt += 1
         #end while
@@ -442,9 +406,13 @@ class _MPlayer(GenericMediaPlayer):
         #if (self.__stdin): self.__stdin.write("quit\n")
         os.system("killall mplayer 2>/dev/null >/dev/null")
         time.sleep(0.25)
-        os.system("killall -9 mplayer 2>/dev/null >/dev/null")    
+        os.system("killall -9 mplayer 2>/dev/null >/dev/null")
         self.__stdin = None
         self.__stdout = None
+        
+        if (self.__collect_handler):
+            gobject.source_remove(self.__collect_handler)
+            self.__collect_handler = None
                 
 
             
@@ -480,9 +448,13 @@ class _MPlayer(GenericMediaPlayer):
         self.__opts = opts
 
         # set non-blocking for better performance in an unthreaded environment
-        fcntl.fcntl(self.__stdout, fcntl.F_SETFL, os.O_NONBLOCK)
-                
-        self.__run_heartbeat()
+        #fcntl.fcntl(self.__stdout, fcntl.F_SETFL, os.O_NONBLOCK)
+        
+        self.__collect_handler = gobject.io_add_watch(self.__stdout,
+                                                gobject.IO_HUP | gobject.IO_IN,
+                                                self.__on_collect_values,
+                                                [""])
+
         self.update_observer(self.OBS_STARTED)
         
         
@@ -534,7 +506,6 @@ class _MPlayer(GenericMediaPlayer):
         self.__broken = False
         self.__has_video = False
         self.__has_audio = False
-        self.__position = -1
         self.__media_length = -1
         self.__uri = filename
 
@@ -597,7 +568,8 @@ class _MPlayer(GenericMediaPlayer):
             self.set_volume(self.__volume)
             self.__send_cmd("play")
             self.update_observer(self.OBS_PLAYING, self.__context_id)
-        self.__position = -1
+            
+        self.__send_cmd("get_time_pos")            
         
         
     def pause(self):
@@ -608,8 +580,8 @@ class _MPlayer(GenericMediaPlayer):
         if (self.__playing):
             self.set_volume(self.__volume)
             self.__send_cmd("pause")
+            self.__send_cmd("get_time_pos")
             self.update_observer(self.OBS_PLAYING, self.__context_id)
-            self.__position = -1
         else:
             self.__send_cmd("pause")
             self.update_observer(self.OBS_STOPPED, self.__context_id)
