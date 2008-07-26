@@ -54,7 +54,7 @@ class ListItem(ButtonListItem):
         ButtonListItem.render_this(self, cnv)
 
         if (self.__icon):
-            icon = thumbnail.draw_decorated(cnv, 4, 4, 120, 90, #120, 70,
+            icon = thumbnail.draw_decorated(cnv, 4, 4, 120, 82, #120, 70,
                                             self.__icon, self.__mimetype)
             
             if (self.__emblem):
