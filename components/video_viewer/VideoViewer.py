@@ -40,7 +40,7 @@ class VideoViewer(Viewer):
             self.add(self.__video_widget)            
             self.__video_widget.connect_fullscreen_toggled(self.__on_fullscreen)
             self.__video_widget.connect_media_position(self.__on_media_position)
-            self.set_toolbar_set(self.__video_widget.get_controls())
+            self.set_toolbar(self.__video_widget.get_controls())
    
         if (self.__is_fullscreen):
             x, y = 0, 0
