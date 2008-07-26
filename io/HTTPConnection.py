@@ -249,7 +249,8 @@ class HTTPConnection(object):
         if (200 <= resp.get_status() < 210):
             # OK
             resp.feed(body)
-            self.__callback(resp, *self.__user_args)
+            if (body):
+                self.__callback(resp, *self.__user_args)
             
             if (not resp.finished()):
                 self.__io_watch = gobject.io_add_watch(sock, gobject.IO_IN,
