@@ -189,7 +189,7 @@ class _MPlayer(GenericMediaPlayer):
         
     def __read(self):
                 
-        data = self.__stdout.read(1)
+        data = self.__stdout.read(1024)
         #if (_LOGGING): print "    " + data[:-1]
         return data        
 
@@ -448,12 +448,13 @@ class _MPlayer(GenericMediaPlayer):
         self.__opts = opts
 
         # set non-blocking for better performance in an unthreaded environment
-        #fcntl.fcntl(self.__stdout, fcntl.F_SETFL, os.O_NONBLOCK)
+        fcntl.fcntl(self.__stdout, fcntl.F_SETFL, os.O_NONBLOCK)
         
-        self.__collect_handler = gobject.io_add_watch(self.__stdout,
+        if (not self.__collect_handler):
+            self.__collect_handler = gobject.io_add_watch(self.__stdout,
                                                 gobject.IO_HUP | gobject.IO_IN,
-                                                self.__on_collect_values,
-                                                [""])
+                                                    self.__on_collect_values,
+                                                    [""])
 
         self.update_observer(self.OBS_STARTED)
         
