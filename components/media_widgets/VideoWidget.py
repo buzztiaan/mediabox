@@ -53,10 +53,21 @@ class VideoWidget(MediaWidget):
         self._set_controls(self.__btn_play, self.__progress)
 
 
+    def _visibility_changed(self):
+    
+        print "VIS changed"
+        if (not self.may_render()):
+            self.__screen.hide()
+        else: #if (self.__player.has_video()):
+            self.__screen.show()
+
+        MediaWidget._visibility_changed(self)
+
+
     def render_this(self):
 
-        while (gtk.events_pending()): gtk.main_iteration()
-            
+        #while (gtk.events_pending()): gtk.main_iteration()
+
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()    
@@ -89,18 +100,9 @@ class VideoWidget(MediaWidget):
         else:
             self.__screen.hide()
 
-
-    def set_visible(self, value):
-        
-        MediaWidget.set_visible(self, value)    
-        if (value):
-            pass
-        else:
-            self.__screen.hide()
-
         
     def __on_expose(self, src, ev):
-    
+
         if (self.__player.has_video()):
             win = self.__screen.window
             gc = win.new_gc()
@@ -234,7 +236,7 @@ class VideoWidget(MediaWidget):
         self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
         print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
-        while (gtk.events_pending()): gtk.main_iteration()
+        #while (gtk.events_pending()): gtk.main_iteration()
         self.__screen.show()
 
 
