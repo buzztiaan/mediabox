@@ -1,5 +1,4 @@
 from ui.Widget import Widget
-from mediabox.ToolbarSet import ToolbarSet
 
 
 class MediaWidget(Widget):
@@ -10,7 +9,7 @@ class MediaWidget(Widget):
 
     def __init__(self):
     
-        self.__tbset = None
+        self.__controls = None
         
         Widget.__init__(self)
         
@@ -30,9 +29,7 @@ class MediaWidget(Widget):
         Creates a new toolbar set.
         """
         
-        self.__tbset = ToolbarSet()
-        for w in widgets:
-            self.__tbset.add_widget(w)
+        self.__controls = list(widgets)
 
 
     def get_controls(self):
@@ -40,7 +37,7 @@ class MediaWidget(Widget):
         Returns the controls of this widget.
         """
         
-        return self.__tbset
+        return self.__controls[:]
         
         
     def connect_media_position(self, cb, *args):
