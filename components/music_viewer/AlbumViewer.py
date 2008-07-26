@@ -64,7 +64,6 @@ class AlbumViewer(Viewer):
         self.add(self.__throbber)
 
 
-
     def render_this(self):
 
         if (not self.__audio_widget):
@@ -77,13 +76,15 @@ class AlbumViewer(Viewer):
 
             # create toolbar
             ctrls = self.__audio_widget.get_controls()
-            
-            ctrls.add_button(theme.btn_previous_1, theme.btn_previous_2,
-                             self.__on_previous)
-            ctrls.add_button(theme.btn_next_1, theme.btn_next_2,
-                             self.__on_next)
 
-            self.set_toolbar_set(ctrls)
+            btn_prev = ImageButton(theme.btn_previous_1, theme.btn_previous_2)
+            btn_prev.connect_clicked(self.__on_previous)
+
+            btn_next = ImageButton(theme.btn_next_1, theme.btn_next_2)
+            btn_next.connect_clicked(self.__on_next)
+
+            ctrls += [btn_prev, btn_next]
+            self.set_toolbar(ctrls)
 
 
     def handle_event(self, event, *args):
