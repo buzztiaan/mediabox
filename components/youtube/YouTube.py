@@ -347,14 +347,23 @@ class YouTube(Device):
     def get_resource(self, resource):
     
         def f(d, a, t):
-            print "\r%d / %d         " % (a, t),
+            print "%d / %d         " % (a, t)
+            print gobject.main_depth()
+            if (gobject.main_depth() < 3): gtk.main_iteration(False)
             
         flv = self.__get_flv(resource)
 
         if (self.__flv_downloader):
             self.__flv_downloader.cancel()
             
-        self.__flv_downloader = FileDownloader(flv, "/media/mmc1/tube.flv", f)
-        self.__fileserver.allow("/media/mmc1/tube.flv", "/" + resource + ".flv")
+        self.__flv_downloader = FileDownloader(flv, "/tmp/tube.flv", f)
+        
+        # we don't give the downloaded file directly to the player because
+        # if we did so, the player would fall off the video if it reached
+        # the end of file before it was downloaded completely.
+        # instead we serve it on a webserver to make the player wait for
+        # more if the download rate is too low
+        self.__fileserver.allow("/tmp/tube.flv", "/" + resource + ".flv")
+        
         return self.__fileserver.get_location() + "/" + resource + ".flv"
 
