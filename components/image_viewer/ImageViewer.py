@@ -64,7 +64,7 @@ class ImageViewer(Viewer):
         
 
         # toolbar
-        self.__tbset = self.new_toolbar_set()
+        self.__tbset = []
         for icon1, icon2, action in [
           (theme.btn_zoom_in_1, theme.btn_zoom_in_2, self.__zoom_in),
           (theme.btn_zoom_out_1, theme.btn_zoom_out_2, self.__zoom_out),
@@ -74,8 +74,8 @@ class ImageViewer(Viewer):
           (theme.btn_next_1, theme.btn_next_2, self.__next_image)]:
             btn = ImageButton(icon1, icon2)
             btn.connect_clicked(action)
-            self.__tbset.add_widget(btn)
-        self.set_toolbar_set(self.__tbset)            
+            self.__tbset.append(btn)
+        self.set_toolbar(self.__tbset)
             
 
     def render_this(self):
