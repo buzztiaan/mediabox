@@ -585,7 +585,7 @@ class Image(Widget, Observable):
             size_read += len(data)
 
             self.update_observer(self.OBS_PROGRESS, size_read, size)
-            while (gtk.events_pending()): gtk.main_iteration()
+            #while (gtk.events_pending()): gtk.main_iteration()
 
             if (self.__loading_cancelled):
                 break
