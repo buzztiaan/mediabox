@@ -125,7 +125,7 @@ class TabPanel(Widget, Observable):
                 
         self.set_events_blocked(True)
         f(STEP)
-        while (wait and not finished.isSet()): gtk.main_iteration()        
+        while (wait and not finished.isSet()): gtk.main_iteration(False)        
         self.set_events_blocked(False)
 
 
@@ -143,7 +143,7 @@ class TabPanel(Widget, Observable):
         
         def f(i):
             screen.move_area(0, 0, 800, 480 - h + i, 0, STEP)
-            screen.copy_pixmap(self.__buffer, 0, h - i - STEP, 0, 0, w, STEP)            
+            screen.copy_pixmap(self.__buffer, 0, h - i - STEP, 0, 0, w, STEP)
             if (i < h - STEP):
                 gobject.timeout_add(2, f, i + STEP)
             else:
@@ -152,5 +152,5 @@ class TabPanel(Widget, Observable):
                 
         self.set_events_blocked(True)
         f(0)
-        while (wait and not finished.isSet()): gtk.main_iteration()        
+        while (wait and not finished.isSet()): gtk.main_iteration(False)        
         self.set_events_blocked(False)
