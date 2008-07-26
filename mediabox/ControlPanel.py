@@ -49,15 +49,25 @@ class ControlPanel(Widget, Observable):
 
  
 
-    def set_toolbar_set(self, tbset):
+    def set_toolbar(self, tbset):
         """
-        Sets the given toolbar set on this panel.
+        Sets the given toolbar on this panel.
         """
     
+        for c in self.__box.get_children():
+            self.__box.remove(c)
+        
+        for c in tbset:
+            self.__box.add(c)
+            c.set_visible(True)
+            
+        return
+            
         if (tbset and not tbset in self.__known_sets):
             self.__known_sets.append(tbset)        
-            for c in tbset.get_items():
+            for c in tbset:
                 if (not c in self.__box.get_children()):
+                    print c
                     self.__box.add(c)
             #end for
         #end if
@@ -68,11 +78,8 @@ class ControlPanel(Widget, Observable):
         if (tbset == None):
             self.__items = []
         else:
-            self.__items = tbset.get_items()
+            self.__items = tbset
         
         for c in self.__items:
             c.set_visible(True)
-        
-        #print "set tbar", len(self.__items)
-        #self.render()
 
