@@ -355,7 +355,7 @@ class App(Component):
         self.__thumbnailer.clear()        
         self.__thumbnailer.set_visible(True)
         self.__root_pane.render_buffered()
-        while (gtk.events_pending()): gtk.main_iteration()
+        #while (gtk.events_pending()): gtk.main_iteration()
 
 
         paths = []
@@ -366,7 +366,7 @@ class App(Component):
         self.emit_event(msgs.MEDIASCANNER_ACT_SCAN, paths)
         
 
-        while (gtk.events_pending()): gtk.main_iteration()
+        #while (gtk.events_pending()): gtk.main_iteration()
 
         for v in self.__viewers:
             self.__viewer_states[v].thumbs_loaded = False
@@ -598,7 +598,7 @@ class App(Component):
 
         elif (event == msgs.CORE_ACT_SET_TOOLBAR):
             tbset = args[0]
-            self.__ctrl_panel.set_toolbar_set(tbset)
+            self.__ctrl_panel.set_toolbar(tbset)
 
         elif (event == msgs.CORE_EV_VOLUME_CHANGED):
             percent = args[0]
