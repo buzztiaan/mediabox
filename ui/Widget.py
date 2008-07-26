@@ -98,6 +98,7 @@ class Widget(object):
         """
     
         self.__children.remove(child)
+        child.set_visible(False)
         self.__check_zone()
         
         
@@ -185,7 +186,7 @@ class Widget(object):
         """
         Returns whether this widget is currently frozen.
         """
-    
+
         return self.__is_frozen
         
 
@@ -197,6 +198,7 @@ class Widget(object):
     
         self.__is_visible = value
         self.__check_zones()
+        self._visibility_changed()
 
 
     def is_visible(self):
@@ -208,6 +210,16 @@ class Widget(object):
             return False
         else:
             return self.__is_visible
+        
+        
+    def _visibility_changed(self):
+        """
+        Widgets can override this method if they want to be notified when
+        the visibility changes, e.g. if an ancestor widget became invisible.
+        """
+        
+        for c in self.__children:
+            c._visibility_changed()
         
                         
                 
