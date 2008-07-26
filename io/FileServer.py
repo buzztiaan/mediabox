@@ -1,6 +1,7 @@
 from utils import logging
 
 import gobject
+import gtk
 import socket
 import os
 import time
@@ -201,6 +202,10 @@ class _FileServer(object):
             sock.close()
             self.__remove_client()
             return False
+
+        # this helps a bit against starvation of the gtk events due to too much
+        # IO traffic
+        if (gobject.main_depth() < 3): gtk.main_iteration(False)
 
         chunk = data[0]
         if (chunk):
