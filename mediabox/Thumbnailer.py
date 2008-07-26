@@ -59,5 +59,5 @@ class Thumbnailer(Widget):
         screen.copy_pixmap(self.__buffer, 0, 0, 400 - 80, 200 - 60, 160, 120)
 
         del pbuf
-        while (gtk.events_pending()): gtk.main_iteration()
+        #while (gtk.events_pending()): gtk.main_iteration()
 
