@@ -1,5 +1,4 @@
 from ui.Widget import Widget
-from ui.ImageButton import ImageButton
 import theme
 
 
@@ -13,11 +12,6 @@ class PlayerPane(Widget):
         self.__current_media_widget = None
     
         Widget.__init__(self)
-        
-        self.__toggle_btn = ImageButton(theme.item_btn_play, theme.item_btn_play)
-        self.__toggle_btn.connect_clicked(lambda :self.send_event(self.EVENT_TOGGLED))
-        self.add(self.__toggle_btn)
-        
         
         
     def connect_toggled(self, cb, *args):
@@ -44,17 +38,10 @@ class PlayerPane(Widget):
             screen.fill_area(x, y, w, h, theme.color_bg)
         
             if (self.__current_media_widget):
-               self.__current_media_widget.set_geometry(0, 0, w - 60, h)
-               if (w < 100):
-                   self.__current_media_widget.set_visible(False)
-               else:
-                   self.__current_media_widget.set_visible(True)
-            self.__toggle_btn.set_pos(w - 60, (h - 60) / 2)
-            self.__toggle_btn.set_visible(True)
+               self.__current_media_widget.set_geometry(0, 0, w - 10, h)
             
         else:
             self.__current_media_widget.set_geometry(0, 0, w, h)
-            self.__toggle_btn.set_visible(False)
         
         
     def set_media_widget(self, mw):
@@ -62,6 +49,7 @@ class PlayerPane(Widget):
         if (self.__current_media_widget):
             self.remove(self.__current_media_widget)
 
-        self.add(mw)       
+        self.add(mw)
+        mw.set_visible(True)
         self.__current_media_widget = mw
 

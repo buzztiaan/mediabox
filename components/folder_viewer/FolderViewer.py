@@ -63,7 +63,6 @@ class FolderViewer(Viewer):
         Viewer.__init__(self)
         
         self.__list = TrackList()
-        self.__list.set_geometry(0, 40, 560, 370)
         self.add(self.__list)
         
         self.__list.connect_item_clicked(self.__on_item_clicked)
@@ -77,7 +76,6 @@ class FolderViewer(Viewer):
         # player pane
         self.__player_pane = PlayerPane()
         self.add(self.__player_pane)
-        self.__player_pane.connect_toggled(self.__on_toggle_player_pane)
         
         
         # toolbar
@@ -85,7 +83,11 @@ class FolderViewer(Viewer):
                                       theme.btn_previous_2)
         self.__btn_back.connect_clicked(self.__on_btn_back)
 
-        self.__navigation_tbset = self.new_toolbar_set(self.__btn_back)
+        self.__btn_toggle_player = ImageButton(theme.btn_next_1,
+                                               theme.btn_next_2)
+        self.__btn_toggle_player.connect_clicked(self.__on_toggle_player_pane)
+
+        self.__navigation_tbset = [self.__btn_back, self.__btn_toggle_player]
 
 
         self.__set_view_mode(_VIEWMODE_NO_PLAYER)
@@ -96,19 +98,23 @@ class FolderViewer(Viewer):
         thin_mode = False
         if (mode == _VIEWMODE_NO_PLAYER):
             self.__list.set_visible(True)
-            self.__list.set_geometry(0, 40, 560, 370)
-            self.__player_pane.set_geometry(580, 40, 40, 370)
+            self.__list.set_geometry(0, 40, 610, 370)
+            self.__player_pane.set_visible(False)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-            self.set_toolbar_set(self.__navigation_tbset)
+            self.set_toolbar(self.__navigation_tbset)
             if (self.__current_device):
                 self.set_title(self.__current_device.get_name())
 
         elif (mode == _VIEWMODE_PLAYER_NORMAL):
             self.__list.set_visible(True)        
             self.__list.set_geometry(10, 40, 160, 370)
+            self.__player_pane.set_visible(True)
             self.__player_pane.set_geometry(180, 32, 620, 388)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
-            self.set_toolbar_set(self.__player_pane.get_controls())
+            tbset = self.__player_pane.get_controls()
+            if (tbset):
+                tbset.append(self.__btn_toggle_player)
+                self.set_toolbar(tbset)
             if (self.__current_file):
                 self.set_title(self.__current_file.name)
             thin_mode = True            
