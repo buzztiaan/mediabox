@@ -58,15 +58,15 @@ class LocalDevice(Device):
     
         items = []
         for name, path, mimetype, emblem in \
-          [("Sounds", "/home/user/MyDocs/.sounds", File.DIRECTORY, theme.mb_filetype_audio),
+          [("Memory Cards", "MMC", File.DIRECTORY, None),
+           ("Sounds", "/home/user/MyDocs/.sounds", File.DIRECTORY, theme.mb_filetype_audio),
            ("Videos", "/home/user/MyDocs/.videos", File.DIRECTORY, theme.mb_filetype_video),
            ("Images", "/home/user/MyDocs/.images", File.DIRECTORY, theme.mb_filetype_image),
            ("Documents", maemo.IS_MAEMO and "/home/user/MyDocs/.documents"
                                         or os.path.expanduser("~"),
                                         File.DIRECTORY, None),
            ("Games", "/home/user/MyDocs/.games", File.DIRECTORY, None),
-           ("System", "/", File.DIRECTORY, None),
-           ("Memory Cards", "MMC", File.DIRECTORY, None)]:
+           ("System", "/", File.DIRECTORY, None)]:
             item = File(self)
             item.path = path
             item.resource = path
