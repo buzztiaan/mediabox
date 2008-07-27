@@ -1,6 +1,6 @@
 from storage import Device, File
 from io import SeekableFD
-from upnp.MiniXML import MiniXML
+from utils.MiniXML import MiniXML
 from upnp.SOAPProxy import SOAPProxy
 from upnp import didl_lite
 from utils import mimetypes
