@@ -57,10 +57,8 @@ class ImageStrip(Widget):
         # whether we wrap around
         self.__wrap_around = True
         
-        # handle of the renderer
-        self.__render_handler = None
-
         self.__buffer = Pixmap(None, 800, 480)
+        self.__buffer_dirty = False
  
  
     def _reload(self):
@@ -68,22 +66,35 @@ class ImageStrip(Widget):
         Reload graphics when theme has changed.
         """
 
+        self.invalidate_buffer()
         self.set_bg_color(self.__bg_color)
         if (self.__shared_pmap):
             self.__shared_pmap.clear_cache()
 
         #self.render_full()
         self.render()
- 
+
+
+    def invalidate_buffer(self):
+        """
+        Invalidates the rendering buffer. While nothing has changed, the
+        contents of the buffer are taken to redraw the list. If you changed the
+        contents of an item you have to invoke this method manually.
+        """
+
+        self.__buffer_dirty = True
+
  
     def set_size(self, w, h):
     
+        self.invalidate_buffer()
         Widget.set_size(self, w, h)
         self.set_scrollbar(self.__scrollbar_pbuf)
  
 
     def set_bg_color(self, color):
     
+        self.invalidate_buffer()
         self.__bg_color = color
         self.__buffer.fill_area(0, 0, 800, 480, self.__bg_color)
         
@@ -93,6 +104,7 @@ class ImageStrip(Widget):
         Sets the background image from the given pixbuf or filename.
         """
     
+        self.invalidate_buffer()
         self.__bg = bg
         
         
@@ -102,6 +114,7 @@ class ImageStrip(Widget):
         disable a cap.
         """
     
+        self.invalidate_buffer()
         self.__cap_top = top
         if (top):
             self.__cap_top_size = (top.get_width(), top.get_height())            
@@ -115,6 +128,8 @@ class ImageStrip(Widget):
         Sets arrow graphics from the given pixbufs. If 'arrows_off' is given,
         it must be the same size as 'arrows'.
         """
+
+        self.invalidate_buffer()
     
         arrow_up = None
         arrow_down = None
@@ -150,6 +165,8 @@ class ImageStrip(Widget):
 
     def set_scrollbar(self, pbuf):
     
+        self.invalidate_buffer()
+    
         self.__scrollbar_pbuf = pbuf
         if (not pbuf):
             self.__scrollbar_pmap = None
@@ -167,7 +184,9 @@ class ImageStrip(Widget):
         Floats the given item at the given position. Position is relative
         to the current offset.
         """
-    
+
+        self.invalidate_buffer()
+        
         self.__floating_index = idx
         self.__floating_position = pos
 
@@ -187,7 +206,8 @@ class ImageStrip(Widget):
         Sets the list of images to be displayed by the image strip.
         It can either be a list of pixbufs or a list of filenames.
         """
-        
+
+        self.invalidate_buffer()        
         while (self.__images):
             img = self.__images.pop()
             del img  
@@ -215,6 +235,7 @@ class ImageStrip(Widget):
         
     def append_image(self, img):
 
+        self.invalidate_buffer()
         if (not self.__shared_pmap):
             w, h = img.get_size()
             self.__shared_pmap = SharedPixmap(w, h)
@@ -330,6 +351,7 @@ class ImageStrip(Widget):
         Swaps the place of two images.
         """
         
+        self.invalidate_buffer()
         temp = self.__images[idx1]
         self.__images[idx1] = self.__images[idx2]
         self.__images[idx2] = temp
@@ -499,16 +521,22 @@ class ImageStrip(Widget):
             
         screen.copy_pixmap(self.__buffer, x, y + offset, x, y + offset, w, height)
         self.__buffer.copy_pixmap(TEMPORARY_PIXMAP, x, y, x, y, w, h)
+        self.__buffer_dirty = False
 
         
     def render_this(self):
 
+        x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-        self.__render_handler = None
 
-        self.render_full()
-        self.__render_buffered(screen, 0, h)
+        if (self.__buffer_dirty):
+            self.render_full()
+            self.__render_buffered(screen, 0, h)
+        else:
+            # nothing changed; simply render the buffer again
+            print "restoring from buffer"
+            self.__render_buffered(screen, 0, h)
         
         
         
@@ -645,6 +673,8 @@ class ImageStrip(Widget):
         """
         Scrolls the image strip by the given positive or negative amount.
         """
+
+        self.invalidate_buffer()
                 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
