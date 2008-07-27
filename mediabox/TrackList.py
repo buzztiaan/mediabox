@@ -89,7 +89,9 @@ class TrackList(ItemList, Observable):
                 
         #end if
 
-        if (need_render): self.render()
+        if (need_render):
+            self.invalidate_buffer()
+            self.render()
         if (handled): self.__kscr.stop_scrolling()
 
         return handled

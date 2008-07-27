@@ -4,6 +4,7 @@ from ui.Widget import Widget
 class MediaWidget(Widget):
 
     EVENT_MEDIA_POSITION = "media-position"
+    EVENT_MEDIA_EOF = "media-eof"
     EVENT_FULLSCREEN_TOGGLED = "fullscreen-toggled"
     
 
@@ -43,6 +44,11 @@ class MediaWidget(Widget):
     def connect_media_position(self, cb, *args):
     
         self._connect(self.EVENT_MEDIA_POSITION, cb, *args)
+        
+        
+    def connect_media_eof(self, cb, *args):
+    
+        self._connect(self.EVENT_MEDIA_EOF, cb, *args)
         
 
     def connect_fullscreen_toggled(self, cb, *args):

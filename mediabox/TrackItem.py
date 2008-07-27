@@ -53,7 +53,7 @@ class TrackItem(ButtonListItem):
           
         x = 8
         if (self.__icon):
-            icon = thumbnail.draw_decorated(canvas, 4, 4, 120, 70,
+            icon = thumbnail.draw_decorated(canvas, 4, 4, 120, 80,
                                             self.__icon, self.__mimetype)
 
             #canvas.fit_pixbuf(icon, 4, 4, 120, 70)
