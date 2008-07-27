@@ -179,8 +179,10 @@ class Widget(object):
         """
     
         self.__is_frozen = value
+        self._visibility_changed()
         for c in self.__children:
             c.set_frozen(value)
+        
         
     def is_frozen(self):
         """
@@ -196,9 +198,14 @@ class Widget(object):
         and does not react to events and all descendants are invisible as well.
         """
     
+        def f(w):
+            w._visibility_changed()
+            for c in w.get_children():
+                f(c)
+    
         self.__is_visible = value
         self.__check_zones()
-        self._visibility_changed()
+        f(self)
 
 
     def is_visible(self):
@@ -217,12 +224,10 @@ class Widget(object):
         Widgets can override this method if they want to be notified when
         the visibility changes, e.g. if an ancestor widget became invisible.
         """
-        
-        for c in self.__children:
-            c._visibility_changed()
-        
-                        
-                
+
+        pass
+
+
     def _can_be_visible(self):
         """
         Internal method for determining whether this widget can be visible.

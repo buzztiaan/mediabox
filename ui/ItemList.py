@@ -114,6 +114,7 @@ class ItemList(ImageStrip):
         Sets the given item as hilighted. Only one item is hilighted at a time.
         """
 
+        self.invalidate_buffer()
         if (self.__hilighted_item >= 0):
             try:
                 item = self.get_image(self.__hilighted_item)

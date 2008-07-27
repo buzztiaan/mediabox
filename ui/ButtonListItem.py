@@ -78,7 +78,7 @@ class ButtonListItem(ListItem):
         if (self.__state == _OPEN):
             menu_width = len(items) * _GAP_SIZE - 16
             canvas.draw_frame(theme.mb_panel, w - 16 - menu_width, 8,
-                              menu_width, 64, True)
+                              menu_width, h - 16, True)
                               
         self.__button_pos = []
         x = w - 8
