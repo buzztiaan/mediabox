@@ -211,8 +211,7 @@ class FolderViewer(Viewer):
                 
     def __on_item_clicked(self, item, idx, px, py):
 
-        w, h = self.__player_pane.get_size()    
-        if (px >= 80 and w > 100):
+        if (px >= 80 and self.__player_pane.is_visible()):
             self.__on_item_button(item, idx, item.BUTTON_PLAY)
             
                             
