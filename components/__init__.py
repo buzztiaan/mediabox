@@ -42,6 +42,7 @@ def load_components():
         except:
             logging.error("could not load component [%s]", path)
             import traceback; traceback.print_exc()
+            continue
 
         if (hasattr(mod, "messages")):
             for msg in mod.messages:
