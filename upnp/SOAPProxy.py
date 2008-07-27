@@ -176,7 +176,7 @@ class SOAPProxy(object):
     def __post_soap_async(self, name, soap, async_cb):
     
         def on_soap_response(resp):
-            if (resp.finished()):
+            if (resp and resp.finished()):
                 values = self.__parse_soap_response(resp.read())
                 try:
                     async_cb(*values)
