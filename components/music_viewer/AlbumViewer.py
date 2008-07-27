@@ -54,7 +54,6 @@ class AlbumViewer(Viewer):
     
         self.__list = TrackList(with_header = True)
         self.__list.set_geometry(0, 40, 610, 370)
-        #self.__list.add_observer(self.__on_observe_track_list)
         self.__list.connect_button_clicked(self.__on_list_button_clicked)
         self.add(self.__list)
         
@@ -73,6 +72,7 @@ class AlbumViewer(Viewer):
             self.__audio_widget.set_visible(False)
             self.add(self.__audio_widget)            
             self.__audio_widget.connect_media_position(self.__on_media_position)
+            self.__audio_widget.connect_media_eof(self.__on_eof)
 
             # create toolbar
             ctrls = self.__audio_widget.get_controls()
@@ -250,6 +250,10 @@ class AlbumViewer(Viewer):
     
         self.set_info(info)
         
+
+    def __on_eof(self):
+    
+        self.__next_track()
 
 
     def __on_list_button_clicked(self, item, idx, button):
