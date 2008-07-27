@@ -632,12 +632,14 @@ class App(Component):
             img.set_hilighted(False)
             #img.draw_pixmap(self.__saved_image, 0, 0)
             #del self.__saved_image
+            self.__strip.invalidate_buffer()
         
         if (idx >= 0):    
             img = self.__strip.get_image(idx)
             img.set_hilighted(True)
             #self.__saved_image = img.clone()
             #img.draw_pixbuf(theme.selection_frame, 0, 0)
+            self.__strip.invalidate_buffer()
         
         self.__saved_image_index = idx
         self.__strip.render()        
