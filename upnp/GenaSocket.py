@@ -1,6 +1,6 @@
 from io import HTTPConnection, parse_addr
 from utils import logging
-from upnp.MiniXML import MiniXML
+from utils.MiniXML import MiniXML
 
 import socket
 import commands
