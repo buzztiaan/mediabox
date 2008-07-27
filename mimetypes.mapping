@@ -1,0 +1,28 @@
+# MIME types mapping table
+
+# MIME type                           # Extensions        # Name         # Type
+#------------------------------------------------------------------------------
+
+image/gif                             .gif                GIF            I
+image/jpeg                            .jpg,.jpeg          JPEG           I
+image/png                             .png                PNG            I
+
+application/vorbis                    -                   Ogg-Vorbis     A
+audio/mp2                             .mp2                MP2-Audio      A
+audio/mpeg                            .mp3                MP3-Audio      A
+audio/mp4                             .aac,.m4a           MP4-Audio      A
+audio/x-flac                          .flac               FLAC           A
+audio/x-ms-wma                        .wma                WMA            A
+audio/x-vorbis+ogg                    .ogg                Ogg-Vorbis     A
+audio/x-wav                           .wav                WAV            A
+
+application/vnd.rn-realmedia          .rm,.ram,.ra,.rmvb  Realmedia      V
+video/mp4                             .m4v                MP4-Video      V
+video/mpeg                            .mpg,.mpeg          MPEG           V
+video/quicktime                       .mov,.qt            Quicktime      V
+video/x-flash-video                   .flv                Flash-Video    V
+video/flv                             -                   Flash-Video    V
+video/x-ms-asf                        .asf                ASF            V
+video/x-msvideo                       .avi                AVI            V
+video/x-ms-wmv                        .wmv                WMV            V
+
