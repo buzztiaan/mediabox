@@ -18,7 +18,9 @@ class Factory(MediaWidgetFactory):
     
         return ["audio/*",
                 "image/*",
-                "video/*"]
+                "video/*",
+                "application/ogg",
+                "application/vnd.rn-realmedia"]
                 
                 
     def get_widget_class(self, mimetype):
@@ -26,9 +28,11 @@ class Factory(MediaWidgetFactory):
         if (mimetype.startswith("video/")):
             return VideoWidget
             
-        elif (mimetype.startswith("audio/")):
+        elif (mimetype.startswith("audio/") or
+              mimetype == "application/ogg"):
             return AudioWidget
 
-        elif (mimetype.startswith("image/")):
+        elif (mimetype.startswith("image/") or
+              mimetype == "application/vnd.rn-realmedia"):
             return ImageWidget
 

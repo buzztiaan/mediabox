@@ -18,8 +18,9 @@ class VideoWidget(MediaWidget):
 
     def __init__(self):
     
-        self.__player = mediaplayer.get_player_for_uri("")
+        self.__player = None
         mediaplayer.add_observer(self.__on_observe_player)
+
         self.__volume = 50
         self.__aspect_ratio = 1.0
 
@@ -54,15 +55,13 @@ class VideoWidget(MediaWidget):
 
 
     def _visibility_changed(self):
-    
-        print "VIS changed"
+
+        print "VIS changed", self.may_render(), self
         if (not self.may_render()):
             self.__screen.hide()
         else: #if (self.__player.has_video()):
             self.__screen.show()
-
-        MediaWidget._visibility_changed(self)
-
+        
 
     def render_this(self):
 
@@ -87,7 +86,7 @@ class VideoWidget(MediaWidget):
             self.__layout.move(self.__screen, x, y)
             self.__screen.set_size_request(w, h)
 
-        if (self.__player.has_video()):
+        if (self.__player and self.__player.has_video()):
             self.__scale_video()            
             self.__screen.show()
 
@@ -95,7 +94,7 @@ class VideoWidget(MediaWidget):
     def set_frozen(self, value):
     
         MediaWidget.set_frozen(self, value)
-        if (not value and self.may_render() and self.__player.has_video()):
+        if (not value and self.may_render() and self.__player and self.__player.has_video()):
             self.__screen.show()
         else:
             self.__screen.hide()
@@ -103,7 +102,7 @@ class VideoWidget(MediaWidget):
         
     def __on_expose(self, src, ev):
 
-        if (self.__player.has_video()):
+        if (self.__player and self.__player.has_video()):
             win = self.__screen.window
             gc = win.new_gc()
             cmap = win.get_colormap()
@@ -126,9 +125,12 @@ class VideoWidget(MediaWidget):
             if (ctx == self.__context_id):
                 pos_m = pos / 60
                 pos_s = pos % 60
-                total_m = total / 60
-                total_s = total % 60
-                info = "%d:%02d / %d:%02d" % (pos_m, pos_s, total_m, total_s)
+                if (total > 0.001):
+                    total_m = total / 60
+                    total_s = total % 60
+                    info = "%d:%02d / %d:%02d" % (pos_m, pos_s, total_m, total_s)
+                else:
+                    info = "%d:%02d" % (pos_m, pos_s)            
 
                 self.send_event(self.EVENT_MEDIA_POSITION, info)
                 self.__progress.set_position(pos, total)
@@ -178,6 +180,8 @@ class VideoWidget(MediaWidget):
                 
                 self.__btn_play.set_images(theme.btn_play_1,
                                            theme.btn_play_2)                
+                self.send_event(self.EVENT_MEDIA_EOF)
+
 
         elif (cmd == src.OBS_ASPECT):
             ctx, ratio = args
@@ -250,7 +254,7 @@ class VideoWidget(MediaWidget):
                 if (uri == self.__uri): return
                 
                 # TODO: get player for MIME type
-                self.__player = mediaplayer.get_player_for_uri(uri)
+                self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
                 
                 self.__player.set_window(self.__screen.window.xid)
                 if (maemo.IS_MAEMO):

@@ -1,4 +1,3 @@
-from mediaplayer import AUDIO_FORMATS
 import thief
 
 import os

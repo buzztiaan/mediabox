@@ -24,7 +24,7 @@ class AudioWidget(MediaWidget):
 
     def __init__(self):
     
-        self.__player = mediaplayer.get_player_for_uri("")
+        self.__player = None
         mediaplayer.add_observer(self.__on_observe_player)
         self.__volume = 50
 
@@ -106,9 +106,12 @@ class AudioWidget(MediaWidget):
             if (ctx == self.__context_id):
                 pos_m = pos / 60
                 pos_s = pos % 60
-                total_m = total / 60
-                total_s = total % 60
-                info = "%d:%02d / %d:%02d" % (pos_m, pos_s, total_m, total_s)
+                if (total > 0.001):
+                    total_m = total / 60
+                    total_s = total % 60
+                    info = "%d:%02d / %d:%02d" % (pos_m, pos_s, total_m, total_s)
+                else:
+                    info = "%d:%02d" % (pos_m, pos_s)
 
                 self.send_event(self.EVENT_MEDIA_POSITION, info)
                 self.__progress.set_position(pos, total)
@@ -155,7 +158,8 @@ class AudioWidget(MediaWidget):
                 #if (self.__is_fullscreen): self.__on_fullscreen()
                 
                 self.__btn_play.set_images(theme.btn_play_1,
-                                           theme.btn_play_2)                
+                                           theme.btn_play_2)
+                self.send_event(self.EVENT_MEDIA_EOF)
 
 
 
@@ -199,7 +203,7 @@ class AudioWidget(MediaWidget):
             if (uri == self.__uri): return
 
             # TODO: get player for MIME type
-            self.__player = mediaplayer.get_player_for_uri(uri)
+            self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
             
             try:
                 self.__context_id = self.__player.load_video(uri)

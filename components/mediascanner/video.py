@@ -1,4 +1,3 @@
-from mediaplayer import VIDEO_FORMATS
 import thief
 
 import os
