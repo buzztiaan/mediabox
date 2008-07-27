@@ -120,16 +120,17 @@ class _MPlayer(GenericMediaPlayer):
 
 
 
-    def __update_position(self, timestamp):
+    def __update_position(self, timestamp, beginpos):
 
         if (self.__playing):    
-            pos = float(self.__player_values[_POSITION] or 0)
+            #pos = float(self.__player_values[_POSITION] or 0)
             total = float(self.__player_values[_LENGTH] or 0)
-            pos += time.time() - timestamp
+            pos = beginpos + (time.time() - timestamp)
             self.__player_values[_POSITION] = pos
             
             self.__position_handler = \
-                  gobject.timeout_add(500, self.__update_position, time.time())
+                  gobject.timeout_add(500, self.__update_position,
+                                      timestamp, beginpos)
 
             self.update_observer(self.OBS_POSITION, self.__context_id,
                                  pos, total)
@@ -148,9 +149,13 @@ class _MPlayer(GenericMediaPlayer):
 
     def __on_position(self):
     
-        if (not self.__position_handler):
-            self.__position_handler = \
-                 gobject.timeout_add(0, self.__update_position, time.time())
+        if (self.__position_handler):
+            gobject.source_remove(self.__position_handler)
+            
+        pos = float(self.__player_values[_POSITION] or 0)
+        self.__position_handler = \
+                 gobject.timeout_add(0, self.__update_position,
+                                     time.time(), pos)
 
 
 
