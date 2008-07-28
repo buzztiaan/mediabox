@@ -34,18 +34,14 @@ _MAX_VALUES = 34        # for the array length
 
 # connection timeout in seconds
 _CONNECTION_TIMEOUT = 30
+
+# idle timeout in milliseconds
+_IDLE_TIMEOUT = 1000 * 60 * 3
+
 _LOGGING = True
 
 # path to the mplayer executable
 _MPLAYER = "/usr/bin/mplayer"
-
-_FORMATS = (".avi", ".flv", ".mov", ".mpeg",
-            ".mpg", ".wmv", ".asf", ".m4v",
-            ".mp4",
-
-            ".mp3", ".wav", ".wma", ".ogg",
-            ".aac", ".flac", ".m4a",            
-            ".m3u", ".pls", "unknown-stream")
 
 
 
@@ -74,8 +70,7 @@ class _MPlayer(GenericMediaPlayer):
         
         self.__needs_restart = False
         self.__media_length = -1
-        self.__idle_counter = 0
-        
+
         self.__video_width = 0
         self.__video_height = 0
         self.__video_aspect = 0
@@ -90,15 +85,11 @@ class _MPlayer(GenericMediaPlayer):
         self.__collect_handler = None
         self.__send_queue = []
         self.__position_handler = None
+        self.__idle_handler = None
         
         # table for collecting player values
         self.__player_values = [None] * _MAX_VALUES
 
-
-    def handles(self, filetype):
-      
-        return False
-        return (filetype in _FORMATS)
 
 
     def handle_expose(self, src, gc, x, y, w, h):
@@ -106,7 +97,22 @@ class _MPlayer(GenericMediaPlayer):
         w, h = src.get_size()
         src.draw_rectangle(gc, False, w - 1, 0, 1, h)
         src.draw_rectangle(gc, False, 0, h - 1, w, 1)    
-              
+
+
+    def __on_idle_timeout(self):
+        """
+        Reacts on idle timeout and suspends mplayer.
+        """
+
+        print "IDLE TIMEOUT"
+        gobject.source_remove(self.__idle_handler)
+        self.__idle_handler = None
+        
+        pos = float(self.__player_values[_POSITION] or 0)
+        self.__suspension_point = (self.__uri, pos)
+        self.__stop_mplayer()
+
+
 
     def __on_eof(self):
         """
@@ -121,6 +127,11 @@ class _MPlayer(GenericMediaPlayer):
 
 
     def __update_position(self, timestamp, beginpos):
+        """
+        Keeps the position counter updated without querying mplayer all the
+        time. Querying the position is an expensive operation with Ogg-Vorbis
+        files.
+        """
 
         if (self.__playing):    
             #pos = float(self.__player_values[_POSITION] or 0)
@@ -144,10 +155,17 @@ class _MPlayer(GenericMediaPlayer):
         else:
             self.__position_handler = None
 
-
+        # reset idle timeout
+        if (self.__idle_handler):
+            gobject.source_remove(self.__idle_handler)
+        self.__idle_handler = gobject.timeout_add(_IDLE_TIMEOUT,
+                                                  self.__on_idle_timeout)
 
 
     def __on_position(self):
+        """
+        Reacts on reading a position information from mplayer.
+        """
     
         if (self.__position_handler):
             gobject.source_remove(self.__position_handler)
@@ -160,6 +178,9 @@ class _MPlayer(GenericMediaPlayer):
 
 
     def __on_icy_info(self):
+        """
+        Reacts on reading ICY info (metatags) from mplayer.
+        """
     
         title = self.__player_values[_ICY_INFO]
         self.update_observer(self.OBS_NEW_STREAM_TRACK,
@@ -481,7 +502,7 @@ class _MPlayer(GenericMediaPlayer):
             uri, pos = self.__suspension_point
             self.load(uri, self.__context_id)
             self.seek(pos)
-            self.__playing = True
+            #self.__playing = True
 
         
 
@@ -516,6 +537,7 @@ class _MPlayer(GenericMediaPlayer):
         self.__uri = filename
 
         self.__player_values[_FILENAME] = filename
+        self.__player_values[_LENGTH] = None
 
         # reset position bar
         self.update_observer(self.OBS_POSITION, self.__context_id, 0, 0.01)
