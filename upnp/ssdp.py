@@ -31,15 +31,15 @@ def open_sockets():
             _ssdp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             _ssdp_socket.bind((_SSDP_IP, _SSDP_PORT))
         except:
-            logging.warning("cannot open socket for SSDP monitoring")
-            import traceback; traceback.print_exc()
+            logging.warning("cannot open socket for SSDP monitoring\n%s",
+                            logging.stacktrace())
             
     if (not _discover_socket):
         try:
             _discover_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         except:
-            logging.warning("cannot open socket for SSDP discovering")
-            import traceback; traceback.print_exc()
+            logging.warning("cannot open socket for SSDP discovering\n%s",
+                            logging.stacktrace())
     
     return (_ssdp_socket, _discover_socket)
 
@@ -50,7 +50,11 @@ def discover_devices():
     Sends a M-SEARCH for discovering all available UPnP devices.
     """
     
-    _discover_socket.sendto(_M_SEARCH, (_SSDP_IP, _SSDP_PORT))
+    try:
+        _discover_socket.sendto(_M_SEARCH, (_SSDP_IP, _SSDP_PORT))
+    except:
+        logging.error("could not search for UPnP devices\n%s",
+                      logging.stacktrace())
 
 
 
