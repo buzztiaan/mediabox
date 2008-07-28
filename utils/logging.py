@@ -3,6 +3,7 @@ Lightweight logger
 """
 
 import time
+import traceback
 
 
 OFF = 0         # log nothing
@@ -73,3 +74,7 @@ def debug(msg, *args):
 
     _log("DEBUG  ", msg)
 
+
+def stacktrace():
+
+    return traceback.format_exc()
