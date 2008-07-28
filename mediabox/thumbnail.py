@@ -1,6 +1,7 @@
 import theme
 
 import gtk
+import os
 
 
 _WIDTH = 160
@@ -23,7 +24,10 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
     elif (mimetype == "audio/x-music-folder"):
         fx, fy = 20, 0
         tx, ty, tw, th = 23, 3, 109, 109
-        frame = theme.viewer_music_frame
+        if (os.path.exists(thumbfile)):
+            frame = theme.viewer_music_frame
+        else:
+            frame = None
         
     elif (mimetype.startswith("image/")):
         fx, fy = 0, 0
@@ -68,7 +72,7 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
         offy = (th - ph) / 2
         subpbuf = _PBUF.subpixbuf(tx + offx, ty + offy, pw, ph)
         thumb_pbuf.composite(subpbuf, 0, 0, pw, ph, 0, 0,
-                             scale, scale, gtk.gdk.INTERP_NEAREST, 0xff)
+                             scale, scale, gtk.gdk.INTERP_BILINEAR, 0xff)
         del subpbuf
         del thumb_pbuf
 
@@ -82,6 +86,8 @@ def _get_fallback_thumbnail(mimetype):
 
     if (mimetype == "application/x-directory"):
         return theme.mb_filetype_folder
+    elif (mimetype == "audio/x-music-folder"):
+        return theme.mb_unknown_album
     elif (mimetype.startswith("audio/")):
         return theme.mb_filetype_audio
     elif (mimetype.startswith("image/")):
