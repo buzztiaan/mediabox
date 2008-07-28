@@ -1,4 +1,5 @@
 from com import Component, MediaWidgetFactory, msgs
+from utils import logging
 
 
 class MediaWidgetRegistry(Component):
@@ -57,7 +58,7 @@ class MediaWidgetRegistry(Component):
         if (ev == msgs.COM_EV_COMPONENT_LOADED):
             component = args[0]
             if (isinstance(component, MediaWidgetFactory)):
-                print "found media widget factory:", component
+                logging.debug("found media widget factory: [%s]" % component)
                 self.__factories.append(component)
 
 
@@ -69,7 +70,7 @@ class MediaWidgetRegistry(Component):
             for f in self.__factories:
                 match_level = self.__match_mimetypes(mimetype,
                                                      f.get_mimetypes())
-                print "match level", match_level, f.get_mimetypes()
+                #print "match level", match_level, f.get_mimetypes()
                 if (match_level == 2):
                     factory = f
                     break
