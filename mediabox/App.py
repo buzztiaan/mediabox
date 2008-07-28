@@ -373,7 +373,7 @@ class App(Component):
             self.__viewer_states[v].selected_item = -1
             self.__viewer_states[v].item_offset = 0
 
-        self.__set_view_mode(0) #view_mode)
+        self.__set_view_mode(view_mode)
         print "SET VIEW MODE", view_mode
         if (self.__current_viewer):
             self.__current_viewer.set_visible(True)        
