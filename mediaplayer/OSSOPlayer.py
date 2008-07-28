@@ -53,8 +53,6 @@ _MUSIC_PLAYER_ERROR_IFACE = "com.nokia.osso_media_server.music.error"
 _VIDEO_PLAYER_IFACE = "com.nokia.osso_media_server.video"
 _VIDEO_PLAYER_ERROR_IFACE = "com.nokia.osso_media_server.video.error"
 
-_FORMATS = (".ram", ".rm", ".rmvb")
-
 
 class _OSSOPlayer(GenericMediaPlayer):
     """
@@ -120,11 +118,6 @@ class _OSSOPlayer(GenericMediaPlayer):
         except:
             self.__available = False
 
-
-    def handles(self, filetype):
-    
-        return True
-        return (filetype in _FORMATS)
 
 
     def handle_expose(self, src, gc, x, y, w, h):
