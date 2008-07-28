@@ -4,6 +4,7 @@ from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
 import mediaplayer
 from utils import maemo
+from utils import logging
 import theme
 
 import gtk
@@ -59,9 +60,10 @@ class VideoWidget(MediaWidget):
         print "VIS changed", self.may_render(), self
         if (not self.may_render()):
             self.__screen.hide()
-        else: #if (self.__player.has_video()):
-            self.__screen.show()
-        
+        else:
+            if (self.__player and self.__player.has_video()):
+                self.__screen.show()
+
 
     def render_this(self):
 
@@ -79,25 +81,21 @@ class VideoWidget(MediaWidget):
         if (w < 800):
             screen.draw_rect(fx, fy, fw, fh, "#000000")
             screen.fill_area(vx, vy, vw, vh, "#000000")
-            self.__layout.move(self.__screen, vx, vy  + 10)
-            self.__screen.set_size_request(vw, vh - 20)
         else:
             screen.fill_area(x, y, w, h, "#000000")
-            self.__layout.move(self.__screen, x, y)
-            self.__screen.set_size_request(w, h)
 
-        if (self.__player and self.__player.has_video()):
+        if (self.__player and self.__player.has_video() and self.may_render()):
             self.__scale_video()            
             self.__screen.show()
 
 
-    def set_frozen(self, value):
-    
-        MediaWidget.set_frozen(self, value)
-        if (not value and self.may_render() and self.__player and self.__player.has_video()):
-            self.__screen.show()
-        else:
-            self.__screen.hide()
+    #def set_frozen(self, value):
+    # 
+    #    MediaWidget.set_frozen(self, value)
+    #    if (not value and self.may_render() and self.__player and self.__player.has_video()):
+    #        self.__screen.show()
+    #    else:
+    #        self.__screen.hide()
 
         
     def __on_expose(self, src, ev):
@@ -137,8 +135,8 @@ class VideoWidget(MediaWidget):
 
         elif (cmd == src.OBS_STARTED):
             print "Started Player"
-            self.__btn_play.set_images(theme.btn_play_1,
-                                       theme.btn_play_2)
+            #self.__btn_play.set_images(theme.btn_play_1,
+            #                           theme.btn_play_2)
             
         elif (cmd == src.OBS_KILLED):
             print "Killed Player"
@@ -185,8 +183,9 @@ class VideoWidget(MediaWidget):
 
         elif (cmd == src.OBS_ASPECT):
             ctx, ratio = args
-            self.__aspect_ratio = ratio
-            self.__set_aspect_ratio(ratio)
+            if (ctx == self.__context_id):
+                self.__aspect_ratio = ratio
+                self.__set_aspect_ratio(ratio)
 
 
     def __on_set_position(self, pos):
@@ -229,7 +228,7 @@ class VideoWidget(MediaWidget):
         w2 = int(ratio * h)
         h2 = int(w / ratio)
          
-        #print ratio, w, h, w2, h2
+        #print ratio, w, h, w2, h2, self
         if (w2 > w):
             if (w > 0): self.__screen.set_size_request(w, h2)
             w2, h2 = w, h2
@@ -269,7 +268,8 @@ class VideoWidget(MediaWidget):
                 try:
                     self.__context_id = self.__player.load_video(uri)
                 except:
-                    import traceback; traceback.print_exc()
+                    logging.error("could not load video '%s'\n%s" \
+                                  % (uri, logging.stacktrace()))
                     self.__screen.hide()
                     return
                                 
