@@ -362,14 +362,14 @@ class YouTube(Device):
         if (self.__flv_downloader):
             self.__flv_downloader.cancel()
             
-        self.__flv_downloader = FileDownloader(flv, "/tmp/tube.flv", f)
+        self.__flv_downloader = FileDownloader(flv, "/media/mmc1/tube.flv", f)
         
         # we don't give the downloaded file directly to the player because
         # if we did so, the player would fall off the video if it reached
         # the end of file before it was downloaded completely.
         # instead we serve it on a webserver to make the player wait for
         # more if the download rate is too low
-        self.__fileserver.allow("/tmp/tube.flv", "/" + resource + ".flv")
+        self.__fileserver.allow("/media/mmc1/tube.flv", "/" + resource + ".flv")
         
         return self.__fileserver.get_location() + "/" + resource + ".flv"
 
