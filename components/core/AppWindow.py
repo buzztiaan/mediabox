@@ -2,25 +2,25 @@ from com import Component, Viewer, msgs
 import components
 from utils import logging
 
-from MainWindow import MainWindow
-from SplashScreen import SplashScreen
-from RootPane import RootPane
-from TitlePanel import TitlePanel
-from ControlPanel import ControlPanel
-from TabPanel import TabPanel
-from WindowControls import WindowControls
-from Thumbnailer import Thumbnailer
-from ViewerState import ViewerState
+from mediabox.MainWindow import MainWindow
+from mediabox.SplashScreen import SplashScreen
+from mediabox.RootPane import RootPane
+from mediabox.TitlePanel import TitlePanel
+from mediabox.ControlPanel import ControlPanel
+from mediabox.TabPanel import TabPanel
+from mediabox.WindowControls import WindowControls
+from mediabox.Thumbnailer import Thumbnailer
+from mediabox.ViewerState import ViewerState
 from ui.Image import Image
 from ui.Pixmap import Pixmap
 from ui.ImageStrip import ImageStrip
 from ui.KineticScroller import KineticScroller
 from ui import pixbuftools
 from ui import dialogs
-import config
-import values
+from mediabox import config
+from mediabox import values
 from utils import maemo
-import viewmodes
+from mediabox import viewmodes
 import theme
 
 import gtk
@@ -30,7 +30,7 @@ import time
 
 
 
-class App(Component):
+class AppWindow(Component):
     """
     Main class of the application.
     """
@@ -100,7 +100,7 @@ class App(Component):
         self.__root_pane.add(self.__splash)
 
         # image strip       
-        self.__strip = ImageStrip(10)
+        self.__strip = ImageStrip(5)
         self.__strip.set_geometry(0, 0, 170, 480)
         #self.__strip.set_caps(left_top, left_bottom)
         self.__strip.set_bg_color(theme.color_bg)
@@ -137,7 +137,7 @@ class App(Component):
         self.__ctrl_panel.set_bg(theme.mb_panel)
         self.__ctrl_panel.set_visible(False)
 
-        self.__prepare_collection_caps()
+        #self.__prepare_collection_caps()
 
         # tab panel and window controls
         self.__tab_panel = TabPanel()
@@ -150,10 +150,7 @@ class App(Component):
         self.__window_ctrls.set_visible(False)
         self.__window_ctrls.add_observer(self.__on_observe_window_ctrls)
              
-
-        #from components import system
-        #compclass = system.get_component()
-        #comp = compclass()
+        self.__startup()
         
        
     def __startup(self):
@@ -162,9 +159,9 @@ class App(Component):
         """
         
         actions = [(self.__root_pane.render_buffered, []),
-                   (self.__load_components, []),
                    (self.__root_pane.add, [self.__tab_panel]),
-                   (self.__root_pane.add, [self.__window_ctrls]),                   
+                   (self.__root_pane.add, [self.__window_ctrls]),
+                   (self.__register_viewers, []),
                    (self.__add_panels, []),
                    (self.__splash.set_visible, [False]),                   
                    (self.__root_pane.render_buffered, []),
@@ -189,38 +186,19 @@ class App(Component):
         gobject.idle_add(f)
 
 
-
-    def __load_components(self):
+    def __register_viewers(self):
         """
-        Loads the available components and registers the viewers.
-        """
-    
-        viewers = []
-        for c in components.load_components():
-            logging.debug("loaded component [%s]", `c`)
-            self.emit_event(msgs.COM_EV_COMPONENT_LOADED, c)
-
-            if (isinstance(c, Viewer)):
-                viewers.append(c)
-        #end for
-        
-        viewers.sort(lambda a,b: cmp(a.PRIORITY, b.PRIORITY))
-        for v in viewers:
-            self.__register_viewer(v)
-        #end for
-
-
-    def __register_viewer(self, viewer):
-        """
-        Registers the given viewer.
+        Sorts and registers the viewers.
         """
 
-        self.__tab_panel.add_viewer(viewer)
-        self.__root_pane.add(viewer)
-        viewer.set_visible(False)        
-        vstate = ViewerState()
-        self.__viewer_states[viewer] = vstate
-        self.__viewers.append(viewer)
+        self.__viewers.sort(lambda a,b:cmp(a.PRIORITY, b.PRIORITY))
+
+        for viewer in self.__viewers:
+            self.__tab_panel.add_viewer(viewer)
+            self.__root_pane.add(viewer)
+            viewer.set_visible(False)        
+            vstate = ViewerState()
+            self.__viewer_states[viewer] = vstate
 
 
     def __add_panels(self):
@@ -232,6 +210,7 @@ class App(Component):
         self.__root_pane.add(self.__title_panel)
         self.__root_pane.add(self.__panel_left)
         self.__root_pane.add(self.__ctrl_panel)
+        self.__prepare_collection_caps()
         
         
     def __set_view_mode(self, view_mode):
@@ -246,13 +225,23 @@ class App(Component):
             self.__ctrl_panel.set_visible(True)
             self.__strip.set_visible(True)
             if (self.__current_viewer):
-                self.__current_viewer.set_geometry(180, 0, 620, 480)
+                self.__current_viewer.set_geometry(180, 40, 620, 370)
                 self.__get_vstate().collection_visible = True
             
         elif (view_mode == viewmodes.NO_STRIP):
             self.__title_panel_left.set_visible(True)
             self.__title_panel.set_visible(True)
             self.__panel_left.set_visible(True)
+            self.__ctrl_panel.set_visible(True)
+            self.__strip.set_visible(False)
+            if (self.__current_viewer):            
+                self.__current_viewer.set_geometry(0, 40, 800, 370)
+                self.__get_vstate().collection_visible = False
+
+        elif (view_mode == viewmodes.NO_STRIP_PANEL):
+            self.__title_panel_left.set_visible(False)
+            self.__title_panel.set_visible(True)
+            self.__panel_left.set_visible(False)
             self.__ctrl_panel.set_visible(True)
             self.__strip.set_visible(False)
             if (self.__current_viewer):            
@@ -275,7 +264,7 @@ class App(Component):
             self.__ctrl_panel.set_visible(False)
             self.__strip.set_visible(False)
             if (self.__current_viewer):            
-                self.__current_viewer.set_geometry(0, 0, 800, 480)
+                self.__current_viewer.set_geometry(0, 40, 800, 440)
                 self.__get_vstate().collection_visible = False
 
         self.__view_mode = view_mode
@@ -294,6 +283,7 @@ class App(Component):
 
         self.__title_panel_left.set_image(left_top)
         self.__panel_left.set_image(left_bottom)
+        self.emit_event(msgs.CORE_EV_PANEL_CHANGED, left_top, left_bottom)
         self.__strip.set_caps(left_top, left_bottom)
         
 
@@ -374,7 +364,7 @@ class App(Component):
             self.__viewer_states[v].item_offset = 0
 
         self.__set_view_mode(view_mode)
-        print "SET VIEW MODE", view_mode
+
         if (self.__current_viewer):
             self.__current_viewer.set_visible(True)        
         self.__thumbnailer.set_visible(False)
@@ -530,10 +520,10 @@ class App(Component):
 
     def handle_event(self, event, *args):
     
-        #if (event == msgs.COMPONENT_LOADED):
-        #    component = args[0]
-            #if (isinstance(component, Viewer)):
-            #    self.__add_viewer(component)
+        if (event == msgs.COM_EV_COMPONENT_LOADED):
+            component = args[0]
+            if (isinstance(component, Viewer)):
+                self.__viewers.append(component)
     
         if (event == msgs.CORE_ACT_SCAN_MEDIA):
             force = args[0]
@@ -549,7 +539,10 @@ class App(Component):
         #    ident, dev = args
         #    gobject.timeout_add(0, self.__scan_media, True)
         
-    
+        elif (event == msgs.CORE_ACT_SHOW_MENU):
+            self.__show_tabs()
+            self.drop_event()
+        
         elif (event == msgs.CORE_EV_THEME_CHANGED):
             self.__root_pane.propagate_theme_change()
             self.__prepare_collection_caps()
@@ -558,6 +551,7 @@ class App(Component):
     
         elif (event == msgs.CORE_ACT_RENDER_ALL):
             self.__root_pane.render_buffered()
+            #self.__root_pane.render()
             self.drop_event()
 
         elif (event == msgs.CORE_ACT_VIEW_MODE):
@@ -719,16 +713,7 @@ class App(Component):
         #              "There are no items.\n"
         #              "Please go to Media Collection in the Preferences view\n"
         #              "to tell MediaBox where to look for your files.")
-            
 
-    def run(self):
-        """
-        Runs the application.
-        """
-
-        self.__startup()
-        gtk.main()
-        
         
         
     def __try_quit(self):

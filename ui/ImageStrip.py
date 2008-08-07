@@ -87,7 +87,7 @@ class ImageStrip(Widget):
  
     def set_size(self, w, h):
     
-        self.invalidate_buffer()
+        #self.invalidate_buffer()
         Widget.set_size(self, w, h)
         self.set_scrollbar(self.__scrollbar_pbuf)
  
@@ -283,6 +283,10 @@ class ImageStrip(Widget):
         """
     
         self.__wrap_around = value
+        
+        if (not value):
+            w, h = self.get_size()
+            self.__offset = max(0, min(self.__offset, self.__totalsize - h))
         
         
         
@@ -494,6 +498,7 @@ class ImageStrip(Widget):
         self.__shared_pmap.prepare(item)
         fw, fh = item.get_size()
         fx = x + (w - fw) / 2
+        fx += 48   # indent floating item a bit
         fy = y + self.__floating_position - fh / 2
         self.__buffer.draw_pixmap(self.__shared_pmap, fx, fy)
 
@@ -526,12 +531,21 @@ class ImageStrip(Widget):
         
     def render_this(self):
 
+        def render_later():
+            print "LATER", self.may_render()
+            self.invalidate_buffer()
+            self.render()
+            
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
 
         if (self.__buffer_dirty):
+            #if (screen.is_buffered()):
             self.render_full()
+            #else:
+            #    gobject.idle_add(render_later)
+
             self.__render_buffered(screen, 0, h)
         else:
             # nothing changed; simply render the buffer again
@@ -768,8 +782,10 @@ class ImageStrip(Widget):
             distance = distances[0]
                 
             # cheat to make scrolling through laaaaarge lists faster
-            if (abs(distance) > 1000):
-                self.__offset += distance / 5
+            if (distance > 1000):
+                self.__offset += distance - 500
+            elif (distance < -1000):
+                self.__offset += distance + 500
 
             delta = distance / 10
 
@@ -835,12 +851,14 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        slider_width, nil = self.__scrollbar_pmap.get_size()
-        slider_width /= 2
-        w -= slider_width
+        if (self.__scrollbar_pmap):
+            slider_width, nil = self.__scrollbar_pmap.get_size()
+            slider_width /= 2
+            w -= slider_width
 
         buf = Pixmap(None, w, h) #x + w, y + h)
-        self.render_at(buf)
+        buf.fill_area(0, 0, w, h, self.__bg_color)
+        #self.render_at(buf)
         finished = threading.Event()
         
         def f(i):
@@ -854,7 +872,7 @@ class ImageStrip(Widget):
 
         self.set_events_blocked(True)                
         f(0)
-        while (wait and not finished.isSet()): gtk.main_iteration()
+        while (wait and not finished.isSet()): gtk.main_iteration(False)
         self.set_events_blocked(False)
             
             
@@ -892,8 +910,9 @@ class ImageStrip(Widget):
         def f(i):
             import theme
             screen.copy_pixmap(screen, x + STEP, y, x, y, w - i, h)
-            screen.draw_subpixbuf(theme.background, x + w - i, y, x + w - i, y,
-                                  STEP, h)
+            screen.fill_area(x + w - i, y, STEP, h, self.__bg_color)
+            #screen.draw_subpixbuf(theme.background, x + w - i, y, x + w - i, y,
+            #                      STEP, h)
             #screen.copy_pixmap(buf, x + w - i - 4, y, x, y, 4, h)
             if (i < w):
                 gobject.timeout_add(5, f, i + STEP)
@@ -901,5 +920,5 @@ class ImageStrip(Widget):
                 finished.set()
 
         f(0)
-        while (wait and not finished.isSet()): gtk.main_iteration()
+        while (wait and not finished.isSet()): gtk.main_iteration(False)
 

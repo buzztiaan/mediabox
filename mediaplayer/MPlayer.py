@@ -1,4 +1,5 @@
 from GenericMediaPlayer import *
+from utils import logging
 
 import gobject
 import os
@@ -83,7 +84,6 @@ class _MPlayer(GenericMediaPlayer):
         self.__context_id = 0
 
         self.__collect_handler = None
-        self.__send_queue = []
         self.__position_handler = None
         self.__idle_handler = None
         
@@ -208,15 +208,17 @@ class _MPlayer(GenericMediaPlayer):
 
     def __send_cmd(self, data):
     
-        if (_LOGGING): print "--> " + data
-        self.__stdin.write(data + "\n")
-        #self.__send_queue.append(data + "\n")
+        logging.debug("mplayer command:\n%s" % data)
+        try:
+            self.__stdin.write(data + "\n")
+        except:
+            self.__needs_restart = True
         
         
     def __read(self):
                 
         data = self.__stdout.read(1024)
-        #if (_LOGGING): print "    " + data[:-1]
+        logging.debug("mplayer output:\n%s" % data)
         return data        
 
 
@@ -240,21 +242,7 @@ class _MPlayer(GenericMediaPlayer):
             return True
         #end if
         
-        
-    def __on_send_values(self, sock, cond):
-    
-        if (cond == gobject.IO_HUP):
-            self.__send_handler = None
-            return False
-
-        elif (self.__send_queue):
-            item = self.__send_queue.pop(0)
-            self.__stdin.write(item)
-            return True
-            
-        else:
-            return True
-            
+                  
         
     def __read_ans(self, data):
 
@@ -273,10 +261,13 @@ class _MPlayer(GenericMediaPlayer):
     def __parse_value(self, data):
     
         #print "PARSE", data
-        if (data.startswith("ANS_TIME_POSITION")):
+        if (not data and self.__playing and
+            float(self.__player_values[_LENGTH] or 0) < 0.01):
+            self.__on_eof()
+        elif (data.startswith("ANS_TIME_POSITION")):
             self.__player_values[_POSITION] = self.__read_ans(data)
             self.__on_position()
-        if (data.startswith("ANS_PERCENT_POSITION")):
+        elif (data.startswith("ANS_PERCENT_POSITION")):
             self.__player_values[_PERCENT_POSITION] = self.__read_ans(data)
         elif (data.startswith("ANS_LENGTH")):
             self.__player_values[_LENGTH] = self.__read_ans(data)
@@ -343,23 +334,23 @@ class _MPlayer(GenericMediaPlayer):
             self.update_observer(self.OBS_PLAYING, self.__context_id)
             
         elif (data.startswith("File not found: ")):
-            self.__broken = True
             self.update_observer(self.OBS_ERROR, self.__context_id,
                                  self.ERR_NOT_FOUND)
         elif (data.startswith("[file] No filename")):
-            self.__broken = True
             self.update_observer(self.OBS_ERROR, self.__context_id,
                                  self.ERR_NOT_FOUND)
         elif (data.startswith("Cache size set to ")):
             self.update_observer(self.OBS_BUFFERING, self.__context_id)
         elif (data.endswith("No stream found.\n")):
-            self.__broken = True
             self.update_observer(self.OBS_ERROR, self.__context_id,
                                  self.ERR_NOT_FOUND)
         elif (" failed to load: " in data):
-            self.__broken = True
             self.update_observer(self.OBS_ERROR, self.__context_id,
                                  self.ERR_INVALID)
+        elif (data.startswith("Error opening/initializing ")):
+            self.update_observer(self.OBS_ERROR, self.__context_id,
+                                 self.ERR_INVALID)            
+
 
 
     def __parse_icy_info(self, data):
@@ -527,10 +518,10 @@ class _MPlayer(GenericMediaPlayer):
         self.__suspension_point = None
         self.__ensure_mplayer()
         
+        filename = filename.replace("\"", "\\\"")
         self.__send_cmd("loadfile \"%s\"" % filename)
 
         self.__playing = False
-        self.__broken = False
         self.__has_video = False
         self.__has_audio = False
         self.__media_length = -1

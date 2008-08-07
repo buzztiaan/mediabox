@@ -70,10 +70,14 @@ class ImageWidget(MediaWidget):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        if (not self.__is_fullscreen):
+        if (w < 800):
             screen.draw_frame(theme.viewer_image_frame, x, y,
                               w, h, False)
             self.__image.set_geometry(11, 11, w - 28, h - 28)
+            self.__image.set_background(_BACKGROUND_COLOR)
+        else:
+            self.__image.set_geometry(0, 0, w, h)
+            self.__image.set_background(_BACKGROUND_COLOR_FS)
 
 
     def __on_observe_image(self, src, cmd, *args):
@@ -111,16 +115,27 @@ class ImageWidget(MediaWidget):
 
     def load(self, item):
 
-        uri = item.get_resource()
+        #uri = item.get_resource()
         
-        self.__image.load(uri)        
+        self.__image.load(item)        
         #self.__label.set_text(self.__get_name(uri))
         #self.__current_item = self.__items.index(item)
         self.__image.slide_from_right()
         #self.set_title(self.__get_name(uri))
         #self.set_info("%d / %d" % (self.__current_item + 1, len(self.__items)))
 
+        gobject.timeout_add(3000, self.send_event, self.EVENT_MEDIA_EOF)
 
+
+
+    def increment(self):
+        
+        self.__zoom_in()
+        
+        
+    def decrement(self):
+        
+        self.__image.zoom_out()
        
     
     def __zoom_in(self):

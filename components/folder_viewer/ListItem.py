@@ -21,9 +21,9 @@ class ListItem(ButtonListItem):
 
     def __init__(self, f, thumbnail):
 
-        self.__thin_mode = False
         self.__icon = thumbnail
         self.__emblem = f.emblem
+        self.__source_icon = f.source_icon
         self.__label = self.escape_xml(f.name)
         self.__sublabel = self.escape_xml(f.info)
         self.__mimetype = f.mimetype
@@ -44,30 +44,23 @@ class ListItem(ButtonListItem):
         self.__emblem = emblem
 
 
-    def set_thin_mode(self, value):
-    
-        self.__thin_mode = value
-
-
     def render_this(self, cnv):
     
         ButtonListItem.render_this(self, cnv)
+        #print "render this", self
+
+        w, h = self.get_size()
+        w = 160
+
 
         if (self.__icon):
-            icon = thumbnail.draw_decorated(cnv, 4, 4, 120, 82, #120, 70,
+            icon = thumbnail.draw_decorated(cnv, 4, 4, w - 8, h - 8,
                                             self.__icon, self.__mimetype)
             
-            if (self.__emblem):
-                cnv.fit_pixbuf(self.__emblem, 70, 32, 48, 48)
+            #if (self.__emblem):
+            #    cnv.fit_pixbuf(self.__emblem, w - 48, h - 48, 48, 48)
         
-        if (self.__thin_mode):
-            self.render_selection_frame(cnv)
-            cnv.draw_pixbuf(theme.mb_caption_bg, 0, 68)
-            cnv.draw_text(self.__label, theme.font_tiny, 2, 66,
-                           theme.color_fg_thumbnail_label)
-            cnv.draw_pixbuf(theme.btn_load, 98, 58)
-        else:
-            self.render_selection_frame(cnv)
-            self.render_label(cnv, 128, self.__label, self.__sublabel)
-        
+        self.render_label(cnv, 168, self.__label, self.__sublabel)
+        self.render_selection_frame(cnv)
+       
         self.render_buttons(cnv)

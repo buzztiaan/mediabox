@@ -1,4 +1,3 @@
-from utils.Observable import Observable
 from ui.ItemList import ItemList
 from ui.KineticScroller import KineticScroller
 from ui.DragSorter import DragSorter
@@ -7,23 +6,12 @@ import theme
 import time
 
 
-class TrackList(ItemList, Observable):
+class TrackList(ItemList):
 
     EVENT_BUTTON_CLICKED = "button-clicked"
     EVENT_ITEM_CLICKED = "item-clicked"
-    #EVENT_ITEM_SELECTED = "item-selected"
+    EVENT_ITEMS_SWAPPED = "items-swapped"
 
-    OBS_ITEM_BUTTON = 0
-    OBS_ADD_ALBUM = 0
-    OBS_PLAY_TRACK = 1
-    OBS_ADD_TRACK = 2
-    OBS_REMOVE_TRACK = 3
-    OBS_REMOVE_PRECEEDING_TRACKS = 4
-    OBS_REMOVE_FOLLOWING_TRACKS = 5
-    OBS_EDIT_TRACK = 6
-
-    OBS_SWAPPED = 7
-    
 
     def __init__(self, with_drag_sort = False, with_header = False):
     
@@ -33,7 +21,7 @@ class TrackList(ItemList, Observable):
         self.__open_item = -1
         self.__has_header = with_header
     
-        ItemList.__init__(self, 90, 20)
+        ItemList.__init__(self, 110, 5)
         self.set_caps(theme.list_top, theme.list_bottom)
         self.set_bg_color(theme.color_bg)
         #self.set_arrows(theme.arrows)
@@ -42,9 +30,19 @@ class TrackList(ItemList, Observable):
         self.__kscr.add_observer(self.__on_observe_scroller)
         
         if (with_drag_sort):
+            self.__dragsorter = DragSorter(self)
+            self.__dragsorter.add_observer(self.__on_drag_sort)
+            self.set_drag_sort_enabled(True)
+
+    
+    def set_drag_sort_enabled(self, v):
+    
+        self.__dragsorter.set_enabled(v)
+        w, h = self.get_size()
+        if (v):
             self.__kscr.set_touch_area(80, 800)
-            dragsorter = DragSorter(self)
-            dragsorter.add_observer(self.__on_drag_sort)
+        else:
+            self.__kscr.set_touch_area(0, 800)
 
 
         
@@ -52,7 +50,8 @@ class TrackList(ItemList, Observable):
     
         if (cmd == src.OBS_SWAPPED):
             idx1, idx2 = args
-            self.update_observer(self.OBS_SWAPPED, idx1, idx2)
+            #self.update_observer(self.OBS_SWAPPED, idx1, idx2)
+            self.send_event(self.EVENT_ITEMS_SWAPPED, idx1, idx2)
         
         
     def __on_observe_scroller(self, src, cmd, *args):
@@ -92,7 +91,7 @@ class TrackList(ItemList, Observable):
         if (need_render):
             self.invalidate_buffer()
             self.render()
-        if (handled): self.__kscr.stop_scrolling()
+        #if (handled): self.__kscr.stop_scrolling()
 
         return handled
 
@@ -104,9 +103,9 @@ class TrackList(ItemList, Observable):
     def connect_item_clicked(self, cb, *args):
         
         self._connect(self.EVENT_ITEM_CLICKED, cb, *args)
-   
         
-    #def connect_item_selected(self, cb, *args):
-    # 
-    #    self._connect(self.EVENT_ITEM_SELECTED, cb, *args)
+        
+    def connect_items_swapped(self, cb, *args):
+    
+        self._connect(self.EVENT_ITEMS_SWAPPED, cb, *args)
 

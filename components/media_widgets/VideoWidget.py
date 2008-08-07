@@ -282,3 +282,19 @@ class VideoWidget(MediaWidget):
                 
         gobject.idle_add(f)
 
+
+
+    def increment(self):
+
+        self.__volume = min(100, self.__volume + 5)
+        if (self.__player):
+            self.__player.set_volume(self.__volume)
+
+       
+        
+    def decrement(self):
+    
+        self.__volume = max(0, self.__volume - 5)
+        if (self.__player):
+            self.__player.set_volume(self.__volume)
+

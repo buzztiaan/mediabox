@@ -139,6 +139,7 @@ class AudioWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):
                 print "Playing"
+                self.__player.set_volume(self.__volume)
                 self.__btn_play.set_images(theme.btn_pause_1,
                                            theme.btn_pause_2)                
             
@@ -192,7 +193,7 @@ class AudioWidget(MediaWidget):
             self.__cover = self.__load_cover(item)
         except:
             pass
-        self.render_all()
+        #self.render()
 
 
 
@@ -219,6 +220,21 @@ class AudioWidget(MediaWidget):
                 
         gobject.idle_add(f)
 
+
+
+    def increment(self):
+
+        self.__volume = min(100, self.__volume + 5)
+        if (self.__player):
+            self.__player.set_volume(self.__volume)
+
+       
+        
+    def decrement(self):
+    
+        self.__volume = max(0, self.__volume - 5)
+        if (self.__player):
+            self.__player.set_volume(self.__volume)
 
 
 

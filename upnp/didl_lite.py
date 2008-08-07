@@ -46,7 +46,7 @@ def parse_async(xml, cb, *args):
     Returns None after the last entry to signalize the end.
     """
     
-    open("/tmp/didl.xml", "w").write(xml)
+    #open("/tmp/didl.xml", "w").write(xml)
     def on_node(node):
         if (node.get_name() == "{%s}DIDL-Lite" % _XMLNS_DIDL):
             # finished parsing

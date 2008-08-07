@@ -2,6 +2,7 @@ import thief
 
 import os
 import gtk
+import threading
 
 
 
@@ -59,6 +60,13 @@ def make_thumbnail(f, dest):
         
 def __load_pbuf(cover):        
 
+    def on_data(d, amount, total, loader, finished):
+        if (d):
+            loader.write(d)
+        else:
+            finished.set()
+
+
     def on_size_available(loader, width, height):
         factor = 1
         factor1 = 160 / float(width)
@@ -66,17 +74,15 @@ def __load_pbuf(cover):
         factor = min(factor1, factor2)
         loader.set_size(int(width * factor), int(height * factor))    
 
+
     loader = gtk.gdk.PixbufLoader()
     loader.connect("size-prepared", on_size_available)
-    fd = cover.get_fd()
-    while (True):
-        data = fd.read(50000)            
-        if (data):
-            loader.write(data)
-        else:
-            break
-    #end while
-    fd.close()
+
+    finished = threading.Event()
+    cover.load(0, on_data, loader, finished)
+    while (not finished.isSet()):
+        gtk.main_iteration(False)
+
     try:
         loader.close()
         pbuf = loader.get_pixbuf()

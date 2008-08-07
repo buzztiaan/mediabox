@@ -35,13 +35,13 @@ class ButtonListItem(ListItem):
     def open_menu(self):
     
         self.__state = _OPEN
-        self.render()
+        self.invalidate()
         
         
     def close_menu(self):
     
         self.__state = _CLOSED
-        self.render()
+        self.invalidate()
         
         
     def get_button_at(self, px):

@@ -2,6 +2,7 @@ from com import MediaWidgetFactory, msgs
 from VideoWidget import VideoWidget
 from AudioWidget import AudioWidget
 from ImageWidget import ImageWidget
+from utils import mimetypes
 
 
 class Factory(MediaWidgetFactory):
@@ -16,23 +17,19 @@ class Factory(MediaWidgetFactory):
         
     def get_mimetypes(self):
     
-        return ["audio/*",
-                "image/*",
-                "video/*",
-                "application/ogg",
-                "application/vnd.rn-realmedia"]
+        return mimetypes.get_audio_types() + \
+               mimetypes.get_video_types() + \
+               mimetypes.get_image_types()
                 
                 
     def get_widget_class(self, mimetype):
 
-        if (mimetype.startswith("video/")):
+        if (mimetype in mimetypes.get_video_types() + ["video/*"]):
             return VideoWidget
             
-        elif (mimetype.startswith("audio/") or
-              mimetype == "application/ogg"):
+        elif (mimetype in mimetypes.get_audio_types() + ["audio/*"]):
             return AudioWidget
 
-        elif (mimetype.startswith("image/") or
-              mimetype == "application/vnd.rn-realmedia"):
+        elif (mimetype in mimetypes.get_image_types() + ["image/*"]):
             return ImageWidget
 

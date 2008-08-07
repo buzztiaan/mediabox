@@ -55,7 +55,7 @@ class EventSensor(object):
     def __get_zones_at(self, px, py):
     
         zones = []
-        for x, y, w, h, cb, args in self.__zones.values():
+        for x, y, w, h, tstamp, cb, args in self.__zones.values():
             if (x <= px <= x + w and y <= py <= y + h):
                 zones.append((cb, args))
                 

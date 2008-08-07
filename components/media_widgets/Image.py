@@ -1,5 +1,6 @@
 from ui.Widget import Widget
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
+from io.Downloader import Downloader
 from utils.Observable import Observable
 
 import gtk
@@ -85,7 +86,7 @@ class Image(Widget, Observable):
         self.__zoom_100 = 0
 
         self.__timer_tstamp = 0
-        self.__current_filename = ""
+        self.__current_file = ""
         self.__banner = None
 
         # the loader contains the complete image
@@ -220,125 +221,7 @@ class Image(Widget, Observable):
         self.scroll_to(cx * self.__zoom_value, cy * self.__zoom_value)
         #gobject.timeout_add(0, self.scroll_to, cx * self.__zoom_value,
         #                                       cy * self.__zoom_value)
-
-
-   # def __push_save_under(self, x, y, w, h):
-   #     """
-   #     Saves the given area so that it can be restored later.
-   #     """
-   #
-   #     # it's all happening on the server-side, maybe even hw-accelerated
-   #     pmap, nil = self.__image.get_pixmap()
-   #     saved = gtk.gdk.Pixmap(None, w, h, _BPP)
-   #     saved.draw_drawable(pmap.new_gc(), pmap,
-   #                         x, y, 0, 0, w, h)
-   #     self.__save_unders.append((saved, x, y, w, h))
-
-
-    #def __pop_save_under(self):
-    #    """
-    #    Restores a saved area.
-    #    """
-    #
-    #    # it's all happening on the server-side, maybe even hw-accelerated
-    #    pmap, nil = self.__image.get_pixmap()
-    #    if (self.__save_unders):
-    #        saved, x, y, w, h = self.__save_unders.pop()
-    #        pmap.draw_drawable(pmap.new_gc(), saved,
-    #                           0, 0, x, y, w, h)
-
-
-
-    #def _render_text(self, text, posx, posy, draw_box):
-    #    """
-    #    Renders the given text on screen. The position is
-    #    a percentage value of the widget size.
-    #    """
-    #
-    #    w, h = self.__visible_size
-    #
-    #    context = self.__image.get_pango_context()
-    #    layout = pango.Layout(context)
-    #    layout.set_width(w * pango.SCALE)
-    #    layout.set_text(text)
-    #
-    #    layout_w, layout_h = layout.get_pixel_size()
-    #    x = layout_w / 2 + int((w - layout_w) * posx - layout_w / 2)
-    #    y = layout_h / 2 + int((h - layout_h) * posy - layout_h / 2)
-    #
-    #    self.__push_save_under(x - 3, y - 3, layout_w + 6, layout_h + 6)
-    #
-    #    pmap, nil = self.__image.get_pixmap()
-    #    gc = pmap.new_gc()
-    #    gc.set_foreground(self.__image.get_colormap().alloc_color("black"))
-    #
-    #    if (draw_box):
-    #        pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
-    #                              True, 8, layout_w + 4, layout_h + 4)
-    #        pbuf.fill(0xffffffa0)
-    #        pmap.draw_pixbuf(None, pbuf, 0, 0, x - 2, y - 2, layout_w + 4, layout_h + 4,
-    #                         gtk.gdk.RGB_DITHER_NONE, 0, 0)
-    #        del pbuf
-    #        pmap.draw_rectangle(gc, False, x - 3, y - 3, layout_w + 5, layout_h + 5)
-    #    
-    #    pmap.draw_layout(gc, x, y, layout, gtk.gdk.color_parse("black"))
-    #
-    #    # only redraw the affected portion of the screen
-    #    self.__image.queue_draw_area(x - 3, y - 3, layout_w + 6, layout_h + 6)
-
-
-    #def _render_bar(self, posy1, posy2):
-    #    """
-    #    Renders a colored bar on screen at the given position.
-    #    The position is a percentage value of the widget size.
-    #    """
-    #
-    #    w, h = self.__visible_size
-    #    y1 = int(h * posy1)
-    #    y2 = int(h * posy2)
-    #    height = abs(y1 - y2)
-    #
-    #    pmap, nil = self.__image.get_pixmap()
-    #    pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
-    #                          True, 8, w, height)
-    #    pbuf.fill(0xffffffa0)
-    #    pmap.draw_pixbuf(None, pbuf, 0, 0, 0, y1, w, height,
-    #                     gtk.gdk.RGB_DITHER_NONE, 0, 0)
-    #    del pbuf
-    #
-    #    # only redraw the affected portion of the screen
-    #    self.__image.queue_draw_area(0, y1, w, height)
-
-        
-
-    #def _render_icon(self, icon, posx, posy):
-    #    """
-    #    Renders the given icon on screen. The position is
-    #    a percentage value of the widget size.
-    #    """
-    #
-    #    w, h = self.__visible_size
-    #    icon_w = icon.get_width()
-    #    icon_h = icon.get_height()
-    #    x = icon_w / 2 + int((w - icon_w) * posx - icon_w / 2)
-    #    y = icon_h / 2 + int((h - icon_h) * posy - icon_h / 2)
-    #
-    #    self.__push_save_under(x, y, icon_w, icon_h)
-    #
-    #    pmap, nil = self.__image.get_pixmap()
-    #    pmap.draw_pixbuf(None, icon,
-    #                     0, 0, x, y, icon_w, icon_h,
-    #                     gtk.gdk.RGB_DITHER_NONE, 0, 0)
-    #
-    #    # only redraw the affected portion of the screen
-    #    self.__image.queue_draw_area(x, y, icon_w, icon_h)
-
-
-    #def _render_clear(self):
-    #
-    #    while (self.__save_unders):
-    #        self.__pop_save_under()
-        
+      
 
     def _render(self, high_quality = False):
         """
@@ -499,117 +382,51 @@ class Image(Widget, Observable):
 
 
 
-    def load(self, filename):
+    def load(self, f):
         """
         Loads the given image file. If we're currently loading another
         image, cancel the loading first.
         """
 
-        if (filename != self.__current_filename):
+        if (f != self.__current_file):        
             self.__loading_cancelled = True
             
             if (self.__hi_quality_timer):
-                gobject.source_remove(self.__hi_quality_timer)            
-
-            self.update_observer(self.OBS_BEGIN_LOADING, filename)
+                gobject.source_remove(self.__hi_quality_timer)
             
-            self.__load_img_at_once(filename)
-            self.__finish_loading()
+            self.__load_img(f)
 
 
-    def __load_img_at_once(self, filename):
+
+    def __load_img(self, f):
         """
         Loads the image.
         """
 
+        def on_data(d, amount, total, size_read):
+            if (d):
+                size_read[0] += len(d)
+                self.__loader.write(d)
+                self.update_observer(self.OBS_PROGRESS, size_read[0], total)
+            else:
+                try:
+                    self.__loader.close()
+                    self.__finish_loading()
+                except:
+                    pass
+                self.update_observer(self.OBS_END_LOADING)
+        
         try:
             self.__loader.close()
         except:
             pass
         self.__loader = gtk.gdk.PixbufLoader()
         self.__loader.connect("size-prepared", self.__on_check_size)
-        self.__current_filename = filename
+        self.__current_file = f
+
+        self.update_observer(self.OBS_BEGIN_LOADING, f)
+        f.load(0, on_data, [0])
         
-        fd = open(filename, "r")
-        # determine file size
-        fd.seek(0, 2)
-        size = fd.tell()
-        fd.seek(0)        
-
-        size_read = 0
-        while (size > 0):
-            data = fd.read(_CHUNK_SIZE)
-            size_read += len(data)
-
-            if (data):
-                if (self.__loader): self.__loader.write(data)
-            else:
-                break
-
-            self.update_observer(self.OBS_PROGRESS, size_read, size)
-        #end while
-        
-
-        self.__loader.close()
-
-
-    def __load_img(self, filename):
-        """
-        Loads the image while allowing user interaction.
-        """
-
-        if (self.__banner):
-            self.__banner.close()
-
-        if (not os.path.exists(filename)):
-            filename = ""
-
-        try:
-            self.__loader.close()
-        except:
-            pass
-        self.__loader = gtk.gdk.PixbufLoader()
-        self.__loader.connect("size-prepared", self.__on_check_size)
-        fd = open(filename, "r")
-        # determine file size
-        fd.seek(0, 2)
-        size = fd.tell()
-        fd.seek(0)
-
-        self.__loading_cancelled = False
-        self.__current_filename = filename
-        
-        size_read = 0
-        while (True and size > 0):
-            data = fd.read(_CHUNK_SIZE)
-            size_read += len(data)
-
-            self.update_observer(self.OBS_PROGRESS, size_read, size)
-            #while (gtk.events_pending()): gtk.main_iteration()
-
-            if (self.__loading_cancelled):
-                break
-            
-            if (data):
-                if (self.__loader): self.__loader.write(data)
-            else:
-                break
-        #end while
-
-        fd.close()
-        if (self.__loader):
-            try:
-                self.__loader.close()
-            except:
-                self.__loading_cancelled = True
-
-            if (not self.__loading_cancelled): self.__finish_loading()
-            self.__loader = None
-
-        if (self.__banner):
-            self.__banner.close()
-            self.__banner = None
-
 
             
         
@@ -649,8 +466,6 @@ class Image(Widget, Observable):
 
         w, h = self.__pixbuf.get_width(), self.__pixbuf.get_height()
         self.__original_size = (w, h)
-
-        self.update_observer(self.OBS_END_LOADING)
         
         self.__is_new_image = True
         self.__scale_to_fit()

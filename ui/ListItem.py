@@ -58,7 +58,13 @@ class ListItem(StripItem):
                           % (label1, self.__color_2, label2),
                              self.__font, x, 8,
                              self.__color_1, use_markup = True)        
-       
+    
+    
+    def render_grip(self, cnv):
+    
+        if (self.__grip):
+            cnv.draw_pixbuf(self.__grip, 0, 0)
+            
         
     def render_this(self, cnv):
 
@@ -70,10 +76,4 @@ class ListItem(StripItem):
 
         if (background):
             cnv.draw_frame(background, 0, 0, w, h, True)
-
-        x = 0
-        if (self.__grip):
-            x += 4
-            cnv.draw_pixbuf(self.__grip, x, 0)
-            x += 24
 

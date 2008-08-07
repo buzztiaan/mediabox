@@ -117,7 +117,7 @@ class KineticScroller(Observable):
     
         self.__pointer = (px, py)
         touch_begin, touch_end = self.__touch_area
-        
+
         # the pointer is inside the touch area
         if (touch_begin <= px <= touch_end):
             self.__is_dragging = True

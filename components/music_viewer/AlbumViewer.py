@@ -53,7 +53,7 @@ class AlbumViewer(Viewer):
         Viewer.__init__(self)
     
         self.__list = TrackList(with_header = True)
-        self.__list.set_geometry(0, 40, 610, 370)
+        self.__list.set_geometry(0, 0, 610, 370)
         self.__list.connect_button_clicked(self.__on_list_button_clicked)
         self.add(self.__list)
         
@@ -69,6 +69,9 @@ class AlbumViewer(Viewer):
             self.__audio_widget = self.call_service(
                                       msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
                                       self, "audio/*")
+            if (not self.__audio_widget):
+                return
+                
             self.__audio_widget.set_visible(False)
             self.add(self.__audio_widget)            
             self.__audio_widget.connect_media_position(self.__on_media_position)
@@ -96,7 +99,8 @@ class AlbumViewer(Viewer):
             self.__update_media()
     
         elif (event == msgs.MEDIA_EV_PLAY):
-            self.__player.stop()
+            #self.__player.stop()
+            pass
     
         if (self.is_active()):
             if (event == msgs.CORE_ACT_LOAD_ITEM):
@@ -321,7 +325,7 @@ class AlbumViewer(Viewer):
             self.__current_index = idx
             
             self.__list.hilight(idx + 1)
-            self.set_title(trk.name)
+            self.set_title(trk.title)
             self.__audio_widget.load(trk)
          
                
@@ -424,37 +428,16 @@ class AlbumViewer(Viewer):
         #end for
 
 
-    def __on_enter(self):
-    
-        self.__player.pause()
-        
-        
     def __on_increment(self):
     
-        if (self.__volume + 5 <= 100):
-            self.__volume += 5
-        self.__player.set_volume(self.__volume)
-        self.emit_event(msgs.CORE_EV_VOLUME_CHANGED, self.__volume)
+        self.__audio_widget.increment()
         
         
     def __on_decrement(self):
 
-        if (self.__volume - 5 >= 0):
-            self.__volume -= 5
-        self.__player.set_volume(self.__volume)
-        self.emit_event(msgs.CORE_EV_VOLUME_CHANGED, self.__volume)
-        
-    
-    def do_set_position(self, pos):
-    
-        self.__player.seek_percent(pos)
+        self.__audio_widget.decrement()
 
 
-    def __on_play_pause(self):
-    
-        self.__player.pause()
-
-    
     def __on_previous(self):
         
         self.__previous_track()

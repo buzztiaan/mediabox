@@ -42,7 +42,7 @@ class Thumbnailer(object):
         Returns False if the thumbnail does not exist.
         """
                 
-        thumb = self.__thumb_folder + "/" + f.md5 + ".jpg"
+        thumb = self.get_thumbnail_path(f) #self.__thumb_folder + "/" + f.md5 + ".jpg"
         broken = thumb + ".broken"
                 
         if (os.path.exists(broken)):
@@ -68,7 +68,7 @@ class Thumbnailer(object):
         """
         
         # simply touch it
-        thumb = self.__thumb_folder + "/" + f.md5 + ".jpg.broken"
+        thumb = self.get_thumbnail_path(f) + ".broken" #self.__thumb_folder + "/" + f.md5 + ".jpg.broken"
         try:
             open(thumb, "w")
         except:
@@ -80,7 +80,8 @@ class Thumbnailer(object):
         Removes the thumbnail unavailability mark on the given file.
         """
         
-        thumb = self.__thumb_folder + "/" + f.md5 + ".jpg.broken"
+        thumb = self.get_thumbnail_path(f) + ".broken"
+        #thumb = self.__thumb_folder + "/" + f.md5 + ".jpg.broken"
         try:
             os.unlink(thumb)
         except:
@@ -92,7 +93,8 @@ class Thumbnailer(object):
         Removes the thumbnail for the given file.
         """
 
-        thumb = self.__thumb_folder + "/" + f.md5 + ".jpg"
+        #thumb = self.__thumb_folder + "/" + f.md5 + ".jpg"
+        thumb = self.get_thumbnail_path(f)
         try:
             os.unlink(thumb)
         except:
@@ -104,7 +106,8 @@ class Thumbnailer(object):
         Returns whether a thumbnail exists for the given file.
         """
 
-        thumb = self.__thumb_folder + "/" + f.md5 + ".jpg"
+        #thumb = self.__thumb_folder + "/" + f.md5 + ".jpg"
+        thumb = self.get_thumbnail_path(f)
         return os.path.exists(thumb)
         
 
@@ -115,7 +118,7 @@ class Thumbnailer(object):
         """
 
         if (not f.md5):
-            f.md5 = md5.new(f.path).hexdigest()
+            f.md5 = md5.new(f.get_full_path()).hexdigest()
             
         thumb = self.__thumb_folder + "/" + f.md5 + ".jpg"
         return thumb

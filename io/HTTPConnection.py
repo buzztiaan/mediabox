@@ -1,5 +1,6 @@
 from HTTPResponse import HTTPResponse
 from utils import threads
+from utils import logging
 
 import gobject
 import socket
@@ -24,7 +25,7 @@ def parse_addr(addr):
 _number_of_connections = 0
 _connection_queue = []
 
-_MAX_CONNECTIONS = 4
+_MAX_CONNECTIONS = 12
 
 
 class HTTPConnection(object):
@@ -70,7 +71,8 @@ class HTTPConnection(object):
                 print "connecting to", host, port or 80
                 sock.connect((host, port or 80))
             except:
-                import traceback; traceback.print_exc()
+                logging.error("Could not resolve hostname:\n%s" \
+                              % logging.stacktrace())
                 threads.run_unthreaded(self.__abort,
                                        "Could not resolve hostname")
                 return
@@ -249,15 +251,14 @@ class HTTPConnection(object):
         if (200 <= resp.get_status() < 210):
             # OK
             resp.feed(body)
-            if (body):
-                self.__callback(resp, *self.__user_args)
-            
             if (not resp.finished()):
+                if (body): self.__callback(resp, *self.__user_args)
                 self.__io_watch = gobject.io_add_watch(sock, gobject.IO_IN,
                                                        self.__on_receive_body,
                                                        resp)
 
             else:
+                self.__callback(resp, *self.__user_args)
                 self.__finish_download(resp)
 
 
@@ -284,14 +285,15 @@ class HTTPConnection(object):
             # server closed connection
             resp.set_finished()
         resp.feed(s)
-        self.__callback(resp, *self.__user_args)
 
         if (not resp.finished()):
             # we're still waiting for data; read on
+            self.__callback(resp, *self.__user_args)
             return True
 
         else:
             # finished downloading
+            self.__callback(resp, *self.__user_args)
             self.__finish_download(resp)
             return False
 
@@ -321,8 +323,6 @@ class HTTPConnection(object):
         if (self.__timeout_handler):
             gobject.source_remove(self.__timeout_handler)
 
-        print "CALLING cb", resp
-        self.__callback(None, *self.__user_args)
         self.__check_connection_queue()
 
 

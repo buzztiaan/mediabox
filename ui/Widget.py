@@ -29,6 +29,7 @@ class Widget(object):
         self.__is_frozen = False
         self.__is_visible = True
         self.__can_be_visible = True
+        self.__skip_next_render = False
         
         self.__position = (0, 0)
         self.__size = (0, 0)
@@ -405,7 +406,12 @@ class Widget(object):
         Renders this widget onto the current screen pixmap.
         """
     
-        if (not self.may_render()): return
+        if (self.__skip_next_render):
+            self.__skip_next_render = False
+            return
+            
+        if (not self.may_render()):
+            return
         
         self.render_this()
         for c in self.__children:
@@ -443,6 +449,15 @@ class Widget(object):
         self.__parent = parent
         self.set_screen(real_screen)
         self.set_pos(real_x, real_y)
+        
+        
+    def skip_next_render(self):
+        """
+        Skips the next rendering action.
+        """
+        
+        self.__skip_next_render = True
+        
         
         
     def propagate_theme_change(self):

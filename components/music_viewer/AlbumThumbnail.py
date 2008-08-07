@@ -14,5 +14,4 @@ class AlbumThumbnail(Thumbnail):
         Thumbnail.__init__(self)
         self.set_thumbnail(thumb)
         self.set_caption(title)
-        self.set_size(160, 120)
         self.set_mimetype("audio/x-music-folder")

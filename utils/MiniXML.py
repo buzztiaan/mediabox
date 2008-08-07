@@ -44,9 +44,9 @@ class MiniXML(object):
     def __parse_document(self):
 
         def f():
-            while (self.__parser_iteration()): pass
-            #if (self.__parser_iteration()):
-            #    gobject.idle_add(f)
+            #while (self.__parser_iteration()): pass
+            if (self.__parser_iteration()):
+                gobject.idle_add(f)
 
         if (self.__callback):
             # run async

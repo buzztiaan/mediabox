@@ -116,7 +116,12 @@ class YouTube(Device):
         
     def get_file(self, path):
     
-        pass
+        f = File(self)
+        f.path = path
+        f.mimetype = "video/x-flash-video"
+        f.source_icon = self.get_icon()
+        
+        return f
         
         
     def __send_async(self, items, cb, *args):
@@ -247,6 +252,7 @@ class YouTube(Device):
                 f.name = title
                 f.info = "by %s" % authors
                 f.thumbnail = thumbnail
+                f.source_icon = self.get_icon()
                 
                 #while (gtk.events_pending()): gtk.main_iteration()
                 

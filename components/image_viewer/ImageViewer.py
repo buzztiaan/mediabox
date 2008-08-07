@@ -1,21 +1,13 @@
 from com import Viewer, msgs
-from ui.KineticScroller import KineticScroller
-from ui.Label import Label
+
 from ui.ImageButton import ImageButton
-from mediabox.ThrobberDialog import ThrobberDialog
 from mediabox import viewmodes
 from ImageThumbnail import ImageThumbnail
-from Image import Image
-from OverlayControls import OverlayControls
 import theme
 
 import gtk
 import gobject
 import os
-
-
-_BACKGROUND_COLOR = "#ffffff"
-_BACKGROUND_COLOR_FS = "#101010"
 
 
 class ImageViewer(Viewer):
@@ -36,57 +28,33 @@ class ImageViewer(Viewer):
     
         Viewer.__init__(self)
         
-        self.__layout = self.get_window()
-        
         # image
-        self.__image = Image()
-        self.__image.add_observer(self.__on_observe_image)
-        self.__image.set_geometry(15, 42, 584, 366)
-        self.__image.set_background(_BACKGROUND_COLOR)
-        self.add(self.__image)
-
-        kscr = KineticScroller(self.__image)
-        kscr.set_touch_area(0, 730)
-
-        # not supported on maemo but nice to have elsewhere
-        #kscr.connect("scroll-event", self.__on_mouse_wheel)
-
-        self.__overlay_ctrls = OverlayControls()
-        self.__overlay_ctrls.add_observer(self.__on_observe_overlay_ctrls)
-        self.__image.add(self.__overlay_ctrls)
-        self.__overlay_ctrls.set_visible(False)
-
-        self.__throbber = ThrobberDialog()
-        self.__throbber.set_throbber(theme.throbber)
-        self.__throbber.set_text("Loading")
-        self.add(self.__throbber)
-        self.__throbber.set_visible(False)
-        
+        self.__image_widget = None
+       
 
         # toolbar
         self.__tbset = []
         for icon1, icon2, action in [
-          (theme.btn_zoom_in_1, theme.btn_zoom_in_2, self.__zoom_in),
-          (theme.btn_zoom_out_1, theme.btn_zoom_out_2, self.__zoom_out),
-          (theme.btn_zoom_fit_1, theme.btn_zoom_fit_2, self.__zoom_fit),
-          (theme.btn_zoom_100_1, theme.btn_zoom_100_2, self.__zoom_100),
           (theme.btn_previous_1, theme.btn_previous_2, self.__previous_image),
           (theme.btn_next_1, theme.btn_next_2, self.__next_image)]:
             btn = ImageButton(icon1, icon2)
             btn.connect_clicked(action)
             self.__tbset.append(btn)
         self.set_toolbar(self.__tbset)
-            
+
 
     def render_this(self):
         
+        if (not self.__image_widget):
+            self.__image_widget = self.call_service(
+                                      msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
+                                      self, "image/*")
+            self.add(self.__image_widget)
+            self.set_toolbar(self.__image_widget.get_controls() + self.__tbset)
+        
         x, y = self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.get_screen()
-
-        if (not self.__is_fullscreen):
-            screen.draw_frame(theme.viewer_image_frame, x + 4, y + 30,
-                              612, 397, False)
+        self.__image_widget.set_geometry(0, 0, w, h)
 
 
     def handle_event(self, event, *args):
@@ -112,38 +80,7 @@ class ImageViewer(Viewer):
                 self.__on_fullscreen()
                 
         #end if        
-
-
-    def __on_mouse_wheel(self, src, ev):        
-    
-        if (ev.direction == gtk.gdk.SCROLL_UP):
-            self.increment()
-        elif (ev.direction == gtk.gdk.SCROLL_DOWN):
-            self.decrement()
-
-
-    def __on_observe_image(self, src, cmd, *args):
-    
-        if (cmd == src.OBS_BEGIN_LOADING):
-            self.__throbber.set_visible(True)
-            self.__throbber.render()            
-            
-        elif (cmd == src.OBS_END_LOADING):
-            self.__throbber.set_visible(False)
-            self.__image.render()
-           
-        elif (cmd == src.OBS_PROGRESS):        
-            self.__throbber.rotate()
-
-
-    def __on_observe_overlay_ctrls(self, src, cmd, *args):
-    
-        if (cmd == src.OBS_PREVIOUS):
-            self.__previous_image()
-            
-        elif (cmd == src.OBS_NEXT):
-            self.__next_image()
-            
+          
             
     def __get_name(self, uri):
     
@@ -162,7 +99,7 @@ class ImageViewer(Viewer):
         if (idx == -1): idx = 0
         idx -= 1
         if (idx == -1): idx = len(self.__items) - 1
-        self.__image.slide_from_left()
+        #self.__image.slide_from_left()
         self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
 
 
@@ -173,7 +110,7 @@ class ImageViewer(Viewer):
         idx = self.__current_item       
         idx += 1
         idx %= len(self.__items)
-        self.__image.slide_from_right()
+        #self.__image.slide_from_right()
         self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
             
 
@@ -200,53 +137,38 @@ class ImageViewer(Viewer):
 
     def __load(self, item):
 
-        uri = item.resource
-        self.__image.load(uri)        
-        #self.__label.set_text(self.__get_name(uri))
-        self.__current_item = self.__items.index(item)
-        self.__image.slide_from_right()
-        self.set_title(self.__get_name(uri))
-        self.set_info("%d / %d" % (self.__current_item + 1, len(self.__items)))
+        def f():
+            self.__image_widget.load(item)        
+            #self.__label.set_text(self.__get_name(uri))
+            self.__current_item = self.__items.index(item)
+            #self.__image.slide_from_right()
+            self.set_title(self.__get_name(item.name))
+            self.set_info("%d / %d" % (self.__current_item + 1, len(self.__items)))
+            
+        gobject.idle_add(f)
 
 
        
     
     def __zoom_in(self):
     
-        self.__image.zoom_in()
+        self.__image_widget.increment()
 
 
     def __zoom_out(self):
     
-        self.__image.zoom_out()
+        self.__image_widget.decrement()
 
-
-    def __zoom_100(self):
-    
-        self.__image.zoom_100()
-
-
-    def __zoom_fit(self):
-    
-        self.__image.zoom_fit()
-     
 
     def __on_fullscreen(self):
         
         self.__is_fullscreen = not self.__is_fullscreen        
         
         if (self.__is_fullscreen):
-            #self.__label.set_visible(False)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
-            self.__overlay_ctrls.set_visible(True)
-            self.__image.set_background(_BACKGROUND_COLOR_FS)
-            self.__image.set_geometry(0, 0, 800, 480)
+            self.render()
         else:
-            #self.__label.set_visible(True)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-            self.__overlay_ctrls.set_visible(False)
-            self.__image.set_background(_BACKGROUND_COLOR)            
-            self.__image.set_geometry(15, 42, 584, 366)
-        
-        self.emit_event(msgs.CORE_ACT_RENDER_ALL)            
+            self.render()
+            gobject.idle_add(self.emit_event, msgs.CORE_ACT_RENDER_ALL)
 

@@ -72,10 +72,7 @@ class VideoViewer(Viewer):
                 
             elif (event == msgs.HWKEY_EV_DECREMENT):
                 self.__on_decrement()
-                
-            elif (event == msgs.HWKEY_EV_ENTER):
-                self.__player.pause()
-                
+
             elif (event == msgs.HWKEY_EV_FULLSCREEN):
                 self.__on_fullscreen()
                 
@@ -178,21 +175,8 @@ class VideoViewer(Viewer):
     def __get_frame_rect(self):
     
         w, h = self.get_size()
-        x = 4; y = 32
-        w -= 16; h -= 90
-        return (x, y, w, h)
+        return (2, 2, w - 14, h - 4)
             
-            
-    def __get_video_rect(self):
-    
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        if (not self.__is_fullscreen):
-            x += 6; y += 40
-            w -= 20; h -= 110
-        return (x, y, w, h)
-
-
 
     def clear_items(self):
     
@@ -238,34 +222,12 @@ class VideoViewer(Viewer):
 
     def __on_increment(self):
     
-        if (self.__volume + 5 <= 100):
-            self.__volume += 5
-        self.__player.set_volume(self.__volume)
-        self.emit_event(msgs.CORE_EV_VOLUME_CHANGED, self.__volume)
-
-        if (self.__is_fullscreen):
-            self.__player.show_text("Volume %d %%" % self.__volume, 500)
+        self.__video_widget.increment()
         
         
     def __on_decrement(self):
 
-        if (self.__volume - 5 >= 0):
-            self.__volume -= 5
-        self.__player.set_volume(self.__volume)
-        self.emit_event(msgs.CORE_EV_VOLUME_CHANGED, self.__volume)
-
-        if (self.__is_fullscreen):
-            self.__player.show_text("Volume %d %%" % self.__volume, 500)
-
-        
-    def do_set_position(self, pos):
-    
-        self.__player.seek_percent(pos)
-
-
-    def do_play_pause(self):
-    
-        self.__player.pause()
+        self.__video_widget.decrement()
 
 
     def __on_fullscreen(self):
@@ -277,5 +239,6 @@ class VideoViewer(Viewer):
             self.render()
         else:
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)            
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+            self.render()
+            gobject.idle_add(self.emit_event, msgs.CORE_ACT_RENDER_ALL)
 

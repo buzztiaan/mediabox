@@ -44,12 +44,20 @@ class SeekableFD(object):
         
     def seek(self, pos, whence = 0):
     
+        # 'whence' is not supported
+        
         if (pos < len(self.__buffer)):
             pass
         else:
             difference = pos - len(self.__buffer)
             self.read(difference)
+            
         self.__pos = pos
+        
+        
+    def tell(self):
+    
+        return self.__pos
         
         
     def close(self):

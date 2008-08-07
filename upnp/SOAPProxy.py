@@ -53,7 +53,7 @@ class SOAPProxy(object):
         def f(cb, *args):
             out = ""
             out += "<u:%s xmlns:u=\"%s\">" % (name, self.__namespace)
-            soap_args = self.__signatures[name]
+            soap_args, soap_out = self.__signatures[name]
             cnt = 0
             for a in soap_args:
                 out += "<%s>%s</%s>" % (a, args[cnt], a)
@@ -99,17 +99,22 @@ class SOAPProxy(object):
     
         action_name = ""
         action_args = []
+        action_out = []
         
         action_name = node.get_pcdata("{%s}name" % _XMLNS_UPNP)
         arglist = node.get_child("{%s}argumentList" % _XMLNS_UPNP)        
         for arg in arglist.get_children():
-            arg_name = self.__parse_argument(arg)
-            if (arg_name): action_args.append(arg_name)
+            arg_name, arg_type = self.__parse_argument(arg)
+            if (arg_type == "in"):
+                action_args.append(arg_name)
+            elif (arg_type == "out"):
+                action_out.append(arg_name)
         #end for
         
-        logging.debug("SOAPAction: %s(%s)" \
-                      % (action_name, ", ".join(action_args)))
-        self.__signatures[action_name] = action_args
+        logging.debug("SOAPAction: %s(%s): %s" \
+                      % (action_name, ", ".join(action_args),
+                         ", ".join(action_out)))
+        self.__signatures[action_name] = (action_args, action_out)
                 
 
     def __parse_argument(self, node):    
@@ -117,14 +122,11 @@ class SOAPProxy(object):
         arg_name = node.get_pcdata("{%s}name" % _XMLNS_UPNP)
         direction = node.get_pcdata("{%s}direction" % _XMLNS_UPNP)
 
-        if (direction == "in"):
-            return arg_name
-        else:
-            return ""
+        return (arg_name, direction)
 
            
-    def __parse_soap_response(self, body):
-    
+    def __parse_soap_response(self, body, name):
+
         out = []    
         logging.debug("=== SOAP Response ===\n%s\n===" % body)
         
@@ -137,10 +139,11 @@ class SOAPProxy(object):
             raise SOAPError((faultcode, faultstring, str(detail)))
                 
         else:
-            for entry in resp.get_children():
-                out.append(entry.get_child().get_value())
+            soap_args, soap_out = self.__signatures[name]
+            for o in soap_out:
+                out.append(resp.get_pcdata(o))
         #end if
-            
+
         return out
         
 
@@ -168,7 +171,7 @@ class SOAPProxy(object):
         conn.send(soap)
 
         response = conn.getresponse()
-        values = self.__parse_soap_response(response.read())
+        values = self.__parse_soap_response(response.read(), name)
         
         return values
 
@@ -177,7 +180,7 @@ class SOAPProxy(object):
     
         def on_soap_response(resp):
             if (resp and resp.finished()):
-                values = self.__parse_soap_response(resp.read())
+                values = self.__parse_soap_response(resp.read(), name)
                 try:
                     async_cb(*values)
                 except:

@@ -17,5 +17,4 @@ class DeviceThumbnail(Thumbnail):
         Thumbnail.__init__(self)
         self.set_thumbnail_pbuf(thumb)
         self.set_caption(title)
-        self.set_size(160, 120)
 

@@ -57,7 +57,7 @@ class MyViewer(Viewer):
 
         self.__Gridlist = GridList (arrows, arrows_off, items_per_row = 4)
         self.__Gridlist.set_visible(True)
-        self.__Gridlist.set_geometry(10, 40, 780, 370)
+        self.__Gridlist.set_geometry(10, 0, 780, 370)
         self.add(self.__Gridlist)
 
 

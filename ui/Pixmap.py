@@ -154,6 +154,14 @@ class Pixmap(object):
         return self.__buffered
         
         
+    def is_offscreen(self):
+        """
+        Returns whether this pixmap is offscreen.
+        """
+        
+        return (self.__pixmap == None)
+        
+        
     def render_on_pixbuf(self, target = None):
         """
         Renders this pixmap to a pixbuf and returns the pixbuf. If target is

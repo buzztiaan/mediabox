@@ -299,6 +299,8 @@ class _OSSOPlayer(GenericMediaPlayer):
     def load(self, uri, ctx_id = -1):
        
         if (uri.startswith("/")): uri = "file://" + uri
+        uri = uri.replace("\"", "\\\"")
+
         self.__uri = uri
         self.__playing = False
         self.__has_video = False

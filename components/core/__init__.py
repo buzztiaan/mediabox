@@ -1,9 +1,4 @@
 from com import Component, msgs
-from Preferences import Preferences
-#from ConfigMediaRoot import ConfigMediaRoot
-from ConfigTheme import ConfigTheme
-from DirectoryService import DirectoryService
-from MediaWidgetRegistry import MediaWidgetRegistry
 
 
 class Init(Component):
@@ -19,7 +14,14 @@ class Init(Component):
 
 def get_classes():
 
-    return [Init, Preferences, ConfigTheme, DirectoryService,
+    from AppWindow import AppWindow
+    from Preferences import Preferences
+    #from ConfigMediaRoot import ConfigMediaRoot
+    from ConfigTheme import ConfigTheme
+    from DirectoryService import DirectoryService
+    from MediaWidgetRegistry import MediaWidgetRegistry
+
+    return [Init, AppWindow, Preferences, ConfigTheme, DirectoryService,
             MediaWidgetRegistry]
     
     
@@ -37,11 +39,15 @@ messages = [
     "CORE_EV_DEVICE_ADDED",     # (id, device)
     "CORE_EV_DEVICE_REMOVED",   # (id)
     
+    "CORE_EV_PANEL_CHANGED",    # (top_pbuf, bottom_pbuf)
+    "CORE_ACT_SHOW_MENU",
+    
     "CORE_SVC_LIST_PATH",       # (path)
     "CORE_SVC_GET_FILE",        # (path)
     
     "MEDIAWIDGETREGISTRY_SVC_GET_WIDGET",      # (caller_id, mimetype)
     
+    "MEDIA_ACT_PAUSE",
     "MEDIA_EV_PLAY",
     "MEDIA_EV_PAUSE",
     "MEDIA_EV_EOF",

@@ -2,6 +2,7 @@ import thief
 
 import os
 import gtk
+import threading
 
 
 def is_media(f):
@@ -10,10 +11,14 @@ def is_media(f):
         
         
 def make_thumbnail(f, dest):
-    
-    uri = f.resource
-    uri = thief.steal_image(uri) or uri
-    
+
+    def on_data(d, amount, total, loader, finished):
+        if (d):
+            loader.write(d)
+        else:
+            finished.set()
+
+
     def on_size_available(loader, width, height):
         factor = 1
         factor1 = 160 / float(width)
@@ -21,17 +26,20 @@ def make_thumbnail(f, dest):
         factor = min(factor1, factor2)
         loader.set_size(int(width * factor), int(height * factor))    
 
+
+    
+    uri = f.resource
+    uri = thief.steal_image(uri) or uri
+    
+
     loader = gtk.gdk.PixbufLoader()
     loader.connect("size-prepared", on_size_available)
-    fd = f.get_fd()
-    while (True):
-        data = fd.read(50000)            
-        if (data):
-            loader.write(data)
-        else:
-            break
-    #end while
-    fd.close()
+
+    finished = threading.Event()
+    f.load(0, on_data, loader, finished)
+    while (not finished.isSet()):
+        gtk.main_iteration(False)    
+
     try:
         loader.close()
         pbuf = loader.get_pixbuf()

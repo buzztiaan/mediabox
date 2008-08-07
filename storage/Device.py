@@ -1,6 +1,8 @@
 class Device(object):
     """
     Base class for browsable storage devices.
+    Storage devices provide virtual file systems for use by MediaBox.
+    New virtual file systems can be added by subclassing the Device base class.
     """
 
     def __init__(self):
@@ -10,7 +12,19 @@ class Device(object):
         
     def get_prefix(self):
         """
-        Returns the prefix for addressing this storage device.
+        Returns the device prefix for addressing this storage device.
+        This is a unique string forming the first part of URIs and is used
+        for identifying the appropriate storage device implementation for a
+        particular path.
+        
+        E.g. in case of UPnP AV content directories, this would be the
+        protocol together with the UDN:
+        
+          upnp://uuid:898f9738-d930-4db4-a3cf-0015af8f11f6
+          
+        Every prefix MUST contain '://' to separate the protocol name from the
+        device identifier. The protocol name must not be empty. The device
+        identifier may be empty where appropriate.
         """
     
         raise NotImplementedError("Device.get_prefix() must be implemented")
@@ -36,6 +50,7 @@ class Device(object):
     def get_root(self):
         """
         Returns the File object representing the root path of the device.
+        The returned path does not contain the device prefix.
         """
     
         raise NotImplementedError
@@ -44,6 +59,7 @@ class Device(object):
     def get_file(self, path):
         """
         Returns the File object representing the given path.
+        The specified path does not contain the device prefix.
         """
     
         raise NotImplementedError
@@ -80,6 +96,18 @@ class Device(object):
         files = self.ls(path)
         import gobject        
         do_async(files)
+
+
+    def load(self, resource, maxlen, cb, *args):
+        """
+        Loads the file contents asynchronously calling the given callback
+        when new data is available.
+        If maxlen is greater than 0, loading stops after reading at least
+        maxlen bytes.
+        """
+        
+        raise NotImplementedError
+        
 
 
     def get_fd(self, resource):

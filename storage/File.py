@@ -19,6 +19,7 @@ class File(object):
         self.info = ""
         self.mimetype = self.FILE
         self.emblem = None
+        self.source_icon = None
         self.resource = ""
         self.md5 = ""
         self.thumbnail = ""
@@ -33,6 +34,15 @@ class File(object):
         else:
             return 1
 
+
+    def get_full_path(self):
+        """
+        Returns the full path for locating this file.
+        """
+        
+        return self.__device.get_prefix() + self.path
+        
+
         
     def get_children(self):
     
@@ -42,6 +52,11 @@ class File(object):
     def get_children_async(self, cb, *args):
         
         self.__device.ls_async(self.path, cb, *args)
+
+
+    def load(self, maxlen, cb, *args):
+        
+        self.__device.load(self.get_resource(), maxlen, cb, *args)
 
 
     def get_fd(self):

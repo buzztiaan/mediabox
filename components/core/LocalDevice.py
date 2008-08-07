@@ -110,7 +110,6 @@ class LocalDevice(Device):
         else:
             ext = os.path.splitext(path)[-1].lower()
             item.mimetype = mimetypes.lookup_ext(ext)
-            item.emblem = theme.filetype_image
         
         return item
     
@@ -151,6 +150,7 @@ class LocalDevice(Device):
             item.path = os.path.join(path, f)
             item.name = f
             item.resource = os.path.join(path, f)
+
             if (os.path.isdir(item.resource)):
                 item.mimetype = item.DIRECTORY
                 item.child_count = self.__get_child_count(item.path)
@@ -169,6 +169,28 @@ class LocalDevice(Device):
         items.sort(comp)
         
         return items
+        
+        
+    def load(self, resource, maxlen, cb, *args):
+    
+        fd = open(resource, "r")
+        fd.seek(0, 2)
+        total_size = fd.tell()
+        fd.seek(0)
+        read_size = 0
+        while (True):
+            d = fd.read(65536)
+            read_size += len(d)
+            
+            cb(d, read_size, total_size, *args)
+            
+            if (d and maxlen > 0 and read_size >= maxlen):
+                cb ("", read_size, total_size, *args)
+                break
+            elif (not d):
+                break
+        #end while
+
         
         
     def get_fd(self, resource):

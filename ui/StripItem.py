@@ -68,5 +68,5 @@ class StripItem(object):
     
         if (value != self.__is_hilighted):
             self.__is_hilighted = value
-            self.render()
+            self.invalidate()
 

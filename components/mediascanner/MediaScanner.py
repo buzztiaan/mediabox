@@ -32,6 +32,7 @@ class MediaScanner(Component):
         self.__media = {}
         
         self.__thumbnailer = Thumbnailer()
+        self.__thumbnailer.set_thumb_folder(os.path.abspath(config.thumbdir()))
         self.__media_roots = []
         
     
@@ -45,12 +46,13 @@ class MediaScanner(Component):
             mediaroots = args[0]
             self.__scan(mediaroots)
             
-        elif (ev == msgs.MEDIASCANNER_ACT_SCAN_FILE):
+        elif (ev == msgs.MEDIASCANNER_SVC_SCAN_FILE):
             f = args[0]
             self.__process_media(self.MEDIA_VIDEO |
                                  self.MEDIA_AUDIO |
                                  self.MEDIA_IMAGE,
-                                 f, {}, notify = False)
+                                 f, {}, notify = False, recursive = False)
+            return self.__thumbnailer.get_thumbnail_path(f)
             
         elif (ev == msgs.MEDIASCANNER_SVC_GET_MEDIA):
             mime_types = args[0]
@@ -73,7 +75,6 @@ class MediaScanner(Component):
         Scans the media folders recursively.
         """
 
-        self.__thumbnailer.set_thumb_folder(os.path.abspath(config.thumbdir()))
         self.__scantime = int(time.time())
         self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_STARTED)
         
@@ -98,7 +99,8 @@ class MediaScanner(Component):
         self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
         
         
-    def __process_media(self, mediatypes, path, seen, notify = True):
+    def __process_media(self, mediatypes, path, seen, notify = True,
+                        recursive = True):
         """
         Checks the given path for the given mediatypes
         """
@@ -110,9 +112,9 @@ class MediaScanner(Component):
         # skip thumbnail folder
         if (path.resource == self.__thumbnailer.get_thumb_folder()):
             return
-               
+            
         # process directory recursively
-        if (path.mimetype == path.DIRECTORY):
+        if (recursive and path.mimetype == path.DIRECTORY):
             for f in path.get_children():
                 self.__process_media(mediatypes, f, seen)
         #end if
@@ -122,13 +124,14 @@ class MediaScanner(Component):
                                   (self.MEDIA_IMAGE, image)]:
 
             if (mediatypes & mediatype and module.is_media(path)):
-                path.md5 = md5.new(path.path).hexdigest()
-                logging.debug("thumbnailing [%s]", path.resource)
+                #path.md5 = md5.new(path.path).hexdigest()
                 
                 self.__media[path.resource] = path
                 self.__scantimes[path.resource] = self.__scantime
                 
                 if (not self.__thumbnailer.is_thumbnail_up_to_date(path)):
+                    logging.debug("thumbnailing '%s'", path.resource)
+                    
                     # get rid of old thumbnail first
                     self.__thumbnailer.remove_thumbnail(path)
                     try:
@@ -151,7 +154,7 @@ class MediaScanner(Component):
                                    path)
                 
                 else:
-                    logging.debug("thumbnail up to date: %s" % path.resource)
+                    logging.debug("thumbnail up to date for %s" % path.resource)
                 #end if
              #end if
          #end for

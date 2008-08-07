@@ -75,3 +75,31 @@ class Viewer(Component, Widget):
     
         return self.__is_active
 
+
+
+    def fx_slide_out(self, wait = True):
+    
+        import threading
+        import gobject
+        import gtk
+           
+        STEP = 20
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        finished = threading.Event()
+        
+        def f(i):
+            screen.move_area(x, y, w - STEP, h, STEP, 0)
+            screen.fill_area(x, y, STEP, h, "#ffffff")
+            #screen.copy_pixmap(self.__buffer, 0, h - i - STEP, 0, 0, w, STEP)
+            if (i < w - STEP):
+                gobject.timeout_add(2, f, i + STEP)
+            else:
+                finished.set()
+                
+        self.set_events_blocked(True)
+        f(0)
+        while (wait and not finished.isSet()): gtk.main_iteration(False)        
+        self.set_events_blocked(False)

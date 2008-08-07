@@ -2,6 +2,9 @@ from ui.Widget import Widget
 
 
 class MediaWidget(Widget):
+    """
+    Base class for media widgets.
+    """
 
     EVENT_MEDIA_POSITION = "media-position"
     EVENT_MEDIA_EOF = "media-eof"
@@ -14,20 +17,20 @@ class MediaWidget(Widget):
         
         Widget.__init__(self)
         
-        
-    def destroy(self):
-    
-        pass
-        
+
         
     def load(self, uri):
+        """
+        Loads media from the given URI. This is either a local file system+
+        path or an URL.
+        """
     
         raise NotImplementedError
         
         
     def _set_controls(self, *widgets):
         """
-        Creates a new toolbar set.
+        Sets the control widgets (toolbar widgets) provided by this widget.
         """
         
         self.__controls = list(widgets)
@@ -39,6 +42,22 @@ class MediaWidget(Widget):
         """
         
         return self.__controls[:]
+
+
+    def decrement(self):
+        """
+        Performs a DECREMENT action.
+        """
+        
+        pass
+        
+        
+    def increment(self):
+        """
+        Performs an INCREMENT action.
+        """
+        
+        pass
         
         
     def connect_media_position(self, cb, *args):

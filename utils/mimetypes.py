@@ -69,9 +69,9 @@ def _load_mimetypes(path):
                 _EXT_TO_MIMETYPE[ext] = mimetype
         #end if
         
-        if (mediatype == "A"):   _AUDIO_TYPES.append(name)
-        elif (mediatype == "I"): _IMAGE_TYPES.append(name)
-        elif (mediatype == "V"): _VIDEO_TYPES.append(name)
+        if (mediatype == "A"):   _AUDIO_TYPES.append(mimetype)
+        elif (mediatype == "I"): _IMAGE_TYPES.append(mimetype)
+        elif (mediatype == "V"): _VIDEO_TYPES.append(mimetype)
     #end for
 
 

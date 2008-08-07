@@ -16,6 +16,7 @@ class Thumbnail(StripItem):
         self.__mimetype = ""
     
         StripItem.__init__(self)
+        self.set_size(160, 110)
         self.set_selection_frame(theme.mb_selection_frame)
         
         
@@ -41,22 +42,22 @@ class Thumbnail(StripItem):
         
     def render_this(self, cnv):
 
-        cnv.fill_area(0, 0, 160, 120, theme.color_bg)
+        cnv.fill_area(0, 0, 160, 110, theme.color_bg)
 
         if (self.__thumb):
-            thumbnail.draw_decorated(cnv, 4, 4, 152, 112,
+            thumbnail.draw_decorated(cnv, 4, 4, 152, 102,
                                      self.__thumb, self.__mimetype)
         elif (self.__thumb_pbuf):
-            cnv.fit_pixbuf(self.__thumb_pbuf, 4, 4, 152, 112)
+            cnv.fit_pixbuf(self.__thumb_pbuf, 4, 4, 152, 102)
 
 
         self.render_selection_frame(cnv)
 
         if (self.__caption):
-            cnv.draw_pixbuf(theme.mb_caption_bg, 0, 98)
-            cnv.draw_text(self.__caption, theme.font_tiny, 2, 96,
+            cnv.draw_pixbuf(theme.mb_caption_bg, 0, 88)
+            cnv.draw_text(self.__caption, theme.font_tiny, 2, 86,
                           theme.color_fg_thumbnail_label)
 
         if (not self.is_hilighted()):
-            cnv.draw_pixbuf(theme.btn_load, 128, 88)
+            cnv.draw_pixbuf(theme.btn_load, 128, 78)
 

@@ -28,9 +28,11 @@ class RootPane(Widget):
 
     def render_buffered(self):
     
+        import time
+        now = time.time()
         self.render_at(self.__buffer)
         self.get_screen().copy_pixmap(self.__buffer, 0, 0, 0, 0, 800, 480)
-        
+        print "rendering took %fs" % (time.time() - now)
         
    
     def fx_fade_in(self, wait = True):

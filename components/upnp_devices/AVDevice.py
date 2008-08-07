@@ -1,10 +1,12 @@
 from storage import Device, File
 from io import SeekableFD
+from io import Downloader
 from utils.MiniXML import MiniXML
 from upnp.SOAPProxy import SOAPProxy
 from upnp import didl_lite
 from utils import mimetypes
 from utils import logging
+import theme
 
 import urllib
 import urlparse
@@ -14,6 +16,7 @@ import gtk
 
 _NS_DESCR = "urn:schemas-upnp-org:device-1-0"
 _SERVICE_CONTENT_DIRECTORY_1 = "urn:schemas-upnp-org:service:ContentDirectory:1"
+_SERVICE_CONTENT_DIRECTORY_2 = "urn:schemas-upnp-org:service:ContentDirectory:2"
 
 
 class AVDevice(Device):
@@ -22,7 +25,8 @@ class AVDevice(Device):
     """
 
     # supported UPnP device types
-    DEVICE_TYPES = ["urn:schemas-upnp-org:device:MediaServer:1"]
+    DEVICE_TYPES = ["urn:schemas-upnp-org:device:MediaServer:1",
+                    "urn:schemas-upnp-org:device:MediaServer:2"]
 
 
     def __init__(self, descr):
@@ -31,14 +35,24 @@ class AVDevice(Device):
         """
 
         self.__description = descr
+        self.__icon = None
     
         # cache for DIDL responses
         self.__didl_cache = {}
 
-        try:
-            self.__cds_proxy = descr.get_service_proxy(_SERVICE_CONTENT_DIRECTORY_1)
-        except KeyError:
-            self.__cds_proxy = None
+        dtype = descr.get_device_type()
+        if (dtype == "urn:schemas-upnp-org:device:MediaServer:1"):
+            svc = _SERVICE_CONTENT_DIRECTORY_1
+        elif (dtype == "urn:schemas-upnp-org:device:MediaServer:2"):
+            svc = _SERVICE_CONTENT_DIRECTORY_2
+        else:
+            svc = None
+
+        if (svc):
+            try:
+                self.__cds_proxy = descr.get_service_proxy(svc)
+            except KeyError:
+                self.__cds_proxy = None
 
         Device.__init__(self)
 
@@ -51,17 +65,18 @@ class AVDevice(Device):
 
     def get_icon(self):
 
-        icon_url = self.__description.get_icon_url(96, 96)
-        if (icon_url):
-            loader = gtk.gdk.PixbufLoader()
-            loader.write(urllib.urlopen(icon_url).read())
-            loader.close()
-            icon = loader.get_pixbuf()
-            del loader
-        else:
-            icon = None
+        if (not self.__icon):
+            icon_url = self.__description.get_icon_url(96, 96)
+            if (icon_url):
+                loader = gtk.gdk.PixbufLoader()
+                loader.write(urllib.urlopen(icon_url).read())
+                loader.close()
+                self.__icon = loader.get_pixbuf()
+                del loader
+            else:
+                self.__icon = theme.mb_device_unknown
            
-        return icon
+        return self.__icon
 
         
     def get_name(self):
@@ -92,6 +107,7 @@ class AVDevice(Device):
         url_base = self.__description.get_url_base()
 
         f = File(self)
+        f.source_icon = self.get_icon()
         f.mimetype = mimetype
         f.resource = res
         f.name = title
@@ -111,6 +127,7 @@ class AVDevice(Device):
 
         ident, clss, child_count, res, title, artist, mimetype = entry
         f = File(self)
+        f.source_icon = self.get_icon()
         f.mimetype = mimetype
         f.resource = res or urlparse.urljoin(url_base, ident)
         f.name = title
@@ -118,10 +135,10 @@ class AVDevice(Device):
         f.info = artist
 
         if (f.mimetype == f.DIRECTORY):
-            f.path = ident
+            f.path = "/" + ident
         else:
-            f.path = urlparse.urljoin(url_base, res)
-            
+            f.path = "/" + ident
+                        
         if (f.mimetype in ["application/octet-stream"]):
             ext = os.path.splitext(f.name)[-1]
             f.mimetype = mimetypes.lookup_ext(ext)
@@ -173,13 +190,22 @@ class AVDevice(Device):
         didl_lite.parse_async(didl, f)
 
 
+    def load(self, resource, maxlen, cb, *args):
+    
+        def f(d, amount, total):
+            cb(d, amount, total, *args)
+
+            if (d and maxlen > 0 and amount >= maxlen):
+                cb("", amount, total, *args)
+                dloader.cancel()
+        
+        
+        dloader = Downloader(resource, f)
+            
+
+
     def get_fd(self, resource):
     
         fd = urllib.urlopen(resource)
         return SeekableFD(fd)
-
-
-if (__name__ == "__main__"):   
-    dev = UPnPDevice("http://192.168.0.102:49152/description.xml")
-    dev.ls("1")
 

@@ -18,7 +18,7 @@ class MainWindow(_Window, EventSensor):
             self.fullscreen()
         else:
             _Window.__init__(self, gtk.WINDOW_TOPLEVEL)
-            self.set_decorated(False)
+            #self.set_decorated(False)
             if (gtk.gdk.screen_width() == 800):
                 self.fullscreen()
 

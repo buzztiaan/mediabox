@@ -23,6 +23,7 @@ class MediaWidgetRegistry(Component):
     
     def __match_mimetypes(self, mimetype, mtlist):
 
+        #print mimetype, mtlist
         a1, a2 = mimetype.split("/")    
         for mt in mtlist:
             b1, b2 = mt.split("/")
@@ -35,6 +36,8 @@ class MediaWidgetRegistry(Component):
                 match_1 = False
 
             if (a2 == b2):
+                match_2 = True
+            elif (a2 == "*"):
                 match_2 = True
             elif (b2 == "*"):
                 match_2 = True
@@ -64,6 +67,8 @@ class MediaWidgetRegistry(Component):
 
         elif (ev == msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET):
             caller_id, mimetype = args
+
+            logging.info("looking up media widget for %s" % mimetype)
             
             # this is not time critical, so we simply iterate through a list
             factory = None

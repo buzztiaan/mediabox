@@ -21,6 +21,7 @@ class TabPanel(Widget, Observable):
     
         self.__buffer = Pixmap(None, 800, 480)
         
+        self.__viewers = []
     
         # the currently selected tab
         self.__index = 0
@@ -71,7 +72,7 @@ class TabPanel(Widget, Observable):
             icon.set_active(True)
         icon.connect_button_pressed(self.__on_tab_selected, len(self.__icons))
         self.__icons.append(icon)
-       
+        
         offx = (128 - v.ICON.get_width()) / 2
         offy = (128 - v.ICON.get_height()) / 2
         icon.set_pos(10 + x * 128 + offx, 10 + y * 128 + offy)
@@ -85,11 +86,10 @@ class TabPanel(Widget, Observable):
             x = 0
             y += 1
         self.__pos = (x, y)
-                    
 
 
     def render_this(self):
-    
+
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
@@ -126,7 +126,7 @@ class TabPanel(Widget, Observable):
         self.set_events_blocked(True)
         f(STEP)
         while (wait and not finished.isSet()): gtk.main_iteration(False)        
-        self.set_events_blocked(False)
+        gobject.timeout_add(250, self.set_events_blocked, False)
 
 
     def fx_lower(self, wait = True):
@@ -153,4 +153,5 @@ class TabPanel(Widget, Observable):
         self.set_events_blocked(True)
         f(0)
         while (wait and not finished.isSet()): gtk.main_iteration(False)        
-        self.set_events_blocked(False)
+        gobject.timeout_add(250, self.set_events_blocked, False)
+
