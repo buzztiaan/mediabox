@@ -1,7 +1,7 @@
 from com import Viewer, msgs
 from DeviceThumbnail import DeviceThumbnail
 from FileThumbnail import FileThumbnail
-from PlayerPane import PlayerPane
+from HeaderItem import HeaderItem
 from ListItem import ListItem
 from FolderItem import FolderItem
 from mediabox.TrackList import TrackList
@@ -78,11 +78,7 @@ class FolderViewer(Viewer):
         self.__throbber.set_throbber(theme.throbber)
         self.__throbber.set_visible(False)
         self.add(self.__throbber)
-        
-        # player pane
-        self.__player_pane = PlayerPane()
-        self.add(self.__player_pane)
-        
+               
         
         # toolbar
         self.__btn_back = ImageButton(theme.mb_btn_dir_up_1,
@@ -91,7 +87,7 @@ class FolderViewer(Viewer):
 
         self.__btn_toggle_player = ImageButton(theme.mb_btn_toggle_player_1,
                                                theme.mb_btn_toggle_player_2)
-        self.__btn_toggle_player.connect_clicked(self.__on_toggle_player_pane)
+        self.__btn_toggle_player.connect_clicked(self.__on_toggle_player)
 
         self.__navigation_tbset = [self.__btn_back, self.__btn_toggle_player]
 
@@ -101,59 +97,64 @@ class FolderViewer(Viewer):
 
     def __set_view_mode(self, mode):
     
+        #if (mode == self.__view_mode): return
+    
         if (mode == _VIEWMODE_NO_PLAYER):
-            #self.__list.set_scrollbar(theme.mb_list_scrollbar)
-            #self.__list.set_wrap_around(False)
             self.__list.set_visible(True)
-            #self.__list.set_caps(theme.list_top, theme.list_bottom)
-            self.__player_pane.set_visible(False)
+            if (self.__media_widget):
+                self.__media_widget.set_visible(False)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+            
             self.set_toolbar(self.__navigation_tbset)
             if (self.__current_device):
                 self.set_title(self.__current_device.get_name())
 
+            self.__update_device_list()
+
+            if (mode != self.__view_mode):
+                if (self.__current_file in self.__items):
+                    idx = self.__items.index(self.__current_file)
+                    self.__list.hilight(idx + 1)
+                    self.__list.scroll_to_item(idx + 1)
+
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+
         elif (mode == _VIEWMODE_PLAYER_NORMAL):
-            self.__player_pane.set_visible(True)
-            self.__player_pane.set_geometry(0, 0, 620, 370)
-            #self.__list.set_scrollbar(None)
-            #self.__list.set_wrap_around(True)
+            if (self.__media_widget):
+                self.__media_widget.set_visible(True)
+                self.__media_widget.set_geometry(0, 0, 620, 370)
+                tbset = self.__media_widget.get_controls()
+            else:
+                tbset = []
             self.__list.set_visible(False)
-            #self.__list.set_caps(*self.__list_caps)
-            #self.__list.set_geometry(0, 0, 170, 480)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-            tbset = self.__player_pane.get_controls()
+
             if (tbset):
                 tbset.append(self.__btn_toggle_player)
                 self.set_toolbar(tbset)
             if (self.__current_file):
                 self.set_title(self.__current_file.name)
 
+            if (mode != self.__view_mode):
+                self.set_collection(self.__thumbnails)
+                if (self.__current_file in self.__items):
+                    idx = self.__items.index(self.__current_file)
+                    self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
+
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):                        
-            self.__player_pane.set_geometry(0, 0, 800, 480)
+            if (self.__media_widget):
+                self.__media_widget.set_geometry(0, 0, 800, 480)
             self.__list.set_visible(False)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
 
-        #if (mode == self.__view_mode): return
-        
-        if (mode == _VIEWMODE_PLAYER_NORMAL):
-            self.set_collection(self.__thumbnails)
-        else:
-            self.__update_device_list()
+            self.render()
         
         self.__view_mode = mode
-        
-        if (mode == _VIEWMODE_PLAYER_FULLSCREEN):
-            # a full render is not needed when going fullscreen, so we can
-            # speed it up
-            self.__player_pane.render()
-        else:
-            #gobject.idle_add(self.emit_event, msgs.CORE_ACT_RENDER_ALL)
-            #self.__list.skip_next_render()
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
-            #gobject.timeout_add(0, self.__list.render)
 
 
-    def __on_toggle_player_pane(self):
+    def __on_toggle_player(self):
          
         self.fx_slide_out()
         
@@ -198,6 +199,9 @@ class FolderViewer(Viewer):
         #items.sort(lambda a,b:cmp(a.name, b.name))
     
         self.set_collection(items)
+        if (self.__current_device in self.__device_items):
+            idx = self.__device_items.index(self.__current_device)
+            self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
 
 
     def handle_event(self, event, *args):
@@ -218,7 +222,7 @@ class FolderViewer(Viewer):
                 idx = args[0]
                 if (self.__view_mode == _VIEWMODE_NO_PLAYER):
                     dev = self.__device_items[idx]
-                    if (dev):
+                    if (dev != self.__current_device):
                         self.__current_device = dev
                         root = dev.get_root()
                         self.__path_stack = [[root, 0]]
@@ -227,7 +231,8 @@ class FolderViewer(Viewer):
                         
                 elif (self.__view_mode == _VIEWMODE_PLAYER_NORMAL):
                     item = self.__items[idx]
-                    self.__load_item(item)
+                    if (item != self.__current_file):
+                        self.__load_item(item)
 
             # provide search-as-you-type
             elif (event == msgs.CORE_ACT_SEARCH_ITEM):
@@ -250,15 +255,24 @@ class FolderViewer(Viewer):
         
                 
     def __on_item_button(self, item, idx, button):
-    
+        
+        def on_child(f):
+            if (f):
+                self.emit_event(msgs.PLAYLIST_ACT_APPEND, f)
+            return True
+        
         if (button == item.BUTTON_PLAY):
-            entry = self.__items[idx]
+            entry = self.__items[idx - 1]
             self.__list.hilight(idx)
             gobject.idle_add(self.__load_item, entry)
 
         elif (button == item.BUTTON_ENQUEUE):
-            entry = self.__items[idx]
-            self.emit_event(msgs.PLAYLIST_ACT_APPEND, entry)
+            if (idx == 0):
+                path, list_offset = self.__path_stack[-1]
+                path.get_children_async(on_child)
+            else:
+                entry = self.__items[idx - 1]
+                self.emit_event(msgs.PLAYLIST_ACT_APPEND, entry)
 
 
     def __load_item(self, f):
@@ -274,6 +288,9 @@ class FolderViewer(Viewer):
             self.__current_file = f
 
             # get media widget
+            if (self.__media_widget):
+                self.remove(self.__media_widget)
+                
             self.__media_widget = self.call_service(
                             msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
                             self, f.mimetype)
@@ -282,8 +299,7 @@ class FolderViewer(Viewer):
                                                 self.__on_toggle_fullscreen)
             logging.debug("using media widget [%s] for MIME type %s" \
                             % (str(self.__media_widget), f.mimetype))
-            #self.add(self.__media_widget)
-            self.__player_pane.set_media_widget(self.__media_widget)
+            self.add(self.__media_widget)
             self.__set_view_mode(_VIEWMODE_PLAYER_NORMAL)
 
             if (f.mimetype.startswith("audio/")):
@@ -322,7 +338,7 @@ class FolderViewer(Viewer):
     
         data[0] += d
         if (not d):
-            item = self.__items_downloading_thumbnails.get(f, (None, None))
+            item, tn = self.__items_downloading_thumbnails.get(f, (None, None))
             if (not item): return
 
             data = data[0]
@@ -338,6 +354,10 @@ class FolderViewer(Viewer):
             item.invalidate()
             self.__list.invalidate_buffer()
             self.__list.render()
+            
+            tn.set_thumbnail(thumbpath)
+            tn.invalidate()
+            self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
         #end if
 
 
@@ -346,21 +366,35 @@ class FolderViewer(Viewer):
         Creates thumbnails for the given items.
         """
 
+        def on_created(thumbpath, item, tn):
+            item.set_icon(thumbpath)
+            item.invalidate()
+            self.__list.invalidate_buffer()
+            self.__list.render()
+            
+            tn.set_thumbnail(thumbpath)
+            tn.invalidate()
+            self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
+            
+            gobject.idle_add(self.__create_thumbnails, path, items_to_thumbnail)
+            
+
         # abort if the user has changed the directory again
         if (self.__path_stack[-1][0] != path): return
     
         if (items_to_thumbnail):
-            item, f = items_to_thumbnail.pop(0)
+            item, tn, f = items_to_thumbnail.pop(0)
             if (f.thumbnail):
-                self.__items_downloading_thumbnails[f] = item
+                self.__items_downloading_thumbnails[f] = (item, tn)
                 Downloader(f.thumbnail, self.__on_download_thumbnail, f, [""])
             else:
-                thumbpath = self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f)
-                item.set_icon(thumbpath)
-                item.invalidate()
-                self.__list.invalidate_buffer()
-                self.__list.render()
-            gobject.idle_add(self.__create_thumbnails, path, items_to_thumbnail)
+                self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
+                                  on_created, item, tn)
+                #item.set_icon(thumbpath)
+                #item.invalidate()
+                #self.__list.invalidate_buffer()
+                #self.__list.render()
+            #gobject.idle_add(self.__create_thumbnails, path, items_to_thumbnail)
         #end if
 
          
@@ -370,6 +404,9 @@ class FolderViewer(Viewer):
         """
 
         icon = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
+
+        tn = FileThumbnail(icon, entry)
+        self.__thumbnails.append(tn)
         
         if (entry.mimetype == entry.DIRECTORY):
             info = "%d items" % entry.child_count
@@ -379,7 +416,7 @@ class FolderViewer(Viewer):
             item = ListItem(entry, icon)
 
             if (not os.path.exists(icon)):
-                items_to_thumbnail.append((item, entry))
+                items_to_thumbnail.append((item, tn, entry))
                 #self.__download_icon(item, entry)
         
         self.__list.set_frozen(True)
@@ -387,8 +424,6 @@ class FolderViewer(Viewer):
         self.__list.set_frozen(False)
         self.__items.append(entry)
         
-        tn = FileThumbnail(icon, entry)
-        self.__thumbnails.append(tn)
 
 
 
@@ -407,10 +442,12 @@ class FolderViewer(Viewer):
                 entries.append(f)
                 self.__add_file(f, items_to_thumbnail)
             else:
+                self.__list.get_item(0).set_info("%d items" % len(self.__items))
                 # finished loading items; now create thumbnails
                 self.__create_thumbnails(path, items_to_thumbnail)
             
             if (not f or len(entries) == 4 or len(entries) % 10 == 0):
+                self.__list.invalidate_buffer()
                 self.__list.render()
             
             return True
@@ -426,6 +463,10 @@ class FolderViewer(Viewer):
         #elif (direction == self.__GO_CHILD):
         #    self.__list.fx_slide_left()
 
+        header = HeaderItem(path.name)
+        header.set_info("Loading...")
+        self.__list.append_item(header)
+
         try:
             path.get_children_async(on_child, path, [], [])
         except:
@@ -438,7 +479,7 @@ class FolderViewer(Viewer):
         idx = 0
         for item in self.__items:
             if (key in item.name.lower()):
-                self.__list.scroll_to_item(idx)
+                self.__list.scroll_to_item(idx + 1)
                 logging.info("search: found '%s' for '%s'" % (item.name, key))
                 break
             idx += 1
