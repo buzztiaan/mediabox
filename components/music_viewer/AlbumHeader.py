@@ -21,11 +21,6 @@ class AlbumHeader(TrackItem):
 
     def __init__(self, cover, name, num_of_items):
 
-        #try:
-        #    cover = gtk.gdk.pixbuf_new_from_file(cover)
-        #except:
-        #    cover = theme.mb_unknown_album
-
         TrackItem.__init__(self, cover, "audio/x-music-folder",
                            name, "%d items" % num_of_items)
         self.set_graphics(theme.button_1, theme.button_2)

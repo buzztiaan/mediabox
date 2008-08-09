@@ -112,7 +112,6 @@ class Image(Widget, Observable):
         screen.copy_pixmap(self.__offscreen, x, y, x, y, w, h)
         
 
-
     def set_size(self, w, h):
     
         Widget.set_size(self, w, h)
@@ -129,7 +128,7 @@ class Image(Widget, Observable):
     def set_background(self, col):
     
         self.__bg_color = col
-        self.__offscreen.fill_area(0, 0, 800, 480, self.__bg_color)
+        #self.__offscreen.fill_area(0, 0, 800, 480, self.__bg_color)
         
 
     def __hi_quality_render(self):
