@@ -1,5 +1,6 @@
 import thief
 
+import gobject
 import os
 import commands
 import shutil
@@ -21,8 +22,67 @@ def _has_pid(pid):
 def is_media(f):
 
     return f.mimetype.startswith("video/")
+
+
+
+
+def make_thumbnail_async(f, dest, cb):
+
+    def get_thumbnail():
+        thumbs = [ os.path.join("/tmp", f) for f in os.listdir("/tmp")
+                   if f.endswith("00002.jpg") ]
+
+        if (thumbs):
+            thumb = thumbs[0]
+            try:    
+                shutil.move(thumb, dest)
+            except:
+                pass
+            os.system("rm -f /tmp/00000*.jpg")
+            
+            print "... OK"
+            
+        else:
+            print "... failed"
+        #end if        
+        cb()
+
+    def wait_for_thumb(begin, mplayer_pid):
+        if (time.time() - begin < 8 and _has_pid(mplayer_pid)):
+            return True
+            
+        else:
+            # if mplayer is hanging or taking a loooong time, kill it
+            if (_has_pid(mplayer_pid)):
+                try:
+                    os.kill(int(mplayer_pid), _SIGKILL)
+                except:
+                    pass
+            #end if
+            
+            get_thumbnail()
+            return False
         
-        
+
+    thumb = thief.steal_video(f.resource)
+    if (thumb):
+        shutil.copy(thumb, dest)
+        cb()
+    else:
+        # quick and dirty way of getting a video thumbnail
+        cmd = "mplayer -idx -really-quiet -zoom -ss 10 -nosound " \
+              "-vo jpeg:outdir=\"%s\" -frames 2 -vf scale=134:-3  \"%s\"" \
+              " >/dev/null 2>&1 &\necho $!" \
+              % ("/tmp", f.resource)
+        mplayer_pid = commands.getoutput(cmd)
+
+        print "thumbnailing", f.resource,
+        now = time.time()
+        gobject.idle_add(wait_for_thumb, now, mplayer_pid)
+
+
+
+"""
 def make_thumbnail(f, dest):
 
     thumb = thief.steal_video(f.resource)
@@ -69,3 +129,4 @@ def make_thumbnail(f, dest):
             print "... failed"
         #end if
     #end if
+"""

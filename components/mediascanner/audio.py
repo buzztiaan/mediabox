@@ -7,8 +7,11 @@ import threading
 
 
 def is_media(f):
+    
+    if (f.mimetype == "audio/x-music-folder"):
+        return True
 
-    if (f.mimetype != f.DIRECTORY):
+    elif (f.mimetype != f.DIRECTORY):
         return False
         
     for c in f.get_children():
@@ -18,7 +21,13 @@ def is_media(f):
     #end for
     
     return False
-        
+
+
+def make_thumbnail_async(f, dest, cb):
+
+    make_thumbnail(f, dest)
+    cb()
+
         
 def make_thumbnail(f, dest):
 
@@ -32,7 +41,6 @@ def make_thumbnail(f, dest):
         candidates = (".folder.png", "folder.jpg", "cover.jpg",
                       "cover.jpeg", "cover.png")
         for c in contents:
-            print c.name
             if (c.name in candidates):
                 cover = c
                 break

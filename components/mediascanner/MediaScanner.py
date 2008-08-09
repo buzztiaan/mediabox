@@ -8,9 +8,11 @@ import video
 import audio
 import image
 
-import md5
+import gtk
+import gobject
 import os
 import time
+import threading
 
 
 class MediaScanner(Component):
@@ -47,12 +49,19 @@ class MediaScanner(Component):
             self.__scan(mediaroots)
             
         elif (ev == msgs.MEDIASCANNER_SVC_SCAN_FILE):
-            f = args[0]
-            self.__process_media(self.MEDIA_VIDEO |
-                                 self.MEDIA_AUDIO |
-                                 self.MEDIA_IMAGE,
-                                 f, {}, notify = False, recursive = False)
-            return self.__thumbnailer.get_thumbnail_path(f)
+            f, cb = args[:2]
+            u_args = args[2:]
+            
+            gobject.timeout_add(0, self.__make_thumbnail,
+                                self.MEDIA_VIDEO |
+                                self.MEDIA_AUDIO |
+                                self.MEDIA_IMAGE,
+                                f, cb, *u_args)
+            #self.__process_media(self.MEDIA_VIDEO |
+            #                     self.MEDIA_AUDIO |
+            #                     self.MEDIA_IMAGE,
+            #                     f, {}, notify = False, recursive = False)
+            return 0#self.__thumbnailer.get_thumbnail_path(f)
             
         elif (ev == msgs.MEDIASCANNER_SVC_GET_MEDIA):
             mime_types = args[0]
@@ -99,8 +108,7 @@ class MediaScanner(Component):
         self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
         
         
-    def __process_media(self, mediatypes, path, seen, notify = True,
-                        recursive = True):
+    def __process_media(self, mediatypes, path, seen):
         """
         Checks the given path for the given mediatypes
         """
@@ -114,50 +122,65 @@ class MediaScanner(Component):
             return
             
         # process directory recursively
-        if (recursive and path.mimetype == path.DIRECTORY):
+        if (path.mimetype == path.DIRECTORY):
             for f in path.get_children():
                 self.__process_media(mediatypes, f, seen)
         #end if
+        
         
         for mediatype, module in [(self.MEDIA_VIDEO, video),
                                   (self.MEDIA_AUDIO, audio),
                                   (self.MEDIA_IMAGE, image)]:
 
             if (mediatypes & mediatype and module.is_media(path)):
-                #path.md5 = md5.new(path.path).hexdigest()
-                
                 self.__media[path.resource] = path
                 self.__scantimes[path.resource] = self.__scantime
-                
-                if (not self.__thumbnailer.is_thumbnail_up_to_date(path)):
-                    logging.debug("thumbnailing '%s'", path.resource)
+            #end if
+        #end for
+        
+        
+    def __make_thumbnail(self, mediatypes, f, cb, *args):
+
+        def on_generated():
+            # no thumbnail generated? remember this
+            if (not self.__thumbnailer.has_thumbnail(f)):
+                self.__thumbnailer.mark_as_unavailable(f)
+            else:
+                self.__thumbnailer.unmark_as_unavailable(f)
+            
+            cb(self.__thumbnailer.get_thumbnail_path(f), *args)
+            
+        handled = False
+        for mediatype, module in [(self.MEDIA_VIDEO, video),
+                                  (self.MEDIA_AUDIO, audio),
+                                  (self.MEDIA_IMAGE, image)]:
+
+            if (mediatypes & mediatype and module.is_media(f)):
+                handled = True
+
+                if (not self.__thumbnailer.is_thumbnail_up_to_date(f)):
+                    logging.debug("thumbnailing '%s'", f.resource)
                     
                     # get rid of old thumbnail first
-                    self.__thumbnailer.remove_thumbnail(path)
-                    try:
-                        module.make_thumbnail(path,
-                                   self.__thumbnailer.get_thumbnail_path(path))
-                    except:
-                        import traceback; traceback.print_exc()
-                        pass
-                    
-                    # no thumbnail generated? remember this
-                    if (not self.__thumbnailer.has_thumbnail(path)):
-                        self.__thumbnailer.mark_as_unavailable(path)
-                    else:
-                        self.__thumbnailer.unmark_as_unavailable(path)
-                    
-                        if (notify):
-                            self.emit_event(
-                                   msgs.MEDIASCANNER_EV_THUMBNAIL_GENERATED,
-                                   self.__thumbnailer.get_thumbnail_path(path),
-                                   path)
-                
+                    self.__thumbnailer.remove_thumbnail(f)
+
+                    module.make_thumbnail_async(f,
+                                      self.__thumbnailer.get_thumbnail_path(f),
+                                      on_generated)
                 else:
-                    logging.debug("thumbnail up to date for %s" % path.resource)
+                    logging.debug("thumbnail up to date for %s" % f.resource)
+                    on_generated()
                 #end if
-             #end if
-         #end for
+                
+                break
+                
+            #end if
+        #end for
+        
+        if (not handled):
+            on_generated()
+    
+        
          
 
     def __get_media(self, mime_types):
