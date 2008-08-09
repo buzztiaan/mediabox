@@ -589,6 +589,10 @@ class AppWindow(Component):
         elif (event == msgs.CORE_ACT_SELECT_ITEM):
             idx = args[0]
             self.__select_item(idx)
+            
+        elif (event == msgs.CORE_ACT_RENDER_ITEMS):
+            self.__strip.invalidate_buffer()
+            self.__strip.render()
 
         elif (event == msgs.CORE_ACT_SET_TOOLBAR):
             tbset = args[0]
@@ -685,7 +689,7 @@ class AppWindow(Component):
         """
 
         self.__hilight_item(-1)
-        thumbnails = collection #[ item.thumbnail_pmap for item in collection ]
+        thumbnails = collection[:] #[ item.thumbnail_pmap for item in collection ]
         
         vstate = self.__get_vstate()        
         if (not vstate.thumbs_loaded):

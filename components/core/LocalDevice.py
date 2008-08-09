@@ -49,7 +49,7 @@ class LocalDevice(Device):
         f.path = "MENU"
         f.mimetype = f.DIRECTORY
         f.resource = ""
-        f.name = ""
+        f.name = self.__name
         
         return f
         
