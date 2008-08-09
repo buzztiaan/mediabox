@@ -23,6 +23,7 @@ class VideoViewer(Viewer):
         self.__is_fullscreen = False
     
         self.__items = []
+        self.__thumbnails_needed = []
         self.__video_widget = None
         self.__uri = ""
 
@@ -183,20 +184,45 @@ class VideoViewer(Viewer):
         self.__items = []
 
 
-    def __update_media(self):
+    def __load_thumbnails(self, tn_list):
     
+        def on_thumbnail(thumb, tn, files):
+            tn.set_thumbnail(thumb)
+            tn.invalidate()
+            self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
+            
+            if (tn_list):
+                f, tn = tn_list.pop(0)
+                self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
+                                  on_thumbnail, tn, tn_list)
+        
+        f, tn = tn_list.pop(0)
+        self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
+                          on_thumbnail, tn, tn_list)
+
+
+
+    def __update_media(self):
+        
         self.__items = []
         thumbnails = []
         
         media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                   ["video/"])        
+        files = []
+        self.__thumbnails_needed = []
         for f in media:
             thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
             tn = VideoThumbnail(thumb, f.name)
             self.__items.append(f)
             thumbnails.append(tn)
+
+            if (not os.path.exists(thumb)):
+                self.__thumbnails_needed.append((f, tn))
         #end for
+        
         self.set_collection(thumbnails)
+
         
 
     def __load(self, item):
@@ -242,3 +268,9 @@ class VideoViewer(Viewer):
             self.render()
             gobject.idle_add(self.emit_event, msgs.CORE_ACT_RENDER_ALL)
 
+
+    def show(self):
+    
+        Viewer.show(self)
+        if (self.__thumbnails_needed):
+            self.__load_thumbnails(self.__thumbnails_needed)

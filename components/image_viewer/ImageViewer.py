@@ -23,6 +23,7 @@ class ImageViewer(Viewer):
         self.__is_fullscreen = False
             
         self.__uri = ""
+        self.__thumbnails_needed = []
         self.__items = []
         self.__current_item = -1
     
@@ -119,18 +120,40 @@ class ImageViewer(Viewer):
         self.__items = []
 
 
+
+    def __load_thumbnails(self, tn_list):
+    
+        def on_thumbnail(thumb, tn, files):
+            tn.set_thumbnail(thumb)
+            tn.invalidate()
+            self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
+            
+            if (tn_list):
+                f, tn = tn_list.pop(0)
+                self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
+                                  on_thumbnail, tn, tn_list)
+        
+        f, tn = tn_list.pop(0)
+        self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
+                          on_thumbnail, tn, tn_list)
+
+
     def __update_media(self):
     
         media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                   ["image/"])
         self.__items = []
         thumbnails = []
+        self.__thumbnails_needed = []
         self.__current_item = -1
         for f in media:
             thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
             tn = ImageThumbnail(thumb)
             self.__items.append(f)
             thumbnails.append(tn)
+
+            if (not os.path.exists(thumb)):
+                self.__thumbnails_needed.append((f, tn))
         #end for
         self.set_collection(thumbnails)
 
@@ -171,4 +194,12 @@ class ImageViewer(Viewer):
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
             self.render()
             gobject.idle_add(self.emit_event, msgs.CORE_ACT_RENDER_ALL)
+
+
+
+    def show(self):
+    
+        Viewer.show(self)
+        if (self.__thumbnails_needed):
+            self.__load_thumbnails(self.__thumbnails_needed)
 

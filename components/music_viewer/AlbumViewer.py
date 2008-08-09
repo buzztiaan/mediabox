@@ -35,6 +35,7 @@ class AlbumViewer(Viewer):
     def __init__(self):
 
         self.__items = []
+        self.__thumbnails_needed = []
         self.__is_fullscreen = False
         self.__audio_widget = None
 
@@ -132,10 +133,29 @@ class AlbumViewer(Viewer):
         self.__items = []
 
 
+
+    def __load_thumbnails(self, tn_list):
+    
+        def on_thumbnail(thumb, tn, files):
+            tn.set_thumbnail(thumb)
+            tn.invalidate()
+            self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
+            
+            if (tn_list):
+                f, tn = tn_list.pop(0)
+                self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
+                                  on_thumbnail, tn, tn_list)
+        
+        f, tn = tn_list.pop(0)
+        self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
+                          on_thumbnail, tn, tn_list)
+
+
     def __update_media(self):
     
         self.__items = []
         thumbnails = []
+        self.__thumbnails_needed = []
         
         media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                   ["audio/"])
@@ -144,6 +164,9 @@ class AlbumViewer(Viewer):
             tn = AlbumThumbnail(thumb, f.name)
             self.__items.append(f)
             thumbnails.append(tn)
+            
+            if (not os.path.exists(thumb)):
+                self.__thumbnails_needed.append((f, tn))            
         #end for
         
         self.set_collection(thumbnails)
@@ -456,4 +479,12 @@ class AlbumViewer(Viewer):
             self.__set_view_mode(_VIEW_FULLSCREEN)
         else:
             self.__set_view_mode(_VIEW_NORMAL)
+
+
+
+    def show(self):
+    
+        Viewer.show(self)
+        if (self.__thumbnails_needed):
+            self.__load_thumbnails(self.__thumbnails_needed)
 
