@@ -95,10 +95,13 @@ class Container(Component):
             
         for c in classes:
             try:
-                self.__components.append(c())
+                comp = c()
+                comp._attach_to_message_bus()
+                self.__components.append(comp)
+                
             except:
-                logging.error("could not instantiate class [%s] of [%s]:\n%s" %
-                              (`c`, mod._syspath, logging.stacktrace()))
+                logging.error("could not instantiate class [%s]:\n%s" %
+                              (`c`, logging.stacktrace()))
         #end for        
 
         sys.path = syspath

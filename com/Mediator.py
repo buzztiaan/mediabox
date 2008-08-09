@@ -16,6 +16,10 @@ class Mediator(object):
     
         self.__pass_type = self.PASS_TYPE_PASS_ON
         self.__event_bus = MessageBus()
+        
+        
+    def _attach_to_message_bus(self):
+    
         self.__event_bus.add_mediator(self)
 
 
