@@ -46,12 +46,16 @@ class PlaylistViewer(Viewer):
         self.add(self.__playlist)
 
         # toolbar
-        self.__btn_toggle_player = ImageButton(theme.mb_btn_toggle_player_1,
-                                               theme.mb_btn_toggle_player_2)
-        self.__btn_toggle_player.connect_clicked(self.__on_toggle_player)
-
-        self.__playlist_tbset = [self.__btn_toggle_player]
-
+        self.__playlist_tbset = []
+        for icon1, icon2, action in [
+          (theme.btn_previous_1, theme.btn_previous_2, self.__go_previous),
+          (theme.btn_next_1, theme.btn_next_2, self.__go_next),
+          (theme.mb_btn_toggle_player_1, theme.mb_btn_toggle_player_2,
+           self.__on_toggle_player)]:
+            btn = ImageButton(icon1, icon2)
+            btn.connect_clicked(action)
+            self.__playlist_tbset.append(btn)
+        #end for
 
         self.__set_view_mode(_VIEWMODE_NO_PLAYER)
 
@@ -66,6 +70,7 @@ class PlaylistViewer(Viewer):
 
         self.__playlist.clear_items()
         self.__items = []
+        self.__thumbnails = []
 
         for location, name in m3u.load(path):
             f = self.call_service(msgs.CORE_SVC_GET_FILE, location)
@@ -114,7 +119,8 @@ class PlaylistViewer(Viewer):
                 self.__media_widget.set_geometry(0, 0, 620, 370)
                 self.set_toolbar(self.__media_widget.get_controls() + \
                                  self.__playlist_tbset)
-            self.set_collection(self.__thumbnails)
+            if (mode != self.__view_mode):
+                self.set_collection(self.__thumbnails)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):
@@ -185,6 +191,24 @@ class PlaylistViewer(Viewer):
 
     def __on_eof(self):
     
+        self.__go_next()
+
+
+    def __go_previous(self):
+
+        if (self.__current_index > 0):
+            idx = self.__current_index
+            self.__current_index -= 1
+            f = self.__items[self.__current_index]
+            self.__playlist.hilight(self.__current_index)
+            self.__playlist.render()
+            self.__remove_item(idx)
+            
+            self.__load_item(f)
+        
+        
+    def __go_next(self):
+    
         if (self.__current_index < len(self.__items) - 1):
             idx = self.__current_index
             self.__current_index += 1
@@ -194,7 +218,7 @@ class PlaylistViewer(Viewer):
             self.__remove_item(idx)
             
             self.__load_item(f)
-            
+
 
 
     def __load_item(self, f):
@@ -231,7 +255,7 @@ class PlaylistViewer(Viewer):
         Adds the given item to the playlist.
         """
         
-        thumb = self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f)
+        thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
         plitem = PlaylistItem(thumb, f)
         self.__playlist.append_item(plitem)
         self.__playlist.render()
@@ -249,11 +273,15 @@ class PlaylistViewer(Viewer):
 
         del self.__items[idx]
         del self.__thumbnails[idx]
+
         self.__playlist.remove_item(idx)
         if (idx == self.__current_index):
             self.__current_index = -1
         elif (idx < self.__current_index):
             self.__current_index -= 1
+
+        self.set_collection(self.__thumbnails)
+
 
         
     def handle_event(self, msg, *args):
