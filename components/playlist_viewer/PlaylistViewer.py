@@ -5,6 +5,7 @@ from mediabox.TrackList import TrackList
 import m3u
 from mediabox import viewmodes
 from ui.ImageButton import ImageButton
+from ui.SideTabs import SideTabs
 from utils import logging
 import theme
 
@@ -15,6 +16,7 @@ import gobject
 _PLAYLIST_FILE = os.path.expanduser("~/.mediabox/playlist.m3u")
 
 
+_VIEWMODE_NONE = -1
 _VIEWMODE_NO_PLAYER = 0
 _VIEWMODE_PLAYER_NORMAL = 1
 _VIEWMODE_PLAYER_FULLSCREEN = 2
@@ -35,23 +37,30 @@ class PlaylistViewer(Viewer):
         self.__thumbnails = []
         self.__current_index = 0
         self.__media_widget = None
-        self.__view_mode = _VIEWMODE_NO_PLAYER
+        self.__view_mode = _VIEWMODE_NONE
     
         Viewer.__init__(self)
+        self.set_title("Playlist")
         
-        self.__playlist_caps = (None, None)
         self.__playlist = TrackList(with_drag_sort = True)
+        self.__playlist.set_geometry(10, 0, 730, 370)
         self.__playlist.connect_button_clicked(self.__on_item_button)
         self.__playlist.connect_items_swapped(self.__on_swap)
         self.add(self.__playlist)
+
+        self.__side_tabs = SideTabs()
+        self.__side_tabs.set_size(60 - 8, 370 - 8)
+        self.__side_tabs.add_tab(None, "Playlist",
+                                 self.__set_view_mode, _VIEWMODE_NO_PLAYER)
+        self.__side_tabs.add_tab(None, "Player",
+                                 self.__set_view_mode, _VIEWMODE_PLAYER_NORMAL)
+        self.add(self.__side_tabs)
 
         # toolbar
         self.__playlist_tbset = []
         for icon1, icon2, action in [
           (theme.btn_previous_1, theme.btn_previous_2, self.__go_previous),
-          (theme.btn_next_1, theme.btn_next_2, self.__go_next),
-          (theme.mb_btn_toggle_player_1, theme.mb_btn_toggle_player_2,
-           self.__on_toggle_player)]:
+          (theme.btn_next_1, theme.btn_next_2, self.__go_next)]:
             btn = ImageButton(icon1, icon2)
             btn.connect_clicked(action)
             self.__playlist_tbset.append(btn)
@@ -96,57 +105,46 @@ class PlaylistViewer(Viewer):
 
 
     def __set_view_mode(self, mode):
+
+        if (mode == self.__view_mode): return
+        self.__view_mode = mode
         
         if (mode == _VIEWMODE_NO_PLAYER):
-            #self.__playlist.set_scrollbar(theme.mb_list_scrollbar)
             self.__playlist.set_visible(True)
-            self.__playlist.set_geometry(10, 0, 780, 370)
-            #self.__playlist.set_caps(theme.list_top, theme.list_bottom)
-            #self.__playlist.set_drag_sort_enabled(True)
+            self.__side_tabs.set_pos(740 + 4, 0 + 4)
+
             if (self.__media_widget):
                 self.__media_widget.set_visible(False)
             self.set_toolbar(self.__playlist_tbset)
+            
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
         elif (mode == _VIEWMODE_PLAYER_NORMAL):
-            #self.__playlist.set_scrollbar(None)
             self.__playlist.set_visible(False)
-            #self.__playlist.set_geometry(0, 0, 170, 480)
-            #self.__playlist.set_caps(*self.__playlist_caps)
-            #self.__playlist.set_drag_sort_enabled(False)
+            self.__side_tabs.set_pos(560 + 4, 0 + 4)
+
             if (self.__media_widget):
                 self.__media_widget.set_visible(True)
-                self.__media_widget.set_geometry(0, 0, 620, 370)
+                self.__media_widget.set_geometry(0, 0, 560, 370)
                 self.set_toolbar(self.__media_widget.get_controls() + \
                                  self.__playlist_tbset)
-            if (mode != self.__view_mode):
-                self.set_collection(self.__thumbnails)
+
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+                                 
+            self.set_collection(self.__thumbnails)
+                
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):
             self.__playlist.set_visible(False)
             if (self.__media_widget):
                 self.__media_widget.set_visible(True)
                 self.__media_widget.set_geometry(0, 0, 800, 480)
+                
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
-       
-        self.__view_mode = mode
-        
-        if (mode == _VIEWMODE_PLAYER_FULLSCREEN):
-            # a full render is not needed when going fullscreen, so we can
-            # speed it up
             self.render()
-        else:
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
-        
-
-    def __on_toggle_player(self):
-            
-        if (self.__view_mode == _VIEWMODE_NO_PLAYER):
-            self.__set_view_mode(_VIEWMODE_PLAYER_NORMAL)
-        else:
-            self.__set_view_mode(_VIEWMODE_NO_PLAYER)
-
+       
 
     def __on_item_button(self, item, idx, button):
     
@@ -241,10 +239,10 @@ class PlaylistViewer(Viewer):
             self.__media_widget.set_visible(True)
             self.add(self.__media_widget)
 
-            self.__set_view_mode(_VIEWMODE_PLAYER_NORMAL)
+            self.__side_tab.select_tab(1)
+            #self.__set_view_mode(_VIEWMODE_PLAYER_NORMAL)
             self.render()
 
-            self.set_title(f.name)
             self.__media_widget.load(f)
             
 
@@ -288,7 +286,9 @@ class PlaylistViewer(Viewer):
                     
         if (msg == msgs.PLAYLIST_ACT_APPEND):
             f = args[0]
-            logging.info("adding to playlist: '%s'" % f.name)
+            logging.info("adding '%s' to playlist" % f.name)
+            self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
+                              u"adding \xbb%s\xab to playlist" % f.name)
             self.__playlist_modified = True
             self.__add_item(f)
 

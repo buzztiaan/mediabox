@@ -13,12 +13,9 @@ import gobject
 import os
 
 
-_COVER_SIZE = 256
-
-
 class AudioWidget(MediaWidget):
     """
-    Media widget for viewing videos.
+    Media widget for playing audio files.
     """
 
 
@@ -67,34 +64,38 @@ class AudioWidget(MediaWidget):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
+                
+        cover_size = min(h, w / 2) - 48 #256
+        cover_x = w / 2 + 24
+        cover_y = h - 24 - cover_size
         
-        cover_x = 24
-        cover_y = 94
-        
-        label_x = cover_x + _COVER_SIZE + 32
+        label_x = 24 #cover_x + cover_size + 32
 
-        self.__title.set_geometry(cover_x, 34, 500, 0)
-        self.__album.set_geometry(label_x + 48, 94, 300 - 48, 0)
-        self.__artist.set_geometry(label_x + 48, 134, 300 - 48, 0)
+        # place labels
+        self.__title.set_geometry(label_x, 24, w - 24, 0)
+        self.__album.set_geometry(label_x + 48, 80, w / 2 - 48, 0)
+        self.__artist.set_geometry(label_x + 48, 128, w / 2 - 48, 0)
         
         self.__buffer.fill_area(x, y, w, h, theme.color_bg)
+        
+        # draw cover art
         if (self.__cover):
             self.__buffer.draw_frame(theme.viewer_music_frame,
                                      x + cover_x, y + cover_y,
-                                     _COVER_SIZE + 11, _COVER_SIZE + 11,
+                                     cover_size + 11, cover_size + 11,
                                      True)
             self.__buffer.fit_pixbuf(self.__cover,
                                      x + cover_x + 3, y + cover_y + 3,
-                                     _COVER_SIZE, _COVER_SIZE)
+                                     cover_size, cover_size)
         
         else:
             self.__buffer.fit_pixbuf(theme.mb_unknown_album,
                                      x + cover_x + 3, y + cover_y + 3,
-                                     _COVER_SIZE, _COVER_SIZE)
+                                     cover_size, cover_size)
 
 
-        self.__buffer.draw_pixbuf(theme.viewer_music_album, x + label_x, y + 92)
-        self.__buffer.draw_pixbuf(theme.viewer_music_artist, x + label_x, y + 132)
+        self.__buffer.draw_pixbuf(theme.viewer_music_album, x + label_x, y + 80)
+        self.__buffer.draw_pixbuf(theme.viewer_music_artist, x + label_x, y + 128)
         
         screen.copy_pixmap(self.__buffer, x, y, x, y, w, h)
 
@@ -193,7 +194,7 @@ class AudioWidget(MediaWidget):
             self.__cover = self.__load_cover(item)
         except:
             pass
-        #self.render()
+        self.render()
 
 
 

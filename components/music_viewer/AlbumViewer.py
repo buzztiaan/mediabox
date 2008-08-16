@@ -188,7 +188,7 @@ class AlbumViewer(Viewer):
         elif (mode == _VIEW_FULLSCREEN):
             self.__list.set_visible(False)
             self.__audio_widget.set_visible(True)
-            self.__audio_widget.set_geometry(0, 0, 800, 480)
+            self.__audio_widget.set_geometry(0, 0, 800, 370)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
             self.emit_event(msgs.CORE_ACT_RENDER_ALL)
         

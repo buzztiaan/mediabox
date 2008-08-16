@@ -57,12 +57,15 @@ class VideoWidget(MediaWidget):
 
     def _visibility_changed(self):
 
-        print "VIS changed", self.may_render(), self
+        def f():
+            if (self.may_render() and \
+                self.__player and self.__player.has_video()):
+                self.__screen.show()
+
         if (not self.may_render()):
             self.__screen.hide()
         else:
-            if (self.__player and self.__player.has_video()):
-                self.__screen.show()
+            gobject.idle_add(f)
 
 
     def render_this(self):
