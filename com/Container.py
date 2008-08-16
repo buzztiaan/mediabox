@@ -30,6 +30,7 @@ class Container(Component):
         modules = []
 
         dirs = os.listdir(path)
+        dirs.sort()
         # a module called "core" gets loaded first
         if ("core" in dirs):
             dirs.remove("core")

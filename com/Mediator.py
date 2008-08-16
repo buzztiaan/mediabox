@@ -20,7 +20,11 @@ class Mediator(object):
         
     def _attach_to_message_bus(self):
     
-        self.__event_bus.add_mediator(self)
+        try:
+            self.__event_bus.add_mediator(self)
+        except AttributeError:
+            raise AttributeError("event bus not present. most likely the "
+                                 "component was not initialized properly")
 
 
     def __repr__(self):
