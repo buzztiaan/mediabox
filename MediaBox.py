@@ -9,7 +9,7 @@ urllib2.AbstractHTTPHandler.do_open = f
 
 
 from utils import logging
-logging.set_level(logging.INFO)
+logging.set_level(logging.DEBUG)
 
 
 logging.debug("initializing application")
@@ -22,11 +22,4 @@ container = Container(os.path.join(os.path.dirname(__file__), "components"))
 logging.debug("running application")
 import gtk
 gtk.main()
-#from mediabox.App import App
-
-
-
-#app = App()
-#logging.debug("running application")
-#app.run()
 
