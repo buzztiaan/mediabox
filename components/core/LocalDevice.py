@@ -11,6 +11,9 @@ import commands
 
 class LocalDevice(Device):
 
+    CATEGORY = Device.CATEGORY_CORE
+    
+
     def __init__(self):
     
         self.__name = commands.getoutput("hostname")

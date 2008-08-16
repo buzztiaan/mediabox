@@ -283,7 +283,6 @@ class AppWindow(Component):
 
         self.__title_panel_left.set_image(left_top)
         self.__panel_left.set_image(left_bottom)
-        self.emit_event(msgs.CORE_EV_PANEL_CHANGED, left_top, left_bottom)
         self.__strip.set_caps(left_top, left_bottom)
         
 
@@ -359,7 +358,6 @@ class AppWindow(Component):
         #while (gtk.events_pending()): gtk.main_iteration()
 
         for v in self.__viewers:
-            self.__viewer_states[v].thumbs_loaded = False
             self.__viewer_states[v].selected_item = -1
             self.__viewer_states[v].item_offset = 0
 
@@ -539,9 +537,9 @@ class AppWindow(Component):
         #    ident, dev = args
         #    gobject.timeout_add(0, self.__scan_media, True)
         
-        elif (event == msgs.CORE_ACT_SHOW_MENU):
-            self.__show_tabs()
-            self.drop_event()
+        #elif (event == msgs.CORE_ACT_SHOW_MENU):
+        #    self.__show_tabs()
+        #    self.drop_event()
         
         elif (event == msgs.CORE_EV_THEME_CHANGED):
             self.__root_pane.propagate_theme_change()
@@ -689,27 +687,10 @@ class AppWindow(Component):
         """
 
         self.__hilight_item(-1)
-        thumbnails = collection[:] #[ item.thumbnail_pmap for item in collection ]
+        thumbnails = collection #[ item.thumbnail_pmap for item in collection ]
         
-        vstate = self.__get_vstate()        
-        if (not vstate.thumbs_loaded):
-            total = len(thumbnails)
-            cnt = 1
-            for t in thumbnails:
-                #if (cnt < 50): t.render()
-
-                #if (cnt % 5 == 0 or (cnt == total and cnt > 5)):
-                #    while (gtk.events_pending()): gtk.main_iteration()
-                    
-                cnt += 1                    
-            #end for
-        #end if
-
         self.__strip.set_images(thumbnails)
         self.__strip.render()
-
-        if (not vstate.thumbs_loaded):
-            vstate.thumbs_loaded = True
 
         # if the collection is empty, tell the user that she can add items
         #if (not collection):

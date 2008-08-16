@@ -22,7 +22,7 @@ class Preferences(Viewer):
     def __register_configurator(self, comp):
     
         self.add(comp)    
-        comp.set_geometry(0, 40, 620, 410)
+        comp.set_geometry(20, 0, 600, 370)
 
         self.__configurators.append(comp)
 
