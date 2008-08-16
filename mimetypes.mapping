@@ -15,15 +15,18 @@ image/gif                             .gif                GIF            I
 image/jpeg                            .jpg,.jpeg          JPEG           I
 image/png                             .png                PNG            I
 
+application/ogg                       -                   Ogg-Vorbis     A      # used by Rhythmbox UPnP server plugin
 application/vorbis                    -                   Ogg-Vorbis     A
 audio/mp2                             .mp2                MP2-Audio      A
 audio/mpeg                            .mp3                MP3-Audio      A
 audio/mp4                             .aac,.m4a           MP4-Audio      A
 audio/x-flac                          .flac               FLAC           A
 audio/x-ms-wma                        .wma                WMA            A
+audio/x-unknown                       -                   Unknown-Audio  A      # used by MediaBox for unguessable audio types
 audio/x-vorbis+ogg                    .ogg                Ogg-Vorbis     A
 audio/x-wav                           .wav                WAV            A
 
+video/avi                             -                   AVI            V      # used by BRisa
 application/vnd.rn-realmedia          .rm,.ram,.ra,.rmvb  Realmedia      V
 application/x-flash-video             -                   Flash-Video    V      # used by Fuppes
 video/mp4                             .m4v                MP4-Video      V

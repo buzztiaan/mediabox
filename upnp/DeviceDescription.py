@@ -91,7 +91,6 @@ class DeviceDescription(object):
             # we use lazy loading for the SOAP proxy, so we don't create it now
             
         #end for
-        
         # read icon if available
         icons = device.get_child("{%s}iconList" % _NS_DESCR)
         if (icons):

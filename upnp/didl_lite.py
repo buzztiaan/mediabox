@@ -100,7 +100,11 @@ def _parse_container(node):
 
     try:
         ident = node.get_attr("{%s}id" % _XMLNS_DIDL)
-        child_count = int(node.get_attr("{%s}childCount" % _XMLNS_DIDL))
+        try:
+            child_count = int(node.get_attr("{%s}childCount" % _XMLNS_DIDL))
+        except KeyError:
+            # 'child_count' is mandatory but Rhythmbox omits it nonetheless
+            child_count = 0
     
         clss = node.get_pcdata("{%s}class" % _XMLNS_UPNP)
         title = node.get_pcdata("{%s}title" % _XMLNS_DC)
