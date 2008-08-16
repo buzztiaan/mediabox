@@ -63,12 +63,13 @@ class ListItem(StripItem):
     def render_grip(self, cnv):
     
         if (self.__grip):
-            cnv.draw_pixbuf(self.__grip, 0, 0)
+            w, h = self.get_size()
+            cnv.draw_pixbuf(self.__grip, 4, (h - self.__grip.get_height()) / 2)
             
         
     def render_this(self, cnv):
 
-        w, h = self.get_size()    
+        w, h = self.get_size()
         cnv.fill_area(0, 0, w, h, theme.color_bg)        
 
         background = self.is_hilighted() and self.__hilighted_bg \

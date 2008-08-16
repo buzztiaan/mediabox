@@ -18,9 +18,11 @@ class VBox(Widget):
         total_height = min(h, total_height)
         
         y = (h - total_height) / 2
+        #y = 0
         for c in children:
             width, height = c.get_physical_size()
-            c.set_pos((w - width) / 2, y)
+            #c.set_pos((w - width) / 2, y)
+            c.set_pos(0, y)
             y += height
         #end for
 

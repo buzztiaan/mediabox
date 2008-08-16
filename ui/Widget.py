@@ -389,7 +389,7 @@ class Widget(object):
         '0' means dynamic height for a label.
         """
     
-        return self.__size
+        return self.get_size()
 
     
     def render_this(self):
