@@ -24,6 +24,9 @@ class AVDevice(Device):
     Class representing a UPnP device with ContentDirectory.
     """
 
+    CATEGORY = Device.CATEGORY_LAN
+    
+
     # supported UPnP device types
     DEVICE_TYPES = ["urn:schemas-upnp-org:device:MediaServer:1",
                     "urn:schemas-upnp-org:device:MediaServer:2"]
@@ -145,6 +148,13 @@ class AVDevice(Device):
             
         f.child_count = child_count    
         
+        # MythTV thinks Ogg-Vorbis was text/plain...
+        if (clss.startswith("object.item.audioItem") and
+            f.mimetype == "text/plain"):
+            f.mimetype = "audio/x-unknown"
+            
+        logging.debug("'%s' has MIME type '%s'" % (f.name, f.mimetype))
+        
         return f
 
 
@@ -157,7 +167,7 @@ class AVDevice(Device):
             didl, nil, nil, nil = self.__cds_proxy.Browse(None, path,
                                                 "BrowseDirectChildren",
                                                 "*", "0", "0", "")
-            self.__didl_cache[path] = didl
+            #self.__didl_cache[path] = didl
             
         return didl
     
