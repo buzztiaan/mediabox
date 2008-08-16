@@ -16,7 +16,7 @@ class FileDownloader(Downloader):
     
         self.__fd = open(dest, "w")
         self.__partial = dest + ".partial"
-    
+            
         open(self.__partial, "w").write("")
         Downloader.__init__(self, url, self.__on_receive_data, cb, args)
         
@@ -31,7 +31,10 @@ class FileDownloader(Downloader):
         else:
             # finished downloading
             self.__fd.close()
-            os.unlink(self.__partial)
+            try:
+                os.unlink(self.__partial)
+            except:
+                pass
 
         cb(data, amount, total, *args)
 

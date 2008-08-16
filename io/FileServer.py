@@ -91,7 +91,7 @@ class _FileServer(object):
                 gobject.source_remove(self.__timeout_handler)
             if (self.__with_idle_timeout):
                 self.__timeout_handler = \
-                              gobject.timeout_add(5000, self.__on_idle_timeout)
+                              gobject.timeout_add(25000, self.__on_idle_timeout)
         
             
 

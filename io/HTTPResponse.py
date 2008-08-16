@@ -44,7 +44,7 @@ class HTTPResponse(object):
         
     
     def feed(self, data):
-               
+
         if (self.__transfer_encoding == "CHUNKED"):
             self.__feed_chunked(data)
         

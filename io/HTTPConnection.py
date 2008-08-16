@@ -39,6 +39,10 @@ class HTTPConnection(object):
     def __init__(self, host, port = 80):
 
         self.__address = (host, port)
+        self.__finished = False
+
+        # ID for identifying this connection when debugging
+        self.__id = hex(hash(self))[2:]
 
         self.__callback = None
         self.__user_args = []
@@ -51,6 +55,12 @@ class HTTPConnection(object):
         self.__socket_connected = False
         
         self.__is_aborted = False
+
+
+
+    def _get_id(self):
+    
+        return self.__id
 
         
 
@@ -68,11 +78,12 @@ class HTTPConnection(object):
             try:
                 # this somehow causes high CPU load when running threaded...
                 # threading with PyGTK is really a mess
-                print "connecting to", host, port or 80
+                logging.info("conn [%s]: connecting to %s:%d" \
+                             % (self.__id, host, port or 80))
                 sock.connect((host, port or 80))
             except:
-                logging.error("Could not resolve hostname:\n%s" \
-                              % logging.stacktrace())
+                logging.error("conn [%s]: could not resolve hostname:\n%s" \
+                              % (self.__id, logging.stacktrace()))
                 threads.run_unthreaded(self.__abort,
                                        "Could not resolve hostname")
                 return
@@ -102,8 +113,8 @@ class HTTPConnection(object):
         """
         
         import gtk
-        while (self.__sock):
-            if (gtk.events_pending()): gtk.main_iteration()
+        while (not self.__finished):
+            if (gtk.events_pending()): gtk.main_iteration(False)
             
         return self.__is_aborted
 
@@ -152,11 +163,12 @@ class HTTPConnection(object):
         
         if (_number_of_connections >= _MAX_CONNECTIONS):
             _connection_queue.append((self.__send, data))
-            print "queueing for later"
+            logging.debug("conn [%s]: queueing for later" % self.__id)
             
         else:
             _number_of_connections += 1
 
+            logging.debug("%d HTTP connections active" % _number_of_connections)
             self.__connect(*self.__address)
             self.__reset_timeout()
             self.__io_watch = gobject.io_add_watch(self.__sock, gobject.IO_OUT,
@@ -202,11 +214,12 @@ class HTTPConnection(object):
         http = data[0]
         length = sock.send(http)
         data[0] = http[length:]
-        print "SENT", http
+        logging.debug("conn [%s]: sending HTTP request\n%s" % (self.__id, http))
         if (data[0]):
             return True
 
         else:
+            logging.debug("conn [%s]: receiving HTTP response" % self.__id)
             self.__io_watch = gobject.io_add_watch(sock, gobject.IO_IN,
                                                    self.__on_receive_header,
                                                    [""])
@@ -228,7 +241,7 @@ class HTTPConnection(object):
         body = data[0][idx + 4:]
         lines = header.splitlines()
         status_header = lines[0].upper()
-        print "HEADERS", header
+        logging.debug("conn [%s]: received HTTP headers\n%s" % (self.__id, header))
 
         headers = {}
         for l in lines[1:]:
@@ -238,16 +251,17 @@ class HTTPConnection(object):
                 value = l[idx + 1:].strip()
                 headers[key] = value
         #end for
-        print headers
         
         # check for connection keep-alive
         if (headers.get("CONNECTION", "").upper() == "KEEP-ALIVE"):
+            logging.debug("conn [%s]: is keep-alive" % self.__id)
             self.__close_connection = False
             
+        if (body):
+            logging.debug("conn [%s]: receiving body" % self.__id)
 
         resp = HTTPResponse(status_header, headers)
 
-       
         if (200 <= resp.get_status() < 210):
             # OK
             resp.feed(body)
@@ -264,6 +278,7 @@ class HTTPConnection(object):
 
         elif (300 <= resp.get_status() < 310):
             # redirect needed
+            logging.debug("conn [%s]: HTTP redirect" % self.__id)
             self.__callback(resp, *self.__user_args)
             self.__check_connection_queue()
 
@@ -284,6 +299,8 @@ class HTTPConnection(object):
         if (not s):
             # server closed connection
             resp.set_finished()
+
+        logging.debug("conn [%s]: receiving body" % self.__id)
         resp.feed(s)
 
         if (not resp.finished()):
@@ -309,8 +326,10 @@ class HTTPConnection(object):
         if (self.__timeout_handler):
             gobject.source_remove(self.__timeout_handler)
 
-        print "Aborting connection:", error
+        logging.error("conn [%s]: connection aborted (%s)" \
+                      % (self.__id, error))
         self.__callback(None, *self.__user_args)
+        self.__finished = True
         self.__check_connection_queue()
 
 
@@ -323,6 +342,8 @@ class HTTPConnection(object):
         if (self.__timeout_handler):
             gobject.source_remove(self.__timeout_handler)
 
+        logging.debug("conn [%s]: finished" % self.__id)
+        self.__finished = True
         self.__check_connection_queue()
 
 
@@ -330,6 +351,7 @@ class HTTPConnection(object):
         global _number_of_connections, _connection_queue
 
         _number_of_connections -= 1
+        logging.debug("%d HTTP connections in queue" % _number_of_connections)
         if (_connection_queue):
             f, data = _connection_queue.pop(0)
             f(data)
