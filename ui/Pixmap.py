@@ -7,10 +7,10 @@ _PANGO_CTX = gtk.HBox().get_pango_context()
 _PANGO_LAYOUT = pango.Layout(_PANGO_CTX)
 
 
-def pixmap_for_text(text, font):
+def text_extents(text, font):
     """
-    Creates and returns a new Pixmap object fitting the given text with the
-    given font. The text is not rendered on the Pixmap.
+    Returns the width and height required for the given text with the given
+    font.
     """
 
     _PANGO_LAYOUT.set_font_description(font)
@@ -21,6 +21,16 @@ def pixmap_for_text(text, font):
     w /= pango.SCALE
     h /= pango.SCALE
 
+    return (w, h)
+
+
+def pixmap_for_text(text, font):
+    """
+    Creates and returns a new Pixmap object fitting the given text with the
+    given font. The text is not rendered on the Pixmap.
+    """
+
+    w, h = text_extents(text, font)
     return Pixmap(None, w, h)
     
 
@@ -143,6 +153,33 @@ class Pixmap(object):
 
         self.__width = w
         self.__height = h        
+        
+        
+    def rotate(self, angle):
+        """
+        Rotates this pixmap by the given angle. Angle must be one of
+        0, 90, 180, 270.
+        """
+        assert angle in (0, 90, 180, 270)
+        
+        if (angle == 0):
+            method = gtk.gdk.PIXBUF_ROTATE_NONE
+        elif (angle == 90):
+            method = gtk.gdk.PIXBUF_ROTATE_COUNTERCLOCKWISE
+        elif (angle == 180):
+            method = gtk.gdk.PIXBUF_ROTATE_UPSIDEDOWN
+        else:
+            method = gtk.gdk.PIXBUF_ROTATE_CLOCKWISE
+        pbuf = self.render_on_pixbuf()
+        
+        rpbuf = pbuf.rotate_simple(method)
+        self.resize(rpbuf.get_width(), rpbuf.get_height())
+        del pbuf
+        self.draw_pixbuf(rpbuf, 0, 0)
+        del rpbuf
+        
+        
+        
         
         
     def is_buffered(self):
