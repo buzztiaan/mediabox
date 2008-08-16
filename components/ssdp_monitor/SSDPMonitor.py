@@ -72,16 +72,20 @@ class SSDPMonitor(Component):
                 return
     
             del self.__processing[uuid]
-    
-            dom = MiniXML(xml[0], _NS_DESCR).get_dom()
-            descr = DeviceDescription(location, dom)
             
-            # announce availability of device
-            logging.info("discovered UPnP device [%s] of type [%s]" \
-                         % (descr.get_friendly_name(), descr.get_device_type()))
-            logging.debug("propagating availability of device [%s]" % uuid)
-            self.emit_event(msgs.SSDP_EV_DEVICE_DISCOVERED, uuid, descr)            
-
+            
+            if (xml[0]):
+                dom = MiniXML(xml[0], _NS_DESCR).get_dom()
+                descr = DeviceDescription(location, dom)
+            
+                # announce availability of device
+                logging.info("discovered UPnP device [%s] of type [%s]" \
+                             % (descr.get_friendly_name(), descr.get_device_type()))
+                logging.debug("propagating availability of device [%s]" % uuid)
+                self.emit_event(msgs.SSDP_EV_DEVICE_DISCOVERED, uuid, descr)
+            #end if
+        #end if
+        
 
     def __check_ssdp(self, sock, cond):
     
