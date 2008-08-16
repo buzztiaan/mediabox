@@ -5,6 +5,17 @@ class Device(object):
     New virtual file systems can be added by subclassing the Device base class.
     """
 
+
+    CATEGORY_CORE = 0
+    CATEGORY_LOCAL = 1
+    CATEGORY_LAN = 2
+    CATEGORY_WAN = 3
+    CATEGORY_OTHER = 4
+
+
+    CATEGORY = CATEGORY_OTHER
+
+
     def __init__(self):
     
         pass
