@@ -5,6 +5,7 @@ from ui.Dialog import Dialog
 from io import Downloader
 from io import FileDownloader
 from io import FileServer
+import config
 import theme
 
 import gobject
@@ -45,6 +46,9 @@ class YouTube(Device):
     """
     StorageDevice for accessing YouTube.
     """
+    
+    CATEGORY = Device.CATEGORY_WAN
+    
 
     def __init__(self):
     
@@ -107,9 +111,9 @@ class YouTube(Device):
     
         f = File(self)
         f.path = "/"
+        f.name = "YouTube"
         f.mimetype = f.DIRECTORY
         f.resource = ""
-        f.name = ""
         
         return f
         
@@ -362,14 +366,16 @@ class YouTube(Device):
         if (self.__flv_downloader):
             self.__flv_downloader.cancel()
             
-        self.__flv_downloader = FileDownloader(flv, "/media/mmc1/tube.flv", f)
+        cache_folder = config.get_cache_folder()
+        flv_path = os.path.join(cache_folder, ".tube.flv")
+        self.__flv_downloader = FileDownloader(flv, flv_path, f)
         
         # we don't give the downloaded file directly to the player because
         # if we did so, the player would fall off the video if it reached
         # the end of file before it was downloaded completely.
         # instead we serve it on a webserver to make the player wait for
         # more if the download rate is too low
-        self.__fileserver.allow("/media/mmc1/tube.flv", "/" + resource + ".flv")
+        self.__fileserver.allow(flv_path, "/" + resource + ".flv")
         
         return self.__fileserver.get_location() + "/" + resource + ".flv"
 
