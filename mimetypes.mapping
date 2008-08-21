@@ -11,12 +11,14 @@
 # MIME type                           # Extensions        # Name         # Type
 #------------------------------------------------------------------------------
 
+image/*                               -                   Unknown-Image  I
 image/gif                             .gif                GIF            I
 image/jpeg                            .jpg,.jpeg          JPEG           I
 image/png                             .png                PNG            I
 
 application/ogg                       -                   Ogg-Vorbis     A      # used by Rhythmbox UPnP server plugin
 application/vorbis                    -                   Ogg-Vorbis     A
+audio/*                               -                   Unknown-Audio  A
 audio/mp2                             .mp2                MP2-Audio      A
 audio/mpeg                            .mp3                MP3-Audio      A
 audio/mp4                             .aac,.m4a           MP4-Audio      A
@@ -26,6 +28,7 @@ audio/x-unknown                       -                   Unknown-Audio  A      
 audio/x-vorbis+ogg                    .ogg                Ogg-Vorbis     A
 audio/x-wav                           .wav                WAV            A
 
+video/*                               -                   Unknown-Video  V
 video/avi                             -                   AVI            V      # used by BRisa
 application/vnd.rn-realmedia          .rm,.ram,.ra,.rmvb  Realmedia      V
 application/x-flash-video             -                   Flash-Video    V      # used by Fuppes
