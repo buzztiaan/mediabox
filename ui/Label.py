@@ -26,7 +26,7 @@ class Label(Widget):
         self.__color = color
     
         Widget.__init__(self)
-        #self.__create_text_pmap()
+        self.__create_text_pmap()
 
 
     def _reload(self):

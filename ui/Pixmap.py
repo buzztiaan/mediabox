@@ -354,7 +354,10 @@ class Pixmap(object):
         """
         Renders a part of the pixbuf.
         """
-    
+
+        if (srcx < 0 or srcy < 0 or dstx < 0 or dsty < 0):
+            return
+
         self.__pixmap.draw_pixbuf(self.__gc, pbuf, srcx, srcy, dstx, dsty, w, h)
         
         if (self.__buffered):

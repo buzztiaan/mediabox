@@ -12,6 +12,7 @@ class Thumbnail(StripItem):
     
         self.__thumb = ""
         self.__thumb_pbuf = None
+        self.__emblem = None
         self.__caption = ""
         self.__mimetype = ""
     
@@ -28,6 +29,11 @@ class Thumbnail(StripItem):
     def set_thumbnail_pbuf(self, pbuf):
     
         self.__thumb_pbuf = pbuf
+        
+        
+    def set_emblem(self, pbuf):
+    
+        self.__emblem = pbuf
         
         
     def set_caption(self, text):
@@ -50,6 +56,8 @@ class Thumbnail(StripItem):
         elif (self.__thumb_pbuf):
             cnv.fit_pixbuf(self.__thumb_pbuf, 4, 4, 152, 102)
 
+        if (self.__emblem):
+            cnv.fit_pixbuf(self.__emblem, 4, 4, 32, 32)
 
         self.render_selection_frame(cnv)
 
