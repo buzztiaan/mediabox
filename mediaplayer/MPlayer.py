@@ -321,9 +321,9 @@ class _MPlayer(GenericMediaPlayer):
         elif (data.startswith("Demuxer info Artist changed to ")):
             idx = data.find("changed to ")
             artist = data[idx + 11:].strip()
+            name = self.__player_values[_NAME] or ""
             self.__player_values[_ARTIST] = artist
-            self.__player_values[_ICY_INFO] = self.__player_values[_NAME] + \
-                                              " - " + artist
+            self.__player_values[_ICY_INFO] = name + " - " + artist
             self.__on_icy_info()
         
         elif (data.startswith("Starting playback...")):
