@@ -7,6 +7,8 @@ def get_classes():
 
 
 messages = [
+    "SSDP_ACT_SEARCH_DEVICES",
+    
     "SSDP_EV_DEVICE_DISCOVERED",   # (uuid, DeviceDescription)
     "SSDP_EV_DEVICE_GONE",         # (uuid)
 ]

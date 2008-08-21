@@ -42,6 +42,9 @@ class SSDPMonitor(Component):
             self.__discovery_monitor = gobject.io_add_watch(dsock, gobject.IO_IN, self.__check_ssdp)            
             self.__monitoring = True
             
+        if (event == msgs.SSDP_ACT_SEARCH_DEVICES):
+            ssdp.discover_devices()
+            
 
     def __discovery_chain(self, sock, i):
     
@@ -52,8 +55,9 @@ class SSDPMonitor(Component):
             ssdp.discover_devices()
             gobject.timeout_add(6000, self.__discovery_chain, sock, i + 1)
         elif (i == 2):
-            gobject.source_remove(self.__discovery_monitor)
-            sock.close()
+            pass
+            #gobject.source_remove(self.__discovery_monitor)
+            #sock.close()
             
 
     def __on_receive_description_xml(self, data, a, t, location, uuid, xml):
