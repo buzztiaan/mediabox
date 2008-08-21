@@ -287,17 +287,23 @@ class VideoWidget(MediaWidget):
 
 
 
+    def stop(self):
+    
+        if (self.__player):
+            self.__player.stop()
+
+
     def increment(self):
 
         self.__volume = min(100, self.__volume + 5)
         if (self.__player):
             self.__player.set_volume(self.__volume)
-
-       
+        self.send_event(self.EVENT_MEDIA_VOLUME, self.__volume)
         
     def decrement(self):
     
         self.__volume = max(0, self.__volume - 5)
         if (self.__player):
             self.__player.set_volume(self.__volume)
+        self.send_event(self.EVENT_MEDIA_VOLUME, self.__volume)
 

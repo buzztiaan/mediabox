@@ -113,6 +113,7 @@ class AudioWidget(MediaWidget):
                     info = "%d:%02d / %d:%02d" % (pos_m, pos_s, total_m, total_s)
                 else:
                     info = "%d:%02d" % (pos_m, pos_s)
+                    total = 0
 
                 self.send_event(self.EVENT_MEDIA_POSITION, info)
                 self.__progress.set_position(pos, total)
@@ -155,10 +156,6 @@ class AudioWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):        
                 self.__uri = ""
-
-                # unfullscreen
-                #if (self.__is_fullscreen): self.__on_fullscreen()
-                
                 self.__btn_play.set_images(theme.btn_play_1,
                                            theme.btn_play_2)
                 self.send_event(self.EVENT_MEDIA_EOF)
@@ -194,7 +191,6 @@ class AudioWidget(MediaWidget):
             self.__cover = self.__load_cover(item)
         except:
             pass
-        self.render()
 
 
 
@@ -204,11 +200,10 @@ class AudioWidget(MediaWidget):
             uri = item.get_resource()
             if (uri == self.__uri): return
 
-            # TODO: get player for MIME type
             self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
             
             try:
-                self.__context_id = self.__player.load_video(uri)
+                self.__context_id = self.__player.load(uri)
             except:
                 import traceback; traceback.print_exc()
                 return
@@ -217,9 +212,16 @@ class AudioWidget(MediaWidget):
             self.__uri = uri
             
             self.__show_info(item)
+            self.render()
             
                 
         gobject.idle_add(f)
+
+
+    def stop(self):
+    
+        if (self.__player):
+            self.__player.stop()
 
 
 
@@ -228,6 +230,7 @@ class AudioWidget(MediaWidget):
         self.__volume = min(100, self.__volume + 5)
         if (self.__player):
             self.__player.set_volume(self.__volume)
+        self.send_event(self.EVENT_MEDIA_VOLUME, self.__volume)
 
        
         
@@ -236,6 +239,7 @@ class AudioWidget(MediaWidget):
         self.__volume = max(0, self.__volume - 5)
         if (self.__player):
             self.__player.set_volume(self.__volume)
+        self.send_event(self.EVENT_MEDIA_VOLUME, self.__volume)
 
 
 

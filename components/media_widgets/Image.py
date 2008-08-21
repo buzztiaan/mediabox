@@ -67,7 +67,7 @@ class Image(Widget, Observable):
         self.__previous_offset = (0, 0)
 
         # render completely new when this flag is set, e.g. after zooming
-        self.__invalidated = False
+        self.__invalidated = True
 
         # save-under buffers (for rendering icons, etc)
         # a buffer is a tuple (pixmap, x, y, w, h)
@@ -108,8 +108,11 @@ class Image(Widget, Observable):
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.get_screen()    
-        screen.copy_pixmap(self.__offscreen, x, y, x, y, w, h)
+        screen = self.get_screen()
+        if (self.__invalidated):
+            self._render()
+        else:
+            screen.copy_pixmap(self.__offscreen, x, y, x, y, w, h)
         
 
     def set_size(self, w, h):
@@ -128,6 +131,7 @@ class Image(Widget, Observable):
     def set_background(self, col):
     
         self.__bg_color = col
+        self.__invalidated = True
         #self.__offscreen.fill_area(0, 0, 800, 480, self.__bg_color)
         
 
