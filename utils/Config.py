@@ -88,5 +88,5 @@ class Config(object):
         elif (dtype == self.STRING_LIST):
             _CLIENT.set_list(self.__prefix + key, gconf.VALUE_STRING, value)
         elif (dtype == self.INTEGER_LIST):
-            _CLIENT.get_list(self.__prefix + key, gconf.VALUE_INT, value)
+            _CLIENT.set_list(self.__prefix + key, gconf.VALUE_INT, value)
 
