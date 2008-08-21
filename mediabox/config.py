@@ -34,7 +34,7 @@ def mediaroot():
     return ret    
 
 
-def set_mediaroot():
+def set_mediaroot(l):
     
     roots = []
     mtypes = []

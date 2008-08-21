@@ -1,3 +1,4 @@
+from utils import mimetypes
 import theme
 
 import gtk
@@ -29,12 +30,12 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
         else:
             frame = None
         
-    elif (mimetype.startswith("image/")):
+    elif (mimetype in mimetypes.get_image_types()):
         fx, fy = 0, 0
         tx, ty, tw, th = 7, 7, 142, 102
         frame = theme.viewer_image_frame
         
-    elif (mimetype.startswith("video/")):
+    elif (mimetype in mimetypes.get_video_types()):
         fx, fy = 0, 0
         tx, ty, tw, th = 14, 4, 134, 112
         frame = theme.viewer_video_film
@@ -88,11 +89,11 @@ def _get_fallback_thumbnail(mimetype):
         return theme.mb_filetype_folder
     elif (mimetype == "audio/x-music-folder"):
         return theme.mb_unknown_album
-    elif (mimetype.startswith("audio/")):
+    elif (mimetype in mimetypes.get_audio_types()):
         return theme.mb_filetype_audio
-    elif (mimetype.startswith("image/")):
+    elif (mimetype in mimetypes.get_image_types()):
         return theme.mb_filetype_image
-    elif (mimetype.startswith("video/")):
+    elif (mimetype in mimetypes.get_video_types()):
         return None #theme.mb_filetype_video
     else:
         return theme.mb_filetype_unknown

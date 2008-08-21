@@ -8,6 +8,7 @@ class MediaWidget(Widget):
 
     EVENT_MEDIA_POSITION = "media-position"
     EVENT_MEDIA_EOF = "media-eof"
+    EVENT_MEDIA_VOLUME = "media-volume"
     EVENT_FULLSCREEN_TOGGLED = "fullscreen-toggled"
     
 
@@ -44,6 +45,14 @@ class MediaWidget(Widget):
         return self.__controls[:]
 
 
+    def stop(self):
+        """
+        Stops playing the current file.
+        """
+        
+        pass
+
+
     def decrement(self):
         """
         Performs a DECREMENT action.
@@ -68,6 +77,11 @@ class MediaWidget(Widget):
     def connect_media_eof(self, cb, *args):
     
         self._connect(self.EVENT_MEDIA_EOF, cb, *args)
+
+
+    def connect_media_volume(self, cb, *args):
+    
+        self._connect(self.EVENT_MEDIA_VOLUME, cb, *args)
         
 
     def connect_fullscreen_toggled(self, cb, *args):
