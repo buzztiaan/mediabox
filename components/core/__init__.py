@@ -19,7 +19,6 @@ def get_classes():
 
     from AppWindow import AppWindow
     from Preferences import Preferences
-    #from ConfigMediaRoot import ConfigMediaRoot
     from ConfigTheme import ConfigTheme
     from DirectoryService import DirectoryService
     from MediaWidgetRegistry import MediaWidgetRegistry
@@ -67,8 +66,7 @@ messages = [
     "MEDIA_EV_PLAY",
     "MEDIA_EV_PAUSE",
     "MEDIA_EV_EOF",
-    
-    "CORE_EV_VOLUME_CHANGED",   # (volume)
+    "MEDIA_EV_VOLUME_CHANGED",   # (volume)
 
     "COM_EV_COMPONENT_LOADED",  # (component)
     

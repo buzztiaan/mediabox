@@ -58,10 +58,10 @@ class PlaylistItem(ButtonListItem):
             x += w - 8
         
         x += 8
-        self.render_label(cnv, x , self.__label, self.__sublabel)
-        self.render_selection_frame(cnv)
-
         if (self.__source_icon):
-            cnv.fit_pixbuf(self.__source_icon, 0, 0, 32, 32)
+            cnv.fit_pixbuf(self.__source_icon, x, 4, 32, 32)
+        self.render_label(cnv, x , "\t" + self.__label, self.__sublabel)
 
+        self.render_selection_frame(cnv)
         self.render_buttons(cnv)
+

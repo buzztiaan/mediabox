@@ -10,6 +10,7 @@ class ListItem(ButtonListItem):
 
     BUTTON_PLAY = "play"
     BUTTON_ENQUEUE = "enqueue"
+    BUTTON_ADD_TO_LIBRARY = "add-to-library"
 
 
     _ITEMS_CLOSED = [theme.item_btn_menu]

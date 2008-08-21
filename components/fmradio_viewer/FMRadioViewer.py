@@ -59,6 +59,9 @@ class FMRadioViewer(Viewer):
         
     def handle_event(self, msg, *args):
     
+        if (msg == msgs.MEDIA_ACT_STOP):
+            self.__radio_off()
+    
         if (self.is_active()):
             if (msg == msgs.HWKEY_EV_INCREMENT):
                 self.__set_volume(self.__volume + 5)
@@ -244,6 +247,7 @@ class FMRadioViewer(Viewer):
         if (self.__radio):
             self.__radio.set_volume(volume)
         self.__volume = volume
+        self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, self.__volume)
 
 
     def show(self):

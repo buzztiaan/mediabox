@@ -192,6 +192,14 @@ class PlaylistViewer(Viewer):
         self.__go_next()
 
 
+    def __on_media_volume(self, volume):
+        """
+        Reacts on changing the sound volume.
+        """
+
+        self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
+        
+
     def __go_previous(self):
 
         if (self.__current_index > 0):
@@ -229,6 +237,7 @@ class PlaylistViewer(Viewer):
                                       msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
                                       self, f.mimetype)
         self.__media_widget.connect_media_eof(self.__on_eof)
+        self.__media_widget.connect_media_volume(self.__on_media_volume)
         #media_widget.connect_media_position(self.__on_media_position)
         #media_widget.connect_fullscreen_toggled(
         #                                    self.__on_toggle_fullscreen)
@@ -239,7 +248,7 @@ class PlaylistViewer(Viewer):
             self.__media_widget.set_visible(True)
             self.add(self.__media_widget)
 
-            self.__side_tab.select_tab(1)
+            self.__side_tabs.select_tab(1)
             #self.__set_view_mode(_VIEWMODE_PLAYER_NORMAL)
             self.render()
 
@@ -299,6 +308,10 @@ class PlaylistViewer(Viewer):
         elif (msg == msgs.CORE_EV_APP_SHUTDOWN):
             self.__save_playlist(_PLAYLIST_FILE)
 
+        elif (msg == msgs.MEDIA_ACT_STOP):
+            if (self.__media_widget):
+                self.__media_widget.stop()
+
         if (self.is_active()):
             # load selected file
             if (msg == msgs.CORE_ACT_LOAD_ITEM):
@@ -309,7 +322,9 @@ class PlaylistViewer(Viewer):
             if (self.__media_widget):
                 # watch FULLSCREEN hw key
                 if (msg == msgs.HWKEY_EV_FULLSCREEN):
-                    self.__on_toggle_fullscreen()
+                    if (self.__view_mode in \
+                      (_VIEWMODE_PLAYER_NORMAL, _VIEWMODE_PLAYER_FULLSCREEN)):
+                        self.__on_toggle_fullscreen()
                 # watch INCREMENT hw key
                 elif (msg == msgs.HWKEY_EV_INCREMENT):
                     self.__media_widget.increment()

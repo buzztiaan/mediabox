@@ -77,6 +77,7 @@ class AlbumViewer(Viewer):
             self.add(self.__audio_widget)            
             self.__audio_widget.connect_media_position(self.__on_media_position)
             self.__audio_widget.connect_media_eof(self.__on_eof)
+            self.__audio_widget.connect_media_volume(self.__on_media_volume)
 
             # create toolbar
             ctrls = self.__audio_widget.get_controls()
@@ -102,6 +103,10 @@ class AlbumViewer(Viewer):
         elif (event == msgs.MEDIA_EV_PLAY):
             #self.__player.stop()
             pass
+
+        elif (event == msgs.MEDIA_ACT_STOP):
+            if (self.__audio_widget):
+                self.__audio_widget.stop()
     
         if (self.is_active()):
             if (event == msgs.CORE_ACT_LOAD_ITEM):
@@ -162,6 +167,7 @@ class AlbumViewer(Viewer):
         for f in media:
             thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
             tn = AlbumThumbnail(thumb, f.name)
+            tn.set_emblem(f.source_icon)
             self.__items.append(f)
             thumbnails.append(tn)
             
@@ -281,6 +287,15 @@ class AlbumViewer(Viewer):
     def __on_eof(self):
     
         self.__next_track()
+
+
+    def __on_media_volume(self, volume):
+        """
+        Reacts on changing the sound volume.
+        """
+
+        self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
+        
 
 
     def __on_list_button_clicked(self, item, idx, button):

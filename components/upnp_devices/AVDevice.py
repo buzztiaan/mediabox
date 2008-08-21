@@ -93,7 +93,7 @@ class AVDevice(Device):
         f.path = "0"
         f.mimetype = f.DIRECTORY
         f.resource = ""
-        f.name = ""
+        f.name = self.get_name()
         
         return f    
 

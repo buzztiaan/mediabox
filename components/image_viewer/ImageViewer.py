@@ -149,6 +149,7 @@ class ImageViewer(Viewer):
         for f in media:
             thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
             tn = ImageThumbnail(thumb)
+            tn.set_emblem(f.source_icon)
             self.__items.append(f)
             thumbnails.append(tn)
 

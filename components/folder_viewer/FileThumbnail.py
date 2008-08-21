@@ -9,3 +9,4 @@ class FileThumbnail(Thumbnail):
         self.set_thumbnail(thumb)
         self.set_caption(f.name)
         self.set_mimetype(f.mimetype)
+

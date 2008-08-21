@@ -41,6 +41,7 @@ class VideoViewer(Viewer):
             self.add(self.__video_widget)            
             self.__video_widget.connect_fullscreen_toggled(self.__on_fullscreen)
             self.__video_widget.connect_media_position(self.__on_media_position)
+            self.__video_widget.connect_media_volume(self.__on_media_volume)
             self.set_toolbar(self.__video_widget.get_controls())
    
         if (self.__is_fullscreen):
@@ -61,6 +62,10 @@ class VideoViewer(Viewer):
         elif (event == msgs.MEDIA_EV_PLAY):
             pass
             #self.__player.stop()
+
+        elif (event == msgs.MEDIA_ACT_STOP):
+            if (self.__video_widget):
+                self.__video_widget.stop()
     
         if (self.is_active()):
             if (event == msgs.CORE_ACT_LOAD_ITEM):
@@ -85,6 +90,14 @@ class VideoViewer(Viewer):
     
         self.set_info(info)
 
+
+    def __on_media_volume(self, volume):
+        """
+        Reacts on changing the sound volume.
+        """
+
+        self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
+        
             
            
     def __on_observe_player(self, src, cmd, *args):
@@ -214,6 +227,7 @@ class VideoViewer(Viewer):
         for f in media:
             thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
             tn = VideoThumbnail(thumb, f.name)
+            tn.set_emblem(f.source_icon)
             self.__items.append(f)
             thumbnails.append(tn)
 

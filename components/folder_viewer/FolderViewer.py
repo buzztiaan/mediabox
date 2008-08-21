@@ -4,6 +4,7 @@ from FileThumbnail import FileThumbnail
 from HeaderItem import HeaderItem
 from ListItem import ListItem
 from FolderItem import FolderItem
+from LibItem import LibItem
 from mediabox.TrackList import TrackList
 from ui.ImageButton import ImageButton
 from ui.SideTabs import SideTabs
@@ -12,6 +13,7 @@ from mediabox.ThrobberDialog import ThrobberDialog
 from utils import logging
 from io import Downloader
 from mediabox import viewmodes
+from mediabox import config
 import idtags
 import theme
 
@@ -26,6 +28,7 @@ _VIEWMODE_NONE = -1
 _VIEWMODE_NO_PLAYER = 0
 _VIEWMODE_PLAYER_NORMAL = 1
 _VIEWMODE_PLAYER_FULLSCREEN = 2
+_VIEWMODE_LIBRARY = 3
 
 
 class FolderViewer(Viewer):
@@ -69,12 +72,21 @@ class FolderViewer(Viewer):
     
         Viewer.__init__(self)
         
+        # file list
         self.__list = TrackList()
         self.__list.set_geometry(0, 0, 560, 370)
-        self.add(self.__list)
-        
+        self.add(self.__list)        
         self.__list.connect_button_clicked(self.__on_item_button)
 
+        # library list
+        self.__lib_list = TrackList()
+        self.__lib_list.set_geometry(10, 0, 730, 370)
+        self.__lib_list.set_visible(False)
+        self.add(self.__lib_list)
+        self.__lib_list.connect_button_clicked(self.__on_lib_item_button)
+        self.__lib_list.connect_item_clicked(self.__on_lib_item_set_types)
+        
+        # side tabs
         self.__side_tabs = SideTabs()
         self.__side_tabs.set_geometry(560 + 4, 0 + 4, 60 - 8, 370 - 8)
         self.__side_tabs.add_tab(None, "Browser",
@@ -82,7 +94,7 @@ class FolderViewer(Viewer):
         self.__side_tabs.add_tab(None, "Player",
                                  self.__set_view_mode, _VIEWMODE_PLAYER_NORMAL)
         self.__side_tabs.add_tab(None, "Library",
-                                 self.__set_view_mode, _VIEWMODE_PLAYER_NORMAL)
+                                 self.__set_view_mode, _VIEWMODE_LIBRARY)
         self.add(self.__side_tabs)
 
         self.__throbber = ThrobberDialog()
@@ -101,6 +113,7 @@ class FolderViewer(Viewer):
 
 
         self.__set_view_mode(_VIEWMODE_NO_PLAYER)
+        gobject.idle_add(self.__init_library)
 
 
     def __set_view_mode(self, mode):
@@ -109,9 +122,11 @@ class FolderViewer(Viewer):
         self.__view_mode = mode
     
         if (mode == _VIEWMODE_NO_PLAYER):
+            self.__side_tabs.set_pos(560 + 4, 0 + 4)
             self.__list.set_visible(True)
             if (self.__media_widget):
                 self.__media_widget.set_visible(False)
+            self.__lib_list.set_visible(False)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
             
             self.set_toolbar(self.__navigation_tbset)
@@ -129,13 +144,15 @@ class FolderViewer(Viewer):
             self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
         elif (mode == _VIEWMODE_PLAYER_NORMAL):
+            self.__side_tabs.set_pos(560 + 4, 0 + 4)
             if (self.__media_widget):
                 self.__media_widget.set_visible(True)
-                self.__media_widget.set_geometry(0, 0, 560, 370)
+                self.__media_widget.set_geometry(2, 2, 560 - 14, 370 - 4)
                 tbset = self.__media_widget.get_controls()
             else:
                 tbset = []
             self.__list.set_visible(False)
+            self.__lib_list.set_visible(False)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
 
             self.set_toolbar(tbset)
@@ -154,9 +171,23 @@ class FolderViewer(Viewer):
             if (self.__media_widget):
                 self.__media_widget.set_geometry(0, 0, 800, 480)
             self.__list.set_visible(False)
+            self.__lib_list.set_visible(False)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
 
             self.render()
+            
+        elif (mode == _VIEWMODE_LIBRARY):
+            self.__side_tabs.set_pos(740 + 4, 0 + 4)
+            self.__list.set_visible(False)
+            if (self.__media_widget):
+                self.__media_widget.set_visible(False)
+            self.__lib_list.set_visible(True)
+
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+            
+            self.set_toolbar([])
+            self.set_title("Media Library")
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
         
           
 
@@ -220,6 +251,10 @@ class FolderViewer(Viewer):
             uuid = args[0]
             self.__remove_device(uuid)
             
+        elif (event == msgs.MEDIA_ACT_STOP):
+            if (self.__media_widget):
+                self.__media_widget.stop()
+            
         if (self.is_active()):
             # load selected device or file
             if (event == msgs.CORE_ACT_LOAD_ITEM):
@@ -246,7 +281,9 @@ class FolderViewer(Viewer):
             if (self.__media_widget):
                 # watch FULLSCREEN hw key
                 if (event == msgs.HWKEY_EV_FULLSCREEN):
-                    self.__on_toggle_fullscreen()
+                    if (self.__view_mode in \
+                      (_VIEWMODE_PLAYER_NORMAL, _VIEWMODE_PLAYER_FULLSCREEN)):
+                        self.__on_toggle_fullscreen()
                 # watch INCREMENT hw key
                 elif (event == msgs.HWKEY_EV_INCREMENT):
                     self.__media_widget.increment()
@@ -256,6 +293,36 @@ class FolderViewer(Viewer):
             #end if
             
         #end if
+
+
+
+    def __on_lib_item_button(self, item, idx, button):
+    
+        if (idx == -1): return
+    
+        if (button == item.BUTTON_REMOVE):
+            self.__lib_list.remove_item(idx)
+            self.__lib_list.invalidate_buffer()
+            self.__lib_list.render()
+            self.__save_library()
+        
+        
+    def __on_lib_item_set_types(self, item, idx, px, py):
+    
+        if (idx == -1): return
+
+        if (px < 208):
+            uri = item.get_path()
+            mtypes = item.get_media_types()
+
+            if (px < 82):    mtypes ^= 1
+            elif (px < 146): mtypes ^= 2
+            elif (px < 208): mtypes ^= 4
+            item.set_media_types(mtypes)
+            self.__lib_list.invalidate_buffer()
+            self.__lib_list.render()
+            self.__save_library()
+        #end if
         
                 
     def __on_item_button(self, item, idx, button):
@@ -264,6 +331,8 @@ class FolderViewer(Viewer):
             if (f):
                 self.emit_event(msgs.PLAYLIST_ACT_APPEND, f)
             return True
+
+        if (idx == -1): return
         
         if (button == item.BUTTON_PLAY):
             entry = self.__items[idx - 1]
@@ -278,6 +347,53 @@ class FolderViewer(Viewer):
                 entry = self.__items[idx - 1]
                 self.emit_event(msgs.PLAYLIST_ACT_APPEND, entry)
 
+        elif (button == item.BUTTON_ADD_TO_LIBRARY):
+            path, list_offset = self.__path_stack[-1]
+            self.__add_to_library(path, 7)
+            self.__save_library()
+            
+            
+            
+            
+    def __init_library(self):
+        """
+        Loads the library folders.
+        """
+        
+        mediaroots = config.mediaroot()
+        self.__lib_list.clear_items()
+        
+        for mroot, mtypes in mediaroots:
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, mroot)
+            if (f):
+                self.__add_to_library(f, mtypes)
+        #end for        
+            
+            
+    def __add_to_library(self, f, mtypes):
+        """
+        Adds the given folder to the library.
+        """
+        
+        item = LibItem(f)
+        item.set_media_types(mtypes)
+        self.__lib_list.append_item(item)
+        
+        
+    def __save_library(self):
+        """
+        Saves the current library folders.
+        """
+        
+        mediaroots = []
+        for item in self.__lib_list.get_items():
+            uri = item.get_path()
+            mtypes = item.get_media_types()
+            mediaroots.append((uri, mtypes))
+            config.set_mediaroot(mediaroots)
+
+        
+
 
     def __load_item(self, f):
     
@@ -290,6 +406,7 @@ class FolderViewer(Viewer):
                 gobject.timeout_add(250, self.__load, f, self.__GO_CHILD)
         else:
             self.__current_file = f
+            self.set_title(f.name)
 
             # get media widget
             if (self.__media_widget):
@@ -299,6 +416,8 @@ class FolderViewer(Viewer):
                             msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
                             self, f.mimetype)
             self.__media_widget.connect_media_position(self.__on_media_position)
+            self.__media_widget.connect_media_eof(self.__on_media_eof)
+            self.__media_widget.connect_media_volume(self.__on_media_volume)
             self.__media_widget.connect_fullscreen_toggled(
                                                 self.__on_toggle_fullscreen)
             logging.debug("using media widget [%s] for MIME type %s" \
@@ -323,6 +442,30 @@ class FolderViewer(Viewer):
         """
     
         self.set_info(info)
+        
+        
+    def __on_media_eof(self):
+        """
+        Reacts on media EOF.
+        """
+        
+        try:
+            idx = self.__items.index(self.__current_file)
+        except:
+            return
+
+        if (idx < len(self.__items) - 1):
+            new_item = self.__items[idx + 1]
+            self.__list.hilight(idx + 1)
+            gobject.idle_add(self.__load_item, new_item)
+
+
+    def __on_media_volume(self, volume):
+        """
+        Reacts on changing the sound volume.
+        """
+
+        self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
 
 
     def __on_btn_back(self):
@@ -476,11 +619,8 @@ class FolderViewer(Viewer):
         header = HeaderItem(path.name)
         header.set_info("Loading...")
         self.__list.append_item(header)
-
-        try:
-            path.get_children_async(on_child, path, [], [])
-        except:
-            pass
+        
+        gobject.timeout_add(0, path.get_children_async, on_child, path, [], [])
 
 
 
@@ -494,4 +634,11 @@ class FolderViewer(Viewer):
                 break
             idx += 1
         #end for
+
+
+
+    def show(self):
+    
+        Viewer.show(self)
+        self.emit_event(msgs.SSDP_ACT_SEARCH_DEVICES)
 

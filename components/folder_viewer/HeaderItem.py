@@ -10,12 +10,14 @@ class HeaderItem(ButtonListItem):
 
     BUTTON_PLAY = "play"
     BUTTON_ENQUEUE = "enqueue"
+    BUTTON_ADD_TO_LIBRARY = "add-to-library"
 
 
-    _ITEMS_CLOSED = [theme.item_btn_enqueue]
-    _ITEMS_OPEN = []
+    _ITEMS_CLOSED = [theme.item_btn_menu]
+    _ITEMS_OPEN = [theme.item_btn_enqueue, theme.item_btn_play]
 
-    _BUTTONS = [BUTTON_ENQUEUE]
+    _BUTTONS = [ButtonListItem.BUTTON_MENU,
+                BUTTON_ENQUEUE, BUTTON_ADD_TO_LIBRARY]
 
 
     def __init__(self, title):

@@ -54,8 +54,8 @@ class AppWindow(Component):
     
         # search string for finding items with the keyboard
         self.__keyboard_search_string = ""
-        # time after which the keyboard search string gets reset
-        self.__keyboard_search_reset_time = 0
+        # timer for clearing the search term
+        self.__keyboard_search_reset_timer = None
     
         if (maemo.IS_MAEMO):
             import hildon
@@ -124,7 +124,8 @@ class AppWindow(Component):
         self.__title_panel = TitlePanel()
         self.__title_panel.set_geometry(170, 0, 630, 40)
         self.__title_panel.set_title("Initializing")
-        self.__title_panel.set_visible(False)       
+        self.__title_panel.set_visible(False)
+        self.__title_panel.connect_clicked(self.__on_click_title)
        
         # control panel
         self.__panel_left = Image(None)
@@ -149,6 +150,18 @@ class AppWindow(Component):
         self.__window_ctrls.set_geometry(600, 0, 200, 80)
         self.__window_ctrls.set_visible(False)
         self.__window_ctrls.add_observer(self.__on_observe_window_ctrls)
+
+        # search-as-you-type entry
+        #def f(src):
+        #    src.hide()
+        #    self.__set_search_term(src.get_text().lower())
+
+        self.__search_as_you_type_handler = None
+        self.__search_as_you_type_entry = gtk.Entry()
+        self.__search_as_you_type_entry.modify_font(theme.font_plain)
+        self.__search_as_you_type_entry.set_size_request(400, 32)
+        self.__window.put(self.__search_as_you_type_entry, 200, 4)
+        #self.__search_as_you_type_entry.connect("changed", f)
              
         self.__startup()
         
@@ -284,6 +297,14 @@ class AppWindow(Component):
         self.__title_panel_left.set_image(left_top)
         self.__panel_left.set_image(left_bottom)
         self.__strip.set_caps(left_top, left_bottom)
+
+
+    def __on_click_title(self):
+        """
+        Reacts on clicking the title panel.
+        """
+
+        self.__show_search_entry()
         
 
                  
@@ -296,6 +317,8 @@ class AppWindow(Component):
 
 
     def __show_tabs(self):
+    
+        self.__hide_search_entry()
 
         self.__root_pane.set_enabled(False)
         self.__root_pane.set_frozen(True)
@@ -330,9 +353,9 @@ class AppWindow(Component):
             self.__current_mediaroots = mediaroots
 
         if (not mediaroots):
-            dialogs.warning("No media location specified!",
-                            "Please specify the locations of your\n"
-                            "media files in the preferences.")
+            dialogs.warning("No media library specified!",
+                            "Please specify the contents of your\n"
+                            "media library in the folder viewer.")
             return
         #end if
 
@@ -424,46 +447,99 @@ class AppWindow(Component):
             
         
         elif (key == "BackSpace"):
-            now = time.time()        
-            if (now >= self.__keyboard_search_reset_time):
-                self.__keyboard_search_string = ""
-
-            if (self.__keyboard_search_string):
-                self.__keyboard_search_string = \
-                  self.__keyboard_search_string[:-1]
-
-            self.__keyboard_search_reset_time = now + 2
-
-            self.__title_panel.set_title_with_timeout("Search: " + \
-                                             self.__keyboard_search_string,
-                                             2000)
-
-            if (self.__keyboard_search_string):
-                self.emit_event(msgs.CORE_ACT_SEARCH_ITEM,
-                                self.__keyboard_search_string)
-
+            term = self.__get_search_term()
+            if (term):
+                term = term[:-1]
+                self.__set_search_term(term)
         
         elif (len(key) == 1 and ord(key) > 31):
-            now = time.time()
-            if (now >= self.__keyboard_search_reset_time):
-                self.__keyboard_search_string = ""
-                
-            self.__keyboard_search_string += key.lower()
-            self.__keyboard_search_reset_time = now + 2
+            print "KEY", key
 
-            self.__title_panel.set_title_with_timeout("Search: " + \
-                                             self.__keyboard_search_string,
-                                             2000)
-
-            self.emit_event(msgs.CORE_ACT_SEARCH_ITEM,
-                            self.__keyboard_search_string)
-            
+            term = self.__get_search_term()
+            term += key.lower()
+            self.__set_search_term(term)
         
         else:
             pass
             
         return True
 
+
+    def __show_search_entry(self):
+        """
+        Displays the search entry box.
+        """
+
+        def check_text():
+            text = "" #self.__search_as_you_type_entry.get_text().lower()
+            if (text != self.__get_search_term()):
+                self.__set_search_term(text)
+            return True
+
+        self.__search_as_you_type_entry.set_text("Search")
+        self.__search_as_you_type_entry.select_region(0, -1)
+        self.__search_as_you_type_entry.show()
+        
+        if (not self.__search_as_you_type_handler):
+            self.__search_as_you_type_handler = \
+                gobject.timeout_add(300, check_text)
+    
+        self.__reset_search_timeout()
+        
+        
+    def __hide_search_entry(self):
+        """
+        Hides the search entry box.
+        """
+
+        self.__search_as_you_type_entry.hide()
+        self.__search_as_you_type_entry.set_text("")
+
+        if (self.__search_as_you_type_handler):
+            gobject.source_remove(self.__search_as_you_type_handler)
+            self.__search_as_you_type_handler = None
+
+
+    def __reset_search_timeout(self):
+        """
+        Resets the timeout after which the search gets cleared.
+        """
+
+        def f():
+            self.__hide_search_entry()
+            self.__keyboard_search_string = ""
+            self.__keyboard_search_reset_timer = None
+
+        if (self.__keyboard_search_reset_timer):
+            gobject.source_remove(self.__keyboard_search_reset_timer)
+        self.__keyboard_search_reset_timer = gobject.timeout_add(2000, f)
+
+
+
+    def __get_search_term(self):
+        """
+        Returns the current search term.
+        """
+    
+        return self.__keyboard_search_string
+
+
+    def __set_search_term(self, term):
+        """
+        Sets the search term to the given value.
+        """
+        
+        self.__keyboard_search_string = term
+
+        #if (not term): return
+        
+        self.__title_panel.set_title_with_timeout("Search: " + term, 2000)
+        self.__reset_search_timeout()
+        
+        if (term):
+            self.emit_event(msgs.CORE_ACT_SEARCH_ITEM, term)
+        
+        
 
     def __on_observe_window_ctrls(self, src, cmd, *args):
     
@@ -527,11 +603,11 @@ class AppWindow(Component):
             force = args[0]
             self.__scan_media(force)
 
-        elif (event == msgs.MEDIASCANNER_EV_THUMBNAIL_GENERATED):
-            thumburi, f = args
-            name = os.path.basename(f.name)
-            self.__title_panel.set_title(name)
-            self.__thumbnailer.show_thumbnail(thumburi, name)
+        #elif (event == msgs.MEDIASCANNER_EV_THUMBNAIL_GENERATED):
+        #    thumburi, f = args
+        #    name = os.path.basename(f.name)
+        #    self.__title_panel.set_title(name)
+        #    self.__thumbnailer.show_thumbnail(thumburi, name)
     
         #elif (event == msgs.CORE_EV_DEVICE_ADDED):
         #    ident, dev = args
@@ -596,7 +672,7 @@ class AppWindow(Component):
             tbset = args[0]
             self.__ctrl_panel.set_toolbar(tbset)
 
-        elif (event == msgs.CORE_EV_VOLUME_CHANGED):
+        elif (event == msgs.MEDIA_EV_VOLUME_CHANGED):
             percent = args[0]
             self.__title_panel.set_volume(percent)
             
@@ -662,6 +738,7 @@ class AppWindow(Component):
             self.__set_view_mode(viewmodes.NO_STRIP)
         
         def f():
+            self.__scan_media(False)
             self.__root_pane.set_frozen(True)
             viewer.show()
             #self.__title_panel.set_time(0, 0)

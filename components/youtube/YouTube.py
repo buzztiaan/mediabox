@@ -110,6 +110,7 @@ class YouTube(Device):
     def get_root(self):
     
         f = File(self)
+        f.source_icon = self.get_icon()
         f.path = "/"
         f.name = "YouTube"
         f.mimetype = f.DIRECTORY
@@ -121,6 +122,7 @@ class YouTube(Device):
     def get_file(self, path):
     
         f = File(self)
+        f.source_icon = self.get_icon()
         f.path = path
         f.mimetype = "video/x-flash-video"
         f.source_icon = self.get_icon()
@@ -184,6 +186,7 @@ class YouTube(Device):
            ("Top rated", "/search/top_rated,1", File.DIRECTORY, None),
            ("Categories", "/categories", File.DIRECTORY, None)]:
             item = File(self)
+            item.source_icon = self.get_icon()
             item.path = path
             item.resource = path
             item.name = name
@@ -218,6 +221,7 @@ class YouTube(Device):
                     b = min(total_results, a + _PAGE_SIZE - 1)
                     
                     f = File(self)
+                    f.source_icon = self.get_icon()
                     f.path = ctx.next_path
                     f.mimetype = f.DIRECTORY
                     f.name = "Next Results"
@@ -250,6 +254,7 @@ class YouTube(Device):
                                        .get_attr("{%s}url" % _XMLNS_ATOM)
                                        
                 f = File(self)
+                f.source_icon = self.get_icon()
                 f.path = ident
                 f.mimetype = "video/x-flash-video"
                 f.resource = ident
