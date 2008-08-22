@@ -117,7 +117,7 @@ class ImageWidget(MediaWidget):
 
         #uri = item.get_resource()
         
-        self.__image.load(item)        
+        self.__image.load(item)
         #self.__label.set_text(self.__get_name(uri))
         #self.__current_item = self.__items.index(item)
         self.__image.slide_from_right()

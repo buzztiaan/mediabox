@@ -428,8 +428,12 @@ class Image(Widget, Observable):
         self.__current_file = f
 
         self.update_observer(self.OBS_BEGIN_LOADING, f)
-        f.load(0, on_data, [0])
-        
+        try:
+            f.load(0, on_data, [0])
+        except:
+            #self.__loader.close()
+            self.update_observer(self.OBS_END_LOADING)
+
 
             
         

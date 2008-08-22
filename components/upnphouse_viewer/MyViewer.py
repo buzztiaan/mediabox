@@ -62,8 +62,6 @@ class MyViewer(Viewer):
 
 
     def render_this(self):
-        
-        self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
@@ -118,6 +116,13 @@ class MyViewer(Viewer):
             self.__Gridlist.remove_button_from_postion (index, position)
 
 
+    def show(self):
+
+        Viewer.show(self)    
+        self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+
+
+
 """
     def __my_on_click (self, px, py, nothing):
 
@@ -154,4 +159,6 @@ class MyViewer(Viewer):
             gobject.timeout_add(10000, self.__tick)
             self.__is_ticking = True
 """
+
+
 

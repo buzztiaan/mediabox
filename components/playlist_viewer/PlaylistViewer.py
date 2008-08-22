@@ -4,6 +4,7 @@ from PlaylistItem import PlaylistItem
 from mediabox.TrackList import TrackList
 import m3u
 from mediabox import viewmodes
+from ui.BoxLayout import BoxLayout
 from ui.ImageButton import ImageButton
 from ui.SideTabs import SideTabs
 from utils import logging
@@ -55,6 +56,10 @@ class PlaylistViewer(Viewer):
         self.__side_tabs.add_tab(None, "Player",
                                  self.__set_view_mode, _VIEWMODE_PLAYER_NORMAL)
         self.add(self.__side_tabs)
+
+        # box for media widgets
+        self.__media_box = BoxLayout()
+        self.add(self.__media_box)
 
         # toolbar
         self.__playlist_tbset = []
@@ -111,10 +116,11 @@ class PlaylistViewer(Viewer):
         
         if (mode == _VIEWMODE_NO_PLAYER):
             self.__playlist.set_visible(True)
+            self.__media_box.set_visible(False)
             self.__side_tabs.set_pos(740 + 4, 0 + 4)
 
-            if (self.__media_widget):
-                self.__media_widget.set_visible(False)
+            #if (self.__media_widget):
+            #    self.__media_widget.set_visible(False)
             self.set_toolbar(self.__playlist_tbset)
             
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
@@ -122,11 +128,13 @@ class PlaylistViewer(Viewer):
 
         elif (mode == _VIEWMODE_PLAYER_NORMAL):
             self.__playlist.set_visible(False)
+            self.__media_box.set_visible(True)
+            self.__media_box.set_geometry(2, 2, 560 - 14, 370 - 4)
             self.__side_tabs.set_pos(560 + 4, 0 + 4)
 
             if (self.__media_widget):
-                self.__media_widget.set_visible(True)
-                self.__media_widget.set_geometry(0, 0, 560, 370)
+                #self.__media_widget.set_visible(True)
+                #self.__media_widget.set_geometry(2, 2, 560 - 14, 370 - 4)
                 self.set_toolbar(self.__media_widget.get_controls() + \
                                  self.__playlist_tbset)
 
@@ -138,9 +146,12 @@ class PlaylistViewer(Viewer):
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):
             self.__playlist.set_visible(False)
-            if (self.__media_widget):
-                self.__media_widget.set_visible(True)
-                self.__media_widget.set_geometry(0, 0, 800, 480)
+            self.__media_box.set_visible(True)
+            self.__media_box.set_geometry(0, 0, 800, 480)
+
+            #if (self.__media_widget):
+            #    self.__media_widget.set_visible(True)
+            #    self.__media_widget.set_geometry(0, 0, 800, 480)
                 
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
             self.render()
@@ -230,27 +241,25 @@ class PlaylistViewer(Viewer):
     def __load_item(self, f):
     
         if (self.__media_widget):
-            self.remove(self.__media_widget)
+            self.__media_box.remove(self.__media_widget)
 
         # get media widget
         self.__media_widget = self.call_service(
                                       msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
                                       self, f.mimetype)
-        self.__media_widget.connect_media_eof(self.__on_eof)
-        self.__media_widget.connect_media_volume(self.__on_media_volume)
-        #media_widget.connect_media_position(self.__on_media_position)
-        #media_widget.connect_fullscreen_toggled(
-        #                                    self.__on_toggle_fullscreen)
 
         if (self.__media_widget):
+            self.__media_widget.connect_media_eof(self.__on_eof)
+            self.__media_widget.connect_media_volume(self.__on_media_volume)
+            #media_widget.connect_media_position(self.__on_media_position)
+            #media_widget.connect_fullscreen_toggled(
+            #                                    self.__on_toggle_fullscreen)
             self.set_toolbar(self.__media_widget.get_controls())
-            self.__media_widget.set_geometry(180, 40, 620, 370)
             self.__media_widget.set_visible(True)
-            self.add(self.__media_widget)
+            self.__media_box.add(self.__media_widget)
 
             self.__side_tabs.select_tab(1)
-            #self.__set_view_mode(_VIEWMODE_PLAYER_NORMAL)
-            self.render()
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
             self.__media_widget.load(f)
             

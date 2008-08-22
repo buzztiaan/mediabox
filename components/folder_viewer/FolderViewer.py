@@ -6,10 +6,12 @@ from ListItem import ListItem
 from FolderItem import FolderItem
 from LibItem import LibItem
 from mediabox.TrackList import TrackList
+from ui.BoxLayout import BoxLayout
 from ui.ImageButton import ImageButton
 from ui.SideTabs import SideTabs
 from ui import dialogs
 from mediabox.ThrobberDialog import ThrobberDialog
+from utils import mimetypes
 from utils import logging
 from io import Downloader
 from mediabox import viewmodes
@@ -86,6 +88,10 @@ class FolderViewer(Viewer):
         self.__lib_list.connect_button_clicked(self.__on_lib_item_button)
         self.__lib_list.connect_item_clicked(self.__on_lib_item_set_types)
         
+        # media widget box
+        self.__media_box = BoxLayout()
+        self.add(self.__media_box)
+        
         # side tabs
         self.__side_tabs = SideTabs()
         self.__side_tabs.set_geometry(560 + 4, 0 + 4, 60 - 8, 370 - 8)
@@ -124,8 +130,9 @@ class FolderViewer(Viewer):
         if (mode == _VIEWMODE_NO_PLAYER):
             self.__side_tabs.set_pos(560 + 4, 0 + 4)
             self.__list.set_visible(True)
-            if (self.__media_widget):
-                self.__media_widget.set_visible(False)
+            self.__media_box.set_visible(False)
+            #if (self.__media_widget):
+            #    self.__media_widget.set_visible(False)
             self.__lib_list.set_visible(False)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
             
@@ -146,13 +153,15 @@ class FolderViewer(Viewer):
         elif (mode == _VIEWMODE_PLAYER_NORMAL):
             self.__side_tabs.set_pos(560 + 4, 0 + 4)
             if (self.__media_widget):
-                self.__media_widget.set_visible(True)
-                self.__media_widget.set_geometry(2, 2, 560 - 14, 370 - 4)
+            #    self.__media_widget.set_visible(True)
+            #    self.__media_widget.set_geometry(2, 2, 560 - 14, 370 - 4)
                 tbset = self.__media_widget.get_controls()
             else:
                 tbset = []
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
+            self.__media_box.set_visible(True)
+            self.__media_box.set_geometry(2, 2, 560 - 14, 370 - 4)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
 
             self.set_toolbar(tbset)
@@ -168,10 +177,12 @@ class FolderViewer(Viewer):
             self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):                        
-            if (self.__media_widget):
-                self.__media_widget.set_geometry(0, 0, 800, 480)
+            #if (self.__media_widget):
+            #    self.__media_widget.set_geometry(0, 0, 800, 480)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
+            self.__media_box.set_visible(True)
+            self.__media_box.set_geometry(0, 0, 800, 480)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
 
             self.render()
@@ -179,9 +190,10 @@ class FolderViewer(Viewer):
         elif (mode == _VIEWMODE_LIBRARY):
             self.__side_tabs.set_pos(740 + 4, 0 + 4)
             self.__list.set_visible(False)
-            if (self.__media_widget):
-                self.__media_widget.set_visible(False)
+            #if (self.__media_widget):
+            #    self.__media_widget.set_visible(False)
             self.__lib_list.set_visible(True)
+            self.__media_box.set_visible(False)
 
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
             
@@ -410,11 +422,13 @@ class FolderViewer(Viewer):
 
             # get media widget
             if (self.__media_widget):
-                self.remove(self.__media_widget)
+                self.__media_box.remove(self.__media_widget)
                 
             self.__media_widget = self.call_service(
                             msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
                             self, f.mimetype)
+            self.set_toolbar(self.__media_widget.get_controls())
+            self.__media_widget.set_visible(True)
             self.__media_widget.connect_media_position(self.__on_media_position)
             self.__media_widget.connect_media_eof(self.__on_media_eof)
             self.__media_widget.connect_media_volume(self.__on_media_volume)
@@ -422,16 +436,15 @@ class FolderViewer(Viewer):
                                                 self.__on_toggle_fullscreen)
             logging.debug("using media widget [%s] for MIME type %s" \
                             % (str(self.__media_widget), f.mimetype))
-            self.add(self.__media_widget)
+            self.__media_box.add(self.__media_widget)
             self.__side_tabs.select_tab(1)
-            #self.__set_view_mode(_VIEWMODE_PLAYER_NORMAL)
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
-            if (f.mimetype.startswith("audio/")):
+            if (f.mimetype in mimetypes.get_audio_types()):
                 fd = f.get_fd()
                 f.tags = idtags.read_fd(fd)
                 fd.close()
 
-            print "LOADING", f.name, f.resource
             self.__media_widget.load(f)
 
 
@@ -454,10 +467,10 @@ class FolderViewer(Viewer):
         except:
             return
 
-        if (idx < len(self.__items) - 1):
-            new_item = self.__items[idx + 1]
-            self.__list.hilight(idx + 1)
-            gobject.idle_add(self.__load_item, new_item)
+        #if (idx < len(self.__items) - 1):
+        #    new_item = self.__items[idx + 1]
+        #    self.__list.hilight(idx + 1)
+        #    gobject.idle_add(self.__load_item, new_item)
 
 
     def __on_media_volume(self, volume):
