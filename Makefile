@@ -57,3 +57,7 @@ install-maemo:
 install: install-lib install-maemo
 	@true
 
+doc:
+	epydoc -n ${NAME} --parse-only -o ../www/apidoc -v \
+	       com idtags io mediabox storage theme ui upnp utils
+
