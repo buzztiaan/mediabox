@@ -1,3 +1,7 @@
+"""
+HTTP downloader writing to a file.
+"""
+
 from Downloader import Downloader
 import os
 

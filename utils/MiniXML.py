@@ -1,3 +1,12 @@
+"""
+Lightweight XML parser with namespace support.
+
+@copyright: 2006 - 2008
+@author: Martin Grimme  <martin.grimme@lintegra.de>
+
+@license: This module is licensed under the terms of the GNU LGPL.
+"""
+
 class MiniXML(object):
     """
     This is a tiny parser for a subset of XML with namespace support.
@@ -13,6 +22,10 @@ class MiniXML(object):
         the XML overrides the default namespace.
         If a callback is given, the callback is being called every time a
         node has been closed and is thus finished.
+        
+        @param data: string of XML data
+        @param namespace: namespace URI
+        @param callback: callback function
         """
 
         self.__data = data
@@ -36,6 +49,8 @@ class MiniXML(object):
         """
         Returns the DOM representation of the XML tree. This does not
         adhere to the DOM specification.
+        
+        @return: DOM tree
         """
 
         return self.__dom
@@ -204,7 +219,6 @@ class MiniXML(object):
         index = self.__data.find(">", self.__position + 1)
         tagdata = self.__data[self.__position + 1:index]
         self.__position = index + 1
-
         # skip control tags
         if (tagdata[0] == "?"):
             return

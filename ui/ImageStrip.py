@@ -1,3 +1,7 @@
+"""
+A scrollable strip of images.
+"""
+
 from Widget import Widget
 from Pixmap import Pixmap, TEMPORARY_PIXMAP
 from SharedPixmap import SharedPixmap

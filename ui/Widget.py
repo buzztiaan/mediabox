@@ -1,3 +1,7 @@
+"""
+Every widget is derived from this base class.
+"""
+
 import time
 
 
@@ -19,6 +23,10 @@ class Widget(object):
         
 
     def __init__(self):
+        """
+        Creates and initializes a new Widget object.
+        Be sure to invoke this constructor when deriving from this class.
+        """
     
         self.__children = []
         self.__parent = None
@@ -39,8 +47,15 @@ class Widget(object):
           
     def send_event(self, ev, *args):
         """
-        Sends the given event. The widget emits the event to all event handlers
-        registered for the event.
+        Sends the given event to this widget.
+        The widget emits the event to all event handlers that are registered
+        for the event.
+        
+        Use this method in your own widgets for emitting events.
+        
+        @param ev:      Type of event
+        @param *args:   variable number of arguments (depending on the
+                        event type)
         """
 
         if (self.__events_blocked[0]): return
@@ -68,6 +83,8 @@ class Widget(object):
         """
         Sets the global flag for blocking events. While events are blocked,
         no event handling takes place by the Widget class.
+        
+        @param value: whether events are blocked (True) or not (False)
         """
     
         self.__events_blocked[0] = value
@@ -85,6 +102,8 @@ class Widget(object):
         """
         Adds a new child to this widget. Every widget is a container and may
         thus have child widgets.
+        
+        @param child: child widget
         """
         
         self.__children.append(child)
@@ -96,6 +115,8 @@ class Widget(object):
     def remove(self, child):
         """
         Removes the given child widget from this widget.
+        
+        @param child: child widget
         """
     
         self.__children.remove(child)
@@ -105,7 +126,10 @@ class Widget(object):
         
     def set_parent(self, parent):
         """
-        Sets the parent of this widget. You usually don't need this method.
+        Sets the parent of this widget. You usually don't need this method in
+        your code.
+        
+        @param parent: new parent widget
         """
     
         self.__parent = parent
@@ -114,7 +138,9 @@ class Widget(object):
     def get_parent(self):
         """
         Returns the parent of this widget. The parent of the root widget is
-        None.
+        always C{None}.
+        
+        @return: parent widget
         """
     
         return self.__parent
@@ -123,6 +149,8 @@ class Widget(object):
     def set_screen(self, screen):
         """
         Changes the screen pixmap to render on.
+        
+        @param screen: screen pixmap for rendering
         """
     
         self.__screen = screen
@@ -134,12 +162,18 @@ class Widget(object):
     def get_screen(self):
         """
         Returns the current screen pixmap for rendering.
+        
+        @return: screen pixmap for rendering
         """
     
         return self.__screen
         
         
     def set_zone(self, ident, x, y, w, h):
+        """
+        Registers a zone at the event sensor. If the zone already exists,
+        only its coordinates are updated.
+        """
     
         #print "ZONE", x, y, w, h, ident
         self.__event_sensor.set_zone(ident, x, y, w, h, time.time(),
@@ -150,6 +184,8 @@ class Widget(object):
         """
         Enables or disables this widget. A disabled widget is still visible
         but does not react to user events.
+        
+        @param value: whether this widget is enabled
         """
         
         self.__is_enabled = value
@@ -164,6 +200,8 @@ class Widget(object):
         """
         Returns whether this widget is currently enabled and reacts to user
         events.
+        
+        @return: whether this widget is currently enabled
         """
     
         if (not self.is_visible()):
@@ -177,6 +215,10 @@ class Widget(object):
         Freezes or thaws this widget. A frozen widget does not get rendered.
         This is useful for big update operations where you don't want the
         widget to render itself after every single step.
+        
+        Freezing a widget freezes all child widgets as well.
+        
+        @param value: whether to freeze (True) or thaw (False) this widget
         """
     
         self.__is_frozen = value
@@ -188,6 +230,8 @@ class Widget(object):
     def is_frozen(self):
         """
         Returns whether this widget is currently frozen.
+        
+        @return: whether this widget is currently frozen.
         """
 
         return self.__is_frozen
@@ -197,6 +241,10 @@ class Widget(object):
         """
         Shows or hides this widget. An invisible widget does not get rendered
         and does not react to events and all descendants are invisible as well.
+        
+        Newly created widgets are initially visible.
+        
+        @param value: whether this widget is visible
         """
     
         def f(w):
@@ -212,6 +260,8 @@ class Widget(object):
     def is_visible(self):
         """
         Returns whether this widget is currently visible.
+        
+        @return: whether this widget is currently visible
         """
     
         if (not self._can_be_visible()):
@@ -222,7 +272,7 @@ class Widget(object):
         
     def _visibility_changed(self):
         """
-        Widgets can override this method if they want to be notified when
+        Widgets can override this method if they want to get notified when
         the visibility changes, e.g. if an ancestor widget became invisible.
         """
 
@@ -253,6 +303,15 @@ class Widget(object):
     def may_render(self):
         """
         Returns whether this widget may currently render itself.
+        
+        If your widget is rendering without being initiated by the
+        C{render_this} method, you have to use this method to check whether
+        the widget may currently render on screen.
+        
+        A widget may only render if it has a screen, is visible, and is not
+        frozen.
+        
+        @return: whether this widget may currently render
         """
     
         return (self.__screen and self.is_visible() and not self.is_frozen())
@@ -295,6 +354,13 @@ class Widget(object):
 
 
     def connect_clicked(self, cb, *args):
+        """
+        Connects a callback to mouse clicks. A click consists of pressing
+        and releasing a button.
+        
+        @param cb: the callback function
+        @param *args: variable list of user arguments
+        """
         
         self._connect(self.EVENT_BUTTON_RELEASE,
                       lambda x,y,*a:cb(*a),
@@ -302,6 +368,12 @@ class Widget(object):
 
 
     def connect_button_pressed(self, cb, *args):
+        """
+        Connects a callback to pressing a mouse button.
+        
+        @param cb: the callback function
+        @param *args: variable list of user arguments
+        """
     
         self._connect(self.EVENT_BUTTON_PRESS,
                       lambda x,y,*a:cb(x, y, *a),
@@ -309,6 +381,13 @@ class Widget(object):
                      
                      
     def connect_button_released(self, cb, *args):
+        """
+        Connects a callback to releasing a mouse button.
+        
+        @param cb: the callback function
+        @param *args: variable list of user arguments
+        """
+
     
         self._connect(self.EVENT_BUTTON_RELEASE,
                       lambda x,y,*a:cb(x, y, *a),
@@ -316,6 +395,12 @@ class Widget(object):
 
 
     def connect_pointer_moved(self, cb, *args):
+        """
+        Connects a callback to moving the mouse.
+        
+        @param cb: the callback function
+        @param *args: variable list of user arguments
+        """
     
         self._connect(self.EVENT_MOTION,
                       lambda x,y,*a:cb(x, y, *a),
@@ -326,6 +411,9 @@ class Widget(object):
     def set_pos(self, x, y):
         """
         Sets the position of this widget relative to its parent's coordinates.
+        
+        @param x: x coordinate
+        @param y: y coordinate
         """
     
         self.__position = (x, y)
@@ -334,7 +422,10 @@ class Widget(object):
         
     def get_pos(self):
         """
-        Returns the position of this widget relative to its parent's coordinates.
+        Returns the position of this widget relative to its parent's
+        coordinates.
+        
+        @return: a tuple (x, y) containing the coordinates
         """
     
         return self.__position
@@ -344,6 +435,8 @@ class Widget(object):
         """
         Returns the absolute position of this widget, i.e. the position is
         has on the root widget.
+        
+        @return: a tuple (x, y) containing the coordinates
         """
     
         if (self.__parent):
@@ -358,6 +451,9 @@ class Widget(object):
     def set_size(self, w, h):
         """
         Sets the size of this widget.
+        
+        @param w: width
+        @param h: height
         """
     
         self.__size = (w, h)
@@ -367,7 +463,9 @@ class Widget(object):
     def get_size(self):
         """
         Returns the size of this widget. With some widgets this may differ
-        from the physical size.
+        from the actual physical size.
+        
+        @return: a tuple (width, height) holding the size
         """
     
         return self.__size
@@ -376,6 +474,11 @@ class Widget(object):
     def set_geometry(self, x, y, w, h):
         """
         Convenience method for setting the position and size at the same time.
+        
+        @param x: x coordinate
+        @param y: y coordinate
+        @param w: width
+        @param h: height
         """
     
         self.set_pos(x, y)
@@ -386,7 +489,10 @@ class Widget(object):
         """
         Returns the physical size of this widget. Widgets whose physical size
         can differ from the size must override this method. E.g. a height of
-        '0' means dynamic height for a label.
+        '0' means dynamic height for a label, but the physical size contains
+        the actual height.
+        
+        @return: a tuple (width, height) holding the size
         """
     
         return self.get_size()
@@ -395,7 +501,11 @@ class Widget(object):
     def render_this(self):
         """
         Widgets override this method for drawing operations. This is also the
-        correct place to change the geometry of child widgets dynamically.
+        correct place for layouters to change the geometry of their child
+        widgets dynamically.
+
+        This method gets invoked automatically by the framework. Do not place
+        calls of this method in your code. Use the C{render} method instead.
         """
     
         pass
@@ -421,7 +531,7 @@ class Widget(object):
 
     def render_all(self):
         """
-        Renders the whole widget hierarchy.
+        Renders the whole widget hierarchy beginning at the root widget.
         """
     
         if (self.__parent):
@@ -434,6 +544,10 @@ class Widget(object):
         """
         Renders this widget onto the given pixmap at the given position.
         This is used for offscreen rendering.
+        
+        @param screen: screen pixmap to render on
+        @param x: x coordinate
+        @param y: y coordinate
         """
     
         real_x, real_y = self.__position
@@ -454,6 +568,8 @@ class Widget(object):
     def skip_next_render(self):
         """
         Skips the next rendering action.
+
+        @todo: this sounds like a hack. is this method still used?
         """
         
         self.__skip_next_render = True
@@ -483,6 +599,11 @@ class Widget(object):
 
 
     def get_event_sensor(self):
+        """
+        Returns the event sensor of the widget hierarchy. This is a GTK widget.
+        
+        @return: event sensor
+        """
     
         return self.__event_sensor
         
@@ -490,6 +611,8 @@ class Widget(object):
     def get_window(self):
         """
         Returns the GTK window of the widget hierarchy.
+        
+        @return: window
         """
     
         return self.get_event_sensor()
@@ -497,6 +620,12 @@ class Widget(object):
 
     @staticmethod
     def set_event_sensor(esens):
+        """
+        Sets the event sensor of this widget hierarchy. This has only to be
+        done once.
+        
+        @param esens: event sensor
+        """
         
         Widget._esens = esens
 

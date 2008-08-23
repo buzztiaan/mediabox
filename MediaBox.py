@@ -9,7 +9,7 @@ urllib2.AbstractHTTPHandler.do_open = f
 
 
 from utils import logging
-logging.set_level(logging.DEBUG)
+logging.set_level(logging.INFO)
 
 
 logging.debug("initializing application")

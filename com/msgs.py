@@ -21,7 +21,13 @@ def _id_to_name(ident):
     return "<undefined>"
 
 
-def register(name):
+def _register(name):
+    """
+    Registers a new message. This method is only used internally by
+    L{com.Container}.
+    
+    @param name: name of message
+    """
     global _cnt
     
     globals()[name] = _cnt

@@ -1,3 +1,7 @@
+"""
+Lowlevel SSDP functions.
+"""
+
 from utils import logging
 import socket
 
@@ -21,6 +25,9 @@ def open_sockets():
     """
     Opens and returns the SSDP notification and discover sockets.
     If the sockets are already open, they are just returned.
+    
+    @return: notification socket
+    @return: discovery socket
     """
     global _ssdp_socket, _discover_socket
 

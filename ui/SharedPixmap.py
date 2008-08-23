@@ -1,3 +1,7 @@
+"""
+A shared pixmap for low memory consumption.
+"""
+
 from Pixmap import Pixmap
 
 

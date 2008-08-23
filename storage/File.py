@@ -1,3 +1,8 @@
+"""
+Object representing a file or folder on a storage device.
+"""
+
+
 class File(object):
 
     FILE = "application/x-other"

@@ -1,3 +1,8 @@
+"""
+Parser for ID3v1 tags.
+"""
+
+
 import mapping
 
 

@@ -11,20 +11,13 @@ _XMLNS_DIDL = "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"
 _XMLNS_UPNP = "urn:schemas-upnp-org:metadata-1-0/upnp/"
 _XMLNS_DC = "http://purl.org/dc/elements/1.1/"
 
-"""
-class _Item(object):
-    def __init__(self):
-        self.title = ""
-        self.artist = ""
-        self.id = ""
-        self.child_count = 0
-        self.res = ""
-        self.clss = ""
-"""
 
 def parse(xml):
     """
     Parses the given DIDL-Lite XML and returns a list of items.
+    
+    @param xml: XML string in DIDL-Lite format
+    @return: list of items
     """
 
     items = []
@@ -43,7 +36,11 @@ def parse_async(xml, cb, *args):
     """
     Parses the given DIDL-Lite XML asynchronously and calls the given
     callback handler on each entry.
-    Returns None after the last entry to signalize the end.
+    Returns C{None} after the last entry to signalize the end.
+    
+    @param xml: XML string in DIDL-Lite format
+    @param cb: callback function
+    @param *args: variable list of user arguments to the callback
     """
     
     #open("/tmp/didl.xml", "w").write(xml)

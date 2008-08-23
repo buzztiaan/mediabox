@@ -1,3 +1,7 @@
+"""
+Internally used base class for all components.
+"""
+
 from MessageBus import MessageBus
 
 

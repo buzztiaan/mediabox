@@ -1,3 +1,8 @@
+"""
+A basic list derived from L{ImageStrip}.
+"""
+
+
 from ImageStrip import ImageStrip
 import theme
 

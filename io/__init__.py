@@ -1,10 +1,14 @@
 """
+Asynchronous IO
+===============
+
 This package contains classes for asynchronous IO operations.
 
-(c) 2008 Hugo Baldasano  <hugo.calleja@gmail.com>,
-         Martin Grimme   <martin.grimme@lintegra.de>
-         
-This package is licensed under the terms of the GNU LGPL.
+@copyright: 2008
+@author: Hugo Baldasano  <hugo.calleja@gmail.com>
+@author: Martin Grimme   <martin.grimme@lintegra.de>
+       
+@license: This package is licensed under the terms of the GNU LGPL.
 """
 
 

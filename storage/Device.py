@@ -1,3 +1,8 @@
+"""
+Base class of all storage devices.
+"""
+
+
 class Device(object):
     """
     Base class for browsable storage devices.

@@ -1,6 +1,6 @@
 """
 This module implements gconf functionality on systems where the gconf Python
-bindings are not available.
+bindings are not available. It calls C{gconftool-2} instead.
 """
 
 

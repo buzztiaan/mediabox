@@ -1,3 +1,7 @@
+"""
+Various functions for working with pixbufs.
+"""
+
 import gtk
 
 

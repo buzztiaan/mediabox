@@ -1,4 +1,7 @@
 """
+Theming
+=======
+
 This package contains the built-in graphics themes. Valid themes are detected
 automatically.
 """
@@ -22,6 +25,11 @@ os.system("mkdir -p " + _USER_THEMES_DIR)
 
 
 def list_themes():
+    """
+    Lists the available themes.
+    
+    @return: list of (theme_path, preview_icon_path, name, description) tuples
+    """
 
     themes = []
     for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
@@ -136,6 +144,11 @@ def _get_info(themepath):
 
 
 def set_theme(name):
+    """
+    Changes the current theme.
+    
+    @param name: name of new theme
+    """
 
     theme_dir = _DEFAULT_THEME_DIR
     for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:

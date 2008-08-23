@@ -1,3 +1,7 @@
+"""
+Object for grouping several L{CheckBox} widgets together as radio buttons.
+"""
+
 class RadioGroup(object):
     """
     Class for grouping checkboxes together to form radio buttons.

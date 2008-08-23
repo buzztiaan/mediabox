@@ -1,3 +1,7 @@
+"""
+Decorator for drag-sortable lists.
+"""
+
 from utils.Observable import Observable
 
 import gobject

@@ -1,3 +1,7 @@
+"""
+HTTP response object.
+"""
+
 class HTTPResponse(object):
     """
     Class for representing a HTTP response.

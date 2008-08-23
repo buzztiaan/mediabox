@@ -1,6 +1,19 @@
+"""
+Base class for observable objects.
+
+@copyright: 2002 - 2008
+@author: Martin Grimme  <martin.grimme@lintegra.de>
+
+@license: This module is licensed under the terms of the GNU LGPL.
+"""
+
+
 class Observable(object):
     """
     Base class for observable objects.
+    
+    Classes derived from this class do not have to call
+    C{Observable.__init__}.
     """
 
     def __ensure_init(self):
@@ -17,6 +30,11 @@ class Observable(object):
 
 
     def add_observer(self, observer):
+        """
+        Registers the given observer function.
+        
+        @param observer: callback function
+        """
 
         self.__ensure_init()
         self.__handlers.append(observer)
@@ -24,6 +42,11 @@ class Observable(object):
 
 
     def remove_observer(self, observer):
+        """
+        Removes the given observer function.
+        
+        @param observer: callback function
+        """
 
         self.__ensure_init()
         self.__handlers.remove(observer)
@@ -31,6 +54,9 @@ class Observable(object):
 
 
     def drop_observers(self):
+        """
+        Drops (i.e. forgets about) all registered observers at once.
+        """
 
         self.__ensure_init()
         self.__handlers = []
@@ -38,6 +64,11 @@ class Observable(object):
 
 
     def update_observer(self, *args):
+        """
+        Notifes all registered observers about an update.
+        
+        @param *args: variable list of arguments to the observer
+        """
 
         self.__ensure_init()
 

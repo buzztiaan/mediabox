@@ -1,3 +1,7 @@
+"""
+Runtime container for running components.
+"""
+
 from Component import Component
 import msgs
 from utils import logging
@@ -75,7 +79,7 @@ class Container(Component):
         
         if (hasattr(mod, "messages")):
             for msg in mod.messages:
-                msgs.register(msg)
+                msgs._register(msg)
         #end if        
 
 
@@ -111,6 +115,8 @@ class Container(Component):
     def load_path(self, path):
         """
         Loads the components from the given path.
+        
+        @param path: path of components directory
         """
         
         mods = self.__find_modules(path)

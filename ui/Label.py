@@ -1,3 +1,7 @@
+"""
+A text label with autoscrolling.
+"""
+
 from Widget import Widget
 from Pixmap import Pixmap, pixmap_for_text
 

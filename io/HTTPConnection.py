@@ -1,3 +1,7 @@
+"""
+Asynchronous lowlevel HTTP connection.
+"""
+
 from HTTPResponse import HTTPResponse
 from utils import threads
 from utils import logging

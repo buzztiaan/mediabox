@@ -1,3 +1,7 @@
+"""
+Base class for viewer components.
+"""
+
 from Component import Component
 import msgs
 from ui.Widget import Widget

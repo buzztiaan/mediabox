@@ -1,3 +1,7 @@
+"""
+Server socket for listening to GENA notifications.
+"""
+
 from io import HTTPConnection, parse_addr
 from utils import logging
 from utils.MiniXML import MiniXML

@@ -1,3 +1,8 @@
+"""
+HTTP downloader.
+"""
+
+
 from HTTPConnection import HTTPConnection, parse_addr
 
 

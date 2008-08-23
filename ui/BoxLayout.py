@@ -1,9 +1,13 @@
+"""
+Layouter for holding one child widget.
+"""
+
 from Widget import Widget
 
 
 class BoxLayout(Widget):
     """
-    Layout for holding exactly one child widget. The child is stretched across
+    Layouter for holding exactly one child widget. The child is stretched across
     the box.
     """
 

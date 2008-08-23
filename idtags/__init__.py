@@ -1,6 +1,11 @@
-# This package provides a quick and dirty tag parser for quickly finding
-# tags in a media file. It just aims to be quick, but not necessarily correct.
-# Well, it works for me (TM).
+"""
+Parser for Media Tags
+=====================
+
+This package provides a quick and dirty tag parser for quickly finding
+tags in a media file. It just aims to be quick, but not necessarily correct.
+Well, it works for me (TM).
+"""
 
 
 import flactags
@@ -11,6 +16,12 @@ import id3v2tags
 
 
 def read_fd(fd):
+    """
+    Reads tags from the given file descriptor.
+    
+    @param fd: file descriptor
+    @return: dictionary of tags
+    """
 
     tagtype = fd.read(3)
     major, minor = fd.read(1), fd.read(1)
@@ -43,6 +54,12 @@ def read_fd(fd):
 
 
 def read(filename):
+    """
+    Reads tags from the given local file.
+    
+    @param filename: path of file
+    @return: dictionary of tags
+    """
 
     try:
         #print "Scanning", filename

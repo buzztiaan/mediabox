@@ -1,3 +1,8 @@
+"""
+Class for storing and retrieving configuration values via GConf.
+"""
+
+
 try:
     # GNOME
     import gconf
@@ -16,7 +21,7 @@ _PREFIX = "/apps/maemo-mediabox/"
 
 class Config(object):
     """
-    Class for storing and retrieving configuration values.
+    Class for storing and retrieving configuration values via GConf.
     """
 
     INTEGER = 0

@@ -1,4 +1,7 @@
 """
+Component Subsystem
+===================
+
 This package contains the component subsystem for extending the application.
 """
 

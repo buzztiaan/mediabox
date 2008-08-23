@@ -1,3 +1,7 @@
+"""
+A checkbox widget.
+"""
+
 from Widget import Widget
 import theme
 

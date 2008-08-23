@@ -1,3 +1,7 @@
+"""
+Wrapper for network FDs to allow seek operations.
+"""
+
 class SeekableFD(object):
     """
     Wrapper class for network FDs to allow seek operations.

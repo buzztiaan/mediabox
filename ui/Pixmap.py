@@ -1,3 +1,7 @@
+"""
+Class for on-screen and off-screen drawables.
+"""
+
 import gtk
 import pango
 
@@ -38,6 +42,7 @@ def pixmap_for_text(text, font):
 class Pixmap(object):
     """
     Class for on-screen and off-screen server-side drawables.
+    All rendering operations should be performed using this class.
     """
 
     TOP = 1
@@ -47,6 +52,14 @@ class Pixmap(object):
     
 
     def __init__(self, pmap, w = 0, h = 0):
+        """
+        Creates a new Pixmap object. If C{pmap} is C{None}, the pixmap will
+        be off-screen, otherwise it will be on-screen.
+        
+        @param pmap: GDK drawable to render on
+        @param w: width
+        @param h: height
+        """
         
         self.__is_hibernating = False
         
@@ -81,6 +94,8 @@ class Pixmap(object):
     def clone(self):
         """
         Returns an exact clone of this pixmap.
+        
+        @return: clone of this pixmap
         """
         
         if (self.__buffered):
@@ -95,6 +110,8 @@ class Pixmap(object):
     def subpixmap(self, x, y, w, h):
         """
         Returns a new pixmap containing the given portion.
+        
+        @param x y w h: coordinates of subpixmap
         """
         
         new_pmap = Pixmap(None, w, h)
@@ -108,6 +125,8 @@ class Pixmap(object):
         """
         Hibernates this pixmap to save memory. Issue 'wakeup' before working
         with this pixmap again. Subclasses may extend this method.
+        
+        @todo: DEPRECATED
         """
         
         del self.__pixmap
@@ -121,6 +140,8 @@ class Pixmap(object):
         """
         Restores this pixmap after hibernating. Subclasses may extend this
         method.
+
+        @todo: DEPRECATED
         """
 
         if (self.is_hibernating()):
@@ -135,6 +156,8 @@ class Pixmap(object):
     def is_hibernating(self):
         """
         Returns whether this pixmap is currently hibernating.
+
+        @todo: DEPRECATED
         """
 
         return self.__is_hibernating
@@ -143,6 +166,9 @@ class Pixmap(object):
     def resize(self, w, h):
         """
         Resizes this pixmap and discards its contents.
+        
+        @param w: width
+        @param h: height
         """
         
         new_pmap = gtk.gdk.Pixmap(None, w, h, _DEPTH)
@@ -159,6 +185,8 @@ class Pixmap(object):
         """
         Rotates this pixmap by the given angle. Angle must be one of
         0, 90, 180, 270.
+        
+        @param angle: angle in degrees
         """
         assert angle in (0, 90, 180, 270)
         
@@ -186,6 +214,8 @@ class Pixmap(object):
         """
         Returns whether this pixmap is buffered. Offscreen pixmaps are never
         buffered.
+        
+        @return: whether this pixmap is buffered
         """
     
         return self.__buffered
@@ -193,7 +223,7 @@ class Pixmap(object):
         
     def is_offscreen(self):
         """
-        Returns whether this pixmap is offscreen.
+        @return: whether this pixmap is offscreen
         """
         
         return (self.__pixmap == None)
@@ -203,6 +233,9 @@ class Pixmap(object):
         """
         Renders this pixmap to a pixbuf and returns the pixbuf. If target is
         given, it does not create a new pixbuf.
+        
+        @param target: target pixbuf to use
+        @return: pixbuf
         """
     
         if (not target):
@@ -219,6 +252,9 @@ class Pixmap(object):
         
         
     def set_clip_mask(self, mask = None):
+        """
+        @todo: DEPRECATED
+        """
     
         if (mask):
             self.__gc.set_clip_mask(mask)
@@ -234,7 +270,9 @@ class Pixmap(object):
     def get_size(self):
         """
         Returns the width and height of this pixmap.
-        """        
+        
+        @return: a tuple (width, height) holding the size
+        """
 
         return (self.__width, self.__height)
 

@@ -1,3 +1,7 @@
+"""
+Base class for configurator components.
+"""
+
 from Component import Component
 from ui.Widget import Widget
 

@@ -1,3 +1,7 @@
+"""
+UPnP device description.
+"""
+
 from SOAPProxy import SOAPProxy
 from GenaSocket import GenaSocket
 from utils import logging
@@ -20,6 +24,9 @@ class DeviceDescription(object):
         """
         Creates a new DeviceDescription object from the given DOM tree of a
         device description.
+        
+        @param location: URL of the device location
+        @param dom: the DOM tree of the description XML (see L{utils.MiniXML})
         """
         
         self.__dom = dom
@@ -132,6 +139,8 @@ class DeviceDescription(object):
     def get_url_base(self):
         """
         Returns the URL base used by the device.
+        
+        @return: URL base
         """
         
         return self.__url_base
@@ -140,6 +149,8 @@ class DeviceDescription(object):
     def get_friendly_name(self):
         """
         Returns the friendly (i.e. human readable) name of the device.
+        
+        @param: human readable name of device
         """
     
         return self.__friendly_name
@@ -149,6 +160,12 @@ class DeviceDescription(object):
         """
         Returns the URL of an icon which matches the given size best.
         Returns an empty string if the device has no icons.
+        
+        @param ideal_width: desired width
+        @param ideal_height: desired height
+        @return: URL of icon on the device
+        
+        @todo: width and height are currently ignored
         """
         
         # TODO: find best match
@@ -158,6 +175,8 @@ class DeviceDescription(object):
     def get_device_type(self):
         """
         Returns the type of device.
+        
+        @return: UPnP device type
         """
         
         return self.__device_type
@@ -166,6 +185,8 @@ class DeviceDescription(object):
     def get_udn(self):
         """
         Returns the UDN of the device.
+        
+        @return: UDN string
         """
         
         return self.__udn
@@ -173,7 +194,9 @@ class DeviceDescription(object):
         
     def get_model_description(self):
         """
-        Returns the human readable model description text.
+        Returns the model description text.
+        
+        @return: human readable model description
         """
         
         return self.__model_description
@@ -182,7 +205,9 @@ class DeviceDescription(object):
     def get_presentation_url(self):
         """
         Returns the presentation URL of the device. This is typically the
-        URL of a web interface.
+        URL of a web interface provided by the device.
+        
+        @return: URL of presentation interface
         """
         
         return self.__presentation_url
@@ -191,6 +216,8 @@ class DeviceDescription(object):
     def list_services(self):
         """
         Returns a list of the supported services.
+        
+        @return: list of services
         """
         
         return self.__services.keys()
@@ -199,7 +226,9 @@ class DeviceDescription(object):
     def get_service_proxy(self, service):
         """
         Returns the service proxy object for the given service.
-        Raises a KeyError if the service is not supported.
+        
+        @return: SOAP proxy object (see L{upnp.SOAPProxy})
+        @raise KeyError: if the service is not supported
         """
     
         # lazy loading of the SOAP proxy
@@ -218,6 +247,11 @@ class DeviceDescription(object):
         """
         Subscribes to the given service and registers a callback for
         handling incoming events on this URL.
+        
+        @todo: describe signature of callback
+        
+        @param service: service
+        @param cb: callback function
         """
 
         scpd_url, ctrl_url, ev_url = self.__services[service]
@@ -228,6 +262,8 @@ class DeviceDescription(object):
     def unsubscribe(self, cb):
         """
         Unsubscribes the given callback.
+        
+        @param cb: callback function
         """
         
         gena = GenaSocket()

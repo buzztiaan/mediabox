@@ -1,3 +1,8 @@
+"""
+Parser for Ogg tags.
+"""
+
+
 def _read_tagsoup(fd):
 
     soup = ""

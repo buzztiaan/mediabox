@@ -1,3 +1,8 @@
+"""
+Lightweight HTTP file server.
+"""
+
+
 from utils import logging
 
 import gobject

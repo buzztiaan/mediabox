@@ -1,9 +1,13 @@
+"""
+Application message bus singleton.
+"""
+
 from exc import *
 
 
 class _MessageBus(object):
     """
-    Singleton class for an event bus. This class is intented to be used by
+    Singleton class for a message bus. This class is intented to be used by
     the Mediator class only.
     """
 

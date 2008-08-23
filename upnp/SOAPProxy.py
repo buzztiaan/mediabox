@@ -1,3 +1,7 @@
+"""
+Very lightweight SOAP proxy for UPnP.
+"""
+
 from io import HTTPConnection, Downloader, parse_addr
 from utils.MiniXML import MiniXML
 from utils import logging
@@ -18,34 +22,57 @@ _XMLNS_UPNP = "urn:schemas-upnp-org:service-1-0"
 _XMLNS_SOAP = "http://schemas.xmlsoap.org/soap/envelope/"
 
 
-class SOAPError(StandardError): pass
+class SOAPError(StandardError):
+    """
+    Exception that is raised on a SOAP fault.
+    """
+
+    pass
 
 
 
 class SOAPProxy(object):
     """
     Lightweight SOAP proxy for UPnP stuff.
+
+    This class uses SCPD for service descriptions. WSDL is currently not
+    supported (and not required by UPnP).
+    
+    Service calls can be made synchronously or asynchronously. Asynchronous
+    calls return immediately without a return value and invoke a callback
+    function when the return value is available.
+    
+    Example::
+      myproxy = SOAPProxy("http://192.168.0.1/soap",
+                          "urn:schemas-upnp-org:service:SwitchPower:1",
+                          "http://192.168.0.1/service.xml")
+      # synchronous service call
+      status = myproxy.GetStatus(None)
+      print status
+
+      
+      def f(status):
+      
+          print status
+      
+      # asynchronous service call    
+      myproxy.GetStatus(f)      
     """
 
     def __init__(self, endpoint, namespace, scpdurl):
+        """
+        Creates a new SOAP proxy.
+        
+        @param endpoint: URL of SOAP endpoint
+        @param namespace: namespace of outgoing parameters
+        @param scpdurl: URL of the SCPD service description
+        """
     
         self.__endpoint = endpoint
         self.__namespace = namespace
         self.__signatures = {}
-        
-        # callback for async IO
-        self.__async_callback = None
-        
+               
         self.__parse_scpd(scpdurl)
-
-
-    def set_async_cb(self, cb):
-        """
-        Sets a callback to be used for asynchronous IO. Set to None to disable
-        asynchronous IO. Asynchronous IO is disabled by default.
-        """
-    
-        self.__async_callback = cb
 
 
     def __getattr__(self, name):

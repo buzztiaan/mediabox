@@ -1,3 +1,8 @@
+"""
+Base class for components.
+"""
+
+
 from Mediator import Mediator
 
 

@@ -1,3 +1,8 @@
+"""
+Decorator for adding kinetic scrolling to a widget.
+"""
+
+
 from utils.Observable import Observable
 
 import gtk
@@ -11,7 +16,7 @@ _TAP_AND_HOLD_DELAY = 500
 
 class KineticScroller(Observable):
     """
-    Class for adding kinetic scrolling to a child widget. The child must
+    Class for adding kinetic scrolling to a widget. The widget must
     implement a move(dx, dy) method.
     """
 

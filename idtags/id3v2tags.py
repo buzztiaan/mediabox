@@ -1,3 +1,8 @@
+"""
+Parser for ID3v2 tags.
+"""
+
+
 import mapping
 
 class REV2:

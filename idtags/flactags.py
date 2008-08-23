@@ -1,3 +1,8 @@
+"""
+Parser for FLAC tags.
+"""
+
+
 def _read_int(fd, size):
 
     bytes = fd.read(size)
