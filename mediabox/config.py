@@ -5,7 +5,8 @@ import os
 
 
 _cfg = Config("",
-              [("mediaroot", Config.STRING_LIST,
+              [("current_viewer", Config.STRING, ""),
+               ("mediaroot", Config.STRING_LIST,
                              ["/home/user/MyDocs/.videos",
                               "/home/user/MyDocs/.sounds",
                               "/home/user/MyDocs/.images"]),
@@ -14,6 +15,16 @@ _cfg = Config("",
                               os.path.expanduser("~/.thumbnails/mediabox")),
                ("theme", Config.STRING, "default")]
              )
+
+
+def current_viewer():
+
+    return _cfg["current_viewer"]
+    
+
+def set_current_viewer(v):
+
+    _cfg["current_viewer"] = repr(v)
 
 
 def mediaroot():

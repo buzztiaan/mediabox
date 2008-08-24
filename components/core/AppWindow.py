@@ -179,7 +179,8 @@ class AppWindow(Component):
                    (self.__splash.set_visible, [False]),                   
                    (self.__root_pane.render_buffered, []),
                    (self.__scan_media, [True]),
-                   (self.__select_viewer, [0]),
+                   (self.__select_initial_viewer, []),
+                   #(self.__select_viewer, [0]),
                    ]
                    
         def f():
@@ -197,6 +198,23 @@ class AppWindow(Component):
                 return False
                 
         gobject.idle_add(f)
+
+
+    def __select_initial_viewer(self):
+        """
+        Selects the viewer that is initially shown. Shows the menu if no
+        viewer was set.
+        """
+        
+        current_viewer = config.current_viewer()
+        viewers = [ v for v in self.__viewers if repr(v) == current_viewer ]
+        if (viewers):
+            v = viewers[0]
+            idx = self.__viewers.index(v)
+            self.__select_viewer(idx)
+            self.__tab_panel.select_viewer(idx)
+        else:
+            self.__show_tabs()
 
 
     def __register_viewers(self):
@@ -593,13 +611,13 @@ class AppWindow(Component):
 
 
     def handle_event(self, event, *args):
-    
+
         if (event == msgs.COM_EV_COMPONENT_LOADED):
             component = args[0]
             if (isinstance(component, Viewer)):
                 self.__viewers.append(component)
     
-        if (event == msgs.CORE_ACT_SCAN_MEDIA):
+        elif (event == msgs.CORE_ACT_SCAN_MEDIA):
             force = args[0]
             self.__scan_media(force)
 
@@ -676,6 +694,10 @@ class AppWindow(Component):
             percent = args[0]
             self.__title_panel.set_volume(percent)
             
+        elif (event == msgs.MEDIA_EV_LOADED):
+            viewer, f = args
+            idx = self.__viewers.index(viewer)
+            self.__tab_panel.set_currently_playing(idx)
          
     def __get_vstate(self, viewer = None):
     
@@ -782,6 +804,7 @@ class AppWindow(Component):
     
         result = dialogs.question("Exit", "Really quit?")
         if (result == 0):
+            config.set_current_viewer(self.__current_viewer)
             self.emit_event(msgs.CORE_EV_APP_SHUTDOWN)
             gtk.main_quit()
 
