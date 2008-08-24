@@ -62,6 +62,7 @@ class FolderViewer(Viewer):
         
         # file items of the current directory
         self.__items = []
+        self.__non_folder_items = []
         self.__thumbnails = []
     
         # table: file -> item receiving the thumbnail
@@ -161,7 +162,7 @@ class FolderViewer(Viewer):
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
             self.__media_box.set_visible(True)
-            self.__media_box.set_geometry(2, 2, 560 - 14, 370 - 4)
+            self.__media_box.set_geometry(2, 2, 560 - 4, 370 - 4)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
 
             self.set_toolbar(tbset)
@@ -281,7 +282,7 @@ class FolderViewer(Viewer):
                         self.__load(root, self.__GO_NEW)
                         
                 elif (self.__view_mode == _VIEWMODE_PLAYER_NORMAL):
-                    item = self.__items[idx]
+                    item = self.__non_folder_items[idx]
                     if (item != self.__current_file):
                         self.__load_item(item)
 
@@ -340,7 +341,7 @@ class FolderViewer(Viewer):
     def __on_item_button(self, item, idx, button):
         
         def on_child(f):
-            if (f):
+            if (f and f.mimetype != f.DIRECTORY):
                 self.emit_event(msgs.PLAYLIST_ACT_APPEND, f)
             return True
 
@@ -446,7 +447,9 @@ class FolderViewer(Viewer):
                 fd.close()
 
             self.__media_widget.load(f)
-
+            if (f.mimetype in mimetypes.get_audio_types() +
+                              mimetypes.get_video_types()):
+                self.emit_event(msgs.MEDIA_EV_LOADED, self, f)
 
 
     def __on_media_position(self, info):
@@ -572,7 +575,8 @@ class FolderViewer(Viewer):
         icon = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
 
         tn = FileThumbnail(icon, entry)
-        self.__thumbnails.append(tn)
+        if (entry.mimetype != entry.DIRECTORY):
+            self.__thumbnails.append(tn)
         
         if (entry.mimetype == entry.DIRECTORY):
             info = "%d items" % entry.child_count
@@ -589,6 +593,9 @@ class FolderViewer(Viewer):
         self.__list.append_item(item)
         self.__list.set_frozen(False)
         self.__items.append(entry)
+        
+        if (entry.mimetype != entry.DIRECTORY):
+            self.__non_folder_items.append(entry)
         
 
 
@@ -620,6 +627,7 @@ class FolderViewer(Viewer):
         
 
         self.__items = []
+        self.__non_folder_items = []
         self.__thumbnails = []
         self.__items_downloading_thumbnails.clear()
                         

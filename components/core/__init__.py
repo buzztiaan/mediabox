@@ -63,6 +63,7 @@ messages = [
     
     # Media events notify about player status.
     #
+    "MEDIA_EV_LOADED",           # (viewer, f)
     "MEDIA_EV_PLAY",
     "MEDIA_EV_PAUSE",
     "MEDIA_EV_EOF",

@@ -118,6 +118,7 @@ class FMRadioViewer(Viewer):
         if (self.__radio):
             self.__radio.set_frequency(freq)
             self.__current_freq = freq
+            self.emit_event(msgs.MEDIA_EV_LOADED, self, None)
             #self.update_observer(self.OBS_LOCATION, freq)
             #self.emit_event(msgs.FMRADIO_EV_TUNED, freq)
 

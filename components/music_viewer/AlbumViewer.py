@@ -365,6 +365,7 @@ class AlbumViewer(Viewer):
             self.__list.hilight(idx + 1)
             self.set_title(trk.title)
             self.__audio_widget.load(trk)
+            self.emit_event(msgs.MEDIA_EV_LOADED, self, trk)
          
                
         

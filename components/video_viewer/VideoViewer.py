@@ -258,6 +258,7 @@ class VideoViewer(Viewer):
             #self.update_observer(self.OBS_SHOW_PANEL)
                 
         gobject.idle_add(f)
+        self.emit_event(msgs.MEDIA_EV_LOADED, self, item)
                        
 
     def __on_increment(self):

@@ -7,6 +7,7 @@ from mediabox import viewmodes
 from ui.BoxLayout import BoxLayout
 from ui.ImageButton import ImageButton
 from ui.SideTabs import SideTabs
+from utils import mimetypes
 from utils import logging
 import theme
 
@@ -129,7 +130,7 @@ class PlaylistViewer(Viewer):
         elif (mode == _VIEWMODE_PLAYER_NORMAL):
             self.__playlist.set_visible(False)
             self.__media_box.set_visible(True)
-            self.__media_box.set_geometry(2, 2, 560 - 14, 370 - 4)
+            self.__media_box.set_geometry(2, 2, 560 - 4, 370 - 4)
             self.__side_tabs.set_pos(560 + 4, 0 + 4)
 
             if (self.__media_widget):
@@ -262,6 +263,10 @@ class PlaylistViewer(Viewer):
             self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
             self.__media_widget.load(f)
+            if (f.mimetype in mimetypes.get_audio_types() +
+                              mimetypes.get_video_types()):
+                self.emit_event(msgs.MEDIA_EV_LOADED, self, f)
+
             
 
 

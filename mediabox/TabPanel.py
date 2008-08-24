@@ -20,11 +20,12 @@ class TabPanel(Widget, Observable):
     def __init__(self):
     
         self.__buffer = Pixmap(None, 800, 480)
-        
-        self.__viewers = []
-    
+           
         # the currently selected tab
         self.__index = 0
+        
+        # the index of the component that is currently playing
+        self.__currently_playing = -1
         
         self.__lock = threading.Event()
         
@@ -49,15 +50,7 @@ class TabPanel(Widget, Observable):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        if (idx != self.__index):            
-            icon = self.__icons[self.__index]
-            icon.set_active(False)
- 
-            icon = self.__icons[idx]
-            icon.set_active(True)
-            
-            self.__index = idx
-                         
+        self.select_viewer(idx)
         self.update_observer(self.OBS_TAB_SELECTED, idx)
 
 
@@ -95,7 +88,28 @@ class TabPanel(Widget, Observable):
         screen = self.get_screen()
        
         screen.fill_area(x, y, w, h, theme.color_bg)
+        
+        if (self.__currently_playing >= 0):
+            icon = self.__icons[self.__currently_playing]
+            i_x, i_y = icon.get_screen_pos()
+            screen.draw_pixbuf(theme.btn_load, i_x, i_y)
 
+
+    def select_viewer(self, idx):
+
+        if (idx != self.__index):            
+            icon = self.__icons[self.__index]
+            icon.set_active(False)
+ 
+            icon = self.__icons[idx]
+            icon.set_active(True)
+            
+            self.__index = idx    
+
+
+    def set_currently_playing(self, idx):
+    
+        self.__currently_playing = idx
 
 
     def fx_raise(self, wait = True):
