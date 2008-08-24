@@ -1,6 +1,7 @@
 from storage import Device, File
 from utils import mimetypes
 from utils import maemo
+from utils import mmc
 from utils import logging
 import theme
 
@@ -71,7 +72,7 @@ class LocalDevice(Device):
            ("Games", "/home/user/MyDocs/.games", File.DIRECTORY, None),
            ("System", "/", File.DIRECTORY, None)]:
             item = File(self)
-            item.source_icon = self.get_icon()
+            #item.source_icon = self.get_icon()
             item.path = path
             item.resource = path
             item.child_count = self.__get_child_count(path)
@@ -91,11 +92,11 @@ class LocalDevice(Device):
                    if os.path.isdir(os.path.join("/media", f)) ]:
             path = os.path.join("/media", f)
             item = File(self)
-            item.source_icon = self.get_icon()
+            #item.source_icon = self.get_icon()
             item.path = path
             item.resource = path
-            item.child_count = self.__get_child_count(path)
-            item.name = f
+            item.child_count = self.__get_child_count(path)            
+            item.name = mmc.get_label(path)
             item.mimetype = File.DIRECTORY
             items.append(item)
         #end for
@@ -106,7 +107,7 @@ class LocalDevice(Device):
     def get_file(self, path):
 
         item = File(self)
-        item.source_icon = self.get_icon()
+        #item.source_icon = self.get_icon()
         item.path = path
         item.name = os.path.basename(path)
         item.resource = path
@@ -153,7 +154,7 @@ class LocalDevice(Device):
         items = []
         for f in files:
             item = File(self)
-            item.source_icon = self.get_icon()
+            #item.source_icon = self.get_icon()
             item.path = os.path.join(path, f)
             item.name = f
             item.resource = os.path.join(path, f)
