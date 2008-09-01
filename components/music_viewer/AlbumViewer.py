@@ -28,7 +28,6 @@ class AlbumViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
     ICON = theme.mb_viewer_audio
-    ICON_ACTIVE = theme.mb_viewer_audio_active
     PRIORITY = 20
     
 
@@ -82,10 +81,12 @@ class AlbumViewer(Viewer):
             # create toolbar
             ctrls = self.__audio_widget.get_controls()
 
-            btn_prev = ImageButton(theme.btn_previous_1, theme.btn_previous_2)
+            btn_prev = ImageButton(theme.mb_btn_previous_1,
+                                   theme.mb_btn_previous_2)
             btn_prev.connect_clicked(self.__on_previous)
 
-            btn_next = ImageButton(theme.btn_next_1, theme.btn_next_2)
+            btn_next = ImageButton(theme.mb_btn_next_1,
+                                   theme.mb_btn_next_2)
             btn_next.connect_clicked(self.__on_next)
 
             ctrls += [btn_prev, btn_next]
@@ -301,8 +302,7 @@ class AlbumViewer(Viewer):
     def __on_list_button_clicked(self, item, idx, button):
     
         if (button == item.BUTTON_ADD_ALBUM):
-            for trk in self.__tracks:
-               self.emit_event(msgs.PLAYLIST_ACT_APPEND, trk)
+            self.emit_event(msgs.PLAYLIST_ACT_APPEND, *self.__tracks)
 
         elif (button == item.BUTTON_ADD_TRACK):
             trk = self.__tracks[idx - 1]
@@ -325,7 +325,7 @@ class AlbumViewer(Viewer):
         
         else:
             trk = None
-        print "AG", trk
+
         if (trk):
             self.__play_track(trk)
             
@@ -363,6 +363,7 @@ class AlbumViewer(Viewer):
             self.__current_index = idx
             
             self.__list.hilight(idx + 1)
+            self.__list.scroll_to_item(idx + 1)
             self.set_title(trk.title)
             self.__audio_widget.load(trk)
             self.emit_event(msgs.MEDIA_EV_LOADED, self, trk)
@@ -417,7 +418,7 @@ class AlbumViewer(Viewer):
                 f.title = title
                 f.artist = artist
                 f.album = album
-                f.md5 = item.md5
+                #f.md5 = item.md5
 
                 tracks.append(f)
                 self.__throbber.rotate()

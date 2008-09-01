@@ -8,8 +8,8 @@ from ui.Widget import Widget
 
 class Configurator(Component, Widget):
     """
-    The Configurator component is presented as a page in the preferences
-    viewer.
+    Components derived from this class are presented as pages in the
+    preferences viewer.
     """
 
     ICON = None

@@ -7,7 +7,6 @@ class Preferences(Viewer):
 
     PRIORITY = 9999
     ICON = theme.mb_viewer_prefs
-    ICON_ACTIVE = theme.mb_viewer_prefs_active
     
 
     def __init__(self):

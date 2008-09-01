@@ -1,4 +1,5 @@
 from mediabox.MediaWidget import MediaWidget
+from mediabox import media_bookmarks
 from ui.EventBox import EventBox
 from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
@@ -25,6 +26,7 @@ class VideoWidget(MediaWidget):
         self.__volume = 50
         self.__aspect_ratio = 1.0
 
+        self.__current_file = None
         self.__uri = ""
         self.__context_id = 0
 
@@ -45,14 +47,19 @@ class VideoWidget(MediaWidget):
 
 
         # controls
-        self.__btn_play = ImageButton(theme.btn_play_1,
-                                      theme.btn_play_2)
+        self.__btn_play = ImageButton(theme.mb_btn_play_1,
+                                      theme.mb_btn_play_2)
         self.__btn_play.connect_clicked(self.__on_play_pause)
 
         self.__progress = ProgressBar()
         self.__progress.connect_changed(self.__on_set_position)
+        self.__progress.connect_bookmark_changed(self.__on_change_bookmark)
         
-        self._set_controls(self.__btn_play, self.__progress)
+        btn_bookmark = ImageButton(theme.mb_btn_bookmark_1,
+                                   theme.mb_btn_bookmark_2)
+        btn_bookmark.connect_clicked(self.__on_add_bookmark)
+        
+        self._set_controls(self.__btn_play, self.__progress, btn_bookmark)
 
 
     def _visibility_changed(self):
@@ -146,8 +153,8 @@ class VideoWidget(MediaWidget):
             self.__uri = ""
             #self.set_title("")
             self.__screen.hide()
-            self.__btn_play.set_images(theme.btn_play_1,
-                                       theme.btn_play_2)
+            self.__btn_play.set_images(theme.mb_btn_play_1,
+                                       theme.mb_btn_play_2)
 
         elif (cmd == src.OBS_ERROR):
             ctx, err = args
@@ -160,15 +167,15 @@ class VideoWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):
                 print "Playing"
-                self.__btn_play.set_images(theme.btn_pause_1,
-                                           theme.btn_pause_2)                
+                self.__btn_play.set_images(theme.mb_btn_pause_1,
+                                           theme.mb_btn_pause_2)                
             
         elif (cmd == src.OBS_STOPPED):
             ctx = args[0]
             if (ctx == self.__context_id):
                 print "Stopped"
-                self.__btn_play.set_images(theme.btn_play_1,
-                                           theme.btn_play_2)
+                self.__btn_play.set_images(theme.mb_btn_play_1,
+                                           theme.mb_btn_play_2)
             
         elif (cmd == src.OBS_EOF):
             ctx = args[0]
@@ -179,8 +186,8 @@ class VideoWidget(MediaWidget):
                 # unfullscreen
                 #if (self.__is_fullscreen): self.__on_fullscreen()
                 
-                self.__btn_play.set_images(theme.btn_play_1,
-                                           theme.btn_play_2)                
+                self.__btn_play.set_images(theme.mb_btn_play_1,
+                                           theme.mb_btn_play_2)                
                 self.send_event(self.EVENT_MEDIA_EOF)
 
 
@@ -199,6 +206,19 @@ class VideoWidget(MediaWidget):
     def __on_play_pause(self):
     
         self.__player.pause()
+        
+   
+    def __on_add_bookmark(self):
+    
+        if (self.__current_file):
+            self.__progress.add_bookmark()
+
+
+    def __on_change_bookmark(self):
+    
+        if (self.__current_file):
+            bookmarks = self.__progress.get_bookmarks()
+            media_bookmarks.set_bookmarks(self.__current_file, bookmarks)
 
 
     def __scale_video(self):
@@ -277,9 +297,12 @@ class VideoWidget(MediaWidget):
                     return
                                 
                 self.__player.set_volume(self.__volume)
+                bookmarks = media_bookmarks.get_bookmarks(item)
+                self.__progress.set_bookmarks(bookmarks)
                 #self.__player.show_text(os.path.basename(uri), 2000)
                 #self.set_title(os.path.basename(uri))                
                 self.__uri = uri
+                self.__current_file = item
                 
                 #self.update_observer(self.OBS_SHOW_PANEL)
                 

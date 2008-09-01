@@ -11,25 +11,12 @@ import pango
 class ControlPanel(Widget, Observable):   
 
     def __init__(self):
-    
-        self.__known_sets = []
-        self.__items = []
-        self.__all_items = []
-        
-        self.__background = None
-        
-    
+
         Widget.__init__(self)
         self.__box = HBox()
         self.__box.set_spacing(8)
         self.__box.set_alignment(self.__box.ALIGN_RIGHT)
         self.add(self.__box)        
-
-
-    def set_bg(self, bg):
-    
-        self.__background = bg
-        self.render()
 
 
     def set_size(self, w, h):
@@ -59,27 +46,5 @@ class ControlPanel(Widget, Observable):
         
         for c in tbset:
             self.__box.add(c)
-            c.set_visible(True)
-            
-        return
-            
-        if (tbset and not tbset in self.__known_sets):
-            self.__known_sets.append(tbset)        
-            for c in tbset:
-                if (not c in self.__box.get_children()):
-                    print c
-                    self.__box.add(c)
-            #end for
-        #end if
-        
-        for c in self.__items:
-            c.set_visible(False)
-            
-        if (tbset == None):
-            self.__items = []
-        else:
-            self.__items = tbset
-        
-        for c in self.__items:
             c.set_visible(True)
 

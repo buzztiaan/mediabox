@@ -11,7 +11,7 @@ class LibItem(ButtonListItem):
     BUTTON_REMOVE = "remove"
 
 
-    _ITEMS_CLOSED = [theme.item_btn_remove]
+    _ITEMS_CLOSED = [theme.mb_item_btn_remove]
     _ITEMS_OPEN = []
 
     _BUTTONS = [BUTTON_REMOVE]

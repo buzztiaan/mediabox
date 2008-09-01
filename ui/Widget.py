@@ -433,7 +433,7 @@ class Widget(object):
         
     def get_screen_pos(self):
         """
-        Returns the absolute position of this widget, i.e. the position is
+        Returns the absolute position of this widget, i.e. the position it
         has on the root widget.
         
         @return: a tuple (x, y) containing the coordinates

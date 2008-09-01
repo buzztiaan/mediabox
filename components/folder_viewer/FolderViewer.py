@@ -40,7 +40,6 @@ class FolderViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
     ICON = theme.mb_viewer_folder
-    ICON_ACTIVE = theme.mb_viewer_folder_active
     PRIORITY = 0
     
     __GO_PARENT = 0
@@ -171,8 +170,8 @@ class FolderViewer(Viewer):
 
             #if (mode != self.__view_mode):
             self.set_collection(self.__thumbnails)
-            if (self.__current_file in self.__items):
-                idx = self.__items.index(self.__current_file)
+            if (self.__current_file in self.__non_folder_items):
+                idx = self.__non_folder_items.index(self.__current_file)
                 self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
 
             self.emit_event(msgs.CORE_ACT_RENDER_ALL)
@@ -340,9 +339,11 @@ class FolderViewer(Viewer):
                 
     def __on_item_button(self, item, idx, button):
         
-        def on_child(f):
+        def on_child(f, items):
             if (f and f.mimetype != f.DIRECTORY):
-                self.emit_event(msgs.PLAYLIST_ACT_APPEND, f)
+                items.append(f)
+            else:
+                self.emit_event(msgs.PLAYLIST_ACT_APPEND, *items)
             return True
 
         if (idx == -1): return
@@ -355,13 +356,15 @@ class FolderViewer(Viewer):
         elif (button == item.BUTTON_ENQUEUE):
             if (idx == 0):
                 path, list_offset = self.__path_stack[-1]
-                path.get_children_async(on_child)
+                path.get_children_async(on_child, [])
             else:
                 entry = self.__items[idx - 1]
                 self.emit_event(msgs.PLAYLIST_ACT_APPEND, entry)
 
         elif (button == item.BUTTON_ADD_TO_LIBRARY):
             path, list_offset = self.__path_stack[-1]
+            self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
+                              u"adding \xbb%s\xab to library" % path.name)
             self.__add_to_library(path, 7)
             self.__save_library()
             
@@ -442,9 +445,12 @@ class FolderViewer(Viewer):
             self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
             if (f.mimetype in mimetypes.get_audio_types()):
-                fd = f.get_fd()
-                f.tags = idtags.read_fd(fd)
-                fd.close()
+                try:
+                    fd = f.get_fd()
+                    f.tags = idtags.read_fd(fd)
+                    fd.close()
+                except:
+                    pass                
 
             self.__media_widget.load(f)
             if (f.mimetype in mimetypes.get_audio_types() +
@@ -612,6 +618,8 @@ class FolderViewer(Viewer):
             if (self.__path_stack[-1][0] != path): return False
 
             if (f):
+                dots = "." * (len(entries) % 4)
+                self.__list.get_item(0).set_info("Loading" + dots)
                 entries.append(f)
                 self.__add_file(f, items_to_thumbnail)
             else:
@@ -638,7 +646,7 @@ class FolderViewer(Viewer):
         #    self.__list.fx_slide_left()
 
         header = HeaderItem(path.name)
-        header.set_info("Loading...")
+        header.set_info("Connecting...")
         self.__list.append_item(header)
         
         gobject.timeout_add(0, path.get_children_async, on_child, path, [], [])

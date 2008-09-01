@@ -3,6 +3,7 @@ from ui.HBox import HBox
 from ui.ImageButton import ImageButton
 from ui.Label import Label
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
+from ui import pixbuftools
 from utils.Observable import Observable
 import values
 import theme
@@ -57,8 +58,12 @@ class TabPanel(Widget, Observable):
     def add_viewer(self, v):
     
         x, y = self.__pos        
-
-        icon = ImageButton(v.ICON, v.ICON_ACTIVE, manual = True)
+                
+        icon_active = pixbuftools.make_frame(theme.mb_selection_frame,
+                                             120, 120, True)
+        pixbuftools.draw_pbuf(icon_active, v.ICON, 0, 0)
+        
+        icon = ImageButton(v.ICON, icon_active, manual = True)
         icon.set_size(120, 120)
         self.add(icon)
         if (len(self.__icons) == self.__index):
@@ -92,7 +97,7 @@ class TabPanel(Widget, Observable):
         if (self.__currently_playing >= 0):
             icon = self.__icons[self.__currently_playing]
             i_x, i_y = icon.get_screen_pos()
-            screen.draw_pixbuf(theme.btn_load, i_x, i_y)
+            screen.draw_pixbuf(theme.mb_btn_load, i_x + 120 - 32, i_y)
 
 
     def select_viewer(self, idx):

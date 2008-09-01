@@ -14,7 +14,6 @@ class VideoViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
     ICON = theme.mb_viewer_video
-    ICON_ACTIVE = theme.mb_viewer_video_active
     PRIORITY = 10
 
 

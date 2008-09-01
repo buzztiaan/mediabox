@@ -53,10 +53,10 @@ class ImageWidget(MediaWidget):
         # controls
         ctrls = []
         for icon1, icon2, action in [
-          (theme.btn_zoom_in_1, theme.btn_zoom_in_2, self.__zoom_in),
-          (theme.btn_zoom_out_1, theme.btn_zoom_out_2, self.__zoom_out),
-          (theme.btn_zoom_fit_1, theme.btn_zoom_fit_2, self.__zoom_fit),
-          (theme.btn_zoom_100_1, theme.btn_zoom_100_2, self.__zoom_100)]:
+          (theme.mb_btn_zoom_in_1, theme.mb_btn_zoom_in_2, self.__zoom_in),
+          (theme.mb_btn_zoom_out_1, theme.mb_btn_zoom_out_2, self.__zoom_out),
+          (theme.mb_btn_zoom_fit_1, theme.mb_btn_zoom_fit_2, self.__zoom_fit),
+          (theme.mb_btn_zoom_100_1, theme.mb_btn_zoom_100_2, self.__zoom_100)]:
             btn = ImageButton(icon1, icon2)
             btn.connect_clicked(action)
             ctrls.append(btn)

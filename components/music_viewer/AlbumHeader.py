@@ -13,7 +13,7 @@ class AlbumHeader(TrackItem):
     BUTTON_ADD_ALBUM = "add-album"
     BUTTON_ADD_TRACK = "add-track"
 
-    _ITEMS_CLOSED = [theme.item_btn_enqueue]
+    _ITEMS_CLOSED = [theme.mb_item_btn_enqueue]
     _ITEMS_OPEN = []
 
     _BUTTONS = [BUTTON_ADD_ALBUM]

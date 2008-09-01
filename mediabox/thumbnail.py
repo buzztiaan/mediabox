@@ -18,10 +18,13 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
     """
 
     if (mimetype == "application/x-directory"):
-        fx, fy = 0, 0
-        tx, ty, tw, th = 0, 0, _WIDTH, _HEIGHT
-        frame = None
-        
+        fx, fy = 20, 0
+        tx, ty, tw, th = 23, 3, 109, 109
+        if (os.path.exists(thumbfile)):
+            frame = theme.viewer_music_frame
+        else:
+            frame = None
+
     elif (mimetype == "audio/x-music-folder"):
         fx, fy = 20, 0
         tx, ty, tw, th = 23, 3, 109, 109
@@ -30,6 +33,14 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
         else:
             frame = None
         
+    elif (mimetype in mimetypes.get_audio_types()):
+        fx, fy = 20, 0
+        tx, ty, tw, th = 23, 3, 109, 109
+        if (os.path.exists(thumbfile)):
+            frame = theme.viewer_music_frame
+        else:
+            frame = None
+
     elif (mimetype in mimetypes.get_image_types()):
         fx, fy = 0, 0
         tx, ty, tw, th = 7, 7, 142, 102

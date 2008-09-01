@@ -7,9 +7,7 @@ def get_classes():
     
     
 messages = [
-    # Appends the given File object to the playlist.
-    #
-    # params: f
-    "PLAYLIST_ACT_APPEND",
+    # Appends the given File object(s) to the playlist.
+    "PLAYLIST_ACT_APPEND",  # (*f)
 ]
 

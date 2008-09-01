@@ -5,6 +5,7 @@ from ui.Dialog import Dialog
 from io import Downloader
 from io import FileDownloader
 from io import FileServer
+from mediabox import values
 import config
 import theme
 
@@ -25,7 +26,7 @@ _XMLNS_ATOM = "http://www.w3.org/2005/Atom"
 _XMLNS_MRSS = "http://search.yahoo.com/mrss/"
 _XMLNS_OPENSEARCH = "http://a9.com/-/spec/opensearchrss/1.0/"
 
-_SEARCH_CACHE_DIR = os.path.expanduser("~/.mediabox/youtube/search-cache")
+_SEARCH_CACHE_DIR = os.path.join(values.USER_DIR, "youtube/search-cache")
 
 _PAGE_SIZE = 25
 
@@ -152,6 +153,8 @@ class YouTube(Device):
 
     def __get_cached_search(self, url):
           
+        return None
+        
         name = urllib.quote(url, "") + ".xml"
         path = os.path.join(_SEARCH_CACHE_DIR, name.lower())
         

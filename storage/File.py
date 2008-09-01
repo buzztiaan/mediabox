@@ -2,6 +2,8 @@
 Object representing a file or folder on a storage device.
 """
 
+import md5
+
 
 class File(object):
 
@@ -47,7 +49,12 @@ class File(object):
         
         return self.__device.get_prefix() + self.path
         
-
+        
+    def get_md5(self):
+    
+        if (not self.md5):
+            self.md5 = md5.new(self.get_full_path()).hexdigest()
+        return self.md5
         
     def get_children(self):
     

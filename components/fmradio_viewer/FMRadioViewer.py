@@ -16,7 +16,6 @@ import gtk
 class FMRadioViewer(Viewer):
 
     ICON = theme.fmradio_viewer_radio
-    ICON_ACTIVE = theme.fmradio_viewer_radio_active
     PRIORITY = 25
 
     def __init__(self):
@@ -26,6 +25,8 @@ class FMRadioViewer(Viewer):
         self.__radio = None
         self.__volume = 50
         self.__current_freq = 0
+        
+        self.__is_force_speaker = False
     
         Viewer.__init__(self)
         self.__list = TrackList(with_drag_sort = True)
@@ -38,10 +39,11 @@ class FMRadioViewer(Viewer):
         # toolbar
         self.__toolbar = []
         for icon1, icon2, action in [
-          (theme.btn_play_1, theme.btn_play_2, self.__play),
-          (theme.btn_previous_1, theme.btn_previous_2, self.__previous),
-          (theme.btn_next_1, theme.btn_next_2, self.__next),
-          (theme.btn_add_1, theme.btn_add_2, self.__add_current_station)
+          (theme.mb_btn_play_1, theme.mb_btn_play_2, self.__play),
+          (theme.mb_btn_previous_1, theme.mb_btn_previous_2, self.__previous),
+          (theme.mb_btn_next_1, theme.mb_btn_next_2, self.__next),
+          (theme.mb_btn_add_1, theme.mb_btn_add_2, self.__add_current_station),
+          (theme.mb_btn_play_1, theme.mb_btn_play_2, self.__toggle_speaker)
           ]:
             btn = ImageButton(icon1, icon2)
             btn.connect_clicked(action)
@@ -95,8 +97,8 @@ class FMRadioViewer(Viewer):
             self.__radio = None
 
         if (self.__radio):
-            self.__toolbar[0].set_images(theme.btn_pause_1,
-                                         theme.btn_pause_2)    
+            self.__toolbar[0].set_images(theme.mb_btn_pause_1,
+                                         theme.mb_btn_pause_2)    
         
     def __radio_off(self):
     
@@ -105,8 +107,8 @@ class FMRadioViewer(Viewer):
         self.__radio = None
         #self.emit_event(msgs.FMRADIO_EV_OFF)
 
-        self.__toolbar[0].set_images(theme.btn_play_1,
-                                     theme.btn_play_2)    
+        self.__toolbar[0].set_images(theme.mb_btn_play_1,
+                                     theme.mb_btn_play_2)    
 
 
 
@@ -221,6 +223,15 @@ class FMRadioViewer(Viewer):
             self.__add_station(freq, name)
         
         
+    def __toggle_speaker(self):
+    
+        self.__is_force_speaker = not self.__is_force_speaker
+        if (self.__is_force_speaker):
+            self.emit_event(msgs.SYSTEM_ACT_FORCE_SPEAKER_ON)
+        else:
+            self.emit_event(msgs.SYSTEM_ACT_FORCE_SPEAKER_OFF)
+
+
     def __play(self):
     
         if (not self.__radio):

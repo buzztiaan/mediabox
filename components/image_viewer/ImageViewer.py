@@ -14,7 +14,6 @@ class ImageViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
     ICON = theme.mb_viewer_image
-    ICON_ACTIVE = theme.mb_viewer_image_active
     PRIORITY = 30
 
 
@@ -36,8 +35,8 @@ class ImageViewer(Viewer):
         # toolbar
         self.__tbset = []
         for icon1, icon2, action in [
-          (theme.btn_previous_1, theme.btn_previous_2, self.__previous_image),
-          (theme.btn_next_1, theme.btn_next_2, self.__next_image)]:
+          (theme.mb_btn_previous_1, theme.mb_btn_previous_2, self.__previous_image),
+          (theme.mb_btn_next_1, theme.mb_btn_next_2, self.__next_image)]:
             btn = ImageButton(icon1, icon2)
             btn.connect_clicked(action)
             self.__tbset.append(btn)

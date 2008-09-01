@@ -257,7 +257,8 @@ class ImageStrip(Widget):
                         
         
     def replace_image(self, idx, image):
-    
+
+       self.invalidate_buffer()
        img = self.__images[idx]
        self.__images[idx] = image
        del img
@@ -267,6 +268,7 @@ class ImageStrip(Widget):
        
     def remove_image(self, idx):
     
+        self.invalidate_buffer()
         w, h = self.get_size()
         del self.__images[idx]
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)        

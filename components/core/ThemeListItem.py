@@ -27,5 +27,5 @@ class ThemeListItem(ListItem):
         canvas.draw_text(self.__label, theme.font_plain, 128, 8, theme.color_fg_item)
 
         if (not self.is_hilighted()):
-            canvas.draw_pixbuf(theme.btn_load, 540, 24)
+            canvas.draw_pixbuf(theme.mb_btn_load, 540, 24)
 

@@ -1,4 +1,5 @@
 from mediabox.MediaWidget import MediaWidget
+from mediabox import media_bookmarks
 from ui.EventBox import EventBox
 from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
@@ -25,6 +26,7 @@ class AudioWidget(MediaWidget):
         mediaplayer.add_observer(self.__on_observe_player)
         self.__volume = 50
 
+        self.__current_file = None
         self.__uri = ""
         self.__context_id = 0
 
@@ -49,14 +51,19 @@ class AudioWidget(MediaWidget):
 
 
         # controls
-        self.__btn_play = ImageButton(theme.btn_play_1,
-                                      theme.btn_play_2)
+        self.__btn_play = ImageButton(theme.mb_btn_play_1,
+                                      theme.mb_btn_play_2)
         self.__btn_play.connect_clicked(self.__on_play_pause)
 
         self.__progress = ProgressBar()
         self.__progress.connect_changed(self.__on_set_position)
+        self.__progress.connect_bookmark_changed(self.__on_change_bookmark)
+
+        btn_bookmark = ImageButton(theme.mb_btn_bookmark_1,
+                                   theme.mb_btn_bookmark_2)
+        btn_bookmark.connect_clicked(self.__on_add_bookmark)
         
-        self._set_controls(self.__btn_play, self.__progress)
+        self._set_controls(self.__btn_play, self.__progress, btn_bookmark)
 
 
     def render_this(self):
@@ -120,15 +127,15 @@ class AudioWidget(MediaWidget):
 
         elif (cmd == src.OBS_STARTED):
             print "Started Player"
-            self.__btn_play.set_images(theme.btn_play_1,
-                                       theme.btn_play_2)
+            self.__btn_play.set_images(theme.mb_btn_play_1,
+                                       theme.mb_btn_play_2)
             
         elif (cmd == src.OBS_KILLED):
             print "Killed Player"
             self.__uri = ""
             #self.set_title("")
-            self.__btn_play.set_images(theme.btn_play_1,
-                                       theme.btn_play_2)
+            self.__btn_play.set_images(theme.mb_btn_play_1,
+                                       theme.mb_btn_play_2)
 
         elif (cmd == src.OBS_ERROR):
             ctx, err = args
@@ -142,22 +149,22 @@ class AudioWidget(MediaWidget):
             if (ctx == self.__context_id):
                 print "Playing"
                 self.__player.set_volume(self.__volume)
-                self.__btn_play.set_images(theme.btn_pause_1,
-                                           theme.btn_pause_2)                
+                self.__btn_play.set_images(theme.mb_btn_pause_1,
+                                           theme.mb_btn_pause_2)                
             
         elif (cmd == src.OBS_STOPPED):
             ctx = args[0]
             if (ctx == self.__context_id):
                 print "Stopped"
-                self.__btn_play.set_images(theme.btn_play_1,
-                                           theme.btn_play_2)
+                self.__btn_play.set_images(theme.mb_btn_play_1,
+                                           theme.mb_btn_play_2)
             
         elif (cmd == src.OBS_EOF):
             ctx = args[0]
             if (ctx == self.__context_id):        
                 self.__uri = ""
-                self.__btn_play.set_images(theme.btn_play_1,
-                                           theme.btn_play_2)
+                self.__btn_play.set_images(theme.mb_btn_play_1,
+                                           theme.mb_btn_play_2)
                 self.send_event(self.EVENT_MEDIA_EOF)
 
 
@@ -171,6 +178,18 @@ class AudioWidget(MediaWidget):
     
         self.__player.pause()
 
+
+    def __on_add_bookmark(self):
+    
+        if (self.__current_file):
+            self.__progress.add_bookmark()
+
+
+    def __on_change_bookmark(self):
+    
+        if (self.__current_file):
+            bookmarks = self.__progress.get_bookmarks()
+            media_bookmarks.set_bookmarks(self.__current_file, bookmarks)
 
 
     def __show_info(self, item):
@@ -210,7 +229,11 @@ class AudioWidget(MediaWidget):
                             
             self.__player.set_volume(self.__volume)
             self.__uri = uri
+            self.__current_file = item
             
+            bookmarks = media_bookmarks.get_bookmarks(item)
+            self.__progress.set_bookmarks(bookmarks)
+                        
             self.__show_info(item)
             self.render()
             

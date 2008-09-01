@@ -6,6 +6,7 @@ from DummyPlayer import DummyPlayer
 from MPlayer import MPlayer
 from OSSOPlayer import OSSOPlayer
 #from utils import maemo
+from mediabox import values
 from utils import mimetypes
 from utils import logging
 
@@ -24,7 +25,7 @@ _current_player = _DUMMY
 _MAPPING_TABLE = {}
 
 _PLAYERS_MAPPING_FILE1 = os.path.join(os.path.dirname(__file__), "players.mapping")
-_PLAYERS_MAPPING_FILE2 = os.path.expanduser("~/.mediabox/players.mapping")
+_PLAYERS_MAPPING_FILE2 = os.path.join(values.USER_DIR, "players.mapping")
 
 
 

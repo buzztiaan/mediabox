@@ -13,9 +13,9 @@ class StationItem(ButtonListItem):
     BUTTON_REMOVE = "remove"
 
 
-    _ITEMS_CLOSED = [theme.item_btn_menu]
-    _ITEMS_OPEN = [theme.item_btn_play,
-                   theme.item_btn_remove]
+    _ITEMS_CLOSED = [theme.mb_item_btn_menu]
+    _ITEMS_OPEN = [theme.mb_item_btn_play,
+                   theme.mb_item_btn_remove]
 
     _BUTTONS = [ButtonListItem.BUTTON_MENU,
                 BUTTON_PLAY, BUTTON_REMOVE]
@@ -29,7 +29,7 @@ class StationItem(ButtonListItem):
         ButtonListItem.__init__(self)
         self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
         self.set_font(theme.font_plain)
-        self.set_grip(theme.item_grip)
+        self.set_grip(theme.mb_item_grip)
         
 
     def render_this(self, cnv):

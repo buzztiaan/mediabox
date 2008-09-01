@@ -67,5 +67,5 @@ class Thumbnail(StripItem):
                           theme.color_fg_thumbnail_label)
 
         if (not self.is_hilighted()):
-            cnv.draw_pixbuf(theme.btn_load, 128, 78)
+            cnv.draw_pixbuf(theme.mb_btn_load, 128, 78)
 

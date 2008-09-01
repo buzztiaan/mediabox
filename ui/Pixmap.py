@@ -280,6 +280,9 @@ class Pixmap(object):
     def fill_area(self, x, y, w, h, color):
         """
         Fills the given area with the given color (opaquely).
+        
+        @param x y w h: area to fill
+        @param color: fill color
         """
     
         col = self.__cmap.alloc_color(str(color))
@@ -294,6 +297,9 @@ class Pixmap(object):
     def move_area(self, x, y, w, h, dx, dy):
         """
         Moves the given area on this pixmap by the given amount.
+        
+        @param x y w h: area to move
+        @param dx dy: amount
         """
             
         self.copy_buffer(self, x, y, x + dx, y + dy, w, h)
@@ -308,6 +314,10 @@ class Pixmap(object):
     def draw_line(self, x1, y1, x2, y2, color):
         """
         Draws a line of the given color.
+        
+        @param x1 y1: start point
+        @param x2 y2: end point
+        @param color: color
         """
     
         col = self.__cmap.alloc_color(str(color))
@@ -322,6 +332,9 @@ class Pixmap(object):
     def draw_rect(self, x, y, w, h, color):
         """
         Draws a rectangle of the given color.
+        
+        @param x y w h: rectangle
+        @param color: border color
         """
     
         w -= 1
@@ -340,6 +353,12 @@ class Pixmap(object):
     def draw_text(self, text, font, x, y, color, use_markup = False):
         """
         Renders the given text string.
+        
+        @param text: text string
+        @param font: font
+        @param x y: coordinates of top-left corner
+        @param color: text color
+        @param use_markup: whether text contains Pango markup
         """
 
         _PANGO_LAYOUT.set_font_description(font)
@@ -369,6 +388,11 @@ class Pixmap(object):
     def draw_pixbuf(self, pbuf, x, y, w = -1, h = -1, scale = False):
         """
         Renders the given pixbuf.
+        
+        @param pbuf: pixbuf image
+        @param x y: coordinates
+        @param w h: size
+        @param scale: scale to given size or simply crop to size
         """
     
         if (scale):
@@ -391,6 +415,11 @@ class Pixmap(object):
     def draw_subpixbuf(self, pbuf, srcx, srcy, dstx, dsty, w, h):
         """
         Renders a part of the pixbuf.
+        
+        @param pbuf: pixbuf image
+        @param srcx srcy: offset on pixbuf image
+        @param dstx dsty: position on this pixmap
+        @param w h: size of subpixbuf
         """
 
         if (srcx < 0 or srcy < 0 or dstx < 0 or dsty < 0):
@@ -407,6 +436,9 @@ class Pixmap(object):
         """
         Renders the given pixbuf so that it fits the given area. The pixbuf
         is scaled while retaining the original aspect ratio.
+        
+        @param pbuf: pixbuf image
+        @param x y w h: constraining area to fit pixbuf into
         """
 
         pbuf_width = pbuf.get_width()
@@ -425,6 +457,12 @@ class Pixmap(object):
 
 
     def draw_pixmap(self, pmap, x, y):
+        """
+        Draws the given pixmap.
+        
+        @param pmap: pixmap
+        @param x y: coordinates
+        """
     
         w, h = pmap.get_size()
         self.copy_pixmap(pmap, 0, 0, x, y, w, h)
@@ -462,6 +500,11 @@ class Pixmap(object):
     def draw_frame(self, framepbuf, x, y, w, h, filled, parts = 0xf):
         """
         Draws a frame by stretching and tiling the given pixbuf.
+        
+        @param framepbuf: pixbuf to use for the frame
+        @param x y w h: frame position and size
+        @param filled: whether to fill the frame or only draw the border
+        @param parts: bit composition of parts to draw (C{Pixbuf.TOP | Pixbuf.BOTTOM | Pixbuf.LEFT | Pixbuf.RIGHT})
         """
 
         tl, t, tr, r, br, b, bl, l, c = self.__split_frame(framepbuf)
@@ -507,6 +550,11 @@ class Pixmap(object):
     def copy_pixmap(self, pmap, srcx, srcy, dstx, dsty, w, h):
         """
         Copies content from another pixmap onto this.
+        
+        @param pmap: source pixmap
+        @param srcx srcy: offset on source pixmap
+        @param dstx dsty: position on this pixmap
+        @param w h: size of area to copy
         """
     
         self.__pixmap.draw_drawable(self.__gc, pmap._get_pixmap(),
@@ -527,6 +575,11 @@ class Pixmap(object):
         buffered, the contents of the buffer are used. You will normally want
         to use this method instead of 'copy_pixmap' when copying from a buffered
         pixmap.
+
+        @param pmap: source pixmap
+        @param srcx srcy: offset on source pixmap
+        @param dstx dsty: position on this pixmap
+        @param w h: size of area to copy        
         """
     
         if (pmap.is_buffered()):
@@ -544,6 +597,8 @@ class Pixmap(object):
         """
         Restores the given area from buffer, if this pixmap is buffered.
         Otherwise, it does nothing.
+        
+        @param x y w h: area to restore
         """
     
         if (not self.__buffered): return
@@ -552,14 +607,10 @@ class Pixmap(object):
                                     x, y, x, y, w, h)
 
 
-    def get_pixmap(self):
-        
-        print "REMOVE get_pixmap() from Pixmap"
-        return self
-        
-
-"""
-The temporary pixmap is a pixmap for temporary drawing operations.
-"""
 TEMPORARY_PIXMAP = Pixmap(None, 800, 480)
+"""
+The temporary pixmap can be used for temporary drawing operations without
+having to create a new pixmap.
+When using it, make sure that no other code can interfere.
+"""
 

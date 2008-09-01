@@ -260,7 +260,7 @@ class _MPlayer(GenericMediaPlayer):
         
     def __parse_value(self, data):
     
-        #print "PARSE", data
+        print "PARSE", data
         if (not data and self.__playing and
             float(self.__player_values[_LENGTH] or 0) < 0.01):
             self.__on_eof()
@@ -349,8 +349,11 @@ class _MPlayer(GenericMediaPlayer):
                                  self.ERR_INVALID)
         elif (data.startswith("Error opening/initializing ")):
             self.update_observer(self.OBS_ERROR, self.__context_id,
-                                 self.ERR_INVALID)            
-
+                                 self.ERR_INVALID)
+        elif (data.startswith("Server returned 400:Server Full")):
+            self.update_observer(self.OBS_ERROR, self.__context_id,
+                                 self.ERR_NOT_FOUND)
+            
 
 
     def __parse_icy_info(self, data):
@@ -539,6 +542,7 @@ class _MPlayer(GenericMediaPlayer):
             self.__context_id = ctx_id
         else:
             self.__context_id = self._new_context_id()
+        print "LOADING", filename
         print "CTX", self.__context_id
         return self.__context_id
         

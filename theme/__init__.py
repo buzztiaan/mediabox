@@ -7,6 +7,7 @@ automatically.
 """
 
 from Color import Color
+from mediabox import values
 
 import gtk
 import pango
@@ -18,7 +19,7 @@ _COMPATIBILITY = ["danube"]
 
 
 _THEMES_DIR = os.path.dirname(__file__)
-_USER_THEMES_DIR = os.path.expanduser("~/.mediabox/themes")
+_USER_THEMES_DIR = os.path.join(values.USER_DIR, "themes")
 _DEFAULT_THEME_DIR = os.path.join(_THEMES_DIR, "default")
 os.system("mkdir -p " + _USER_THEMES_DIR)
 

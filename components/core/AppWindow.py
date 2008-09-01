@@ -135,7 +135,6 @@ class AppWindow(Component):
         
         self.__ctrl_panel = ControlPanel()
         self.__ctrl_panel.set_geometry(170, 410, 630, 70)
-        self.__ctrl_panel.set_bg(theme.mb_panel)
         self.__ctrl_panel.set_visible(False)
 
         #self.__prepare_collection_caps()
@@ -152,16 +151,15 @@ class AppWindow(Component):
         self.__window_ctrls.add_observer(self.__on_observe_window_ctrls)
 
         # search-as-you-type entry
-        #def f(src):
-        #    src.hide()
-        #    self.__set_search_term(src.get_text().lower())
+        def f(src):
+            src.hide()
+            self.__set_search_term(src.get_text().lower())
 
-        self.__search_as_you_type_handler = None
         self.__search_as_you_type_entry = gtk.Entry()
         self.__search_as_you_type_entry.modify_font(theme.font_plain)
         self.__search_as_you_type_entry.set_size_request(400, 32)
         self.__window.put(self.__search_as_you_type_entry, 200, 4)
-        #self.__search_as_you_type_entry.connect("changed", f)
+        self.__search_as_you_type_entry.connect("changed", f)
              
         self.__startup()
         
@@ -488,19 +486,9 @@ class AppWindow(Component):
         Displays the search entry box.
         """
 
-        def check_text():
-            text = "" #self.__search_as_you_type_entry.get_text().lower()
-            if (text != self.__get_search_term()):
-                self.__set_search_term(text)
-            return True
-
         self.__search_as_you_type_entry.set_text("Search")
         self.__search_as_you_type_entry.select_region(0, -1)
         self.__search_as_you_type_entry.show()
-        
-        if (not self.__search_as_you_type_handler):
-            self.__search_as_you_type_handler = \
-                gobject.timeout_add(300, check_text)
     
         self.__reset_search_timeout()
         
@@ -513,9 +501,6 @@ class AppWindow(Component):
         self.__search_as_you_type_entry.hide()
         self.__search_as_you_type_entry.set_text("")
 
-        if (self.__search_as_you_type_handler):
-            gobject.source_remove(self.__search_as_you_type_handler)
-            self.__search_as_you_type_handler = None
 
 
     def __reset_search_timeout(self):

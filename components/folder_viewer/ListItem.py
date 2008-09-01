@@ -13,8 +13,8 @@ class ListItem(ButtonListItem):
     BUTTON_ADD_TO_LIBRARY = "add-to-library"
 
 
-    _ITEMS_CLOSED = [theme.item_btn_menu]
-    _ITEMS_OPEN = [theme.item_btn_play, theme.item_btn_enqueue]
+    _ITEMS_CLOSED = [theme.mb_item_btn_menu]
+    _ITEMS_OPEN = [theme.mb_item_btn_play, theme.mb_item_btn_enqueue]
 
     _BUTTONS = [ButtonListItem.BUTTON_MENU,
                 BUTTON_PLAY, BUTTON_ENQUEUE]

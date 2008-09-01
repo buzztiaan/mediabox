@@ -9,6 +9,8 @@ class Mediator(object):
     """
     Base class for mediator objects, i.e. object which receive messages and
     emit messages.
+    
+    Do not derive from this class directly. Derive from L{Component} instead.
     """
 
     PASS_TYPE_INVALID = 0

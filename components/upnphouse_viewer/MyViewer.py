@@ -27,7 +27,6 @@ class MyViewer(Viewer):
 
     PATH = os.path.dirname(__file__)
     ICON = theme.upnphouse_viewer_house
-    ICON_ACTIVE = theme.upnphouse_viewer_house_active
     PRIORITY = 100
    
 
