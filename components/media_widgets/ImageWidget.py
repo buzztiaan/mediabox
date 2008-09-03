@@ -72,7 +72,7 @@ class ImageWidget(MediaWidget):
 
         if (w < 800):
             screen.draw_frame(theme.viewer_image_frame, x, y,
-                              w, h, False)
+                              w, h, True)
             self.__image.set_geometry(11, 11, w - 28, h - 28)
             self.__image.set_background(_BACKGROUND_COLOR)
         else:
