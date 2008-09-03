@@ -17,7 +17,7 @@ _ZOOM_LEVELS = [18, 25, 33, 50, 75, 100, 150, 200,
                 300, 400, 600, 800, 1200, 1600, 2400, 3200]
 
 # read this many bytes at once
-_CHUNK_SIZE = 10000 #50000
+_CHUNK_SIZE = 50000
 
 # the font for comments, etc.
 _FONT = "Nokia Sans Cn 22"

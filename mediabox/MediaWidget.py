@@ -9,7 +9,7 @@ class MediaWidget(Widget):
     EVENT_MEDIA_POSITION = "media-position"
     EVENT_MEDIA_EOF = "media-eof"
     EVENT_MEDIA_VOLUME = "media-volume"
-    EVENT_FULLSCREEN_TOGGLED = "fullscreen-toggled"
+    EVENT_FULLSCREEN_TOGGLED = "media-fullscreen-toggled"
     
 
     def __init__(self):
