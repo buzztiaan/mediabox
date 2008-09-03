@@ -115,6 +115,7 @@ class PlaylistViewer(Viewer):
         if (mode == _VIEWMODE_NO_PLAYER):
             self.__playlist.set_visible(True)
             self.__media_box.set_visible(False)
+            self.__side_tabs.set_visible(True)
             self.__side_tabs.set_pos(740 + 4, 0 + 4)
             
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
@@ -125,6 +126,7 @@ class PlaylistViewer(Viewer):
             self.__media_box.set_visible(True)
             self.__media_box.set_geometry(2, 2, 560 - 4, 370 - 4)
             self.__side_tabs.set_pos(560 + 4, 0 + 4)
+            self.__side_tabs.set_visible(True)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
                                  
             self.set_collection(self.__thumbnails)
@@ -134,6 +136,7 @@ class PlaylistViewer(Viewer):
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):
             self.__playlist.set_visible(False)
+            self.__side_tabs.set_visible(False)
             self.__media_box.set_visible(True)
             self.__media_box.set_geometry(0, 0, 800, 480)
                 
