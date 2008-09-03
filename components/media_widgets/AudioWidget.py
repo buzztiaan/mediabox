@@ -5,6 +5,7 @@ from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
 from ui.Label import Label
 from ui.Pixmap import TEMPORARY_PIXMAP
+from ui import dialogs
 import mediaplayer
 from utils import maemo
 import theme
@@ -27,7 +28,6 @@ class AudioWidget(MediaWidget):
         self.__volume = 50
 
         self.__current_file = None
-        self.__uri = ""
         self.__context_id = 0
 
         MediaWidget.__init__(self)
@@ -132,17 +132,18 @@ class AudioWidget(MediaWidget):
             
         elif (cmd == src.OBS_KILLED):
             print "Killed Player"
-            self.__uri = ""
-            #self.set_title("")
+            self.__current_file = None
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
 
         elif (cmd == src.OBS_ERROR):
             ctx, err = args
             if (ctx == self.__context_id):
-                pass
-                #self.__show_error(err)
-                #self.set_title("")
+                self.__current_file = None
+                self.__btn_play.set_images(theme.mb_btn_play_1,
+                                           theme.mb_btn_play_2)
+                dialogs.error("Error", `err`)
+                
 
         elif (cmd == src.OBS_PLAYING):
             ctx = args[0]
@@ -162,7 +163,7 @@ class AudioWidget(MediaWidget):
         elif (cmd == src.OBS_EOF):
             ctx = args[0]
             if (ctx == self.__context_id):        
-                self.__uri = ""
+                #self.__current_file = None
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
                 self.send_event(self.EVENT_MEDIA_EOF)
@@ -216,11 +217,11 @@ class AudioWidget(MediaWidget):
     def load(self, item):
 
         def f():
-            uri = item.get_resource()
-            if (uri == self.__uri): return
+            if (item == self.__current_file): return
 
             self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
             
+            uri = item.get_resource()
             try:
                 self.__context_id = self.__player.load(uri)
             except:
@@ -228,7 +229,6 @@ class AudioWidget(MediaWidget):
                 return
                             
             self.__player.set_volume(self.__volume)
-            self.__uri = uri
             self.__current_file = item
             
             bookmarks = media_bookmarks.get_bookmarks(item)
