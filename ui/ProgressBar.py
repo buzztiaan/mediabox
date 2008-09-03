@@ -91,7 +91,7 @@ class ProgressBar(Widget):
             bm_prev_pos = w * self.__dragged_bookmark_pos
 
             # has the bookmark been deleted?
-            if (bm < 0.001):
+            if (bm < 0.001 or bm > 0.999):
                 del self.__bookmarks[self.__dragged_bookmark]
                 self.render()
                 print "DELETED BOOKMARK"
@@ -117,8 +117,8 @@ class ProgressBar(Widget):
     def __on_motion(self, px, py):
             
         if (self.__is_dragging):
-            px = max(0, px)
             w, h = self.get_size()
+            px = min(w, max(0, px))
             pos = px / float(w)
             
             if (self.__dragged_bookmark != -1):
