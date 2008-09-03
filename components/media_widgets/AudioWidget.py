@@ -127,14 +127,21 @@ class AudioWidget(MediaWidget):
 
         elif (cmd == src.OBS_STARTED):
             print "Started Player"
+            self.__progress.set_message("")
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
             
         elif (cmd == src.OBS_KILLED):
             print "Killed Player"
             self.__current_file = None
+            self.__progress.set_message("")
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
+
+        elif (cmd == src.OBS_BUFFERING):
+            ctx = args[0]
+            if (ctx == self.__context_id):
+                self.__progress.set_message("... buffering ...")
 
         elif (cmd == src.OBS_ERROR):
             ctx, err = args
@@ -142,6 +149,7 @@ class AudioWidget(MediaWidget):
                 self.__current_file = None
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
+                self.__progress.set_message("error")
                 dialogs.error("Error", `err`)
                 
 
@@ -149,6 +157,7 @@ class AudioWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):
                 print "Playing"
+                self.__progress.set_message("")
                 self.__player.set_volume(self.__volume)
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)                
@@ -157,6 +166,7 @@ class AudioWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):
                 print "Stopped"
+                self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
             
@@ -164,6 +174,7 @@ class AudioWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):        
                 #self.__current_file = None
+                self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
                 self.send_event(self.EVENT_MEDIA_EOF)

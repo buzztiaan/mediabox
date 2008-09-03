@@ -1,5 +1,5 @@
 from Widget import Widget
-from Pixmap import Pixmap, TEMPORARY_PIXMAP
+from Pixmap import Pixmap, TEMPORARY_PIXMAP, text_extents
 import theme
 
 import gtk
@@ -33,6 +33,8 @@ class ProgressBar(Widget):
         # the current progress as a value between 0.0 and 1.0
         self.__progress = 0
         
+        # the current message if any
+        self.__current_message = ""
        
         Widget.__init__(self)
         self.set_size(300, 32)
@@ -156,6 +158,7 @@ class ProgressBar(Widget):
         pmap.fill_area(0, 0, w, h, "#000000")
         self.__render_progress(pmap)
         self.__render_bookmarks(pmap)
+        self.__render_message(pmap)
         screen.copy_pixmap(pmap, 0, 0, x, y, w, h)
         
         
@@ -179,6 +182,15 @@ class ProgressBar(Widget):
             pmap.draw_pixbuf(theme.mb_progress_bookmark,
                         bm_pos - theme.mb_progress_bookmark.get_width() / 2, 0)
         #end for
+        
+        
+    def __render_message(self, pmap):
+    
+        if (self.__current_message):
+            w, h = self.get_size()
+            t_w, t_h = text_extents(self.__current_message, theme.font_plain)
+            pmap.draw_text(self.__current_message, theme.font_plain,
+                           (w - t_w) / 2, (h - t_h) / 2, "#ffffff")
         
 
     def add_bookmark(self):
@@ -211,6 +223,12 @@ class ProgressBar(Widget):
         
         return self.__bookmarks[:]
     
+    
+    def set_message(self, message):
+    
+        if (self.__current_message != message):
+            self.__current_message = message
+            self.render()
 
 
     def set_position(self, pos, total):
