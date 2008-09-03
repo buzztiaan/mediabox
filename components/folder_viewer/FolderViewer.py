@@ -129,6 +129,7 @@ class FolderViewer(Viewer):
     
         if (mode == _VIEWMODE_NO_PLAYER):
             self.__side_tabs.set_pos(560 + 4, 0 + 4)
+            self.__side_tabs.set_visible(True)
             self.__list.set_visible(True)
             self.__media_box.set_visible(False)
             #if (self.__media_widget):
@@ -152,6 +153,7 @@ class FolderViewer(Viewer):
 
         elif (mode == _VIEWMODE_PLAYER_NORMAL):
             self.__side_tabs.set_pos(560 + 4, 0 + 4)
+            self.__side_tabs.set_visible(True)
             if (self.__media_widget):
             #    self.__media_widget.set_visible(True)
             #    self.__media_widget.set_geometry(2, 2, 560 - 14, 370 - 4)
@@ -179,6 +181,7 @@ class FolderViewer(Viewer):
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):                        
             #if (self.__media_widget):
             #    self.__media_widget.set_geometry(0, 0, 800, 480)
+            self.__side_tabs.set_visible(False)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
             self.__media_box.set_visible(True)
@@ -189,6 +192,7 @@ class FolderViewer(Viewer):
             
         elif (mode == _VIEWMODE_LIBRARY):
             self.__side_tabs.set_pos(740 + 4, 0 + 4)
+            self.__side_tabs.set_visible(True)
             self.__list.set_visible(False)
             #if (self.__media_widget):
             #    self.__media_widget.set_visible(False)
@@ -618,8 +622,7 @@ class FolderViewer(Viewer):
             if (self.__path_stack[-1][0] != path): return False
 
             if (f):
-                dots = "." * (len(entries) % 4)
-                self.__list.get_item(0).set_info("Loading" + dots)
+                self.__list.get_item(0).set_info("Loading (%d)..." % len(self.__items))
                 entries.append(f)
                 self.__add_file(f, items_to_thumbnail)
             else:
