@@ -141,8 +141,8 @@ class RootPane(Widget):
         finished = threading.Event()
         
         def fx(i):
-            if (i > 0):
-                screen.move_area(x, y, w, i, 0, STEP)
+            if (i > STEP):
+                screen.move_area(x, y, w, i - STEP, 0, STEP)
             screen.copy_pixmap(buf, x, y + h - i, 0, 0, w, STEP)
             if (i < 480):
                 gobject.timeout_add(7, fx, i + STEP)
