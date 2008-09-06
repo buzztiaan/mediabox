@@ -61,6 +61,7 @@ class ShoutcastDirectory(object):
 
     def __parse_stations(self, data, cb):
 
+        #open("/tmp/debug-shoutcast.html", "w").write(data)
         pos = 0
         while (True):
             pos = data.find("/sbin/shoutcast-playlist.pls?", pos)
@@ -82,7 +83,7 @@ class ShoutcastDirectory(object):
             # Now Playing            
             pos1 = data.find("Now Playing:", pos)
             pos2 = data.find("#FFFFFF", pos)
-            if (pos1 < pos2):
+            if (pos1 > 0 and pos1 < pos2):
                 pos1 = data.find(">", pos1)
                 pos2 = data.find("<", pos1)
                 now_playing = data[pos1 + 1:pos2].strip()
@@ -126,7 +127,7 @@ class ShoutcastDirectory(object):
         if (path and path[0] == "/"): path = path[1:]
 
         if (not path and not self.__genres):
-            dl = Downloader(_SHOUTCAST_BASE + "/directory", on_load, [""])
+            dl = Downloader(_SHOUTCAST_BASE + "/directory", on_load, [""])            
         else:
             self.__list_path(path, cb)
 
@@ -156,6 +157,7 @@ class ShoutcastDirectory(object):
                 
         else:
             # list stations
+            #on_load("", 0, 0, [open("/tmp/debug-shoutcast.html").read()])
             dl = Downloader(_SHOUTCAST_BASE + \
                 "/directory/?numresult=25&startat=0&sgenre=%s" % name,
                             on_load, [""])
