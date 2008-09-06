@@ -1,6 +1,7 @@
 from com import Viewer, msgs
 from FMRadio import *
 import maemostations
+from RadioScale import RadioScale
 from StationItem import StationItem
 from mediabox.TrackList import TrackList
 from ui.ImageButton import ImageButton
@@ -32,8 +33,14 @@ class FMRadioViewer(Viewer):
         self.__list = TrackList(with_drag_sort = True)
         self.__list.connect_button_clicked(self.__on_item_button)
         self.__list.connect_items_swapped(self.__on_swap)
-        self.__list.set_geometry(10, 0, 780, 370)
+        self.__list.set_geometry(10, 0, 680, 370)
         self.add(self.__list)
+        
+        self.__scale = RadioScale()
+        self.__scale.set_geometry(695, 5, 100, 360)
+        self.__scale.set_range(87.5, 108.0)
+        self.add(self.__scale)
+        self.__scale.connect_tuned(self.__on_tune)
 
 
         # toolbar
@@ -62,6 +69,9 @@ class FMRadioViewer(Viewer):
     def handle_event(self, msg, *args):
     
         if (msg == msgs.MEDIA_ACT_STOP):
+            self.__radio_off()
+            
+        elif (msg == msgs.CORE_EV_APP_SHUTDOWN):
             self.__radio_off()
     
         if (self.is_active()):
@@ -99,13 +109,15 @@ class FMRadioViewer(Viewer):
         if (self.__radio):
             self.__toolbar[0].set_images(theme.mb_btn_pause_1,
                                          theme.mb_btn_pause_2)    
+            a, b = self.__radio.get_frequency_range()
+            self.__scale.set_range(a / 1000.0, b / 1000.0)
+            
         
     def __radio_off(self):
     
         if (self.__radio):
             self.__radio.close()
         self.__radio = None
-        #self.emit_event(msgs.FMRADIO_EV_OFF)
 
         self.__toolbar[0].set_images(theme.mb_btn_play_1,
                                      theme.mb_btn_play_2)    
@@ -120,9 +132,8 @@ class FMRadioViewer(Viewer):
         if (self.__radio):
             self.__radio.set_frequency(freq)
             self.__current_freq = freq
-            self.emit_event(msgs.MEDIA_EV_LOADED, self, None)
-            #self.update_observer(self.OBS_LOCATION, freq)
-            #self.emit_event(msgs.FMRADIO_EV_TUNED, freq)
+            #self.emit_event(msgs.MEDIA_EV_LOADED, self, None)
+            self.__scale.tune(freq / 1000.0)
 
 
     def __format_freq(self, freq):
@@ -167,6 +178,7 @@ class FMRadioViewer(Viewer):
         
         item = StationItem(self.__format_freq(freq), name)
         self.__list.append_item(item)
+        self.__save_stations()
 
 
     def __remove_station(self, idx):
@@ -180,10 +192,11 @@ class FMRadioViewer(Viewer):
     
 
         
-    def __scan_cb(self, freq, is_good):
+    def __scan_cb(self, freq):
 
-        self.set_title("... scanning ...")
+        self.set_title("")
         self.set_info(self.__format_freq(freq))
+        self.__scale.tune(freq / 1000.0)
         gtk.main_iteration(False)
 
 
@@ -200,6 +213,12 @@ class FMRadioViewer(Viewer):
                                         "Remove this station?")
             if (response == 0):
                 self.__remove_station(idx)
+
+
+    def __on_tune(self, freq):
+    
+        self.__list.hilight(-1)
+        self.__tune(freq * 1000)
         
         
     def __on_swap(self, idx1, idx2):
@@ -218,8 +237,6 @@ class FMRadioViewer(Viewer):
         if (values and self.__radio):
             name = values[0]
             freq = self.__radio.get_frequency()
-            self.__stations.append((freq, name))
-            self.__save_stations()
             self.__add_station(freq, name)
         
         
@@ -242,6 +259,7 @@ class FMRadioViewer(Viewer):
     def __next(self):
     
         if (self.__radio):
+            self.__list.hilight(-1)
             freq = self.__radio.scan_next(self.__scan_cb)
             self.__current_freq = freq
             
@@ -249,6 +267,7 @@ class FMRadioViewer(Viewer):
     def __previous(self):
     
         if (self.__radio):
+            self.__list.hilight(-1)
             freq = self.__radio.scan_previous(self.__scan_cb)
             self.__current_freq = freq
 
