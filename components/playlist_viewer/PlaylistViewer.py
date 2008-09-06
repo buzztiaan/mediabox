@@ -74,6 +74,7 @@ class PlaylistViewer(Viewer):
         self.set_toolbar(self.__playlist_tbset)
 
         self.__set_view_mode(_VIEWMODE_NO_PLAYER)
+        self.__load_playlist(_PLAYLIST_FILE)        
 
         
     def __load_playlist(self, path):
@@ -310,17 +311,19 @@ class PlaylistViewer(Viewer):
                     
         if (msg == msgs.PLAYLIST_ACT_APPEND):
             files = args
-            self.__playlist.set_frozen(True)
-            for f in files:
-                logging.info("adding '%s' to playlist" % f.name)
-                self.__add_item(f)
-            self.__playlist.set_frozen(False)
+            
             if (len(files) == 1):
                 self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
                               u"adding \xbb%s\xab to playlist" % files[0].name)
             else:
                 self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
                               u"adding %d items to playlist" % len(files))
+                              
+            self.__playlist.set_frozen(True)
+            for f in files:
+                logging.info("adding '%s' to playlist" % f.name)
+                self.__add_item(f)
+            self.__playlist.set_frozen(False)
             
             self.__playlist_modified = True
             self.__save_playlist(_PLAYLIST_FILE)
@@ -364,5 +367,4 @@ class PlaylistViewer(Viewer):
         Viewer.show(self)
         if (self.__view_mode == _VIEWMODE_NO_PLAYER):
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
-        self.__load_playlist(_PLAYLIST_FILE)        
 
