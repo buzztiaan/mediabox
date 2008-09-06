@@ -16,6 +16,9 @@ class File(object):
         self.__device = device
         self.path = ""
 
+        self.can_add = False
+        self.can_download = False
+
         self.name = ""
         
         self.title = ""
