@@ -32,7 +32,7 @@ video/*                               -                   Unknown-Video  V
 video/avi                             -                   AVI            V      # used by BRisa
 application/vnd.rn-realmedia          .rm,.ram,.ra,.rmvb  Realmedia      V
 application/x-flash-video             -                   Flash-Video    V      # used by Fuppes
-video/mp4                             .m4v                MP4-Video      V
+video/mp4                             .m4v,.mp4           MP4-Video      V
 video/mpeg                            .mpg,.mpeg          MPEG           V
 video/quicktime                       .mov,.qt            Quicktime      V
 video/x-flash-video                   .flv                Flash-Video    V      # used by MediaTomb
