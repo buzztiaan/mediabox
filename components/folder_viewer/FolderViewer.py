@@ -115,7 +115,11 @@ class FolderViewer(Viewer):
                                       theme.mb_btn_dir_up_2)
         self.__btn_back.connect_clicked(self.__on_btn_back)
 
-        self.__navigation_tbset = [self.__btn_back]
+        self.__btn_add = ImageButton(theme.mb_btn_add_1,
+                                     theme.mb_btn_add_2)
+        self.__btn_add.set_visible(False)
+
+        self.__navigation_tbset = [self.__btn_add, self.__btn_back]
 
 
         self.__set_view_mode(_VIEWMODE_NO_PLAYER)
@@ -132,8 +136,6 @@ class FolderViewer(Viewer):
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(True)
             self.__media_box.set_visible(False)
-            #if (self.__media_widget):
-            #    self.__media_widget.set_visible(False)
             self.__lib_list.set_visible(False)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
             
@@ -143,7 +145,6 @@ class FolderViewer(Viewer):
 
             self.__update_device_list()
 
-            #if (mode != self.__view_mode):
             if (self.__current_file in self.__items):
                 idx = self.__items.index(self.__current_file)
                 self.__list.hilight(idx + 1)
@@ -155,8 +156,6 @@ class FolderViewer(Viewer):
             self.__side_tabs.set_pos(560 + 4, 0 + 4)
             self.__side_tabs.set_visible(True)
             if (self.__media_widget):
-            #    self.__media_widget.set_visible(True)
-            #    self.__media_widget.set_geometry(2, 2, 560 - 14, 370 - 4)
                 tbset = self.__media_widget.get_controls()
             else:
                 tbset = []
@@ -170,7 +169,6 @@ class FolderViewer(Viewer):
             if (self.__current_file):
                 self.set_title(self.__current_file.name)
 
-            #if (mode != self.__view_mode):
             self.set_collection(self.__thumbnails)
             if (self.__current_file in self.__non_folder_items):
                 idx = self.__non_folder_items.index(self.__current_file)
@@ -179,8 +177,6 @@ class FolderViewer(Viewer):
             self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):                        
-            #if (self.__media_widget):
-            #    self.__media_widget.set_geometry(0, 0, 800, 480)
             self.__side_tabs.set_visible(False)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
@@ -194,8 +190,6 @@ class FolderViewer(Viewer):
             self.__side_tabs.set_pos(740 + 4, 0 + 4)
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(False)
-            #if (self.__media_widget):
-            #    self.__media_widget.set_visible(False)
             self.__lib_list.set_visible(True)
             self.__media_box.set_visible(False)
 
@@ -561,6 +555,23 @@ class FolderViewer(Viewer):
         if (self.__path_stack[-1][0] != path): return
     
         if (items_to_thumbnail):
+            # hmm, may we want to reorder a bit?
+            if (len(items_to_thumbnail) % 10 == 0 and\
+                  len(items_to_thumbnail) > 5):
+                idx_in_list = self.__list.get_index_at(0)
+                item_in_view = self.__items[idx_in_list - 1]
+                cnt = 0
+                for i in items_to_thumbnail:
+                    if (i[2] == item_in_view):
+                        items_to_thumbnail = \
+                                items_to_thumbnail[cnt:cnt + 5] + \
+                                items_to_thumbnail[:cnt] + \
+                                items_to_thumbnail[cnt + 5:]
+                        break
+                    cnt += 1 
+                #end for
+            #end if            
+        
             item, tn, f = items_to_thumbnail.pop(0)
             if (f.thumbnail):
                 self.__items_downloading_thumbnails[f] = (item, tn)
@@ -622,7 +633,8 @@ class FolderViewer(Viewer):
             if (self.__path_stack[-1][0] != path): return False
 
             if (f):
-                self.__list.get_item(0).set_info("Loading (%d)..." % len(self.__items))
+                self.__list.get_item(0).set_info("Loading (%d items)..." \
+                                                 % len(self.__items))
                 entries.append(f)
                 self.__add_file(f, items_to_thumbnail)
             else:
@@ -651,6 +663,13 @@ class FolderViewer(Viewer):
         header = HeaderItem(path.name)
         header.set_info("Connecting...")
         self.__list.append_item(header)
+        
+        # hide or show "add" button
+        if (path.can_add):
+            self.__btn_add.set_visible(True)
+        else:
+            self.__btn_add.set_visible(False)
+        self.emit_event(msgs.CORE_ACT_RENDER_ALL)
         
         gobject.timeout_add(0, path.get_children_async, on_child, path, [], [])
 
