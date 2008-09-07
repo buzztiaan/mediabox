@@ -1,10 +1,12 @@
 from com import Viewer, msgs
 from FMRadio import *
 import maemostations
+import config
 from RadioScale import RadioScale
 from StationItem import StationItem
 from mediabox.TrackList import TrackList
 from ui.ImageButton import ImageButton
+from ui.ToggleButton import ToggleButton
 from ui.Dialog import Dialog
 from ui import dialogs
 from mediabox import viewmodes
@@ -27,8 +29,7 @@ class FMRadioViewer(Viewer):
         self.__volume = 50
         self.__current_freq = 0
         
-        self.__is_force_speaker = False
-    
+
         Viewer.__init__(self)
         self.__list = TrackList(with_drag_sort = True)
         self.__list.connect_button_clicked(self.__on_item_button)
@@ -49,13 +50,17 @@ class FMRadioViewer(Viewer):
           (theme.mb_btn_play_1, theme.mb_btn_play_2, self.__play),
           (theme.mb_btn_previous_1, theme.mb_btn_previous_2, self.__previous),
           (theme.mb_btn_next_1, theme.mb_btn_next_2, self.__next),
-          (theme.mb_btn_add_1, theme.mb_btn_add_2, self.__add_current_station),
-          (theme.mb_btn_play_1, theme.mb_btn_play_2, self.__toggle_speaker)
+          (theme.mb_btn_add_1, theme.mb_btn_add_2, self.__add_current_station)
           ]:
             btn = ImageButton(icon1, icon2)
             btn.connect_clicked(action)
             self.__toolbar.append(btn)
         #end for
+        
+        btn = ToggleButton(theme.fmradio_btn_speaker_off,
+                           theme.fmradio_btn_speaker_on)
+        btn.connect_toggled(self.__toggle_speaker)
+        self.__toolbar.append(btn)
         
         self.set_toolbar(self.__toolbar)
         
@@ -87,6 +92,21 @@ class FMRadioViewer(Viewer):
                 self.__search(key)           
 
 
+    def __set_region(self, region):
+    
+        regions = {"EUR": self.__radio.FM_BAND_EUR,
+                   "JPN": self.__radio.FM_BAND_JPN}
+    
+        fm_band = regions[region]
+    
+        current_fm_band = self.__radio.get_fm_band()
+        if (current_fm_band != fm_band):
+            try:
+                self.__radio.set_fm_band(fm_band)
+            except:
+                dialogs.warning("Not supported", "Unsupported region settings.")
+
+
     def __radio_on(self):
     
         #if (not Headset().is_connected()):
@@ -97,6 +117,7 @@ class FMRadioViewer(Viewer):
 
         try:
             self.__radio = FMRadio()
+            self.__set_region(config.get_region())
             self.__radio.set_volume(self.__volume)
             if (self.__current_freq > 0):
                 self.__radio.set_frequency(self.__current_freq)
@@ -132,7 +153,7 @@ class FMRadioViewer(Viewer):
         if (self.__radio):
             self.__radio.set_frequency(freq)
             self.__current_freq = freq
-            #self.emit_event(msgs.MEDIA_EV_LOADED, self, None)
+            self.emit_event(msgs.MEDIA_EV_LOADED, self, None)
             self.__scale.tune(freq / 1000.0)
 
 
@@ -217,7 +238,9 @@ class FMRadioViewer(Viewer):
 
     def __on_tune(self, freq):
     
+        self.set_title("")
         self.__list.hilight(-1)
+        self.__list.render()
         self.__tune(freq * 1000)
         
         
@@ -240,10 +263,9 @@ class FMRadioViewer(Viewer):
             self.__add_station(freq, name)
         
         
-    def __toggle_speaker(self):
+    def __toggle_speaker(self, value):
     
-        self.__is_force_speaker = not self.__is_force_speaker
-        if (self.__is_force_speaker):
+        if (value):
             self.emit_event(msgs.SYSTEM_ACT_FORCE_SPEAKER_ON)
         else:
             self.emit_event(msgs.SYSTEM_ACT_FORCE_SPEAKER_OFF)
@@ -260,6 +282,7 @@ class FMRadioViewer(Viewer):
     
         if (self.__radio):
             self.__list.hilight(-1)
+            self.__list.render()
             freq = self.__radio.scan_next(self.__scan_cb)
             self.__current_freq = freq
             
@@ -268,6 +291,7 @@ class FMRadioViewer(Viewer):
     
         if (self.__radio):
             self.__list.hilight(-1)
+            self.__list.render()
             freq = self.__radio.scan_previous(self.__scan_cb)
             self.__current_freq = freq
 

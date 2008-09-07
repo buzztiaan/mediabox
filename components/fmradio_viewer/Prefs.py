@@ -3,7 +3,7 @@ from ui.Label import Label
 from ui.CheckBox import CheckBox
 from ui.RadioGroup import RadioGroup
 from ui.VBox import VBox
-#import config
+import config
 import theme
 
 import os
@@ -27,9 +27,9 @@ class Prefs(Configurator):
         vbox.add(lbl)
 
         buttons = []
-        for option, value in [("US/Europe (used in most parts of the world)\n", 0),
-                              ("Japan (requires a custom kernel)\n", 1)]:        
-            chkbox = CheckBox(value == 0)
+        for option, value in [("US/Europe (used in most parts of the world)\n", "EUR"),
+                              ("Japan (requires a custom kernel)\n", "JPN")]:
+            chkbox = CheckBox(value == config.get_region())
             chkbox.connect_checked(self.__on_select_fm_band, value)
             vbox.add(chkbox)
         
@@ -55,12 +55,12 @@ class Prefs(Configurator):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-        
+
         screen.fill_area(x, y, w, h, theme.color_bg)
         
         
     def __on_select_fm_band(self, is_checked, value):
     
         if (is_checked):
-            pass
+            config.set_region(value)
 
