@@ -42,7 +42,7 @@ class SplashScreen(Widget):
       
         screen.fill_area(0, 0, w, h, theme.color_bg_splash)
         #screen.draw_pixbuf(theme.background, 0, 0)
-        screen.draw_pixbuf(theme.logo,
-                           (800 - theme.logo.get_width()) / 2,
-                           (320 - theme.logo.get_height()) / 2)
+        screen.draw_pixbuf(theme.mb_logo,
+                           (800 - theme.mb_logo.get_width()) / 2,
+                           (320 - theme.mb_logo.get_height()) / 2)
 
