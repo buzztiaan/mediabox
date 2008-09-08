@@ -231,6 +231,9 @@ class YouTube(Device):
                     f.info = "%d - %d of %d" % (a, b, total_results)
                     
                     return cb(f, *args)
+
+                else:
+                    return True
                 #end if      
 
         
@@ -277,7 +280,7 @@ class YouTube(Device):
             else:
                 return True            
 
-        
+
         MiniXML(xml, callback = on_receive_item)
 
 
@@ -288,11 +291,6 @@ class YouTube(Device):
             # present search dialog            
             dlg = Dialog()
             dlg.add_entry("Keywords:", "")
-            # this has no effect on maemo, unless window positioning has been
-            # enabled on the window manager, in which case this is required to
-            # have the window appear on screen (easy-chroot-debian is known to
-            # switch on window positioning)
-            dlg.move(0, 0)
             values = dlg.wait_for_values()
 
             if (values):
