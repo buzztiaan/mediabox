@@ -316,20 +316,8 @@ class ImageStrip(Widget):
         item at that position.
         """
         
-        if (not self.__images or y > self.__totalsize):
-            return -1
-        else:
-            blocksize = self.__itemsize + self.__gapsize
-            pos = self.__offset + y            
-            index = (pos / blocksize)
-            
-            if (index < 0 or index >= len(self.__images)):
-                if (self.__wrap_around):
-                    index %= len(self.__images)
-                else:
-                    index = -1
-        
-            return index
+        idx, relpos = self.get_index_at_and_relpos(y)
+        return idx
             
 
     def get_index_at_and_relpos(self, y):
@@ -338,6 +326,10 @@ class ImageStrip(Widget):
         item at that position. Also returns, the per one percentage of the
         y position inside the row.
         """
+      
+        if (not self.__is_scrollable()):
+            cw, ch = self.__cap_top_size
+            y -= ch
         
         if (not self.__images or y > self.__totalsize):
             return -1, 0
@@ -366,32 +358,18 @@ class ImageStrip(Widget):
         self.__images[idx1] = self.__images[idx2]
         self.__images[idx2] = temp
         #self.render()
-        
-        
-    def get_current_index(self):
+
+
+    def __is_scrollable(self):
         """
-        Returns the index of the currently selected image.
+        Returns whether this strip has enough items to be scrollable.
         """
+        
+        w, h = self.get_size()
+        cw, ch = self.__cap_top_size
+        
+        return (self.__totalsize > h - ch)
     
-        blocksize = self.__itemsize + self.__gapsize
-        pos = self.__offset + self.__selection_offset + self.__itemsize / 2
-        try:
-            index = (pos / blocksize) % len(self.__images)
-        except:
-            index = 0
-        
-        return index
-        
-        
-    def get_current_index_fraction(self):
-    
-        blocksize = self.__itemsize + self.__gapsize
-        pos = self.__offset + self.__selection_offset
-        fr = (pos / float(blocksize))
-        fr = fr - int(fr)
-        
-        return fr
-     
      
     def get_offset(self):
     
@@ -586,6 +564,13 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         screen = self.__buffer
 
+        if (not self.__is_scrollable()):
+            cw, ch = self.__cap_top_size
+            screen.fill_area(x, y, w, ch, self.__bg_color)
+            y += ch
+            h -= ch
+
+
         # render items
         while (self.__images and render_offset < render_to):            
             idx = ((self.__offset + render_offset) / blocksize)
@@ -598,7 +583,6 @@ class ImageStrip(Widget):
 
             img_offset = (self.__offset + render_offset) % blocksize
 
-            
             # compute the remaining visible part of the item            
             remain = min(self.__itemsize - img_offset, render_to - render_offset)
             if (remain > 0):
@@ -679,7 +663,7 @@ class ImageStrip(Widget):
                 gap_offset += blocksize
             #end while
         #end if
-                
+
         
     def move(self, nil, delta):
     
