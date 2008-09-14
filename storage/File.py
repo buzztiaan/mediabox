@@ -17,6 +17,7 @@ class File(object):
         self.path = ""
 
         self.can_add = False
+        self.can_delete = False
         self.can_download = False
 
         self.name = ""
@@ -58,6 +59,17 @@ class File(object):
         if (not self.md5):
             self.md5 = md5.new(self.get_full_path()).hexdigest()
         return self.md5
+        
+        
+    def new_file(self):
+    
+        return self.__device.new_file(self.path)
+        
+        
+    def delete(self):
+    
+        return self.__device.delete(self)
+        
         
     def get_children(self):
     

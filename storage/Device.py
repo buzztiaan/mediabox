@@ -81,6 +81,16 @@ class Device(object):
         raise NotImplementedError
         
         
+    def new_file(self, path):
+    
+        raise NotImplementedError
+        
+        
+    def delete(self, f):
+    
+        raise NotImplementedError
+        
+        
     def ls(self, path):
         """
         Returns a list of File objects representing the contents of the
