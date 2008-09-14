@@ -207,11 +207,17 @@ class SOAPProxy(object):
     
         def on_soap_response(resp):
             if (resp and resp.finished()):
-                values = self.__parse_soap_response(resp.read(), name)
+                status = resp.get_status()
+                if (status == 200):
+                    values = self.__parse_soap_response(resp.read(), name)
+                else:
+                    values = None
+                
                 try:
-                    async_cb(*values)
+                    async_cb(status, *values)
                 except:
                     import traceback; traceback.print_exc()
+                
             #end if
     
         length = len(soap)
