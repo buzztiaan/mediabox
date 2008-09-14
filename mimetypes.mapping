@@ -29,6 +29,7 @@ audio/x-vorbis+ogg                    .ogg                Ogg-Vorbis     A
 audio/x-wav                           .wav                WAV            A
 
 video/*                               -                   Unknown-Video  V
+video/3gpp                            .3gp,.3gpp          3GPP           V
 video/avi                             -                   AVI            V      # used by BRisa
 application/vnd.rn-realmedia          .rm,.ram,.ra,.rmvb  Realmedia      V
 application/x-flash-video             -                   Flash-Video    V      # used by Fuppes
