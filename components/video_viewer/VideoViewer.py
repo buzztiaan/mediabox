@@ -240,11 +240,8 @@ class VideoViewer(Viewer):
 
     def __load(self, item):
 
+        self.emit_event(msgs.MEDIA_ACT_STOP)
         self.emit_event(msgs.MEDIA_EV_PLAY)
-        #self.update_observer(self.OBS_STOP_PLAYING, self)
-        
-        #self.update_observer(self.OBS_SHOW_MESSAGE, "Loading...")
-        #self.__screen.show()
     
         def f():
             uri = item.resource
@@ -253,9 +250,7 @@ class VideoViewer(Viewer):
             self.__video_widget.load(item)
             self.set_title(os.path.basename(uri))
             self.__uri = uri
-            
-            #self.update_observer(self.OBS_SHOW_PANEL)
-                
+
         gobject.idle_add(f)
         self.emit_event(msgs.MEDIA_EV_LOADED, self, item)
                        
