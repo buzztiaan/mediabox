@@ -90,7 +90,21 @@ def __parse_ssdp_event(data):
         else:
             event = SSDP_ALIVE
             
-        return (event, values.get("LOCATION", ""), values["USN"])
+        max_age = 1800
+        if ("CACHE-CONTROL" in values):
+            value = values["CACHE-CONTROL"].upper()
+            idx = value.find("MAX-AGE")
+            if (idx >= 0):
+                idx2 = value.find("=", idx)
+                try:
+                    max_age = int(value[idx2 + 1:])
+                except:
+                    pass
+                    max_age = 1800
+            #end if
+        #end if
+            
+        return (event, values.get("LOCATION", ""), values["USN"], max_age)
         
     else:
         return None
@@ -99,7 +113,8 @@ def __parse_ssdp_event(data):
 def poll_event(sock):
     """
     Polls for SSDP notifications on the given socket and returns an SSDP
-    event tuple (event, location, usn) or None if no event was available.
+    event tuple (event, location, usn, max_age) or None if no event was
+    available.
     """
     try:
         data, addr = sock.recvfrom(1024)

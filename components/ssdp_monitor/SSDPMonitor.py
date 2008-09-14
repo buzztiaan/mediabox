@@ -21,12 +21,14 @@ class SSDPMonitor(Component):
         # table: UUID -> location
         self.__servers = {}
         
+        # table: UUID -> expiration_handler
+        self.__expiration_handlers = {}
+        
         # table of the devices currently being processed: UUID -> location
         self.__processing = {}
 
         self.__monitoring = False
         self.__discovery_monitor = None
-        self.__idle_timer = 0
     
         Component.__init__(self)
 
@@ -58,6 +60,15 @@ class SSDPMonitor(Component):
             pass
             #gobject.source_remove(self.__discovery_monitor)
             #sock.close()
+
+
+    def __on_expire(self, uuid):
+        """
+        Timer for removing UPnP devices that expire.
+        """
+        
+        del self.__expiration_handlers[uuid]
+        self.__handle_ssdp_byebye(uuid)
             
 
     def __on_receive_description_xml(self, data, a, t, location, uuid, xml):
@@ -95,7 +106,7 @@ class SSDPMonitor(Component):
     
         ssdp_event = ssdp.poll_event(sock)
         if (ssdp_event):
-            event, location, usn = ssdp_event
+            event, location, usn, max_age = ssdp_event
             if ("::" in usn):
                 uuid, urn = usn.split("::")
             else:
@@ -103,26 +114,41 @@ class SSDPMonitor(Component):
                 urn = ""
 
             if (event == ssdp.SSDP_ALIVE):
-                logging.debug("UPnP device %s is ALIVE", uuid)
-                if (not uuid in self.__servers and
-                      not uuid in self.__processing):
-                    self.__servers[uuid] = location
-                    self.__processing[uuid] = location
-
-                    Downloader(location,
-                               self.__on_receive_description_xml,
-                               location, uuid, [""])
+                self.__handle_ssdp_alive(uuid, location, max_age)
 
             elif (event == ssdp.SSDP_BYEBYE):
-                logging.debug("UPnP device %s is GONE", uuid)
-                if (uuid in self.__servers):
-                    del self.__servers[uuid]
-                    if (uuid in self.__processing):
-                        del self.__processing[uuid]
-                    self.emit_event(msgs.SSDP_EV_DEVICE_GONE, uuid)
-            #end if
+                self.__handle_ssdp_byebye(uuid)
 
         #end if
         
         return True
+
+
+    def __handle_ssdp_alive(self, uuid, location, max_age):
+    
+        logging.debug("UPnP device %s is ALIVE, max-age %ds", uuid, max_age)
+        if (not uuid in self.__servers and
+                not uuid in self.__processing):
+            self.__servers[uuid] = location
+            self.__processing[uuid] = location
+
+            Downloader(location,
+                        self.__on_receive_description_xml,
+                        location, uuid, [""])
+                        
+            # set up expiration handler
+            if (uuid in self.__expiration_handlers):
+                gobject.source_remove(self.__expiration_handlers[uuid])
+            self.__expiration_handlers[uuid] = gobject.timeout_add(
+                        max_age * 1000, self.__on_expire, uuid)
+
+
+    def __handle_ssdp_byebye(self, uuid):
+    
+        logging.debug("UPnP device %s is GONE", uuid)
+        if (uuid in self.__servers):
+            del self.__servers[uuid]
+            if (uuid in self.__processing):
+                del self.__processing[uuid]
+            self.emit_event(msgs.SSDP_EV_DEVICE_GONE, uuid)
 
