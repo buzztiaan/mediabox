@@ -1,5 +1,7 @@
 from storage import Device, File
+import inetstations
 from ShoutcastDirectory import ShoutcastDirectory
+from ui.Dialog import Dialog
 import theme
 
 
@@ -62,6 +64,25 @@ class IRadio(Device):
         return items
 
 
+    def __ls_favs(self):
+    
+        items = []
+        for location, name in inetstations.get_stations():
+            item = File(self)
+            item.can_delete = True
+            item.source_icon = self.get_icon()
+            item.path = location
+            item.resource = location
+            item.name = name
+            item.info = location
+            item.mimetype = "audio/x-unknown"
+            items.append(item)
+        #end for
+        items.append(None)
+        
+        return items
+
+
     def ls_async(self, path, cb, *args):
     
         def on_child(is_station, item):
@@ -90,4 +111,55 @@ class IRadio(Device):
 
         elif (path.startswith("/shoutcast")):
             self.__shoutcast_directory.get_path(path[10:], on_child)
+
+        elif (path.startswith("/favorites")):
+            items = self.__ls_favs()
+            for i in items:
+                cb(i, *args)
+
+
+    def new_file(self, path):
+    
+        # present search dialog            
+        dlg = Dialog()
+        dlg.add_entry("Name:", "")
+        dlg.add_entry("Location:", "http://")
+        values = dlg.wait_for_values()
+        
+        if (values):
+            name, location = values
+            stations = inetstations.get_stations()
+            stations.append((location, name))
+            inetstations.save_stations(stations)
+        
+            item = File(self)
+            item.can_delete = True
+            item.source_icon = self.get_icon()
+            item.path = location
+            item.resource = location
+            item.name = name
+            item.info = location
+            item.mimetype = "audio/x-unknown"
+            
+            return item
+
+        else:
+            return None
+
+
+    def delete(self, f):
+    
+        stations = inetstations.get_stations()
+        idx = 0
+        found = False
+        for location, name in stations:
+            if ((location, name) == (f.path, f.name)):
+                found = True
+                break
+            idx += 1
+        #end for
+        
+        if (found):
+            del stations[idx]
+            inetstations.save_stations(stations)
 

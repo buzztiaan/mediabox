@@ -103,7 +103,7 @@ class ShoutcastDirectory(object):
             station = Station()
             station.name = name
             station.now_playing = now_playing
-            station.resource = "http://www.shoutcast.com" + pls_url
+            station.resource = _SHOUTCAST_BASE + pls_url
             station.bitrate = bitrate
             
             cb(True, station)
