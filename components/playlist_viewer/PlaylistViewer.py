@@ -218,7 +218,7 @@ class PlaylistViewer(Viewer):
         
     def __go_next(self):
     
-        if (0 <= self.__current_index < len(self.__items) - 1):
+        if (self.__current_index < len(self.__items) - 1):
             idx = self.__current_index
             self.__load_item(idx + 1)
             self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx + 1)
@@ -228,6 +228,7 @@ class PlaylistViewer(Viewer):
     def __load_item(self, idx):        
 
         if (idx < 0): return
+        self.emit_event(msgs.MEDIA_ACT_STOP)
         
         f = self.__items[idx]
         if (f == self.__current_file): return
@@ -338,6 +339,10 @@ class PlaylistViewer(Viewer):
         elif (msg == msgs.MEDIA_ACT_STOP):
             if (self.__media_widget):
                 self.__media_widget.stop()
+
+        elif (msg == msgs.MEDIA_EV_EOF):
+            self.__go_next()
+            self.drop_event()
 
         if (self.is_active()):
             # load selected file
