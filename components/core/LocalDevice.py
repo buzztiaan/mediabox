@@ -190,10 +190,16 @@ class LocalDevice(Device):
             d = fd.read(65536)
             read_size += len(d)
             
-            cb(d, read_size, total_size, *args)
+            try:
+                cb(d, read_size, total_size, *args)
+            except:
+                break
             
             if (d and maxlen > 0 and read_size >= maxlen):
-                cb ("", read_size, total_size, *args)
+                try:
+                    cb("", read_size, total_size, *args)
+                except:
+                    pass
                 break
             elif (not d):
                 break
