@@ -273,7 +273,7 @@ class VideoWidget(MediaWidget):
         def f():
             uri = item.get_resource()
             if (self.__screen.window.xid):
-                if (uri == self.__uri): return
+                #if (uri == self.__uri): return
                 
                 # TODO: get player for MIME type
                 self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)

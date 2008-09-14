@@ -228,7 +228,7 @@ class AudioWidget(MediaWidget):
     def load(self, item):
 
         def f():
-            if (item == self.__current_file): return
+            #if (item == self.__current_file): return
 
             self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
             
