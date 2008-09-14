@@ -12,6 +12,7 @@ from mediabox import viewmodes
 from ui import dialogs
 import theme
 import idtags
+from mediabox import config as mb_config
 
 import gtk
 import gobject
@@ -334,16 +335,38 @@ class AlbumViewer(Viewer):
         """
         Advances to the next track.
         """
-        
-        self.__stop_current_track()
-        if (self.__tracks and self.__current_index + 1 < len(self.__tracks)):
-            trk = self.__tracks[self.__current_index + 1]
-        
-        else:
-            trk = None
 
-        if (trk):
-            self.__play_track(trk)
+        repeat_mode = mb_config.repeat_mode()
+        #shuffle_mode = mb_config.shuffle_mode()
+
+        current_track = self.__current_track
+        self.__stop_current_track()
+        
+        handled = False
+        if (repeat_mode == mb_config.REPEAT_MODE_NONE):
+            if (self.__tracks and self.__current_index + 1 < len(self.__tracks)):
+                trk = self.__tracks[self.__current_index + 1]
+                self.__play_track(trk)
+                handled = True
+
+        elif (repeat_mode == mb_config.REPEAT_MODE_ONE):
+            self.__play_track(current_track, True)
+            handled = True
+            
+        elif (repeat_mode == mb_config.REPEAT_MODE_ALL):
+            if (self.__current_index + 1 < len(self.__tracks)):
+                trk = self.__tracks[self.__current_index + 1]
+                self.__play_track(trk)
+                handled = True
+            elif (self.__tracks):
+                self.__play_track(self.__tracks[0], True)
+                handled = True
+                
+        #end if
+        
+        if (not handled):
+            self.emit_event(msgs.MEDIA_EV_EOF)
+
 
 
 
@@ -354,9 +377,11 @@ class AlbumViewer(Viewer):
          
          
          
-    def __play_track(self, trk):
+    def __play_track(self, trk, force = False):
     
-        if (trk != self.__current_track):
+        self.emit_event(msgs.MEDIA_ACT_STOP)
+        
+        if (force or trk != self.__current_track):
             idx = self.__tracks.index(trk)
                     
             self.__current_track = trk

@@ -3,6 +3,14 @@ from utils.Config import Config
 import os
 
 
+REPEAT_MODE_NONE = "none"
+REPEAT_MODE_ONE = "one"
+REPEAT_MODE_ALL = "all"
+
+SHUFFLE_MODE_NONE = "none"
+SHUFFLE_MODE_ONE = "one"
+SHUFFLE_MODE_ALL = "all"
+
 
 _cfg = Config("",
               [("current_viewer", Config.STRING, ""),
@@ -11,9 +19,12 @@ _cfg = Config("",
                               "/home/user/MyDocs/.sounds",
                               "/home/user/MyDocs/.images"]),
                ("mediaroot_types", Config.INTEGER_LIST, []),
+               ("repeat_mode", Config.STRING, REPEAT_MODE_NONE),
+               ("shuffle_mode", Config.STRING, SHUFFLE_MODE_NONE),
                ("thumbnails_folder", Config.STRING, 
                               os.path.expanduser("~/.thumbnails/mediabox")),
-               ("theme", Config.STRING, "default")]
+               ("theme", Config.STRING, "default"),
+               ("volume", Config.INTEGER, 50)]
              )
 
 
@@ -58,6 +69,26 @@ def set_mediaroot(l):
 
 
 
+def repeat_mode():
+
+    return _cfg["repeat_mode"]
+    
+    
+def set_repeat_mode(m):
+
+    _cfg["repeat_mode"] = m
+
+
+def shuffle_mode():
+
+    return _cfg["shuffle_mode"]
+
+
+def set_shuffle_mode(m):
+
+    _cfg["shuffle_mode"] = m
+
+
 def thumbdir():
 
     return _cfg["thumbnails_folder"]
@@ -71,4 +102,14 @@ def theme():
 def set_theme(name):
 
     _cfg["theme"] = name
+
+
+def volume():
+
+    return _cfg["volume"]
+    
+    
+def set_volume(v):
+
+    _cfg["volume"] = v
 
