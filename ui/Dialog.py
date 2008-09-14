@@ -94,6 +94,12 @@ class Dialog(gtk.Dialog):
         
     def wait_for_values(self):
     
+        # this has no effect on maemo, unless window positioning has been
+        # enabled on the window manager, in which case this is required to
+        # have the window appear on screen (easy-chroot-debian is known to
+        # switch on window positioning)
+        self.move(0, 0)
+                
         self.show()
         #self.__slide_in()
         response = self.run()
