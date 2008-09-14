@@ -3,6 +3,7 @@ from DeviceThumbnail import DeviceThumbnail
 from FileThumbnail import FileThumbnail
 from HeaderItem import HeaderItem
 from ListItem import ListItem
+from DeletableListItem import DeletableListItem
 from FolderItem import FolderItem
 from LibItem import LibItem
 from mediabox.TrackList import TrackList
@@ -118,8 +119,10 @@ class FolderViewer(Viewer):
         self.__btn_add = ImageButton(theme.mb_btn_add_1,
                                      theme.mb_btn_add_2)
         self.__btn_add.set_visible(False)
+        self.__btn_add.connect_clicked(self.__on_btn_add)
 
-        self.__navigation_tbset = [self.__btn_add, self.__btn_back]
+        self.__navigation_tbset = [self.__btn_back]
+        self.__navigation_tbset_2 = [self.__btn_add, self.__btn_back]
 
 
         self.__set_view_mode(_VIEWMODE_NO_PLAYER)
@@ -169,12 +172,12 @@ class FolderViewer(Viewer):
             if (self.__current_file):
                 self.set_title(self.__current_file.name)
 
+            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
             self.set_collection(self.__thumbnails)
             if (self.__current_file in self.__non_folder_items):
                 idx = self.__non_folder_items.index(self.__current_file)
                 self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
 
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):                        
             self.__side_tabs.set_visible(False)
@@ -366,6 +369,11 @@ class FolderViewer(Viewer):
             self.__add_to_library(path, 7)
             self.__save_library()
             
+        elif (button == item.BUTTON_REMOVE):
+            entry = self.__items[idx - 1]
+            entry.delete()
+            f, nil = self.__path_stack.pop()
+            self.__load_item(f)
             
             
             
@@ -422,6 +430,8 @@ class FolderViewer(Viewer):
             self.__current_file = f
             self.set_title(f.name)
 
+            self.emit_event(msgs.MEDIA_ACT_STOP)
+
             # get media widget
             if (self.__media_widget):
                 self.__media_box.remove(self.__media_widget)
@@ -469,6 +479,7 @@ class FolderViewer(Viewer):
         Reacts on media EOF.
         """
         
+        self.emit_event(msgs.MEDIA_EV_EOF)
         try:
             idx = self.__items.index(self.__current_file)
         except:
@@ -497,6 +508,19 @@ class FolderViewer(Viewer):
             self.__path_stack.pop()
             path, list_offset = self.__path_stack[-1]
             self.__load(path, self.__GO_PARENT)
+            
+            
+    def __on_btn_add(self):
+        """
+        Reacts on pressing the [Add] button.
+        """
+        
+        if (self.__path_stack):
+            path, list_offset = self.__path_stack[-1]
+            f = path.new_file()
+            if (f):
+                self.__add_file(f, [])
+                self.__list.render()
 
 
     def __on_download_thumbnail(self, d, a, t, f, data, path, items_to_thumbnail):
@@ -603,8 +627,11 @@ class FolderViewer(Viewer):
             info = "%d items" % entry.child_count
             item = FolderItem(entry, icon)
         else:                
-            info = entry.info   
-            item = ListItem(entry, icon)
+            info = entry.info
+            if (entry.can_delete):
+                item = DeletableListItem(entry, icon)
+            else:
+                item = ListItem(entry, icon)
 
             if (not os.path.exists(icon)):
                 items_to_thumbnail.append((item, tn, entry))
@@ -661,14 +688,15 @@ class FolderViewer(Viewer):
         #    self.__list.fx_slide_left()
 
         header = HeaderItem(path.name)
-        header.set_info("Connecting...")
+        header.set_info("Retrieving...")
         self.__list.append_item(header)
         
         # hide or show "add" button
         if (path.can_add):
-            self.__btn_add.set_visible(True)
+            self.__navigation_tbset = [self.__btn_add, self.__btn_back]
         else:
-            self.__btn_add.set_visible(False)
+            self.__navigation_tbset = [self.__btn_back]
+        self.set_toolbar(self.__navigation_tbset)
         self.emit_event(msgs.CORE_ACT_RENDER_ALL)
         
         gobject.timeout_add(0, path.get_children_async, on_child, path, [], [])

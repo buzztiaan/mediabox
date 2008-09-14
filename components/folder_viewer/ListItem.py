@@ -11,6 +11,7 @@ class ListItem(ButtonListItem):
     BUTTON_PLAY = "play"
     BUTTON_ENQUEUE = "enqueue"
     BUTTON_ADD_TO_LIBRARY = "add-to-library"
+    BUTTON_REMOVE = "remove"
 
 
     _ITEMS_CLOSED = [theme.mb_item_btn_menu]
