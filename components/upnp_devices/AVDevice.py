@@ -203,10 +203,16 @@ class AVDevice(Device):
     def load(self, resource, maxlen, cb, *args):
     
         def f(d, amount, total):
-            cb(d, amount, total, *args)
+            try:
+                cb(d, amount, total, *args)
+            except:
+                pass
 
             if (d and maxlen > 0 and amount >= maxlen):
-                cb("", amount, total, *args)
+                try:
+                    cb("", amount, total, *args)
+                except:
+                    pass
                 dloader.cancel()
         
         

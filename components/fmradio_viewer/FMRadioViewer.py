@@ -115,6 +115,8 @@ class FMRadioViewer(Viewer):
         #                         "The FM radio only works if you connect\n"
         #                         "a headphones cable as antenna.")
 
+
+        self.emit_event(msgs.MEDIA_ACT_STOP)
         try:
             self.__radio = FMRadio()
             self.__set_region(config.get_region())
