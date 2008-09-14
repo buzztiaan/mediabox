@@ -10,101 +10,78 @@ class ShoutcastDirectory(object):
     def __init__(self):
     
         # table: path -> (name, [sub_paths])
-        self.__genres = {}
+        #self.__genres = {}
         
+        # table: genre_path -> genre_name
+        self.__genres = {}
         
         
     def __parse_genres(self, data):
 
         # find genre list
-        idx = data.find("class=\"SearchBox\"")
-        idx1 = data.find("<SELECT name=\"sgenre\"", idx)
-        idx2 = data.find("</SELECT>", idx1)
-        genre_data = data[idx1:idx2]
-        
+        idx = data.find(">Stations by Genre</span>")
+        id1 = data.find("<li>", idx)
+        idx2 = data.find("setUpRadio")
+
         # read genre by genre
         pos = 0
-        current_main_genre = ""
         self.__genres = {}
-        self.__genres[""] = ("", [])
         while (True):
-            pos = genre_data.find("<OPTION", pos)
+            pos = data.find("/genre/", pos)
             if (pos == -1): break
-
-            pos = genre_data.find("VALUE=", pos)
-            pos1 = genre_data.find("\"", pos)
-            pos2 = genre_data.find("\"", pos1 + 1)
-            genre_name = genre_data[pos1 + 1:pos2]
             
-            pos = genre_data.find(">", pos2)
+            pos1 = pos + len("/genre/")
+            pos2 = data.find("'", pos1)
+            genre_path = data[pos1:pos2]
             
-            if (not genre_name):
-                continue
+            pos1 = data.find(">", pos2)
+            pos2 = data.find("<", pos1)
+            genre_name = data[pos1 + 1:pos2].strip()
             
-            if (genre_data[pos + 2] == "="):
-                # uninteresting
-                continue
-            elif (genre_data[pos + 1] == "-"):
-                # subgenre
-                path = current_main_genre + "/" + genre_name
-                self.__genres[current_main_genre][1].append(path)
-                self.__genres[path] = (genre_name, [])
-            else:
-                # main genre
-                path = genre_name
-                self.__genres[""][1].append(path)
-                self.__genres[path] = (genre_name, [])
-                current_main_genre = genre_name
+            self.__genres[genre_path] = genre_name
+            
+            pos = pos2
         #end while
 
 
 
     def __parse_stations(self, data, cb):
 
-        #open("/tmp/debug-shoutcast.html", "w").write(data)
         pos = 0
         while (True):
-            pos = data.find("/sbin/shoutcast-playlist.pls?", pos)
+            pos = data.find("dirTuneMoreDiv", pos)
+            print pos
             if (pos == -1): break
             
             # URL
-            pos1 = pos
-            pos2 = data.find("\"", pos1)
-            pls_url = data[pos1:pos2]
-            pos = pos2 + 1
+            pos = data.find("<a href=", pos)
+            pos1 = data.find("\"", pos)
+            pos2 = data.find("\"", pos1 + 1)
+            pls_url = data[pos1 + 1:pos2]
+            pos = pos2
             
             # Name
-            pos = data.find("id=\"listlinks\"", pos)
+            pos = data.find("dirStationCnt", pos)
+            pos = data.find("<a", pos)
             pos1 = data.find(">", pos)
             pos2 = data.find("<", pos1)
             name = data[pos1 + 1:pos2].strip()
-            pos = pos2 + 1
+            pos = pos2
             
             # Now Playing            
-            pos1 = data.find("Now Playing:", pos)
-            pos2 = data.find("#FFFFFF", pos)
-            if (pos1 > 0 and pos1 < pos2):
-                pos1 = data.find(">", pos1)
-                pos2 = data.find("<", pos1)
-                now_playing = data[pos1 + 1:pos2].strip()
-                pos = pos2 + 1
-            else:
-                now_playing = ""
-            
-            # Bitrate
-            pos = data.find("#FFFFFF", pos)
-            pos = data.find("#FFFFFF", pos + 1)
+            pos = data.find("dirNowPlayingCnt", pos)
+            pos = data.find("<span", pos)
             pos1 = data.find(">", pos)
             pos2 = data.find("<", pos1)
-            bitrate = data[pos1 + 1:pos2]
-            pos = pos2 + 1
+            now_playing = data[pos1 + 1:pos2].strip()
+            pos = pos2
 
             # build station object
             station = Station()
             station.name = name
             station.now_playing = now_playing
-            station.resource = _SHOUTCAST_BASE + pls_url
-            station.bitrate = bitrate
+            station.resource = pls_url
+            #station.bitrate = bitrate
             
             cb(True, station)
         #end while
@@ -126,8 +103,9 @@ class ShoutcastDirectory(object):
     
         if (path and path[0] == "/"): path = path[1:]
 
+        print "GET PATH", path
         if (not path and not self.__genres):
-            dl = Downloader(_SHOUTCAST_BASE + "/directory", on_load, [""])            
+            dl = Downloader(_SHOUTCAST_BASE + "/", on_load, [""])            
         else:
             self.__list_path(path, cb)
 
@@ -141,15 +119,12 @@ class ShoutcastDirectory(object):
                 self.__parse_stations(data[0], cb)
 
 
-        name, subs = self.__genres[path]
-        if (subs):
+        if (not path):
             # list genres
-            for s in subs:
-                name, ssubs = self.__genres[s]
-
+            for p, n in self.__genres.items():
                 station = Station()
-                station.name = name
-                station.path = s
+                station.name = n
+                station.path = p
 
                 cb(False, station)
             #end for
@@ -158,7 +133,9 @@ class ShoutcastDirectory(object):
         else:
             # list stations
             #on_load("", 0, 0, [open("/tmp/debug-shoutcast.html").read()])
+            name = self.__genres[path]
             dl = Downloader(_SHOUTCAST_BASE + \
-                "/directory/?numresult=25&startat=0&sgenre=%s" % name,
+                "/directory/genreSearchResult.jsp?startIndex=1&mode=listeners&maxbitrate=all&sgenre=%s" % name,
+                #"/genre/%s?numresult=25&startat=0" % name,
                             on_load, [""])
 
