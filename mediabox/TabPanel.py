@@ -1,10 +1,12 @@
 from ui.Widget import Widget
 from ui.HBox import HBox
 from ui.ImageButton import ImageButton
+from ui.SequenceButton import SequenceButton
 from ui.Label import Label
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from ui import pixbuftools
 from utils.Observable import Observable
+import config as mb_config
 import values
 import theme
 
@@ -16,6 +18,8 @@ import gobject
 class TabPanel(Widget, Observable):
 
     OBS_TAB_SELECTED = 0
+    OBS_SHUFFLE_MODE = 1
+    OBS_REPEAT_MODE = 2
     
 
     def __init__(self):
@@ -42,14 +46,28 @@ class TabPanel(Widget, Observable):
         self.add(self.__label)
         self.__label.set_alignment(self.__label.RIGHT)
 
+        # playmode buttons
+        btn_repeat = SequenceButton(
+             [(theme.mb_repeat_none, mb_config.REPEAT_MODE_NONE),
+              (theme.mb_repeat_one, mb_config.REPEAT_MODE_ONE)])
+        btn_repeat.connect_changed(
+              lambda v:self.update_observer(self.OBS_REPEAT_MODE, v))
+        btn_repeat.set_pos(730, 30)
+        self.add(btn_repeat)
+        
+        btn_shuffle = SequenceButton(
+             [(theme.mb_shuffle_none, mb_config.SHUFFLE_MODE_NONE),
+              (theme.mb_shuffle_one, mb_config.SHUFFLE_MODE_ONE)])
+        btn_shuffle.connect_changed(
+              lambda v:self.update_observer(self.OBS_SHUFFLE_MODE, v))
+        btn_shuffle.set_pos(730, 100)
+        self.add(btn_shuffle)
+
+
 
     def __on_tab_selected(self, px, py, idx):
 
         if (self.__lock.isSet()): return
-
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
 
         self.select_viewer(idx)
         self.update_observer(self.OBS_TAB_SELECTED, idx)
@@ -80,7 +98,7 @@ class TabPanel(Widget, Observable):
         self.__label.set_geometry(0, height - 16, 790, 0)
 
         x += 1
-        if (x == 6):
+        if (x == 5):
             x = 0
             y += 1
         self.__pos = (x, y)
@@ -92,7 +110,9 @@ class TabPanel(Widget, Observable):
         w, h = self.get_size()
         screen = self.get_screen()
        
-        screen.fill_area(x, y, w, h, theme.color_bg)
+        screen.fill_area(x, y, w - 80, h, theme.color_bg)
+        screen.fill_area(w - 80, y, 80, h, "#aaaaaf")
+        screen.fill_area(0, 0, w, 2, "#333333")
         
         if (self.__currently_playing >= 0):
             icon = self.__icons[self.__currently_playing]
@@ -115,6 +135,12 @@ class TabPanel(Widget, Observable):
     def set_currently_playing(self, idx):
     
         self.__currently_playing = idx
+        
+        
+    def close(self):
+
+        self.select_viewer(self.__index)
+        self.update_observer(self.OBS_TAB_SELECTED, self.__index)
 
 
     def fx_raise(self, wait = True):

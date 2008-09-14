@@ -15,6 +15,7 @@ from ui.Image import Image
 from ui.Pixmap import Pixmap
 from ui.ImageStrip import ImageStrip
 from ui.KineticScroller import KineticScroller
+from ui.EventBox import EventBox
 from ui import pixbuftools
 from ui import dialogs
 from mediabox import config
@@ -150,6 +151,12 @@ class AppWindow(Component):
         self.__window_ctrls.set_visible(False)
         self.__window_ctrls.add_observer(self.__on_observe_window_ctrls)
 
+        self.__touch_back_area = EventBox()
+        self.__touch_back_area.connect_button_pressed(
+                                          lambda x,y:self.__tab_panel.close())
+        self.__touch_back_area.set_visible(False)
+        self.__root_pane.add(self.__touch_back_area)
+
         # search-as-you-type entry
         def f(src):
             src.hide()
@@ -173,9 +180,9 @@ class AppWindow(Component):
                    (self.__root_pane.add, [self.__tab_panel]),
                    (self.__root_pane.add, [self.__window_ctrls]),
                    (self.__register_viewers, []),
-                   (self.__add_panels, []),
                    (self.__splash.set_visible, [False]),                   
                    (self.__root_pane.render_buffered, []),
+                   (self.__add_panels, []),
                    (self.__scan_media, [True]),
                    (self.__select_initial_viewer, []),
                    #(self.__select_viewer, [0]),
@@ -302,13 +309,35 @@ class AppWindow(Component):
 
     def __prepare_collection_caps(self):
     
+        repeat_mode = config.repeat_mode()
+        shuffle_mode = config.shuffle_mode()
+    
         left_top = pixbuftools.make_frame(theme.mb_panel, 170, 40, True,
                                           pixbuftools.LEFT |
                                           pixbuftools.BOTTOM)
         left_bottom = pixbuftools.make_frame(theme.mb_panel, 170, 70, True,
                                           pixbuftools.TOP |
                                           pixbuftools.LEFT)
+
+        if (repeat_mode == config.REPEAT_MODE_ONE):
+            icon = theme.mb_status_repeat_one
+        elif (repeat_mode == config.REPEAT_MODE_ALL):
+            icon = theme.mb_status_repeat_none
+        else:
+            icon = theme.mb_status_repeat_none
+        pixbuftools.draw_pbuf(left_top, icon, 20, 4)
+        
+        if (shuffle_mode == config.SHUFFLE_MODE_ONE):
+            icon = theme.mb_status_shuffle_one
+        elif (shuffle_mode == config.SHUFFLE_MODE_ALL):
+            icon = theme.mb_status_shuffle_none
+        else:
+            icon = theme.mb_status_shuffle_none
+        pixbuftools.draw_pbuf(left_top, icon, 60, 4)
+
         pixbuftools.draw_pbuf(left_bottom, theme.mb_btn_turn_1, 30, 15)
+
+        
 
         self.__title_panel_left.set_image(left_top)
         self.__panel_left.set_image(left_bottom)
@@ -346,9 +375,16 @@ class AppWindow(Component):
         self.__tab_panel.fx_raise()
 
         self.__window_ctrls.set_frozen(False)
-        self.__window_ctrls.set_enabled(True)        
+        self.__window_ctrls.set_enabled(True)
         self.__window_ctrls.set_visible(True)
         self.__window_ctrls.fx_slide_in()
+        
+        self.__touch_back_area.set_visible(True)
+        self.__touch_back_area.set_enabled(True)
+        w, h = self.__root_pane.get_size()
+        tw, th = self.__tab_panel.get_size()
+        cw, ch = self.__window_ctrls.get_size()
+        self.__touch_back_area.set_geometry(0, 0, w - cw, h - th)
 
 
 
@@ -562,6 +598,7 @@ class AppWindow(Component):
             self.__window_ctrls.set_visible(False)
             self.__window_ctrls.fx_slide_out()
             self.__tab_panel.set_visible(False)
+            self.__touch_back_area.set_visible(False)
 
             if (self.__viewers[idx] != self.__current_viewer):
                 #self.__root_pane.fx_fade_out()
@@ -574,6 +611,15 @@ class AppWindow(Component):
                 self.__root_pane.set_frozen(False)
                 self.__root_pane.render_buffered()
         
+        elif (cmd == src.OBS_REPEAT_MODE):
+            mode = args[0]
+            config.set_repeat_mode(mode)
+            self.__prepare_collection_caps()
+            
+        elif (cmd == src.OBS_SHUFFLE_MODE):
+            mode = args[0]
+            config.set_shuffle_mode(mode)
+            self.__prepare_collection_caps()
 
     def __on_observe_strip(self, src, cmd, *args):
     
