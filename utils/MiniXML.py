@@ -77,7 +77,7 @@ class MiniXML(object):
 
         if (self.__cancelled): return False
         # find next tag
-        index = self.__data.find("<", self.__position)            
+        index = self.__data.find("<", self.__position)
         if (index != -1):
             # skip comments
             if (self.__data[index:index + 4] == "<!--"):
@@ -421,5 +421,5 @@ if (__name__ == "__main__"):
     import sys
     xml = open(sys.argv[1]).read()
     m = MiniXML(xml)
-    #print m.get_dom()
+    print m.get_dom()
     
