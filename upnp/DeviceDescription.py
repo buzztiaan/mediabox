@@ -235,10 +235,12 @@ class DeviceDescription(object):
         try:
             proxy = self.__service_proxies[service]
         except KeyError:
-            # the following line may raise another KeyError
-            scpd_url, ctrl_url, event_url = self.__services[service]
-            proxy = SOAPProxy(ctrl_url, service, scpd_url)
-            self.__service_proxies[service] = proxy
+            try:
+                scpd_url, ctrl_url, event_url = self.__services[service]
+                proxy = SOAPProxy(ctrl_url, service, scpd_url)
+                self.__service_proxies[service] = proxy
+            except KeyError:
+                return None
             
         return proxy
         
