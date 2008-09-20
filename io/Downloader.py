@@ -4,6 +4,7 @@ HTTP downloader.
 
 
 from HTTPConnection import HTTPConnection, parse_addr
+from utils import logging
 
 
 class Downloader(HTTPConnection):
@@ -48,6 +49,7 @@ class Downloader(HTTPConnection):
         elif (300 <= status < 310):
             location = resp.getheaders()["LOCATION"]
             host, port, path = parse_addr(location)
+            logging.debug("HTTP redirect to %s" % location)
             self.redirect(host, port)
             self.putrequest("GET", path, "HTTP/1.1")
             self.putheader("Host", port and "%s:%d" % (host, port) or host)
