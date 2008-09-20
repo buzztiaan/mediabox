@@ -77,6 +77,9 @@ class Config(object):
         elif (dtype == self.STRING_LIST):
             return _CLIENT.get_list(self.__prefix + key, gconf.VALUE_STRING) \
                    or default
+        elif (dtype == self.INTEGER):
+            return _CLIENT.get_int(self.__prefix + key) \
+                   or default
         elif (dtype == self.INTEGER_LIST):
             return _CLIENT.get_list(self.__prefix + key, gconf.VALUE_INT) \
                    or default
@@ -92,6 +95,8 @@ class Config(object):
             _CLIENT.set_string(self.__prefix + key, value)
         elif (dtype == self.STRING_LIST):
             _CLIENT.set_list(self.__prefix + key, gconf.VALUE_STRING, value)
+        elif (dtype == self.INTEGER):
+            _CLIENT.set_int(self.__prefix + key, value)
         elif (dtype == self.INTEGER_LIST):
             _CLIENT.set_list(self.__prefix + key, gconf.VALUE_INT, value)
 
