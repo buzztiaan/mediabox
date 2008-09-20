@@ -21,6 +21,7 @@ from ui import dialogs
 from mediabox import config
 from mediabox import values
 from utils import maemo
+from utils import hildon_input_method
 from mediabox import viewmodes
 import theme
 
@@ -57,6 +58,8 @@ class AppWindow(Component):
         self.__keyboard_search_string = ""
         # timer for clearing the search term
         self.__keyboard_search_reset_timer = None
+
+        self.__hildon_input_replace = True
     
         if (maemo.IS_MAEMO):
             import hildon
@@ -138,8 +141,6 @@ class AppWindow(Component):
         self.__ctrl_panel.set_geometry(170, 410, 630, 70)
         self.__ctrl_panel.set_visible(False)
 
-        #self.__prepare_collection_caps()
-
         # tab panel and window controls
         self.__tab_panel = TabPanel()
         self.__tab_panel.set_geometry(0, 330, 800, 150)
@@ -157,17 +158,6 @@ class AppWindow(Component):
         self.__touch_back_area.set_visible(False)
         self.__root_pane.add(self.__touch_back_area)
 
-        # search-as-you-type entry
-        def f(src):
-            src.hide()
-            self.__set_search_term(src.get_text().lower())
-
-        self.__search_as_you_type_entry = gtk.Entry()
-        self.__search_as_you_type_entry.modify_font(theme.font_plain)
-        self.__search_as_you_type_entry.set_size_request(400, 32)
-        self.__window.put(self.__search_as_you_type_entry, 200, 4)
-        self.__search_as_you_type_entry.connect("changed", f)
-             
         self.__startup()
         
        
@@ -349,7 +339,7 @@ class AppWindow(Component):
         Reacts on clicking the title panel.
         """
 
-        self.__show_search_entry()
+        self.__show_virtual_keyboard()
         
 
                  
@@ -363,8 +353,6 @@ class AppWindow(Component):
 
     def __show_tabs(self):
     
-        self.__hide_search_entry()
-
         self.__root_pane.set_enabled(False)
         self.__root_pane.set_frozen(True)
         
@@ -499,6 +487,7 @@ class AppWindow(Component):
             
         
         elif (key == "BackSpace"):
+            print "BACKSPACE"
             term = self.__get_search_term()
             if (term):
                 term = term[:-1]
@@ -517,25 +506,33 @@ class AppWindow(Component):
         return True
 
 
-    def __show_search_entry(self):
+    def __show_virtual_keyboard(self):
         """
-        Displays the search entry box.
+        Displays the virtual keyboard.
         """
 
-        self.__search_as_you_type_entry.set_text("Search")
-        self.__search_as_you_type_entry.select_region(0, -1)
-        self.__search_as_you_type_entry.show()
+        def f(src, s):            
+            print src, s
+            if (not s):
+                self.__hildon_input_replace = False
+                return
+                
+            term = self.__get_search_term()
+            if (self.__hildon_input_replace):
+                term = ""
+            else:
+                term = self.__get_search_term()
+            self.__hildon_input_replace = True
     
-        self.__reset_search_timeout()
-        
-        
-    def __hide_search_entry(self):
-        """
-        Hides the search entry box.
-        """
+            term += s.lower()
+            self.__set_search_term(term)
 
-        self.__search_as_you_type_entry.hide()
-        self.__search_as_you_type_entry.set_text("")
+        try:
+            hildon_input_method.show_im(self.__window, f)
+        except:
+            # only available on maemo
+            pass
+    
 
 
 
@@ -545,7 +542,6 @@ class AppWindow(Component):
         """
 
         def f():
-            self.__hide_search_entry()
             self.__keyboard_search_string = ""
             self.__keyboard_search_reset_timer = None
 
