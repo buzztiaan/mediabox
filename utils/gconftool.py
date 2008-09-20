@@ -78,6 +78,27 @@ class _Client(object):
                                      % (_GCONFTOOL, VALUE_STRING, key, value))
 
 
+    def get_int(self, key):
+
+        fail, out = commands.getstatusoutput("%s --get %s" \
+                                             % (_GCONFTOOL, key))
+        if (fail):
+            return None
+            
+        elif (out.startswith("No value set for ")):
+            return None
+
+        value = out.strip()
+
+        return int(value)
+
+
+    def set_int(self, key, value):
+    
+        fail, out = commands.getstatusoutput("%s --type %s --set %s \"%s\"" \
+                                     % (_GCONFTOOL, VALUE_INT, key, value))
+
+
     def unset(self, key):
     
         fail, out = commands.getstatusoutput("%s --unset %s" \
