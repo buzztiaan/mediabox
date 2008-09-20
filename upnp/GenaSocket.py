@@ -48,6 +48,7 @@ def _get_my_ip():
             or "lo"
 
     # get the IP of the interface
+    print "IFACE", iface
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     return socket.inet_ntoa(fcntl.ioctl(
         s.fileno(),
@@ -67,14 +68,17 @@ class _GenaSocket(object):
 
     def __init__(self):
     
-        # table: SID -> callback
+        # table: SID -> [callbacks]
         self.__handlers = {}
         
         # table: callback -> SID
-        self.__sids = {}
+        self.__cb_to_sid = {}
+        
+        # table: ev_url -> SID
+        self.__url_to_sid = {}
         
         # table: SID -> ev_url
-        self.__event_urls = {}
+        self.__sid_to_url = {}
         
         
         # network location of this GENA socket
@@ -123,7 +127,13 @@ class _GenaSocket(object):
         for entry in resp.get_children():
             signal_name = "changed::"
             signal_name += entry.get_name().lower()
-            self.__handlers[uuid] ( signal_name, entry.get_child().get_value() )
+            for cb in self.__handlers[uuid]:
+                try:
+                    cb(signal_name, entry.get_child().get_value())
+                except:
+                    logging.error(logging.stacktrace())
+            #end for
+
             print 'signal emited', signal_name, entry.get_child().get_value()
 
         event_instance.send_answer ( "HTTP/1.1 200 OK" )
@@ -142,10 +152,14 @@ class _GenaSocket(object):
                 #print response.get_headers()
                 sid = response.get_header("SID")
                 logging.debug("received SID: %s" % sid)
-                self.__handlers[sid] = cb
-                self.__sids[cb] = sid
-                self.__event_urls[sid] = ev_url
-        
+
+                if (not sid in self.__handlers):
+                    self.__handlers[sid] = []
+                self.__handlers[sid].append(cb)
+                self.__cb_to_sid[cb] = sid
+                self.__url_to_sid[ev_url] = sid
+                self.__sid_to_url[sid] = ev_url
+
                 # TODO: schedule renewal
         
         
@@ -157,6 +171,12 @@ class _GenaSocket(object):
         # create GENA socket when first used
         if (not self.__gena_socket):
             self.__gena_socket = self.__create_gena_socket()
+
+        # only subscribe once per event URL
+        if (ev_url in self.__url_to_sid):
+            sid = self.__url_to_sid[ev_url]
+            self.__handlers[sid].append(cb)
+            
 
         host, port, path = parse_addr(ev_url)
         conn = HTTPConnection(host, port)
@@ -170,18 +190,22 @@ class _GenaSocket(object):
         Unsubscribes the given callback.
         """
 
-        if (cb in self.__sids):
-            sid = self.__sids[cb]
-            ev_url = self.__event_urls[sid]
+        if (cb in self.__cb_to_sid):
+            sid = self.__cb_to_sid[cb]
+            ev_url = self.__sid_to_url[sid]
             
             host, port, path = parse_addr(ev_url)
             conn = HTTPConnection(host, port)
             conn.send_raw(_GENA_UNSUBSCRIBE % (path, host, sid),
                           lambda a,b:True)
 
-            del self.__handlers[sid]
-            del self.__sids[cb]
-            del self.__event_urls[sid]
+            self.__handlers[sid].remove(cb)
+            if (not self.__handlers[sid]):                
+                del self.__handlers[sid]
+                del self.__sid_to_url[sid]
+                del self.__url_to_sid[ev_url]
+
+            del self.__cb_to_sid[cb]
         #end if
 
         
