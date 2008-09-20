@@ -30,7 +30,7 @@ class DimmableLight_Button (GridButton) :
 
         self.__open_dialog_func = open_dialog_func
 
-        self.option_button_image = theme.item_btn_menu
+        self.option_button_image = theme.mb_item_btn_menu
 
         self.__device.subscribe ( _Switch_Power_service_name, self.__status_changed )
         self.__device.subscribe ( _Dimming_service_name, self.__dimming_changed )

@@ -1,7 +1,6 @@
 from com import Configurator, msgs
 from ui.Label import Label
-from ui.CheckBox import CheckBox
-from ui.RadioGroup import RadioGroup
+from ui.ChoiceBox import ChoiceBox
 from ui.VBox import VBox
 import config
 import theme
@@ -26,22 +25,13 @@ class Prefs(Configurator):
                     theme.font_plain, theme.color_fg_item)
         vbox.add(lbl)
 
-        buttons = []
-        for option, value in [("US/Europe (used in most parts of the world)\n", "EUR"),
-                              ("Japan (requires a custom kernel)\n", "JPN")]:
-            chkbox = CheckBox(value == config.get_region())
-            chkbox.connect_checked(self.__on_select_fm_band, value)
-            vbox.add(chkbox)
-        
-            lbl = Label(option, theme.font_plain, theme.color_fg_item_2)
-            chkbox.add(lbl)
-            
-            buttons.append(chkbox)
-        #end for
-        
-        grp = RadioGroup(*buttons)
+        chbox = ChoiceBox("US/Europe", "EUR",
+                          "Japan", "JPN")
+        chbox.select_by_value(config.get_region())
+        chbox.connect_changed(self.__on_select_fm_band)
+        vbox.add(chbox)
 
-        lbl = Label("Depending on the laws in your country,\n"
+        lbl = Label("\nDepending on the laws in your country,\n"
                     "operating a FM radio with an inappropriate\n"
                     "region setting may be illegal.",
                     theme.font_plain, theme.color_fg_item)
@@ -59,8 +49,7 @@ class Prefs(Configurator):
         screen.fill_area(x, y, w, h, theme.color_bg)
         
         
-    def __on_select_fm_band(self, is_checked, value):
-    
-        if (is_checked):
-            config.set_region(value)
+    def __on_select_fm_band(self, value):
+
+        config.set_region(value)
 

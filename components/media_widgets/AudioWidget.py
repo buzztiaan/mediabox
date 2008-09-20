@@ -1,5 +1,6 @@
 from mediabox.MediaWidget import MediaWidget
 from mediabox import media_bookmarks
+from mediabox import config as mb_config
 from ui.EventBox import EventBox
 from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
@@ -25,7 +26,6 @@ class AudioWidget(MediaWidget):
     
         self.__player = None
         mediaplayer.add_observer(self.__on_observe_player)
-        self.__volume = 50
 
         self.__current_file = None
         self.__context_id = 0
@@ -158,7 +158,7 @@ class AudioWidget(MediaWidget):
             if (ctx == self.__context_id):
                 print "Playing"
                 self.__progress.set_message("")
-                self.__player.set_volume(self.__volume)
+                self.__player.set_volume(mb_config.volume())
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)                
             
@@ -239,7 +239,7 @@ class AudioWidget(MediaWidget):
                 import traceback; traceback.print_exc()
                 return
                             
-            self.__player.set_volume(self.__volume)
+            self.__player.set_volume(mb_config.volume())
             self.__current_file = item
             
             bookmarks = media_bookmarks.get_bookmarks(item)
@@ -261,19 +261,23 @@ class AudioWidget(MediaWidget):
 
     def increment(self):
 
-        self.__volume = min(100, self.__volume + 5)
+        vol = mb_config.volume()
+        vol = min(100, vol + 5)
+        mb_config.set_volume(vol)        
         if (self.__player):
-            self.__player.set_volume(self.__volume)
-        self.send_event(self.EVENT_MEDIA_VOLUME, self.__volume)
+            self.__player.set_volume(vol)
+        self.send_event(self.EVENT_MEDIA_VOLUME, vol)
 
        
         
     def decrement(self):
-    
-        self.__volume = max(0, self.__volume - 5)
+
+        vol = mb_config.volume()
+        vol = max(0, vol - 5)
+        mb_config.set_volume(vol)        
         if (self.__player):
-            self.__player.set_volume(self.__volume)
-        self.send_event(self.EVENT_MEDIA_VOLUME, self.__volume)
+            self.__player.set_volume(vol)
+        self.send_event(self.EVENT_MEDIA_VOLUME, vol)    
 
 
 

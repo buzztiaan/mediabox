@@ -1,5 +1,6 @@
 from mediabox.MediaWidget import MediaWidget
 from mediabox import media_bookmarks
+from mediabox import config as mb_config
 from ui.EventBox import EventBox
 from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
@@ -23,7 +24,6 @@ class VideoWidget(MediaWidget):
         self.__player = None
         mediaplayer.add_observer(self.__on_observe_player)
 
-        self.__volume = 50
         self.__aspect_ratio = 1.0
 
         self.__current_file = None
@@ -296,7 +296,7 @@ class VideoWidget(MediaWidget):
                     self.__screen.hide()
                     return
                                 
-                self.__player.set_volume(self.__volume)
+                self.__player.set_volume(mb_config.volume())
                 bookmarks = media_bookmarks.get_bookmarks(item)
                 self.__progress.set_bookmarks(bookmarks)
                 #self.__player.show_text(os.path.basename(uri), 2000)
@@ -318,15 +318,21 @@ class VideoWidget(MediaWidget):
 
     def increment(self):
 
-        self.__volume = min(100, self.__volume + 5)
+        vol = mb_config.volume()
+        vol = min(100, vol + 5)
+        mb_config.set_volume(vol)        
         if (self.__player):
-            self.__player.set_volume(self.__volume)
-        self.send_event(self.EVENT_MEDIA_VOLUME, self.__volume)
+            self.__player.set_volume(vol)
+        self.send_event(self.EVENT_MEDIA_VOLUME, vol)
+
+       
         
     def decrement(self):
-    
-        self.__volume = max(0, self.__volume - 5)
+
+        vol = mb_config.volume()
+        vol = max(0, vol - 5)
+        mb_config.set_volume(vol)        
         if (self.__player):
-            self.__player.set_volume(self.__volume)
-        self.send_event(self.EVENT_MEDIA_VOLUME, self.__volume)
+            self.__player.set_volume(vol)
+        self.send_event(self.EVENT_MEDIA_VOLUME, vol)
 

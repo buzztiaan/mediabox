@@ -1,7 +1,6 @@
 from com import Configurator, msgs
 from ui.Label import Label
-from ui.CheckBox import CheckBox
-from ui.RadioGroup import RadioGroup
+from ui.ChoiceBox import ChoiceBox
 from ui.VBox import VBox
 import config
 import theme
@@ -28,22 +27,13 @@ class Prefs(Configurator):
         vbox.add(lbl)
 
         current_cache = config.get_cache_folder()
-        buttons = []
-        for option, location in [("on the device\n", os.path.expanduser("~")),
-                       ("on the internal memory card\n", "/media/mmc2"),
-                       ("on the external memory card\n", "/media/mmc1")]:        
-            chkbox = CheckBox(current_cache == location)
-            chkbox.connect_checked(self.__on_select_cache_location, location)
-            vbox.add(chkbox)
+        chbox = ChoiceBox("device", os.path.expanduser("~"),
+                          "internal memory card", "/media/mmc2",
+                          "external memory card", "/media/mmc1")
+        chbox.select_by_value(current_cache)
+        chbox.connect_changed(self.__on_select_cache_location)
+        vbox.add(chbox)
         
-            lbl = Label(option, theme.font_plain, theme.color_fg_item_2)
-            chkbox.add(lbl)
-            
-            buttons.append(chkbox)
-        #end for
-        
-        grp = RadioGroup(*buttons)
-
 
 
 
@@ -56,8 +46,7 @@ class Prefs(Configurator):
         screen.fill_area(x, y, w, h, theme.color_bg)
         
         
-    def __on_select_cache_location(self, is_checked, location):
+    def __on_select_cache_location(self, location):
     
-        if (is_checked):
-            config.set_cache_folder(location)
+        config.set_cache_folder(location)
 

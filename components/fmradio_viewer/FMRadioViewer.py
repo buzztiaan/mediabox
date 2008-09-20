@@ -10,6 +10,7 @@ from ui.ToggleButton import ToggleButton
 from ui.Dialog import Dialog
 from ui import dialogs
 from mediabox import viewmodes
+from mediabox import config as mb_config
 from utils import logging
 import theme
 
@@ -26,7 +27,6 @@ class FMRadioViewer(Viewer):
         self.__stations = []
     
         self.__radio = None
-        self.__volume = 50
         self.__current_freq = 0
         
 
@@ -81,10 +81,10 @@ class FMRadioViewer(Viewer):
     
         if (self.is_active()):
             if (msg == msgs.HWKEY_EV_INCREMENT):
-                self.__set_volume(self.__volume + 5)
+                self.__set_volume(mb_config.volume() + 5)
 
             elif (msg == msgs.HWKEY_EV_DECREMENT):
-                self.__set_volume(self.__volume - 5)
+                self.__set_volume(mb_config.volume() - 5)
 
             # provide search-as-you-type
             elif (msg == msgs.CORE_ACT_SEARCH_ITEM):
@@ -120,7 +120,7 @@ class FMRadioViewer(Viewer):
         try:
             self.__radio = FMRadio()
             self.__set_region(config.get_region())
-            self.__radio.set_volume(self.__volume)
+            self.__radio.set_volume(mb_config.volume())
             if (self.__current_freq > 0):
                 self.__radio.set_frequency(self.__current_freq)
             #self.emit_event(msgs.FMRADIO_EV_ON)
@@ -303,8 +303,8 @@ class FMRadioViewer(Viewer):
         volume = max(0, min(100, volume))
         if (self.__radio):
             self.__radio.set_volume(volume)
-        self.__volume = volume
-        self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, self.__volume)
+        mb_config.set_volume(volume)
+        self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
 
 
     def show(self):
