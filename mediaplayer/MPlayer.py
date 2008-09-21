@@ -121,7 +121,7 @@ class _MPlayer(GenericMediaPlayer):
 
         self.__playing = False
         print "REACHED EOF"
-        self.__suspension_point = (self.__uri, 0)
+        self.__suspension_point = None #(self.__uri, 0)
         self.update_observer(self.OBS_EOF, self.__context_id)
 
 
@@ -485,7 +485,8 @@ class _MPlayer(GenericMediaPlayer):
         Makes sure that mplayer is running.
         """
 
-        if (self.__needs_restart):        
+        print "SUSP", self.__suspension_point
+        if (self.__needs_restart):
             self.__stop_mplayer()
             self.__needs_restart = False
 
@@ -494,6 +495,7 @@ class _MPlayer(GenericMediaPlayer):
 
         if (self.__suspension_point):
             uri, pos = self.__suspension_point
+            print "RESUME"
             self.load(uri, self.__context_id)
             self.seek(pos)
             #self.__playing = True

@@ -36,6 +36,7 @@ class Label(Widget):
     def _reload(self):
     
         self.__is_new_text = True
+        self.__create_text_pmap()
 
 
     def __create_text_pmap(self):
@@ -102,7 +103,7 @@ class Label(Widget):
         # tile background
         for i in range(0, text_w, w):
             self.__text_pmap.copy_pixmap(self.__bg, 0, 0, i - text_x, 0,
-                                         w, text_h)
+                                            w, text_h)
         
         # draw text
         self.__text_pmap.draw_text(self.__text, self.__font, 0, 0, self.__color)
@@ -142,9 +143,7 @@ class Label(Widget):
         return self.__text
             
 
-    def render(self):
-
-        if (not self.may_render()): return
+    def render_this(self):
 
         self.__is_new_text = True
         self.__create_text_pmap()

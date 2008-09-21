@@ -153,4 +153,4 @@ class RootPane(Widget):
         fx(STEP)
         while (wait and not finished.isSet()): gtk.main_iteration()
         self.set_events_blocked(False)
-
+        self.set_frozen(False)

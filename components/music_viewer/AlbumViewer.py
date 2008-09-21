@@ -9,7 +9,6 @@ from ui.ProgressBar import ProgressBar
 from mediabox.ThrobberDialog import ThrobberDialog
 import mediaplayer
 from mediabox import viewmodes
-from ui import dialogs
 import theme
 import idtags
 from mediabox import config as mb_config
@@ -277,8 +276,8 @@ class AlbumViewer(Viewer):
             dialogs.error("Timeout", "Connection timed out.")       
         elif (errcode == self.__player.ERR_NOT_SUPPORTED):
             dialogs.error("Not supported", "The media format is not supported.")
-
         """
+
 
 
     def __on_media_position(self, info):

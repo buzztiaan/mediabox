@@ -150,7 +150,7 @@ class AudioWidget(MediaWidget):
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
                 self.__progress.set_message("error")
-                dialogs.error("Error", `err`)
+                self.__show_error(err)
                 
 
         elif (cmd == src.OBS_PLAYING):
@@ -179,6 +179,17 @@ class AudioWidget(MediaWidget):
                                            theme.mb_btn_play_2)
                 self.send_event(self.EVENT_MEDIA_EOF)
 
+
+    def __show_error(self, errcode):
+    
+        if (errcode == self.__player.ERR_INVALID):
+            dialogs.error("Invalid Stream", "Cannot load this stream.")
+        elif (errcode == self.__player.ERR_NOT_FOUND):
+            dialogs.error("Not found", "Cannot find a stream to play.")
+        elif (errcode == self.__player.ERR_CONNECTION_TIMEOUT):
+            dialogs.error("Timeout", "Connection timed out.")       
+        elif (errcode == self.__player.ERR_NOT_SUPPORTED):
+            dialogs.error("Not supported", "The media format is not supported.")
 
 
     def __on_set_position(self, pos):

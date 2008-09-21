@@ -21,6 +21,11 @@ class SideTabs(Widget):
         self.connect_button_pressed(self.__on_click)
 
 
+    def _reload(self):
+    
+        self.__prepare_tabs()
+
+
     def render_this(self):
     
         x, y = self.get_screen_pos()

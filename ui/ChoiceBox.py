@@ -80,6 +80,10 @@ class ChoiceBox(Widget):
             pass
             
         
+    def _reload(self):
+    
+        self.select(self.__current_choice)
+        
         
     def render_this(self):
     

@@ -34,18 +34,20 @@ class SSDPMonitor(Component):
 
 
     def handle_event(self, event, *args):
-    
-        # anything happened - wake up!
-        if (not self.__monitoring):
-            logging.info("SSDP Monitor waking up")
-            nsock, dsock = ssdp.open_sockets()
-            gobject.timeout_add(0, self.__discovery_chain, dsock, 0)
-            gobject.io_add_watch(nsock, gobject.IO_IN, self.__check_ssdp)
-            self.__discovery_monitor = gobject.io_add_watch(dsock, gobject.IO_IN, self.__check_ssdp)            
-            self.__monitoring = True
-            
+
         if (event == msgs.SSDP_ACT_SEARCH_DEVICES):
-            ssdp.discover_devices()
+            # initialize monitor if needed
+            if (not self.__monitoring):
+                logging.info("SSDP Monitor waking up")
+                nsock, dsock = ssdp.open_sockets()
+                gobject.timeout_add(0, self.__discovery_chain, dsock, 0)
+                gobject.io_add_watch(nsock, gobject.IO_IN, self.__check_ssdp)
+                self.__discovery_monitor = gobject.io_add_watch(dsock, gobject.IO_IN, self.__check_ssdp)            
+                self.__monitoring = True
+            
+            else:
+                ssdp.discover_devices()
+
             
 
     def __discovery_chain(self, sock, i):

@@ -21,6 +21,7 @@ class Preferences(Viewer):
     def __register_configurator(self, comp):
     
         self.add(comp)    
+        comp.set_visible(False)
         comp.set_geometry(20, 0, 600, 370)
 
         self.__configurators.append(comp)

@@ -1,12 +1,13 @@
 from com import Configurator, msgs
 from ui.ItemList import ItemList
-from ui.KineticScroller import KineticScroller
 from ThemeListItem import ThemeListItem
+from mediabox.TrackList import TrackList
 from mediabox.ThrobberDialog import ThrobberDialog
 from mediabox import config
 import theme
 
 import gtk
+import gobject
 
 
 class ConfigTheme(Configurator):
@@ -19,16 +20,13 @@ class ConfigTheme(Configurator):
     
         Configurator.__init__(self)
         
-        self.__list = ItemList(80)
-        self.__list.set_caps(theme.list_top, theme.list_bottom)
-        self.__list.set_bg_color(theme.color_bg)
+        self.__list = TrackList(80)
+        #self.__list.set_caps(theme.list_top, theme.list_bottom)
+        #self.__list.set_bg_color(theme.color_bg)
         self.__list.set_geometry(0, 0, 610, 370)
+        self.__list.connect_button_clicked(self.__on_item_button)
         self.add(self.__list)
             
-        kscr = KineticScroller(self.__list)
-        kscr.set_touch_area(0, 520)
-        kscr.add_observer(self.__on_observe_list)
-
         self.__throbber = ThrobberDialog()
         self.__throbber.set_throbber(theme.throbber)
         self.__throbber.set_text("Loading Theme")
@@ -37,6 +35,14 @@ class ConfigTheme(Configurator):
         
         self.__update_list()
         
+        
+    def __on_item_button(self, item, idx, btn):
+    
+        self.__list.hilight(idx)
+        self.render()
+        gobject.idle_add(self.__change_theme, self.__themes[idx])
+
+
 
     def __update_list(self):
     
@@ -44,26 +50,21 @@ class ConfigTheme(Configurator):
         self.__themes = []
         for name, preview, title, description in themes:
             img = gtk.gdk.pixbuf_new_from_file(preview)
-            item = ThemeListItem(610, 80, img, title + "\n" + description)
+            item = ThemeListItem(img, title, description)
             idx = self.__list.append_item(item)
             self.__themes.append(name)
             
             if (name == config.theme()):
                 self.__list.hilight(idx)
-        
 
-    def __on_observe_list(self, src, cmd, *args):
-    
-        if (cmd == src.OBS_CLICKED):
-            px, py = args
-            idx = self.__list.get_index_at(py)
-            if (px >= 540 and idx >= 0):
-                self.__list.hilight(idx)
-                config.set_theme(self.__themes[idx])
-                self.__throbber.set_visible(True)
-                self.__throbber.render()
-                self.__throbber.rotate()
-                theme.set_theme(self.__themes[idx])
-                self.__throbber.set_visible(False)
-                self.emit_event(msgs.CORE_EV_THEME_CHANGED)
+
+    def __change_theme(self, t):
+
+        config.set_theme(t)
+        self.__throbber.set_visible(True)
+        self.__throbber.render()
+        self.__throbber.rotate()
+        theme.set_theme(t)
+        self.__throbber.set_visible(False)
+        self.emit_event(msgs.CORE_EV_THEME_CHANGED)
 

@@ -71,8 +71,12 @@ class VideoViewer(Viewer):
                 idx = args[0]
                 item = self.__items[idx]
                 self.__load(item)
-        
-            if (event == msgs.HWKEY_EV_INCREMENT):
+
+            elif (event == msgs.CORE_ACT_SEARCH_ITEM):
+                key = args[0]
+                self.__search(key)     
+
+            elif (event == msgs.HWKEY_EV_INCREMENT):
                 self.__on_increment()
                 
             elif (event == msgs.HWKEY_EV_DECREMENT):
@@ -98,7 +102,7 @@ class VideoViewer(Viewer):
         self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
         
             
-           
+    """
     def __on_observe_player(self, src, cmd, *args):
     
         if (not self.is_active()): return            
@@ -171,7 +175,7 @@ class VideoViewer(Viewer):
             self.__aspect_ratio = ratio
             self.__set_aspect_ratio(ratio)
             self.__screen.show()
-
+    """
 
     def __show_error(self, errcode):
     
@@ -205,8 +209,8 @@ class VideoViewer(Viewer):
             
             if (tn_list):
                 f, tn = tn_list.pop(0)
-                self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
-                                  on_thumbnail, tn, tn_list)
+                gobject.idle_add(self.call_service,
+                  msgs.MEDIASCANNER_SVC_SCAN_FILE, f, on_thumbnail, tn, tn_list)
         
         f, tn = tn_list.pop(0)
         self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
@@ -283,3 +287,15 @@ class VideoViewer(Viewer):
         Viewer.show(self)
         if (self.__thumbnails_needed):
             self.__load_thumbnails(self.__thumbnails_needed)
+            
+            
+    def __search(self, key):
+
+        idx = 0
+        for item in self.__items:
+            if (key in item.name.lower()):
+                self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
+                print "found", item.name, "for", key
+                break
+            idx += 1
+        #end for

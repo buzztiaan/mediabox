@@ -83,7 +83,7 @@ class ImageButton(Widget):
         self.__img1 = img1
         self.__img2 = img2
         
-        self.__render_button(0)
+        self.__render_button(self.__state)
 
 
     def set_active(self, active):

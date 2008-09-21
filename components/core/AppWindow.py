@@ -663,10 +663,11 @@ class AppWindow(Component):
         #    self.drop_event()
         
         elif (event == msgs.CORE_EV_THEME_CHANGED):
+            self.__root_pane.set_frozen(True)
             self.__root_pane.propagate_theme_change()
             self.__prepare_collection_caps()
-            #self.__root_pane.render_buffered()
-            self.__root_pane.fx_fade_in()
+            #self.__root_pane.render_buffered()            
+            self.__root_pane.fx_slide_in()
     
         elif (event == msgs.CORE_ACT_RENDER_ALL):
             self.__root_pane.render_buffered()

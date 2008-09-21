@@ -1,5 +1,6 @@
 from com import Component, msgs
 from utils import maemo
+from ui import dialogs
 
 import gtk
 

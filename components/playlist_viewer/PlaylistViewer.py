@@ -349,6 +349,11 @@ class PlaylistViewer(Viewer):
             if (msg == msgs.CORE_ACT_LOAD_ITEM):
                 idx = args[0]
                 self.__load_item(idx)
+                
+            # provide search-as-you-type
+            elif (msg == msgs.CORE_ACT_SEARCH_ITEM):
+                key = args[0]
+                self.__search(key)                  
 
             if (self.__media_widget):
                 # watch FULLSCREEN hw key
@@ -363,7 +368,7 @@ class PlaylistViewer(Viewer):
                 elif (msg == msgs.HWKEY_EV_DECREMENT):
                     self.__media_widget.decrement()
             #end if
-            
+
         #end if
 
 
@@ -373,3 +378,14 @@ class PlaylistViewer(Viewer):
         if (self.__view_mode == _VIEWMODE_NO_PLAYER):
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
 
+
+    def __search(self, key):
+    
+        idx = 0
+        for item in self.__items:
+            if (key in item.name.lower()):
+                self.__playlist.scroll_to_item(idx)
+                logging.info("search: found '%s' for '%s'" % (item.name, key))
+                break
+            idx += 1
+        #end for
