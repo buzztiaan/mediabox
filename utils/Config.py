@@ -78,8 +78,9 @@ class Config(object):
             return _CLIENT.get_list(self.__prefix + key, gconf.VALUE_STRING) \
                    or default
         elif (dtype == self.INTEGER):
-            return _CLIENT.get_int(self.__prefix + key) \
-                   or default
+            v = _CLIENT.get_int(self.__prefix + key)
+            if (v == None): v = default
+            return v
         elif (dtype == self.INTEGER_LIST):
             return _CLIENT.get_list(self.__prefix + key, gconf.VALUE_INT) \
                    or default
