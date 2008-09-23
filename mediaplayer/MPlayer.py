@@ -263,7 +263,7 @@ class _MPlayer(GenericMediaPlayer):
         print "PARSE", data
         if (not data and self.__playing and
             float(self.__player_values[_LENGTH] or 0) < 0.01):
-            self.__on_eof()
+            pass #self.__on_eof()
         elif (data.startswith("ANS_TIME_POSITION")):
             self.__player_values[_POSITION] = self.__read_ans(data)
             self.__on_position()
@@ -310,6 +310,7 @@ class _MPlayer(GenericMediaPlayer):
         elif (data.startswith("ICY Info: ")):
             self.__player_values[_ICY_INFO] = \
               self.__parse_icy_info(self.__read_info(data))
+            self.__on_icy_info()
             
         elif (data.startswith("Demuxer info Name changed to ")):
             idx = data.find("changed to ")
