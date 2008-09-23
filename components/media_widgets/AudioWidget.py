@@ -179,6 +179,11 @@ class AudioWidget(MediaWidget):
                                            theme.mb_btn_play_2)
                 self.send_event(self.EVENT_MEDIA_EOF)
 
+        elif (cmd == src.OBS_NEW_STREAM_TRACK):
+            ctx, title = args
+            self.__title.set_text(title)
+            
+
 
     def __show_error(self, errcode):
     
