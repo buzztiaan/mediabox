@@ -62,10 +62,11 @@ def get_product_code():
     """
     Returns the product code of the system.
 
-     - Nokia 770:  SU-18
-     - Nokia N800: RX-34
-     - Nokia N810: RX-44
-     - Unknown:    ?
+     - Nokia 770:    SU-18
+     - Nokia N800:   RX-34
+     - Nokia N810:   RX-44
+     - Nokia N810WE: RX-48
+     - Unknown:      ?
     
     @return: product code
     """
