@@ -41,6 +41,8 @@ class VideoViewer(Viewer):
             self.__video_widget.connect_fullscreen_toggled(self.__on_fullscreen)
             self.__video_widget.connect_media_position(self.__on_media_position)
             self.__video_widget.connect_media_volume(self.__on_media_volume)
+            self.__video_widget.connect_media_eof(self.__on_media_eof)
+            
             self.set_toolbar(self.__video_widget.get_controls())
    
         if (self.__is_fullscreen):
@@ -101,81 +103,11 @@ class VideoViewer(Viewer):
 
         self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
         
-            
-    """
-    def __on_observe_player(self, src, cmd, *args):
+        
+    def __on_media_eof(self):
     
-        if (not self.is_active()): return            
-            
-        if (cmd == src.OBS_STARTED):
-            print "Started Player"
-            self.__btn_play.set_images(theme.btn_play_1,
-                                       theme.btn_play_2)
-            #self.update_observer(self.OBS_STATE_PAUSED)
-            
-        elif (cmd == src.OBS_KILLED):
-            print "Killed Player"
-            self.__uri = ""
-            self.set_title("")
-            self.__screen.hide()
-            self.__btn_play.set_images(theme.btn_play_1,
-                                       theme.btn_play_2)
-            #self.update_observer(self.OBS_STATE_PAUSED)
-
-        elif (cmd == src.OBS_ERROR):
-            ctx, err = args
-            if (ctx == self.__context_id):
-                self.__show_error(err)
-                self.set_title("")
-                self.__screen.hide()
-            
-        elif (cmd == src.OBS_PLAYING):
-            ctx = args[0]
-            if (ctx == self.__context_id):
-                print "Playing"
-                self.__btn_play.set_images(theme.btn_pause_1,
-                                           theme.btn_pause_2)                
-                #self.update_observer(self.OBS_STATE_PLAYING)
-            
-        elif (cmd == src.OBS_STOPPED):
-            ctx = args[0]
-            if (ctx == self.__context_id):
-                print "Stopped"
-                self.__btn_play.set_images(theme.btn_play_1,
-                                           theme.btn_play_2)
-                #self.update_observer(self.OBS_STATE_PAUSED)
-            
-        elif (cmd == src.OBS_POSITION):
-            ctx, pos, total = args            
-            if (not self.__is_fullscreen and ctx == self.__context_id):
-                pos_m = pos / 60
-                pos_s = pos % 60
-                total_m = total / 60
-                total_s = total % 60
-                info = "%d:%02d / %d:%02d" % (pos_m, pos_s, total_m, total_s)
-                self.set_info(info)
-
-                self.__progress.set_position(pos, total)
-
-        elif (cmd == src.OBS_EOF):
-            ctx = args[0]
-            if (ctx == self.__context_id):        
-                self.__uri = ""
-                self.__screen.hide()
-
-                # unfullscreen
-                if (self.__is_fullscreen): self.__on_fullscreen()
-                
-                self.__btn_play.set_images(theme.btn_play_1,
-                                           theme.btn_play_2)                
-                #self.update_observer(self.OBS_STATE_PAUSED)
-           
-        elif (cmd == src.OBS_ASPECT):
-            ctx, ratio = args            
-            self.__aspect_ratio = ratio
-            self.__set_aspect_ratio(ratio)
-            self.__screen.show()
-    """
+        self.emit_event(msgs.MEDIA_EV_EOF)
+        
 
     def __show_error(self, errcode):
     

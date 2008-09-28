@@ -3,6 +3,7 @@ from mediabox import media_bookmarks
 from mediabox import config as mb_config
 from ui.EventBox import EventBox
 from ui.ImageButton import ImageButton
+from ui.Image import Image
 from ui.ProgressBar import ProgressBar
 import mediaplayer
 from utils import maemo
@@ -59,7 +60,13 @@ class VideoWidget(MediaWidget):
                                    theme.mb_btn_bookmark_2)
         btn_bookmark.connect_clicked(self.__on_add_bookmark)
         
-        self._set_controls(self.__btn_play, self.__progress, btn_bookmark)
+        self._set_controls(Image(theme.mb_toolbar_space_1),
+                           self.__btn_play,
+                           Image(theme.mb_toolbar_space_2),
+                           self.__progress,
+                           Image(theme.mb_toolbar_space_2),
+                           btn_bookmark,
+                           Image(theme.mb_toolbar_space_1))        
 
 
     def _visibility_changed(self):

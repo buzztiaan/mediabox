@@ -46,8 +46,7 @@ class AlbumViewer(Viewer):
         self.__current_index = -1
         self.__current_track = None
         self.__current_album = None
-        
-       
+             
         self.__context_id = 0
     
         Viewer.__init__(self)
@@ -94,6 +93,8 @@ class AlbumViewer(Viewer):
 
 
     def handle_event(self, event, *args):
+    
+        Viewer.handle_event(self, event, *args)
     
         if (event == msgs.CORE_EV_APP_SHUTDOWN):
             mediaplayer.close()
@@ -201,69 +202,7 @@ class AlbumViewer(Viewer):
         
 
 
-        """
-    def __on_observe_player(self, src, cmd, *args):
-    
-        #if (not self.is_active()): return        
-       
-        if (cmd == src.OBS_STARTED):
-            print "Started Player"
-            self.__btn_play.set_images(theme.btn_play_1,
-                                       theme.btn_play_2)
-                       
-        elif (cmd == src.OBS_KILLED):
-            print "Killed Player"
-            #self.set_title("")
-            self.__btn_play.set_images(theme.btn_play_1,
-                                       theme.btn_play_2)
 
-        elif (cmd == src.OBS_ERROR):
-            ctx, err = args
-            if (ctx == self.__context_id):
-                self.__show_error(err)
-                self.__list.hilight(-1)
-                            
-        elif (cmd == src.OBS_NEW_STREAM_TRACK):
-            ctx, title = args
-            if (ctx == self.__context_id):
-                print "NEW TRACK", title
-            
-        elif (cmd == src.OBS_PLAYING):
-            ctx = args[0]
-            if (ctx == self.__context_id):                
-                print "Playing"
-                self.__btn_play.set_images(theme.btn_pause_1,
-                                           theme.btn_pause_2)                 
-            
-        elif (cmd == src.OBS_STOPPED):
-            ctx = args[0]
-            if (ctx == self.__context_id):
-                print "Stopped"         
-                self.__btn_play.set_images(theme.btn_play_1,
-                                           theme.btn_play_2)
-            
-        elif (cmd == src.OBS_POSITION):
-            ctx, pos, total = args
-            if (ctx == self.__context_id and self.is_active()):
-                pos_m = pos / 60
-                pos_s = pos % 60
-                total_m = total / 60
-                total_s = total % 60
-                info = "%d:%02d / %d:%02d" % (pos_m, pos_s, total_m, total_s)
-                self.set_info(info)
-
-                self.__progress.set_position(pos, total)
-            
-        elif (cmd == src.OBS_EOF):
-            ctx = args[0]
-            if (ctx == self.__context_id):
-                self.__current_uri = ""        
-                print "End of Track"
-                self.set_title("")
-                self.__btn_play.set_images(theme.btn_play_1,
-                                           theme.btn_play_2)
-                self.__next_track()
-        """       
 
         """
     def __show_error(self, errcode):
@@ -281,13 +220,23 @@ class AlbumViewer(Viewer):
 
 
     def __on_media_position(self, info):
+        """
+        Reacts on player position information.
+        """
     
         self.set_info(info)
         
 
     def __on_eof(self):
+        """
+        Reacts on reaching the end of a file.
+        """
     
-        self.__next_track()
+        self.emit_event(msgs.MEDIA_EV_EOF)
+        if (self.may_go_next()):
+            self.__next_track()
+        else:
+            self.__list.hilight(-1)
 
 
     def __on_media_volume(self, volume):

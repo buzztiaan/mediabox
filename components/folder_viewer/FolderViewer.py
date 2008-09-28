@@ -176,7 +176,7 @@ class FolderViewer(Viewer):
             self.set_collection(self.__thumbnails)
             if (self.__current_file in self.__non_folder_items):
                 idx = self.__non_folder_items.index(self.__current_file)
-                self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
+                gobject.idle_add(self.emit_event, msgs.CORE_ACT_HILIGHT_ITEM, idx)
 
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):                        
@@ -254,6 +254,8 @@ class FolderViewer(Viewer):
 
     def handle_event(self, event, *args):
     
+        Viewer.handle_event(self, event, *args)
+        
         # watch for new storage devices
         if (event == msgs.CORE_EV_DEVICE_ADDED):
             ident, device = args
@@ -480,10 +482,11 @@ class FolderViewer(Viewer):
         """
         
         self.emit_event(msgs.MEDIA_EV_EOF)
-        try:
-            idx = self.__items.index(self.__current_file)
-        except:
-            return
+
+        #try:
+        #    idx = self.__items.index(self.__current_file)
+        #except:
+        #    return
 
         #if (idx < len(self.__items) - 1):
         #    new_item = self.__items[idx + 1]

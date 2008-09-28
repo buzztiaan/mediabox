@@ -6,6 +6,7 @@ from RadioScale import RadioScale
 from StationItem import StationItem
 from mediabox.TrackList import TrackList
 from ui.ImageButton import ImageButton
+from ui.Image import Image
 from ui.ToggleButton import ToggleButton
 from ui.Dialog import Dialog
 from ui import dialogs
@@ -45,22 +46,32 @@ class FMRadioViewer(Viewer):
 
 
         # toolbar
-        self.__toolbar = []
-        for icon1, icon2, action in [
-          (theme.mb_btn_play_1, theme.mb_btn_play_2, self.__play),
-          (theme.mb_btn_previous_1, theme.mb_btn_previous_2, self.__previous),
-          (theme.mb_btn_next_1, theme.mb_btn_next_2, self.__next),
-          (theme.mb_btn_add_1, theme.mb_btn_add_2, self.__add_current_station)
-          ]:
-            btn = ImageButton(icon1, icon2)
-            btn.connect_clicked(action)
-            self.__toolbar.append(btn)
-        #end for
+        btn_play = ImageButton(theme.mb_btn_play2_1, theme.mb_btn_play2_2)
+        btn_play.connect_clicked(self.__play)
         
-        btn = ToggleButton(theme.fmradio_btn_speaker_off,
-                           theme.fmradio_btn_speaker_on)
-        btn.connect_toggled(self.__toggle_speaker)
-        self.__toolbar.append(btn)
+        btn_prev = ImageButton(theme.mb_btn_previous_1, theme.mb_btn_previous_2)
+        btn_prev.connect_clicked(self.__previous)
+
+        btn_next = ImageButton(theme.mb_btn_next_1, theme.mb_btn_next_2)
+        btn_next.connect_clicked(self.__next)
+
+        btn_add = ImageButton(theme.mb_btn_add_1, theme.mb_btn_add_2)
+        btn_add.connect_clicked(self.__add_current_station)
+                
+        btn_speaker = ToggleButton(theme.fmradio_btn_speaker_off,
+                                   theme.fmradio_btn_speaker_on)
+        btn_speaker.connect_toggled(self.__toggle_speaker)
+
+        self.__toolbar = [
+            btn_play,
+            Image(theme.mb_toolbar_space_1),
+            btn_prev,
+            btn_next,
+            Image(theme.mb_toolbar_space_1),
+            btn_add,
+            Image(theme.mb_toolbar_space_1),
+            btn_speaker
+        ]
         
         self.set_toolbar(self.__toolbar)
         
@@ -130,8 +141,8 @@ class FMRadioViewer(Viewer):
             self.__radio = None
 
         if (self.__radio):
-            self.__toolbar[0].set_images(theme.mb_btn_pause_1,
-                                         theme.mb_btn_pause_2)    
+            self.__toolbar[0].set_images(theme.mb_btn_pause2_1,
+                                         theme.mb_btn_pause2_2)    
             a, b = self.__radio.get_frequency_range()
             self.__scale.set_range(a / 1000.0, b / 1000.0)
             
@@ -142,8 +153,8 @@ class FMRadioViewer(Viewer):
             self.__radio.close()
         self.__radio = None
 
-        self.__toolbar[0].set_images(theme.mb_btn_play_1,
-                                     theme.mb_btn_play_2)    
+        self.__toolbar[0].set_images(theme.mb_btn_play2_1,
+                                     theme.mb_btn_play2_2)    
 
 
 
