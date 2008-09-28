@@ -17,7 +17,7 @@ CARD_2 = "/media/mmc2"
 
 _LABEL_FILES = { CARD_1: "/tmp/.mmc-volume-label",
                  CARD_2: "/tmp/.internal-mmc-volume-label" }
-_DEFAULT_LABELS = { CARD_1: "Memory card",
+_DEFAULT_LABELS = { CARD_1: "External Memory card",
                     CARD_2: "Internal memory card" }
 
 
