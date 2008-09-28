@@ -52,7 +52,6 @@ class ImageStrip(Widget):
         
         self.__scroll_to_item_handler = None
         self.__scroll_to_item_index = 0
-        #self.__is_scrolling = threading.Event()
         
         # the selection offset initially selects the item in the middle and
         # centers the view around it
@@ -64,6 +63,8 @@ class ImageStrip(Widget):
         self.__buffer = Pixmap(None, 800, 480)
         self.__buffer_dirty = False
  
+        self.set_size(100, 100)
+ 
  
     def _reload(self):
         """
@@ -74,6 +75,8 @@ class ImageStrip(Widget):
         self.set_bg_color(self.__bg_color)
         if (self.__shared_pmap):
             self.__shared_pmap.clear_cache()
+        if (self.__scrollbar_pbuf):
+            self.set_scrollbar(self.__scrollbar_pbuf)
 
         #self.render_full()
         self.render()
@@ -91,9 +94,18 @@ class ImageStrip(Widget):
  
     def set_size(self, w, h):
     
-        #self.invalidate_buffer()
+        if ((w, h) == self.get_size()): return
+        
         Widget.set_size(self, w, h)
         self.set_scrollbar(self.__scrollbar_pbuf)
+
+        self.__shared_pmap = None
+        for img in self.__images:
+            nil, img_h = img.get_size()
+            if (not self.__shared_pmap):
+                self.__shared_pmap = SharedPixmap(w, img_h)
+            img.set_canvas(self.__shared_pmap)
+            img.set_size(w, img_h)
  
 
     def set_bg_color(self, color):
@@ -667,7 +679,6 @@ class ImageStrip(Widget):
         
     def move(self, nil, delta):
     
-        #if (not self.__is_scrolling.isSet()):
         if (not self.__scroll_to_item_handler):
             self.__move(nil, delta)
 
@@ -785,13 +796,11 @@ class ImageStrip(Widget):
                 self.__move(0, min(h, max(1, delta)))
             else:
                 self.__scroll_to_item_handler = None
-                #self.__is_scrolling.clear()
                 return False
 
             if (self.__offset == offset):
                 # nothing moved
                 self.__scroll_to_item_handler = None
-                #self.__is_scrolling.clear()
                 return False
                 
             #print offset, offset1, offset2, self.__totalsize, distance, distances

@@ -45,7 +45,7 @@ class ItemList(ImageStrip):
         """
     
         w, h = self.get_size()
-        w -= 20
+        #w -= 20
         item.set_size(w, self.__height)
 
         idx = self.append_image(item)

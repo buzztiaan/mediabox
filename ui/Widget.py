@@ -18,6 +18,8 @@ class Widget(object):
     # static flag for blocking event handling
     __events_blocked = [False]
 
+    # widget instances
+    __instances = []
 
     _esens = None
         
@@ -43,6 +45,7 @@ class Widget(object):
         self.__size = (0, 0)
         
         self.__screen = None
+        self.__instances.append(self)
           
           
     def send_event(self, ev, *args):
@@ -583,9 +586,10 @@ class Widget(object):
         graphics.
         """
     
-        self._reload()
-        for c in self.__children:
-            c.propagate_theme_change()
+        #self._reload()
+        for c in self.__instances:
+            c._reload()
+            #c.propagate_theme_change()
             
             
     def _reload(self):

@@ -710,6 +710,10 @@ class AppWindow(Component):
             idx = args[0]
             self.__select_item(idx)
             
+        elif (event == msgs.CORE_ACT_HILIGHT_ITEM):
+            idx = args[0]
+            self.__select_item(idx, hilight_only = True)
+            
         elif (event == msgs.CORE_ACT_RENDER_ITEMS):
             self.__strip.invalidate_buffer()
             self.__strip.render()
@@ -735,14 +739,16 @@ class AppWindow(Component):
                 
             
             
-    def __select_item(self, idx):
+    def __select_item(self, idx, hilight_only = False):
 
         self.__hilight_item(idx)
 
-        #item = self.__current_collection[idx]
-        self.__get_vstate().selected_item = idx
-        #self.__current_viewer.load(item)
-        self.emit_event(msgs.CORE_ACT_LOAD_ITEM, idx)
+        if (not hilight_only):
+            #item = self.__current_collection[idx]
+            self.__get_vstate().selected_item = idx
+            #self.__current_viewer.load(item)
+            self.emit_event(msgs.CORE_ACT_LOAD_ITEM, idx)
+            
         self.__strip.scroll_to_item(idx)
 
 

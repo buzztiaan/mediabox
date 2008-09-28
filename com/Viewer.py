@@ -51,8 +51,32 @@ class Viewer(Component, Widget):
         self.__title = ""
         self.__info = ""
         
+        # whether we may proceed to the next file after EOF
+        self.__may_go_next = True
+        
         Component.__init__(self)
         Widget.__init__(self)
+
+
+    def handle_event(self, msg, *args):
+
+        if (msg == msgs.MEDIA_EV_LOADED):
+            self.__may_go_next = False
+            
+            
+            
+    def may_go_next(self):
+        """
+        Returns whether we may continue playing the next file.
+        Use this method to check if your component may continue playing the
+        next file after having reached the end of a file.
+        
+        @return: whether we may continue
+        """
+        
+        may_go_next = self.__may_go_next
+        self.__may_go_next = True
+        return may_go_next
 
 
     def set_toolbar(self, widgets):

@@ -77,6 +77,7 @@ messages = [
     "CORE_ACT_SCAN_MEDIA",      # (force_rescan)
     "CORE_ACT_LOAD_ITEM",       # (item)
     "CORE_ACT_SELECT_ITEM",     # (index)
+    "CORE_ACT_HILIGHT_ITEM",    # (index)
     "CORE_ACT_RENDER_ITEMS",
  
     "CORE_ACT_OPEN_URI",        # (uri)

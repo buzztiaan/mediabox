@@ -14,7 +14,7 @@ class ImageButton(Widget):
         self.__img2 = img2
     
         Widget.__init__(self)
-        self.set_size(70, 60)
+        self.set_size(64, 64)
         
         if (not manual):
             self.connect_button_pressed(self.__on_click, True)

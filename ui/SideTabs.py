@@ -97,7 +97,7 @@ class SideTabs(Widget):
         pmap.draw_text(text, font,
                        max(0, (tab_width - text_w) / 2),
                        max(0, (h - text_h) / 2),
-                       "#000000")
+                       theme.color_fg_item)
         
         pmap.rotate(270)
         self.__tab_pmaps[idx] = pmap

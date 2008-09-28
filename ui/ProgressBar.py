@@ -15,7 +15,10 @@ class ProgressBar(Widget):
     
     
     def __init__(self):
-
+        
+        # background pixmap
+        self.__bg_pmap = None
+        
         # progress pixmap
         self.__progress_pmap = None
 
@@ -37,18 +40,47 @@ class ProgressBar(Widget):
         self.__current_message = ""
        
         Widget.__init__(self)
-        self.set_size(300, 32)
+        self.set_size(240, 64)
 
         self.connect_button_pressed(self.__on_button_press)
         self.connect_button_released(self.__on_button_release)
         self.connect_pointer_moved(self.__on_motion)
 
 
+    def _reload(self):
+    
+        #w, h = self.get_size()
+        self.__bg_pmap = None
+        self.__bg_progress = None
+        #self.set_size(w, h)
+
+
     def set_size(self, w, h):
     
         Widget.set_size(self, w, h)
+        self.__prepare()
+
+
+    def __prepare(self):
+    
+        x, y = self.get_screen_pos()        
+        screen = self.get_screen()
+        if (not screen):
+            return
+    
+        w, h = self.get_size()
+        pbuf1 = theme.mb_progress.subpixbuf(0, 0, 5, 64)
+        pbuf2 = theme.mb_progress.subpixbuf(5, 0, 5, 64)
+    
+        self.__bg_pmap = Pixmap(None, w, h)
+        self.__bg_pmap.copy_pixmap(screen, x, y, 0, 0, w, h)
+        #self.__bg_pmap.fill_area(0, 0, w, h, "#ff0000")
         self.__progress_pmap = Pixmap(None, w, h)
-        self.__progress_pmap.draw_pixbuf(theme.mb_progress, 0, 0, w, h, True)
+        self.__progress_pmap.copy_pixmap(screen, x, y, 0, 0, w, h)
+        #self.__progress_pmap.fill_area(0, 0, w, h, "#ff0000")
+        
+        self.__bg_pmap.draw_pixbuf(pbuf1, 0, 0, w, h, True)
+        self.__progress_pmap.draw_pixbuf(pbuf2, 0, 0, w, h, True)
 
 
     def connect_changed(self, cb, *args):
@@ -150,12 +182,15 @@ class ProgressBar(Widget):
 
     def render_this(self):
     
+        if (not self.__bg_pmap):
+            self.__prepare()
+    
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
         
         pmap = TEMPORARY_PIXMAP
-        pmap.fill_area(0, 0, w, h, "#000000")
+        pmap.copy_pixmap(self.__bg_pmap, 0, 0, 0, 0, w, h)
         self.__render_progress(pmap)
         self.__render_bookmarks(pmap)
         self.__render_message(pmap)
@@ -169,7 +204,7 @@ class ProgressBar(Widget):
         progress_width = w * self.__progress
         if (self.__progress_pmap):
             pmap.copy_pixmap(self.__progress_pmap, 0, 0, 0, 0,
-                             progress_width, 32)
+                             progress_width, 64)
         #end if
 
 
@@ -180,7 +215,8 @@ class ProgressBar(Widget):
             bm_pos = w * bm
             #pmap.fill_area(bm_pos - 1, 0, 2, 32, "#ff0000")
             pmap.draw_pixbuf(theme.mb_progress_bookmark,
-                        bm_pos - theme.mb_progress_bookmark.get_width() / 2, 0)
+                        bm_pos - theme.mb_progress_bookmark.get_width() / 2,
+                        (h - theme.mb_progress_bookmark.get_height()) / 2)
         #end for
         
         
