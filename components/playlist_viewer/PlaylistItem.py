@@ -30,8 +30,8 @@ class PlaylistItem(ButtonListItem):
         self.__icon_path = thumb
         self.__source_icon = f.source_icon
         self.__mimetype = f.mimetype
-        self.__label = f.name
-        self.__sublabel = f.info
+        self.__label = self.escape_xml(f.name)
+        self.__sublabel = self.escape_xml(f.info)
 
         ButtonListItem.__init__(self)
         self.set_colors(theme.color_fg_item, theme.color_fg_item_2)

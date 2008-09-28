@@ -1,12 +1,15 @@
 from com import Viewer, msgs
 from PlaylistThumbnail import PlaylistThumbnail
+from ItemThumbnail import ItemThumbnail
 from PlaylistItem import PlaylistItem
 from mediabox.TrackList import TrackList
-import m3u
+from Playlist import Playlist
 from mediabox import viewmodes
 from mediabox import values
+from mediabox import config as mb_config
 from ui.BoxLayout import BoxLayout
 from ui.ImageButton import ImageButton
+from ui.Image import Image
 from ui.SideTabs import SideTabs
 from utils import mimetypes
 from utils import logging
@@ -17,11 +20,12 @@ import gobject
 
 
 _PLAYLIST_FILE = os.path.join(values.USER_DIR, "playlist.m3u")
+_PLAYLIST_DIR = os.path.join(values.USER_DIR, "playlists")
 
 
 _VIEWMODE_NONE = -1
-_VIEWMODE_NO_PLAYER = 0
-_VIEWMODE_PLAYER_NORMAL = 1
+_VIEWMODE_PLAYLIST = 0
+_VIEWMODE_PLAYER = 1
 _VIEWMODE_PLAYER_FULLSCREEN = 2
 
 
@@ -32,11 +36,13 @@ class PlaylistViewer(Viewer):
 
     def __init__(self):
     
-        # whether the playlist was modified since loading
-        self.__playlist_modified = False
-        
-        self.__items = []
-        self.__thumbnails = []
+        # list of playlists
+        self.__lists = []
+        self.__current_list = 0
+    
+        # list of thumbnails representing the playlists
+        self.__pl_thumbnails = []
+    
         self.__current_index = -1
         self.__current_file = None
         self.__media_widget = None
@@ -45,7 +51,6 @@ class PlaylistViewer(Viewer):
         Viewer.__init__(self)
         
         self.__playlist = TrackList(with_drag_sort = True)
-        self.__playlist.set_geometry(10, 0, 730, 370)
         self.__playlist.connect_button_clicked(self.__on_item_button)
         self.__playlist.connect_items_swapped(self.__on_swap)
         self.add(self.__playlist)
@@ -53,9 +58,9 @@ class PlaylistViewer(Viewer):
         self.__side_tabs = SideTabs()
         self.__side_tabs.set_size(60 - 8, 370 - 8)
         self.__side_tabs.add_tab(None, "Playlist",
-                                 self.__set_view_mode, _VIEWMODE_NO_PLAYER)
+                                 self.__set_view_mode, _VIEWMODE_PLAYLIST)
         self.__side_tabs.add_tab(None, "Player",
-                                 self.__set_view_mode, _VIEWMODE_PLAYER_NORMAL)
+                                 self.__set_view_mode, _VIEWMODE_PLAYER)
         self.add(self.__side_tabs)
 
         # box for media widgets
@@ -63,47 +68,142 @@ class PlaylistViewer(Viewer):
         self.add(self.__media_box)
 
         # toolbar
-        self.__playlist_tbset = []
-        for icon1, icon2, action in [
-          (theme.mb_btn_previous_1, theme.mb_btn_previous_2, self.__go_previous),
-          (theme.mb_btn_next_1, theme.mb_btn_next_2, self.__go_next)]:
-            btn = ImageButton(icon1, icon2)
-            btn.connect_clicked(action)
-            self.__playlist_tbset.append(btn)
-        #end for
+        btn_prev = ImageButton(theme.mb_btn_previous_1, theme.mb_btn_previous_2)
+        btn_prev.connect_clicked(self.__go_previous)
+        
+        btn_next = ImageButton(theme.mb_btn_next_1, theme.mb_btn_next_2)
+        btn_next.connect_clicked(self.__go_next)
+
+        btn_add = ImageButton(theme.mb_btn_add_1, theme.mb_btn_add_2)
+        #btn_add.connect_clicked(self.__new_playlist)
+
+        self.__playlist_tbset = [
+            btn_prev,
+            btn_next,
+            Image(theme.mb_toolbar_space_1),
+            btn_add
+        ]
         self.set_toolbar(self.__playlist_tbset)
 
-        self.__set_view_mode(_VIEWMODE_NO_PLAYER)
-        self.__load_playlist(_PLAYLIST_FILE)        
+        self.__set_view_mode(_VIEWMODE_PLAYLIST)
+        gobject.idle_add(self.__load_playlists)
+
+
+    def render_this(self):
+        """
+        Computes the layout.
+        """
+
+        w, h = self.get_size()        
+        playlist, tabs, mbox = self.get_children()
+        tabs_w, tabs_h = tabs.get_size()
+        
+        if (self.__view_mode == _VIEWMODE_PLAYLIST):
+            playlist.set_geometry(0, 0, w - tabs_w - 8, h)
+            tabs.set_pos(w - tabs_w - 4, 4)
+
+        elif (self.__view_mode == _VIEWMODE_PLAYER):
+            mbox.set_geometry(2, 2, w - tabs_w - 8, h - 4)
+            tabs.set_pos(w - tabs_w - 4, 4)
+
+        elif (self.__view_mode == _VIEWMODE_PLAYER_FULLSCREEN):
+            mbox.set_geometry(0, 0, w, h)
+
+
+    def __is_queue(self):
+        """
+        Returns whether the currently selected playlist is the playqueue.
+        """
+        
+        return (self.__current_list == 0)
+
+
+    def __get_playlist_thumbnail_pieces(self, pl):
+    
+        pieces = []
+        for f in pl.get_files():
+            thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+            if (not thumb in pieces and os.path.exists(thumb)):
+                pieces.append(thumb)
+            if (len(pieces) == 4):
+                break
+        #end for
+        
+        return pieces
+
+
+    def __update_playlist_thumbnail(self):
+    
+        pl_tn = self.__pl_thumbnails[self.__current_list]
+        pl = self.__lists[self.__current_list]
+        pl_tn.set_thumbnails(self.__get_playlist_thumbnail_pieces(pl))
+        
 
         
-    def __load_playlist(self, path):
-        
-        logging.info("loading playlist from '%s'" % path)
+    def __load_playlists(self):
+        """
+        Loads the available playlists.
+        """
 
-        self.__playlist.clear_items()
-        self.__items = []
-        self.__thumbnails = []
-
-        for location, name in m3u.load(path):
+        def cb(pl, name, location):
             f = self.call_service(msgs.CORE_SVC_GET_FILE, location)
             if (f):
-                self.__add_item(f)
+                self.__add_item(pl, f)
+
+
+        self.__lists = []
+
+        # create playlist folder if it does not yet exist
+        if (not os.path.exists(_PLAYLIST_DIR)):
+            try:
+                os.makedirs(_PLAYLIST_DIR)
+            except:
+                pass
+        pl_path = os.path.join(_PLAYLIST_DIR, "Playlist.m3u")
+        if (not os.path.exists(pl_path)):
+            try:
+                open(pl_path, "w").write("")
+            except:
+                pass
+
+        # initialize playqueue
+        queue = Playlist()
+        queue.set_name("Queue")
+        self.__lists.append(queue)
+        self.__pl_thumbnails.append(PlaylistThumbnail(queue))
+        
+        # load playlists
+        files = [ f for f in os.listdir(_PLAYLIST_DIR)
+                  if f.endswith(".m3u") ]
+        for f in files:
+            path = os.path.join(_PLAYLIST_DIR, f)
+            pl = Playlist()
+            pl.load_from_file(path, cb)
+
+            self.__lists.append(pl)
+            pl_tn = PlaylistThumbnail(pl)
+            pl_tn.set_thumbnails(self.__get_playlist_thumbnail_pieces(pl))
+            self.__pl_thumbnails.append(pl_tn)
+            #self.__update_playlist_thumbnail()
         #end for
-        self.__playlist_modified = False
         
+        self.set_collection(self.__pl_thumbnails)
         
-    def __save_playlist(self, path):
+       
         
-        logging.info("saving playlist to '%s'" % path)
-        items = [ (f.get_full_path(), f.name) for f in self.__items ]
-        m3u.save(path, items)
+    def __save_playlists(self):
+        """
+        Saves all playlists.
+        """
+        
+        for pl in self.__lists.values():
+            pl.save()
         
 
     def __on_toggle_fullscreen(self):
     
         if (self.__view_mode == _VIEWMODE_PLAYER_FULLSCREEN):
-            self.__set_view_mode(_VIEWMODE_PLAYER_NORMAL)
+            self.__set_view_mode(_VIEWMODE_PLAYER)
         else:
             self.__set_view_mode(_VIEWMODE_PLAYER_FULLSCREEN)
 
@@ -113,64 +213,73 @@ class PlaylistViewer(Viewer):
         if (mode == self.__view_mode): return
         self.__view_mode = mode
         
-        if (mode == _VIEWMODE_NO_PLAYER):
+        if (mode == _VIEWMODE_PLAYLIST):
             self.__playlist.set_visible(True)
             self.__media_box.set_visible(False)
             self.__side_tabs.set_visible(True)
-            self.__side_tabs.set_pos(740 + 4, 0 + 4)
             
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+            self.set_collection(self.__pl_thumbnails)
+            self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, self.__current_list)
             self.emit_event(msgs.CORE_ACT_RENDER_ALL)
 
-        elif (mode == _VIEWMODE_PLAYER_NORMAL):
+        elif (mode == _VIEWMODE_PLAYER):
             self.__playlist.set_visible(False)
             self.__media_box.set_visible(True)
-            self.__media_box.set_geometry(2, 2, 560 - 4, 370 - 4)
-            self.__side_tabs.set_pos(560 + 4, 0 + 4)
             self.__side_tabs.set_visible(True)
+
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
                                  
-            self.set_collection(self.__thumbnails)
-            self.emit_event(msgs.CORE_ACT_SELECT_ITEM, self.__current_index)
-                
+            pl = self.__lists[self.__current_list]
+            self.set_collection(pl.get_thumbnails())
+            self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, self.__current_index)
             self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+                
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):
             self.__playlist.set_visible(False)
             self.__side_tabs.set_visible(False)
             self.__media_box.set_visible(True)
-            self.__media_box.set_geometry(0, 0, 800, 480)
                 
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
             self.render()
        
 
     def __on_item_button(self, item, idx, button):
+
+        pl = self.__lists[self.__current_list]
     
         if (button == item.BUTTON_PLAY):
             self.__playlist.hilight(idx)
             self.__playlist.render()
-            self.__load_item(idx)
+            self.__load_item(pl, idx)
             self.__current_index = idx
             
         elif (button == item.BUTTON_REMOVE):
-            self.__remove_item(idx)
+            self.__remove_item(pl, idx)
+            pl.save()
                 
         elif (button == item.BUTTON_REMOVE_PRECEEDING):
             self.__playlist.set_frozen(True)
             for i in range(0, idx + 1):
-                self.__remove_item(0)
+                self.__remove_item(pl, 0)
+            pl.save()
             self.__playlist.set_frozen(False)
 
         elif (button == item.BUTTON_REMOVE_FOLLOWING):
             self.__playlist.set_frozen(True)
-            for i in range(idx, len(self.__items)):
-                self.__remove_item(idx)
+            for i in range(idx, pl.get_size()):
+                self.__remove_item(pl, idx)
+            pl.save()
             self.__playlist.set_frozen(False)
 
 
     def __on_swap(self, idx1, idx2):
     
+        pl = self.__lists[self.__current_list]
+        pl.swap(idx1, idx2)
+        pl.save()
+        """
         temp = self.__items[idx1]
         self.__items[idx1] = self.__items[idx2]
         self.__items[idx2] = temp
@@ -183,7 +292,8 @@ class PlaylistViewer(Viewer):
             self.__current_index = idx2
         elif (self.__current_index == idx2):
             self.__current_index = idx1
-
+        """
+        
 
     def __on_media_eof(self):
     
@@ -209,28 +319,55 @@ class PlaylistViewer(Viewer):
 
     def __go_previous(self):
 
-        if (self.__current_index > 0):
+        pl = self.__lists[self.__current_list]
+        if (pl.has_previous()):
             idx = self.__current_index
-            self.__load_item(idx - 1)
+            self.__load_item(pl, idx - 1)
             self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx - 1)
             #self.__remove_item(idx)
                     
         
     def __go_next(self):
-    
-        if (self.__current_index < len(self.__items) - 1):
-            idx = self.__current_index
-            self.__load_item(idx + 1)
-            self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx + 1)
-            #self.__remove_item(idx)
+
+        pl = self.__lists[self.__current_list]
+        if (self.__is_queue()):
+            idx = pl.get_position()
+            self.__remove_item(pl, idx)
+            idx = min(idx, pl.get_size() - 1)            
+            if (idx >= 0):
+                self.__load_item(pl, idx)
+                
+        else:
+            repeat_mode = mb_config.repeat_mode()
+            #shuffle_mode = mb_config.shuffle_mode()
+            
+            if (repeat_mode == mb_config.REPEAT_MODE_NONE):
+                pass
+                # if shuffle none -> next
+                # if shuffle one -> find next
+                # if shuffle all -> find next
+                
+            # if repeat one
+                # repeat
+                
+            # if repeat all
+                # if shuffle none -> play 1st
+                # if shuffle one -> find next or reshuffle
+                # if shuffle all -> find next or reshuffle
+            
+            if (pl.has_next()):
+                idx = self.__current_index
+                self.__load_item(pl, idx + 1)
+                self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx + 1)
+                #self.__remove_item(idx)
 
 
-    def __load_item(self, idx):        
+    def __load_item(self, pl, idx):        
 
         if (idx < 0): return
         self.emit_event(msgs.MEDIA_ACT_STOP)
         
-        f = self.__items[idx]
+        f = pl.get_files()[idx]
         if (f == self.__current_file): return
         self.__current_file = f
         self.__current_index = idx
@@ -264,17 +401,19 @@ class PlaylistViewer(Viewer):
         self.__playlist.scroll_to_item(idx)
         self.__playlist.render()
         self.set_title(f.name)
+        pl.set_position(idx)
         
         self.__media_widget.load(f)
-        if (f.mimetype in mimetypes.get_audio_types() +
-                          mimetypes.get_video_types()):
-            self.emit_event(msgs.MEDIA_EV_LOADED, self, f)
+        #if (f.mimetype in mimetypes.get_audio_types() +
+        #                  mimetypes.get_video_types()):
+        print "LOADED", f.name
+        self.emit_event(msgs.MEDIA_EV_LOADED, self, f)
 
             
 
 
 
-    def __add_item(self, f):
+    def __add_item(self, pl, f):
         """
         Adds the given item to the playlist.
         """
@@ -283,20 +422,21 @@ class PlaylistViewer(Viewer):
         plitem = PlaylistItem(thumb, f)
         self.__playlist.append_item(plitem)
         self.__playlist.render()
-        self.__items.append(f)
 
-        tn = PlaylistThumbnail(thumb, f)
-        self.__thumbnails.append(tn)
-        self.set_collection(self.__thumbnails)
+        tn = ItemThumbnail(thumb, f)
+        #self.__thumbnails.append(tn)
+        #self.set_collection(self.__thumbnails)
+
+        pl.append(plitem, tn, f)
+        self.__update_playlist_thumbnail()
 
 
-    def __remove_item(self, idx):
+    def __remove_item(self, pl, idx):
         """
         Removes the item at the given index position.
         """
 
-        del self.__items[idx]
-        del self.__thumbnails[idx]
+        pl.remove(idx)
 
         self.__playlist.remove_item(idx)
         if (idx == self.__current_index):
@@ -304,30 +444,51 @@ class PlaylistViewer(Viewer):
         elif (idx < self.__current_index):
             self.__current_index -= 1
 
-        self.set_collection(self.__thumbnails)
+        #self.set_collection(self.__thumbnails)
+        self.__update_playlist_thumbnail()
 
 
+
+    def __display_playlist(self, pl):
+        """
+        Displays the contents of the given playlist.
+        """
+
+        self.__playlist.clear_items()
+        for item in pl.get_items():
+            self.__playlist.append_item(item)
+        self.__playlist.render()
         
     def handle_event(self, msg, *args):
+              
+        Viewer.handle_event(self, msg, *args)
                     
         if (msg == msgs.PLAYLIST_ACT_APPEND):
             files = args
+            pl = self.__lists[self.__current_list]
+            pl_name = pl.get_name()
             
             if (len(files) == 1):
                 self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
-                              u"adding \xbb%s\xab to playlist" % files[0].name)
+                          u"adding \xbb%s\xab to %s" % (files[0].name, pl_name))
             else:
                 self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
-                              u"adding %d items to playlist" % len(files))
+                               u"adding %d items to %s" % (len(files), pl_name))
                               
             self.__playlist.set_frozen(True)
             for f in files:
-                logging.info("adding '%s' to playlist" % f.name)
-                self.__add_item(f)
+                logging.info("adding '%s' to %s" % (f.name, pl_name))
+                self.__add_item(pl, f)
+            pl.save()
             self.__playlist.set_frozen(False)
             
-            self.__playlist_modified = True
-            self.__save_playlist(_PLAYLIST_FILE)
+            #self.__playlist_modified = True
+            #self.__save_playlist(_PLAYLIST_FILE)
+
+        elif (msg == msgs.MEDIA_EV_EOF):
+            if (self.__is_queue()):
+                self.__go_next()
+                self.drop_event()
 
         #elif (msg == msgs.CORE_EV_DEVICE_ADDED):
         #    if (not self.__playlist_modified):
@@ -340,15 +501,17 @@ class PlaylistViewer(Viewer):
             if (self.__media_widget):
                 self.__media_widget.stop()
 
-        elif (msg == msgs.MEDIA_EV_EOF):
-            self.__go_next()
-            self.drop_event()
-
         if (self.is_active()):
             # load selected file
             if (msg == msgs.CORE_ACT_LOAD_ITEM):
                 idx = args[0]
-                self.__load_item(idx)
+                if (self.__view_mode == _VIEWMODE_PLAYLIST):
+                    self.__current_list = idx
+                    pl = self.__lists[self.__current_list]
+                    self.__display_playlist(pl)
+                else:
+                    pl = self.__lists[self.__current_list]
+                    self.__load_item(pl, idx)
                 
             # provide search-as-you-type
             elif (msg == msgs.CORE_ACT_SEARCH_ITEM):
@@ -359,7 +522,7 @@ class PlaylistViewer(Viewer):
                 # watch FULLSCREEN hw key
                 if (msg == msgs.HWKEY_EV_FULLSCREEN):
                     if (self.__view_mode in \
-                      (_VIEWMODE_PLAYER_NORMAL, _VIEWMODE_PLAYER_FULLSCREEN)):
+                      (_VIEWMODE_PLAYER, _VIEWMODE_PLAYER_FULLSCREEN)):
                         self.__on_toggle_fullscreen()
                 # watch INCREMENT hw key
                 elif (msg == msgs.HWKEY_EV_INCREMENT):
@@ -375,14 +538,15 @@ class PlaylistViewer(Viewer):
     def show(self):
     
         Viewer.show(self)
-        if (self.__view_mode == _VIEWMODE_NO_PLAYER):
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+        if (self.__view_mode == _VIEWMODE_PLAYLIST):
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
 
 
     def __search(self, key):
     
         idx = 0
-        for item in self.__items:
+        pl = self.__lists[self.__current_list]
+        for item in pl.get_files():
             if (key in item.name.lower()):
                 self.__playlist.scroll_to_item(idx)
                 logging.info("search: found '%s' for '%s'" % (item.name, key))
