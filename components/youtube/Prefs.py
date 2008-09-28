@@ -2,6 +2,7 @@ from com import Configurator, msgs
 from ui.Label import Label
 from ui.ChoiceBox import ChoiceBox
 from ui.VBox import VBox
+from utils import mmc
 import config
 import theme
 
@@ -28,8 +29,8 @@ class Prefs(Configurator):
 
         current_cache = config.get_cache_folder()
         chbox = ChoiceBox("device", os.path.expanduser("~"),
-                          "internal memory card", "/media/mmc2",
-                          "external memory card", "/media/mmc1")
+                          mmc.get_label("/media/mmc2"), "/media/mmc2",
+                          mmc.get_label("/media/mmc1"), "/media/mmc1")
         chbox.select_by_value(current_cache)
         chbox.connect_changed(self.__on_select_cache_location)
         vbox.add(chbox)
