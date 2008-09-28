@@ -64,10 +64,17 @@ def _is_compatible(compat):
 
 def _read_colors(themepath):
 
-    try:
-        lines = open(os.path.join(themepath, "colors")).readlines()
-    except:
-        lines = open(os.path.join(_DEFAULT_THEME_DIR, "colors")).readlines()
+    color_files = [ f for f in os.listdir(themepath)
+                    if f.endswith(".col") ]
+    for f in color_files:
+        try:
+            _read_color_file(os.path.join(themepath, f))
+        except:
+            pass
+
+def _read_color_file(f):
+
+    lines = open(f).readlines()
         
     for line in lines:
         line = line.strip()
@@ -87,6 +94,40 @@ def _read_colors(themepath):
     
 def _read_fonts(themepath):
 
+    font_files = [ f for f in os.listdir(themepath)
+                   if f.endswith(".fnt") ]
+    for f in font_files:
+        try:
+            _read_font_file(os.path.join(themepath, f))
+        except:
+            pass
+
+
+def _read_font_file(f):
+
+    lines = open(f).readlines()
+    for line in lines:
+        line = line.strip()
+        if (not line or line.startswith("#")):
+            continue
+
+        idx = line.find(":")
+        name = line[:idx].strip()
+        fontname = line[idx + 1:].strip()
+        try:
+            font = pango.FontDescription(fontname)
+        except:
+            pass
+        else:
+            if (name in globals()):
+                globals()[name].merge(font, True)
+            else:
+                globals()[name] = font
+        
+    #end for
+    
+
+    """
     try:
         lines = open(os.path.join(themepath, "fonts")).readlines()
     except:
@@ -111,7 +152,8 @@ def _read_fonts(themepath):
                 globals()[name] = font
         
     #end for
-
+    """
+    
 
 def _get_info(themepath):
 
@@ -141,15 +183,18 @@ def _get_info(themepath):
     return (name, description, compat)
         
 
-    
-
-
 def set_theme(name):
     """
     Changes the current theme.
     
     @param name: name of new theme
     """
+
+    _set_theme("default")
+    _set_theme(name)
+
+
+def _set_theme(name):
 
     theme_dir = _DEFAULT_THEME_DIR
     for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
@@ -185,4 +230,4 @@ def set_theme(name):
     _read_colors(theme_dir)
 
 
-set_theme("default")
+_set_theme("default")
