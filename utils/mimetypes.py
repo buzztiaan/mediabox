@@ -1,35 +1,6 @@
 import os
 
 
-_EXT_TABLE = {
-    ".gif":         "image/gif",
-    ".jpg":         "image/jpeg",
-    ".jpeg":        "image/jpeg",
-    ".png":         "image/png",
-    
-    ".aac":         "audio/mp4",
-    ".flac":        "audio/x-flac",
-    ".mp2":         "audio/mp2",
-    ".mp3":         "audio/mpeg",
-    ".m4a":         "audio/mp4",
-    ".ogg":         "audio/x-vorbis+ogg",
-    ".ra":          "application/vnd.rn-realmedia",
-    ".ram":         "application/vnd.rn-realmedia",
-    ".wav":         "audio/x-wav",
-    ".wma":         "audio/x-ms-wma",
-
-    ".asf":         "video/x-ms-asf",
-    ".avi":         "video/x-msvideo",
-    ".flv":         "video/x-flash-video",
-    ".m4v":         "video/mp4",
-    ".mov":         "video/quicktime",
-    ".mpg":         "video/mpeg",
-    ".qt":          "video/quicktime",
-    ".rm":          "application/vnd.rn-realmedia",
-    ".rmvb":        "application/vnd.rn-realmedia",
-    ".wmv":         "video/x-ms-wmv",
-}
-
 _MIMETYPES_FILE = os.path.join(os.path.dirname(__file__), "..", "mimetypes.mapping")
 
 _EXT_TO_MIMETYPE = {}
