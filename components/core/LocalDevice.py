@@ -143,7 +143,7 @@ class LocalDevice(Device):
         elif (path == "MMC"):
             return self.__ls_mmcs()
     
-        logging.debug("listing [%s]" % path)
+        #logging.debug("listing [%s]" % path)
         try:
             files = [ f for f in os.listdir(path)
                       if not f.startswith(".") ]
