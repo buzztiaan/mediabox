@@ -11,12 +11,13 @@ class SplashScreen(Widget):
         Widget.__init__(self)
         self.set_size(800, 480)
 
-        label = Label("Loading Components...",
+        label = Label("Initializing...",
                       theme.font_plain, theme.color_fg_splash)
         self.add(label)
         label.set_pos(10, 320)
         label.set_size(780, 0)
         label.set_alignment(label.CENTERED)
+        self.__info_label = label
 
         label = Label("ver %s - %s" \
                       % (values.VERSION, values.COPYRIGHT),
@@ -32,8 +33,8 @@ class SplashScreen(Widget):
         label.set_pos(400, 450)
         label.set_size(390, 0)
         label.set_alignment(label.RIGHT)
-        
-      
+
+
     def render_this(self):
     
         x, y = self.get_screen_pos()
@@ -45,4 +46,9 @@ class SplashScreen(Widget):
         screen.draw_pixbuf(theme.mb_logo,
                            (800 - theme.mb_logo.get_width()) / 2,
                            (320 - theme.mb_logo.get_height()) / 2)
+
+
+    def set_text(self, text):
+    
+        self.__info_label.set_text(text)
 
