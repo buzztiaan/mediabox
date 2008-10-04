@@ -78,40 +78,70 @@ class AudioWidget(MediaWidget):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-                
-        cover_size = min(h, w / 2) - 48 #256
-        cover_x = w / 2 + 24
-        cover_y = h - 24 - cover_size
-        
-        label_x = 24 #cover_x + cover_size + 32
 
+        screen.fill_area(x, y, w, h, theme.color_bg)
+        
+        cover_size = h - 58 - 10 #min(h - 20, w / 2 - 20)
+        
         # place labels
-        self.__title.set_geometry(label_x, 24, w - 24, 0)
-        self.__album.set_geometry(label_x + 48, 80, w / 2 - 48, 0)
-        self.__artist.set_geometry(label_x + 48, 128, w / 2 - 48, 0)
+        lbl_x = 10
+        lbl_y = 10
+        lbl_w = w - 20
+        self.__title.set_geometry(lbl_x, lbl_y, lbl_w, 0)
         
-        self.__buffer.fill_area(x, y, w, h, theme.color_bg)
+        lbl_y += 48
+        lbl_w = w - 30 - cover_size
+        screen.draw_pixbuf(theme.viewer_music_album,
+                                  x + lbl_x, y + lbl_y)
+        self.__album.set_geometry(lbl_x + 48, lbl_y, lbl_w -48, 0)
         
-        # draw cover art
+        lbl_y += 48
+        screen.draw_pixbuf(theme.viewer_music_artist,
+                                  x + lbl_x, y + lbl_y)
+        self.__artist.set_geometry(lbl_x + 48, lbl_y, lbl_w - 48, 0)
+
+        # place lyrics box
+        lb_x = lbl_x
+        lb_y = lbl_y + 48
+        lb_w = lbl_w
+        lb_h = h - lb_y - 10
+        #screen.fill_area(x + lb_x, y + lb_y, lb_w, lb_h, "#666666")
+
+        gobject.idle_add(self.__render_cover)
+
+
+    def __render_cover(self):
+
+        if (not self.may_render()): return
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+    
+        cover_size = h - 58 - 10 #min(h - 20, w / 2 - 20)
+        cover_x = w - 10 - cover_size
+        cover_y = 58 #(h - cover_size) / 2
+        
+        self.__buffer.fill_area(0, 0, cover_size + 11, cover_size + 11,
+                                theme.color_bg)
+        
         if (self.__cover):
             self.__buffer.draw_frame(theme.viewer_music_frame,
-                                     x + cover_x, y + cover_y,
+                                     0, 0,
                                      cover_size + 11, cover_size + 11,
                                      True)
             self.__buffer.fit_pixbuf(self.__cover,
-                                     x + cover_x + 3, y + cover_y + 3,
+                                     3, 3,
                                      cover_size, cover_size)
         
         else:
             self.__buffer.fit_pixbuf(theme.mb_unknown_album,
-                                     x + cover_x + 3, y + cover_y + 3,
-                                     cover_size, cover_size)
+                                     3, 3,
+                                     cover_size, cover_size)        
 
-
-        self.__buffer.draw_pixbuf(theme.viewer_music_album, x + label_x, y + 80)
-        self.__buffer.draw_pixbuf(theme.viewer_music_artist, x + label_x, y + 128)
+        screen.copy_pixmap(self.__buffer, 0, 0, x + cover_x, y + cover_y,
+                           cover_size + 11, cover_size + 11)
         
-        screen.copy_pixmap(self.__buffer, x, y, x, y, w, h)
 
 
     def __on_observe_player(self, src, cmd, *args):
@@ -230,13 +260,13 @@ class AudioWidget(MediaWidget):
     def __show_info(self, item):
     
         if (item.tags):
-            title = item.tags.get("TITLE")
-            artist = item.tags.get("ARTIST")
-            album = item.tags.get("ALBUM")
+            title = item.tags.get("TITLE") or item.name
+            artist = item.tags.get("ARTIST") or "-"
+            album = item.tags.get("ALBUM") or "-"
         else:
-            title = ""
-            artist = ""
-            album = ""
+            title = item.name
+            artist = "-"
+            album = "-"
             
         self.__title.set_text(title or item.name)
         self.__artist.set_text(artist or item.artist)

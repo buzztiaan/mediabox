@@ -16,6 +16,7 @@ from mediabox import config as mb_config
 import gtk
 import gobject
 import os
+import random
 
 
 
@@ -146,7 +147,7 @@ class AlbumViewer(Viewer):
         def on_thumbnail(thumb, tn, files):
             tn.set_thumbnail(thumb)
             tn.invalidate()
-            self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
+            #self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
             
             if (tn_list):
                 f, tn = tn_list.pop(0)
@@ -285,37 +286,71 @@ class AlbumViewer(Viewer):
         """
 
         repeat_mode = mb_config.repeat_mode()
-        #shuffle_mode = mb_config.shuffle_mode()
+        shuffle_mode = mb_config.shuffle_mode()
 
         current_track = self.__current_track
         self.__stop_current_track()
         
-        handled = False
         if (repeat_mode == mb_config.REPEAT_MODE_NONE):
-            if (self.__tracks and self.__current_index + 1 < len(self.__tracks)):
-                trk = self.__tracks[self.__current_index + 1]
-                self.__play_track(trk)
-                handled = True
+            if (shuffle_mode == mb_config.SHUFFLE_MODE_NONE):
+                self.__play_next(False)
 
-        elif (repeat_mode == mb_config.REPEAT_MODE_ONE):
-            self.__play_track(current_track, True)
-            handled = True
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ONE):
+                self.__play_shuffled(False)
+                
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ALL):
+                self.__play_shuffled(True)
             
+        elif (repeat_mode == mb_config.REPEAT_MODE_ONE):
+            self.__play_same()
+
         elif (repeat_mode == mb_config.REPEAT_MODE_ALL):
-            if (self.__current_index + 1 < len(self.__tracks)):
-                trk = self.__tracks[self.__current_index + 1]
-                self.__play_track(trk)
-                handled = True
-            elif (self.__tracks):
-                self.__play_track(self.__tracks[0], True)
-                handled = True
+            if (shuffle_mode == mb_config.SHUFFLE_MODE_NONE):
+                self.__play_next(True)
+
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ONE):
+                self.__play_shuffled(False)
+
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ALL):
+                self.__play_shuffled(True)        
                 
         #end if
+
+
+    def __play_same(self):
+    
+        trk = self.__tracks[self.__current_index]
+        self.__play_track(trk, True)
+        return True
+
+
+    def __play_next(self, wraparound):
+    
+        if (self.__current_index + 1 < len(self.__tracks)):
+            trk = self.__tracks[self.__current_index + 1]
+            self.__play_track(trk)
+            return True
+            
+        elif (wraparound):
+            trk = self.__tracks[0]
+            self.__play_track(trk)
+            return True
+            
+        else:
+            return False
+
+
+    def __play_shuffled(self, from_all):
+    
+        if (from_all):
+            # TODO...
+            pass
         
-        if (not handled):
-            self.emit_event(msgs.MEDIA_EV_EOF)
-
-
+        new_idx = random.randint(0, len(self.__tracks) - 1)
+        trk = self.__tracks[new_idx]
+        self.__play_track(trk, True)
+        
+        return True
 
 
     def __stop_current_track(self):
@@ -391,7 +426,7 @@ class AlbumViewer(Viewer):
                 f.title = title
                 f.artist = artist
                 f.album = album
-                #f.md5 = item.md5
+                f.thumbnail_md5 = item.thumbnail_md5
 
                 tracks.append(f)
                 self.__throbber.rotate()

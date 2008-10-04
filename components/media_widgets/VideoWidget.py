@@ -6,6 +6,7 @@ from ui.ImageButton import ImageButton
 from ui.Image import Image
 from ui.ProgressBar import ProgressBar
 import mediaplayer
+from ui import dialogs
 from utils import maemo
 from utils import logging
 import theme
@@ -152,13 +153,14 @@ class VideoWidget(MediaWidget):
 
         elif (cmd == src.OBS_STARTED):
             print "Started Player"
+            self.__progress.set_message("")
             #self.__btn_play.set_images(theme.btn_play_1,
             #                           theme.btn_play_2)
             
         elif (cmd == src.OBS_KILLED):
             print "Killed Player"
             self.__uri = ""
-            #self.set_title("")
+            self.__progress.set_message("")
             self.__screen.hide()
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
@@ -177,6 +179,7 @@ class VideoWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):
                 print "Playing"
+                self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)                
             
@@ -184,6 +187,7 @@ class VideoWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):
                 print "Stopped"
+                self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
             

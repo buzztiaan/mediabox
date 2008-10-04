@@ -436,6 +436,7 @@ class FolderViewer(Viewer):
 
             # get media widget
             if (self.__media_widget):
+                self.__media_widget.stop()
                 self.__media_box.remove(self.__media_widget)
                 
             self.__media_widget = self.call_service(
@@ -463,9 +464,9 @@ class FolderViewer(Viewer):
                     pass                
 
             self.__media_widget.load(f)
-            if (f.mimetype in mimetypes.get_audio_types() +
-                              mimetypes.get_video_types()):
-                self.emit_event(msgs.MEDIA_EV_LOADED, self, f)
+            #if (f.mimetype in mimetypes.get_audio_types() +
+            #                  mimetypes.get_video_types()):
+            self.emit_event(msgs.MEDIA_EV_LOADED, self, f)
 
 
     def __on_media_position(self, info):
@@ -712,6 +713,8 @@ class FolderViewer(Viewer):
         for item in self.__items:
             if (key in item.name.lower()):
                 self.__list.scroll_to_item(idx + 1)
+                if (self.__view_mode == _VIEWMODE_PLAYER_NORMAL):
+                    self.emit_event(msgs.CORE_ACT_SCROLL_TO_ITEM, idx)                
                 logging.info("search: found '%s' for '%s'" % (item.name, key))
                 break
             idx += 1
