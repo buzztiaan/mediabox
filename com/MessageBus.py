@@ -3,6 +3,8 @@ Application message bus singleton.
 """
 
 from exc import *
+import msgs
+from utils import logging
 
 
 class _MessageBus(object):
@@ -24,6 +26,8 @@ class _MessageBus(object):
         
     def send_event(self, src, event, *args):
     
+        logging.debug("*** %s%s ***" % (msgs._id_to_name(event), `args`[:30]))
+        
         for mediator in self.__mediators:
             if (mediator == src): continue
         

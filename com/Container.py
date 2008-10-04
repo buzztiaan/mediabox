@@ -91,6 +91,7 @@ class Container(Component):
         syspath = sys.path[:]
         sys.path = [mod._syspath] + syspath
 
+        logging.debug("loading module [%s]", mod.__file__)
         try:
             classes = mod.get_classes()
         except:
@@ -100,6 +101,7 @@ class Container(Component):
             
         for c in classes:
             try:
+                logging.debug("creating [%s]" % c.__name__)
                 comp = c()
                 comp._attach_to_message_bus()
                 self.__components.append(comp)
