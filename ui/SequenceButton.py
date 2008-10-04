@@ -23,6 +23,17 @@ class SequenceButton(ImageButton):
         self.set_images(img, img)
         
         
+    def set_value(self, v):
+    
+        idx = 0
+        for img, value in self.__sequence:
+            if (value == v):
+                self.set_index(idx)
+                break
+            idx += 1
+        #end for
+        
+        
     def __on_click(self):
 
         self.__index += 1

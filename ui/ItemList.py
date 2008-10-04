@@ -24,8 +24,8 @@ class ItemList(ImageStrip):
 
     def set_size(self, w, h):
     
-        for item in self.get_items():
-            item.set_size(w - 10, self.__height)
+        #for item in self.get_items():
+        #    item.set_size(w - 10, self.__height)
             
         ImageStrip.set_size(self, w, h)
 

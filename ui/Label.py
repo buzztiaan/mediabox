@@ -36,7 +36,8 @@ class Label(Widget):
     def _reload(self):
     
         self.__is_new_text = True
-        self.__create_text_pmap()
+        self.__bg = None
+        #self.__create_text_pmap()
 
 
     def __create_text_pmap(self):

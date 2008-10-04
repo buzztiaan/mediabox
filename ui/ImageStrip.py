@@ -90,6 +90,7 @@ class ImageStrip(Widget):
         """
 
         self.__buffer_dirty = True
+        
 
  
     def set_size(self, w, h):
@@ -545,7 +546,7 @@ class ImageStrip(Widget):
             self.__render_buffered(screen, 0, h)
         else:
             # nothing changed; simply render the buffer again
-            print "restoring from buffer"
+            #print "restoring from buffer"
             self.__render_buffered(screen, 0, h)
         
         

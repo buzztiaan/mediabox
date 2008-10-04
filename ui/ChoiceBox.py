@@ -46,7 +46,7 @@ class ChoiceBox(Widget):
         for i in range(0, len(choices), 2):
             name = choices[i]
             value = choices[i + 1]
-            print name, value
+
             self.__names.append(name)
             self.__values.append(value)
         #end for
