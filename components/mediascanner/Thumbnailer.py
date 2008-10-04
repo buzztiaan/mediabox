@@ -41,7 +41,7 @@ class Thumbnailer(object):
         Returns False if the thumbnail does not exist.
         """
                 
-        thumb = self.get_thumbnail_path(f) #self.__thumb_folder + "/" + f.md5 + ".jpg"
+        thumb = self.get_thumbnail_path(f)
         broken = thumb + ".broken"
                 
         if (os.path.exists(broken)):
@@ -67,7 +67,7 @@ class Thumbnailer(object):
         """
         
         # simply touch it
-        thumb = self.get_thumbnail_path(f) + ".broken" #self.__thumb_folder + "/" + f.md5 + ".jpg.broken"
+        thumb = self.get_thumbnail_path(f) + ".broken"
         try:
             open(thumb, "w")
         except:
@@ -80,7 +80,6 @@ class Thumbnailer(object):
         """
         
         thumb = self.get_thumbnail_path(f) + ".broken"
-        #thumb = self.__thumb_folder + "/" + f.md5 + ".jpg.broken"
         try:
             os.unlink(thumb)
         except:
@@ -92,7 +91,6 @@ class Thumbnailer(object):
         Removes the thumbnail for the given file.
         """
 
-        #thumb = self.__thumb_folder + "/" + f.md5 + ".jpg"
         thumb = self.get_thumbnail_path(f)
         try:
             os.unlink(thumb)
@@ -105,7 +103,6 @@ class Thumbnailer(object):
         Returns whether a thumbnail exists for the given file.
         """
 
-        #thumb = self.__thumb_folder + "/" + f.md5 + ".jpg"
         thumb = self.get_thumbnail_path(f)
         return os.path.exists(thumb)
         
@@ -116,6 +113,6 @@ class Thumbnailer(object):
         Returns the path for the thumbnail for the given file.
         """
 
-        thumb = self.__thumb_folder + "/" + f.get_md5() + ".jpg"
+        thumb = self.__thumb_folder + "/" + f.get_thumbnail_md5() + ".jpg"
         return thumb
 
