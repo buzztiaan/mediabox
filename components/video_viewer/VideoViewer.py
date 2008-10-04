@@ -107,7 +107,7 @@ class VideoViewer(Viewer):
     def __on_media_eof(self):
     
         self.emit_event(msgs.MEDIA_EV_EOF)
-        
+
 
     def __show_error(self, errcode):
     
@@ -226,7 +226,7 @@ class VideoViewer(Viewer):
         idx = 0
         for item in self.__items:
             if (key in item.name.lower()):
-                self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx)
+                self.emit_event(msgs.CORE_ACT_SCROLL_TO_ITEM, idx)
                 print "found", item.name, "for", key
                 break
             idx += 1
