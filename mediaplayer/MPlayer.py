@@ -260,7 +260,6 @@ class _MPlayer(GenericMediaPlayer):
         
     def __parse_value(self, data):
     
-        print "PARSE", data
         if (not data and self.__playing and
             float(self.__player_values[_LENGTH] or 0) < 0.01):
             pass #self.__on_eof()
@@ -615,7 +614,9 @@ class _MPlayer(GenericMediaPlayer):
         
     def stop(self):
 
-        self.__ensure_mplayer()
+        if (not self.__stdin):
+            return
+        #self.__ensure_mplayer()
         
         if (self.__playing):
             self.__playing = False
