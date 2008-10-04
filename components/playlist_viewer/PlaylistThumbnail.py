@@ -1,5 +1,6 @@
 from ui.Thumbnail import Thumbnail
 from ui import pixbuftools
+from mediabox import thumbnail
 
 import gtk
 
@@ -23,12 +24,8 @@ class PlaylistThumbnail(Thumbnail):
         pbuf.fill(0x00000000)        
 
         pos = [(10, 0), (30, 20), (50, 40), (70, 60)]
-        for tn in tns[:4]:
-            try:
-                print tn
-                tn_pbuf = gtk.gdk.pixbuf_new_from_file(tn)
-            except:
-                continue
+        for tn, mimetype in tns[:4]:
+            tn_pbuf = thumbnail.render_pixbuf(tn, mimetype)
 
             x, y = pos.pop(0)            
             pixbuftools.draw_pbuf(pbuf, tn_pbuf, x, y, 70, 50)
@@ -36,4 +33,4 @@ class PlaylistThumbnail(Thumbnail):
         
         self.set_thumbnail_pbuf(pbuf)
         del pbuf
-
+        self.invalidate()

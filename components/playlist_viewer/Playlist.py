@@ -1,4 +1,5 @@
 import m3u
+from utils import urlquote
 
 import os
 
@@ -121,7 +122,8 @@ class Playlist(object):
         self.__path = path
         self.__is_modified = False    
 
-        self.__name = os.path.splitext(os.path.basename(path))[0]
+        self.__name = urlquote.unquote(
+                                 os.path.splitext(os.path.basename(path))[0])
         
         
     def save_as(self, path):
