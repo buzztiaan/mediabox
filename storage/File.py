@@ -33,6 +33,7 @@ class File(object):
         self.source_icon = None
         self.resource = ""
         self.md5 = ""
+        self.thumbnail_md5 = ""
         self.thumbnail = ""
         
         self.tags = None
@@ -59,6 +60,13 @@ class File(object):
         if (not self.md5):
             self.md5 = md5.new(self.get_full_path()).hexdigest()
         return self.md5
+
+
+    def get_thumbnail_md5(self):
+    
+        if (not self.thumbnail_md5):
+            self.thumbnail_md5 = md5.new(self.get_full_path()).hexdigest()
+        return self.thumbnail_md5
         
         
     def new_file(self):
