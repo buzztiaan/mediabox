@@ -42,4 +42,5 @@ video/x-flv                           -                   Flash-Video    V
 video/x-ms-asf                        .asf                ASF            V
 video/x-msvideo                       .avi                AVI            V
 video/x-ms-wmv                        .wmv                WMV            V
+video/x-unknown                       -                   Unknown-Video  V      # used by MediaBox for unguessable video types
 
