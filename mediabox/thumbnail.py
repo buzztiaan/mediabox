@@ -11,10 +11,11 @@ _HEIGHT = 120
 _PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, _WIDTH, _HEIGHT)
 
 
-def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
+def render_pixbuf(thumbfile, mimetype):
     """
-    Decorates the given thumbnail according to the given MIME type and renders
-    it onto the canvas at the given coordinates.
+    Decorates the given thumbnail according to the given MIME type and returns
+    a pixbuf. This pixbuf is shared and volatile and must NOT be stored for
+    later use.
     """
 
     if (mimetype == "application/x-directory"):
@@ -87,10 +88,18 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
                              scale, scale, gtk.gdk.INTERP_BILINEAR, 0xff)
         del subpbuf
         del thumb_pbuf
+        
+    return _PBUF
 
-    subpbuf = _PBUF.subpixbuf(0, 0, _WIDTH, _HEIGHT)
-    cnv.fit_pixbuf(subpbuf, x, y, w, h)
-    del subpbuf
+
+def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
+    """
+    Decorates the given thumbnail according to the given MIME type and renders
+    it onto the canvas at the given coordinates.
+    """
+   
+    pbuf = render_pixbuf(thumbfile, mimetype)
+    cnv.fit_pixbuf(pbuf, x, y, w, h)
 
 
 
