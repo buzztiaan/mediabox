@@ -126,7 +126,6 @@ class YouTube(Device):
         f.source_icon = self.get_icon()
         f.path = path
         f.mimetype = "video/x-flash-video"
-        f.source_icon = self.get_icon()
         
         return f
         
