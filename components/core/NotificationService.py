@@ -42,6 +42,6 @@ class NotificationService(Component):
             obj = bus.get_object("org.freedesktop.Notifications", 
                                  "/org/freedesktop/Notifications")
             notify = dbus.Interface(obj, "org.freedesktop.Notifications")
-            notify.Notify("abc", 0, "", "", text, [], [], 0)
+            notify.Notify("abc", 3, "", "", text, [], [], -1)
             print "\n\n\n%s\n\n\n" % text
 
