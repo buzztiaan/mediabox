@@ -44,6 +44,7 @@ class AppWindow(Component):
         self.__current_collection = []
         self.__current_mediaroots = []
         self.__view_mode = viewmodes.TITLE_ONLY
+        self.__battery_remaining = 100.0
         
         # mapping: viewer -> state
         self.__viewer_states = {}
@@ -60,6 +61,9 @@ class AppWindow(Component):
         self.__keyboard_search_reset_timer = None
 
         self.__hildon_input_replace = True
+        
+        # flag for indicating whether initialization has finished
+        self.__is_initialized = False
     
         if (maemo.IS_MAEMO):
             import hildon
@@ -165,17 +169,20 @@ class AppWindow(Component):
         """
         Runs a queue of actions to take for startup.
         """
-        
+
         actions = [(self.__root_pane.render_buffered, []),
+                   (self.__splash.set_text, ["Loading Components..."]),
+                   #(gtk.main_quit, []),
+                   #(time.sleep, [10]),
+                   (self.__register_viewers, []),
+                   (self.__splash.set_text, ["Scanning Media Library..."]),
+                   (self.__scan_media, [True]),
+                   (self.__splash.set_visible, [False]),
+                   (self.__root_pane.render_buffered, []),
                    (self.__root_pane.add, [self.__tab_panel]),
                    (self.__root_pane.add, [self.__window_ctrls]),
-                   (self.__register_viewers, []),
-                   (self.__splash.set_visible, [False]),                   
-                   (self.__root_pane.render_buffered, []),
                    (self.__add_panels, []),
-                   (self.__scan_media, [True]),
                    (self.__select_initial_viewer, []),
-                   #(self.__select_viewer, [0]),
                    ]
                    
         def f():
@@ -201,6 +208,7 @@ class AppWindow(Component):
         viewer was set.
         """
         
+        self.__is_initialized = True
         current_viewer = config.current_viewer()
         viewers = [ v for v in self.__viewers if repr(v) == current_viewer ]
         if (viewers):
@@ -243,6 +251,8 @@ class AppWindow(Component):
         """
         Sets the view mode.
         """
+
+        if (not self.__is_initialized): return
 
         if (view_mode == viewmodes.NORMAL):
             self.__title_panel_left.set_visible(False)
@@ -315,7 +325,7 @@ class AppWindow(Component):
             icon = theme.mb_status_repeat_none
         else:
             icon = theme.mb_status_repeat_none
-        pixbuftools.draw_pbuf(left_top, icon, 20, 4)
+        pixbuftools.draw_pbuf(left_top, icon, 50, 4)
         
         if (shuffle_mode == config.SHUFFLE_MODE_ONE):
             icon = theme.mb_status_shuffle_one
@@ -323,7 +333,20 @@ class AppWindow(Component):
             icon = theme.mb_status_shuffle_none
         else:
             icon = theme.mb_status_shuffle_none
-        pixbuftools.draw_pbuf(left_top, icon, 60, 4)
+        pixbuftools.draw_pbuf(left_top, icon, 90, 4)
+
+        br = self.__battery_remaining
+        if (br > 80.0):
+            icon = theme.mb_status_battery_4
+        elif (br > 60.0):
+            icon = theme.mb_status_battery_3
+        elif (br > 40.0):
+            icon = theme.mb_status_battery_2
+        elif (br > 20.0):
+            icon = theme.mb_status_battery_1
+        else:
+            icon = theme.mb_status_battery_0
+        pixbuftools.draw_pbuf(left_top, icon, 10, 4)
 
         pixbuftools.draw_pbuf(left_bottom, theme.mb_btn_turn_1, 30, 15)
 
@@ -532,7 +555,7 @@ class AppWindow(Component):
         except:
             # only available on maemo
             pass
-    
+        self.__set_search_term("")
 
 
 
@@ -688,6 +711,11 @@ class AppWindow(Component):
             if (not self.__media_scan_scheduled):
                 self.__media_scan_scheduled = True
                 gobject.timeout_add(500, f)
+                
+        elif (event == msgs.SYSTEM_EV_BATTERY_REMAINING):
+            percent = args[0]
+            self.__battery_remaining = percent
+            self.__prepare_collection_caps()
 
 
         elif (event == msgs.CORE_ACT_SET_TITLE):
@@ -713,6 +741,10 @@ class AppWindow(Component):
         elif (event == msgs.CORE_ACT_HILIGHT_ITEM):
             idx = args[0]
             self.__select_item(idx, hilight_only = True)
+            
+        elif (event == msgs.CORE_ACT_SCROLL_TO_ITEM):
+            idx = args[0]
+            self.__strip.scroll_to_item(idx)
             
         elif (event == msgs.CORE_ACT_RENDER_ITEMS):
             self.__strip.invalidate_buffer()
@@ -755,14 +787,15 @@ class AppWindow(Component):
     def __hilight_item(self, idx):
     
         # restore saved image
-        if (self.__saved_image_index >= 0):
+        if (self.__saved_image_index >= 0 and
+              self.__saved_image_index < len(self.__strip.get_images())):
             img = self.__strip.get_image(self.__saved_image_index)
             img.set_hilighted(False)
             #img.draw_pixmap(self.__saved_image, 0, 0)
             #del self.__saved_image
             self.__strip.invalidate_buffer()
         
-        if (idx >= 0):    
+        if (idx >= 0 and idx < len(self.__strip.get_images())):
             img = self.__strip.get_image(idx)
             img.set_hilighted(True)
             #self.__saved_image = img.clone()
@@ -823,10 +856,11 @@ class AppWindow(Component):
         thumbnails = collection #[ item.thumbnail_pmap for item in collection ]
         
         self.__strip.set_images(thumbnails)
+        self.__strip.invalidate_buffer()
         self.__strip.render()
 
         # if the collection is empty, tell the user that she can add items
-        #if (not collection):
+        #if (not collection and self.__view_mode == viewmodes.NORMAL):
         #    gobject.idle_add(dialogs.info, "No items found!",
         #              "There are no items.\n"
         #              "Please go to Media Collection in the Preferences view\n"

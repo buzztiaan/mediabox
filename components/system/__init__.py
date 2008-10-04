@@ -1,9 +1,14 @@
-from System import System
+from utils import maemo
 
-   
 def get_classes():
+    from System import System
+    from BatteryMonitor import BatteryMonitor
 
-    return [System]
+    classes = []
+    classes.append(System)
+    if (maemo.IS_MAEMO): classes.append(BatteryMonitor)
+
+    return classes
 
 
 messages = [
@@ -14,4 +19,6 @@ messages = [
     
     "SYSTEM_ACT_FORCE_SPEAKER_ON",
     "SYSTEM_ACT_FORCE_SPEAKER_OFF",
+    
+    "SYSTEM_EV_BATTERY_REMAINING", # (percent)
 ]
