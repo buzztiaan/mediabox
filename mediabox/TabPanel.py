@@ -38,6 +38,7 @@ class TabPanel(Widget, Observable):
         
         # icon widgets
         self.__icons = []
+        self.__viewers = []
         
         Widget.__init__(self)
         self.__label = Label("%s ver %s - %s" \
@@ -47,12 +48,16 @@ class TabPanel(Widget, Observable):
         self.__label.set_alignment(self.__label.RIGHT)
 
         # playmode buttons
+        repeat_mode = mb_config.repeat_mode()
+        shuffle_mode = mb_config.shuffle_mode()
+
         btn_repeat = SequenceButton(
              [(theme.mb_repeat_none, mb_config.REPEAT_MODE_NONE),
               (theme.mb_repeat_one, mb_config.REPEAT_MODE_ONE)])
         btn_repeat.connect_changed(
               lambda v:self.update_observer(self.OBS_REPEAT_MODE, v))
         btn_repeat.set_pos(730, 30)
+        btn_repeat.set_value(repeat_mode)
         self.add(btn_repeat)
         
         btn_shuffle = SequenceButton(
@@ -61,8 +66,21 @@ class TabPanel(Widget, Observable):
         btn_shuffle.connect_changed(
               lambda v:self.update_observer(self.OBS_SHUFFLE_MODE, v))
         btn_shuffle.set_pos(730, 100)
+        btn_shuffle.set_value(shuffle_mode)
         self.add(btn_shuffle)
 
+
+    def _reload(self):
+    
+        self.__icons[self.__index].set_active(False)
+    
+        viewers = self.__viewers
+        self.__pos = (0, 0)
+        self.__icons = []
+        self.__viewers = []
+        
+        for v in viewers:
+            self.add_viewer(v)
 
 
     def __on_tab_selected(self, px, py, idx):
@@ -75,6 +93,7 @@ class TabPanel(Widget, Observable):
 
     def add_viewer(self, v):
     
+        self.__viewers.append(v)
         x, y = self.__pos        
                 
         icon_active = pixbuftools.make_frame(theme.mb_selection_frame,
