@@ -253,47 +253,57 @@ class GenericViewer(Viewer):
         self.__view_mode = mode
     
         if (mode == self._VIEWMODE_BROWSER):
+            self.emit_event(msgs.UI_ACT_FREEZE)
+
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+            self.__update_device_list()
+            
             self.__side_tabs.set_pos(560 + 4, 0 + 4)
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(True)
             self.__media_box.set_visible(False)
             self.__lib_list.set_visible(False)
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-            
+
             self.__update_toolbar()
             if (self.__current_device):
                 self.set_title(self.__current_device.get_name())
 
-            self.__update_device_list()
-
+            # hilight current item        
             if (self.__current_file in self.__items):
                 idx = self.__items.index(self.__current_file)
                 self.__list.hilight(idx + 1)
                 self.__list.scroll_to_item(idx + 1)
+                        
 
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+            self.emit_event(msgs.UI_ACT_THAW)
+
 
         elif (mode == self._VIEWMODE_PLAYER_NORMAL):
+            self.emit_event(msgs.UI_ACT_FREEZE)
+
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+            
             self.__side_tabs.set_pos(560 + 4, 0 + 4)
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
             self.__media_box.set_visible(True)
             self.__media_box.set_geometry(2, 2, 560 - 4, 370 - 4)
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
 
             self.__update_toolbar()
             if (self.__current_file):
                 self.set_title(self.__current_file.name)
 
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+            # hilight current item
             self.set_collection(self.__thumbnails)
             if (self.__current_file in self.__non_folder_items):
                 idx = self.__non_folder_items.index(self.__current_file)
-                gobject.idle_add(self.emit_event, msgs.CORE_ACT_HILIGHT_ITEM, idx)
+                self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
+
+            self.emit_event(msgs.UI_ACT_THAW)
 
 
-        elif (mode == self._VIEWMODE_PLAYER_FULLSCREEN):                        
+        elif (mode == self._VIEWMODE_PLAYER_FULLSCREEN):
             self.__side_tabs.set_visible(False)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
@@ -302,19 +312,23 @@ class GenericViewer(Viewer):
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
 
             self.render()
-            
+
+
         elif (mode == self._VIEWMODE_LIBRARY):
+            self.emit_event(msgs.UI_ACT_FREEZE)
+            
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+            
             self.__side_tabs.set_pos(740 + 4, 0 + 4)
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(True)
             self.__media_box.set_visible(False)
-
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
             
             self.__update_toolbar()
             self.set_title("Media Library")
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+            
+            self.emit_event(msgs.UI_ACT_THAW)
         
           
 
@@ -591,10 +605,9 @@ class GenericViewer(Viewer):
             if (not f.mimetype in mimetypes.get_audio_types()):
                 self.__side_tabs.select_tab(1)
 
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+            self.emit_event(msgs.UI_ACT_RENDER)
             self.__media_widget.load(f)
             self.emit_event(msgs.MEDIA_EV_LOADED, self, f)
-
 
 
     def __load_folder(self, path, direction):
@@ -639,6 +652,7 @@ class GenericViewer(Viewer):
         if (self.__path_stack):
             self.__path_stack[-1][1] = self.__list.get_offset()
         self.__path_stack.append([path, 0])
+        print self.__path_stack
 
         self.__list.clear_items()        
         #if (direction == self.__GO_PARENT):
@@ -652,7 +666,7 @@ class GenericViewer(Viewer):
         self.__list.append_item(header)
     
         self.__update_toolbar()
-        self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+        self.emit_event(msgs.UI_ACT_RENDER)
         
         gobject.timeout_add(0, path.get_children_async, on_child, path, [], [])
 
@@ -686,17 +700,17 @@ class GenericViewer(Viewer):
             
             return True
     
+        idx = self.__items.index(path)
+        self.__list.scroll_to_item(idx + 1, force_on_top = True)
         self.__close_subfolder()
-        insert_at = self.__items.index(path) + 1
+        idx = self.__items.index(path)
     
         # clear items
         self.__non_folder_items = []
         self.__thumbnails = []
 
-        self.__list.scroll_to_item(insert_at)
-
         gobject.timeout_add(0, path.get_children_async, on_child,
-                            self.__path_stack[-1][0], [], [], insert_at)
+                            self.__path_stack[-1][0], [], [], idx + 1)
 
 
     def __close_subfolder(self):
@@ -808,7 +822,7 @@ class GenericViewer(Viewer):
     
         if (len(self.__path_stack) > 1):
             self.__path_stack.pop()
-            path, list_offset = self.__path_stack[-1]
+            path, list_offset = self.__path_stack.pop()
             self.__load_folder(path, self.__GO_PARENT)
             
             

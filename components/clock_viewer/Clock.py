@@ -39,7 +39,7 @@ class Clock(Viewer):
         if (self.may_render()):
             today = time.strftime("%A - %x", time.localtime())
             self.set_title(today)
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+            self.emit_event(msgs.UI_ACT_RENDER)
             return True
         else:
             self.__is_ticking = False

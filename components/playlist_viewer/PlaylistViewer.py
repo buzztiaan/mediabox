@@ -252,6 +252,8 @@ class PlaylistViewer(Viewer):
         self.__view_mode = mode
         
         if (mode == _VIEWMODE_PLAYLIST):
+            self.emit_event(msgs.UI_ACT_FREEZE)
+        
             self.__playlist.set_visible(True)
             self.__media_box.set_visible(False)
             self.__side_tabs.set_visible(True)
@@ -259,9 +261,12 @@ class PlaylistViewer(Viewer):
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
             self.set_collection(self.__pl_thumbnails)
             self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, self.__current_list)
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+
+            self.emit_event(msgs.UI_ACT_THAW)
 
         elif (mode == _VIEWMODE_PLAYER):
+            self.emit_event(msgs.UI_ACT_FREEZE)
+            
             self.__playlist.set_visible(False)
             self.__media_box.set_visible(True)
             self.__side_tabs.set_visible(True)
@@ -271,7 +276,8 @@ class PlaylistViewer(Viewer):
             pl = self.__lists[self.__current_list]
             self.set_collection(pl.get_thumbnails())
             self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, pl.get_position())
-            self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+
+            self.emit_event(msgs.UI_ACT_THAW)
                 
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):
@@ -478,7 +484,7 @@ class PlaylistViewer(Viewer):
         self.__media_widget.set_visible(True)
 
         self.__side_tabs.select_tab(1)
-        self.emit_event(msgs.CORE_ACT_RENDER_ALL)
+        self.emit_event(msgs.UI_ACT_RENDER)
 
         self.__playlist.hilight(idx)
         self.__playlist.scroll_to_item(idx)
