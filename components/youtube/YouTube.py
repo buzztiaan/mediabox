@@ -25,11 +25,15 @@ _STD_FEEDS = "http://gdata.youtube.com/feeds/standardfeeds/" \
 _XMLNS_ATOM = "http://www.w3.org/2005/Atom"
 _XMLNS_MRSS = "http://search.yahoo.com/mrss/"
 _XMLNS_OPENSEARCH = "http://a9.com/-/spec/opensearchrss/1.0/"
+_XMLNS_GOOGLE = "http://schemas.google.com/g/2005"
 
 _SEARCH_CACHE_DIR = os.path.join(values.USER_DIR, "youtube/search-cache")
 
 _PAGE_SIZE = 25
 
+
+_STAR_CHAR = u"\u2606"
+_STAR2_CHAR = u"\u2605"
 
 
 class _SearchContext(object):
@@ -49,6 +53,7 @@ class YouTube(Device):
     """
     
     CATEGORY = Device.CATEGORY_WAN
+    TYPE = Device.TYPE_VIDEO
     
 
     def __init__(self):
@@ -60,6 +65,8 @@ class YouTube(Device):
             
         self.__fileserver = FileServer()
         self.__flv_downloader = None
+        
+        Device.__init__(self)
 
 
 
@@ -257,14 +264,17 @@ class YouTube(Device):
                 
                 player_url = group_node.get_child("{%s}player" % _XMLNS_MRSS) \
                                        .get_attr("{%s}url" % _XMLNS_ATOM)
-                                       
+                
+                rating_node = node.get_child("{%s}rating" % _XMLNS_GOOGLE)
+                rating = self.__parse_rating(rating_node)
+               
                 f = File(self)
                 f.source_icon = self.get_icon()
                 f.path = ident
                 f.mimetype = "video/x-flash-video"
                 f.resource = ident
                 f.name = title
-                f.info = "by %s" % authors
+                f.info = "%s\nby %s" % (rating, authors)
                 f.thumbnail = thumbnail
                 f.source_icon = self.get_icon()
                 
@@ -282,6 +292,21 @@ class YouTube(Device):
 
         MiniXML(xml, callback = on_receive_item)
 
+
+    def __parse_rating(self, node):
+    
+        try:
+            rating = float(node.get_attr("{%s}average" % _XMLNS_ATOM))
+            rating = int(rating + 0.5)
+            max_rating = int(node.get_attr("{%s}max" % _XMLNS_ATOM))
+        except:
+            #import traceback; traceback.print_exc()
+            return _STAR_CHAR * 5
+
+        out = _STAR2_CHAR * rating
+        out += _STAR_CHAR * (max_rating - rating)
+        
+        return out
 
 
     def __video_search(self, cb, args, query, start_index):
