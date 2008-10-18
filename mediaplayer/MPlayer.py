@@ -87,6 +87,8 @@ class _MPlayer(GenericMediaPlayer):
         self.__position_handler = None
         self.__idle_handler = None
         
+        self.__try_eof_handler = None
+        
         # table for collecting player values
         self.__player_values = [None] * _MAX_VALUES
 
@@ -259,10 +261,13 @@ class _MPlayer(GenericMediaPlayer):
         
         
     def __parse_value(self, data):
-    
+
+        if (self.__try_eof_handler):
+            gobject.source_remove(self.__try_eof_handler)
+            
         if (not data and self.__playing and
             float(self.__player_values[_LENGTH] or 0) < 0.01):
-            pass #self.__on_eof()
+            self.__try_eof_handler = gobject.timeout_add(250, self.__on_eof)
         elif (data.startswith("ANS_TIME_POSITION")):
             self.__player_values[_POSITION] = self.__read_ans(data)
             self.__on_position()
