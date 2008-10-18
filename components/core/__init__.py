@@ -1,20 +1,3 @@
-from com import Component, msgs
-
-
-class Init(Component):
-    """
-    Factory class for kicking the local storage device into action.
-    """
-    
-    def __init__(self):
-    
-        Component.__init__(self)
-        import gobject
-        from LocalDevice import LocalDevice
-        gobject.timeout_add(0, self.emit_event, msgs.CORE_EV_DEVICE_ADDED,
-                            "localhost", LocalDevice())
-
-
 def get_classes():
 
     from AppWindow import AppWindow
@@ -24,8 +7,14 @@ def get_classes():
     from MediaWidgetRegistry import MediaWidgetRegistry
     from NotificationService import NotificationService
 
-    return [Init, AppWindow, Preferences, ConfigTheme, DirectoryService,
+    return [AppWindow, Preferences, ConfigTheme, DirectoryService,
             MediaWidgetRegistry, NotificationService]
+    
+    
+def get_devices():
+
+    from LocalDevice import LocalDevice
+    return [LocalDevice]
     
     
 messages = [
@@ -37,6 +26,10 @@ messages = [
     "HWKEY_EV_FULLSCREEN",
     "HWKEY_EV_MENU",
     "HWKEY_EV_HEADSET",
+    "HWKEY_EV_UP",
+    "HWKEY_EV_DOWN",
+    "HWKEY_EV_LEFT",
+    "HWKEY_EV_RIGHT",
 
     "CORE_EV_APP_STARTED",
     "CORE_EV_APP_SHUTDOWN",
@@ -99,5 +92,6 @@ messages = [
     # The notification service lets you show notifications to the user.
     #
     "NOTIFY_SVC_SHOW_INFO",     # (text)
+    "NOTIFY_SVC_SHOW_PROGRESS", # (amount, total, text)
 ]    
 
