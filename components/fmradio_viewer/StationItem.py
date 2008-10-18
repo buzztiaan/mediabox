@@ -34,7 +34,7 @@ class StationItem(ButtonListItem):
 
     def render_this(self, cnv):
     
-        ButtonListItem.render_this(self, cnv)
+        self.render_bg(cnv)
         self.render_grip(cnv)
         self.render_label(cnv, 32, self.__title, self.__freq)
         self.render_selection_frame(cnv)
