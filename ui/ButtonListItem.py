@@ -17,19 +17,20 @@ class ButtonListItem(ListItem):
 
     BUTTON_MENU = "menu"
 
-    # override these by your subclass
-    _ITEMS_OPEN = []
-    _ITEMS_CLOSED = []
-    
-    _BUTTONS = []
 
 
     def __init__(self):
 
         self.__state = _CLOSED
         self.__button_pos = []
+        self.__buttons = []
                 
         ListItem.__init__(self)
+
+    
+    def set_buttons(self, *buttons):
+    
+        self.__buttons = buttons
 
 
     def open_menu(self):
@@ -45,18 +46,24 @@ class ButtonListItem(ListItem):
         
         
     def get_button_at(self, px):
+        """
+        Returns the button at the given position or None if there's no button
+        at that position.
+        """
     
-        if (self.__state == _CLOSED):
-            idx = 0
+        if (self.__state == _CLOSED and len(self.__buttons) > 1):
+            if (px > self.__button_pos[0]):
+                return self.BUTTON_MENU
         else:
-            idx = len(self._ITEMS_CLOSED)
-            
-        for pos in self.__button_pos:
-            if (px > pos): return self._BUTTONS[idx]
-            idx += 1
-        #end for
+            idx = 0
+            for pos in self.__button_pos:
+                if (px > pos):
+                    btn, img = self.__buttons[idx]
+                    return btn
+                idx += 1
+            #end for
         
-        return ""
+        return None
 
 
     def render_buttons(self, canvas):
@@ -66,14 +73,12 @@ class ButtonListItem(ListItem):
 
         w, h = canvas.get_size()
         
-        if (self.__state == _CLOSED):
-            items = self._ITEMS_CLOSED
-        
-        elif (self.__state == _OPEN):
-            items = self._ITEMS_OPEN
+        if (self.__state == _OPEN or len(self.__buttons) <= 1):
+            items = self.__buttons
 
         else:
-            items = []
+            items = [(self.BUTTON_MENU, theme.mb_item_btn_menu)]
+        
 
         if (self.__state == _OPEN):
             menu_width = len(items) * _GAP_SIZE - 16
@@ -82,10 +87,10 @@ class ButtonListItem(ListItem):
                               
         self.__button_pos = []
         x = w - 8
-        for i in items:
-            canvas.draw_pixbuf(i, 
-                               x - _GAP_SIZE + (_GAP_SIZE - i.get_width()) / 2,
-                               (h - i.get_height()) / 2)
+        for btn, img in items:
+            canvas.draw_pixbuf(img, 
+                               x - _GAP_SIZE + (_GAP_SIZE - img.get_width()) / 2,
+                               (h - img.get_height()) / 2)
             self.__button_pos.append(x - _GAP_SIZE)
             x -= _GAP_SIZE
         #end for

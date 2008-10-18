@@ -221,53 +221,80 @@ class ImageStrip(Widget):
     def set_images(self, images):
         """
         Sets the list of images to be displayed by the image strip.
-        It can either be a list of pixbufs or a list of filenames.
         """
 
         self.invalidate_buffer()        
         while (self.__images):
             img = self.__images.pop()
             del img  
-            
+        self.__images = []
+        
         import gc; gc.collect()
 
         if (images):
-            if (not self.__shared_pmap):
-                w, h = images[0].get_size()
-                self.__shared_pmap = SharedPixmap(w, h)
-            
-            self.__images = []
+            #if (not self.__shared_pmap):
+            #    w, h = images[0].get_size()
+            #    self.__shared_pmap = SharedPixmap(w, h)
+                        
             for img in images:
-                img.set_canvas(self.__shared_pmap)
-                self.__images.append(img)
+                self.append_image(img)
+                #img.set_canvas(self.__shared_pmap)
+                #self.__images.append(img)
                 
             #self.__images = [ f for f in images ]
-            self.__itemsize = self.__images[0].get_size()[1]
+            #self.__itemsize = self.__images[0].get_size()[1]
         
-        self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)
+        #self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)
                
         self.__offset = 0
-        self.render()
+        #self.render()
         
         
     def append_image(self, img):
 
+        w, h = self.get_size()
+        img_w, img_h = img.get_size()
+        if (self.__scrollbar_pbuf):
+            w -= self.__scrollbar_pbuf.get_width()
+        img.set_size(w, img_h)
+
         self.invalidate_buffer()
         if (not self.__shared_pmap):
-            w, h = img.get_size()
-            self.__shared_pmap = SharedPixmap(w, h)
+            self.__shared_pmap = SharedPixmap(w, img_h)
 
         img.set_canvas(self.__shared_pmap)    
         self.__images.append(img)
-        self.__itemsize = self.__images[0].get_size()[1]
+        self.__itemsize = img_h
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)
 
 
-        if (len(self.__images) < 30): self.__shared_pmap.prepare(img)
-        self.render()
+        #if (len(self.__images) < 30): self.__shared_pmap.prepare(img)
+        #self.render()
         
         return len(self.__images) - 1
-                        
+
+
+    def insert_image(self, img, pos):
+
+        w, h = self.get_size()
+        img_w, img_h = img.get_size()
+        if (self.__scrollbar_pbuf):
+            w -= self.__scrollbar_pbuf.get_width()
+        img.set_size(w, img_h)
+
+        self.invalidate_buffer()
+        if (not self.__shared_pmap):
+            self.__shared_pmap = SharedPixmap(w, img_h)
+
+        img.set_canvas(self.__shared_pmap)
+        self.__images.insert(pos + 1, img)
+        self.__itemsize = img_h
+        self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)
+
+
+        #if (len(self.__images) < 30): self.__shared_pmap.prepare(img)
+        #self.render()
+                     
         
     def replace_image(self, idx, image):
 
@@ -275,7 +302,7 @@ class ImageStrip(Widget):
        img = self.__images[idx]
        self.__images[idx] = image
        del img
-       self.render()
+       #self.render()
 
        
        
@@ -286,15 +313,9 @@ class ImageStrip(Widget):
         del self.__images[idx]
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)        
         self.__offset = max(0, min(self.__offset, self.__totalsize - h))
-        self.render()
+        #self.render()
 
-        
-    def overlay_image(self, idx, img, x, y):
-        # TODO: deprecated
 
-        self.__images[idx].draw_pixbuf(img, x, y)
-        self.render()
-        
         
     def set_wrap_around(self, value):
         """
@@ -808,10 +829,12 @@ class ImageStrip(Widget):
 
             return True
 
-        self.__scroll_to_item_index = idx
-        if (not self.__scroll_to_item_handler):
-            self.__scroll_to_item_handler = gobject.timeout_add(5, f)
+        def g():
+            if (not self.__scroll_to_item_handler):
+                self.__scroll_to_item_handler = gobject.timeout_add(5, f)
 
+        self.__scroll_to_item_index = idx
+        gobject.idle_add(g)
 
 
     def fx_slide_left(self, wait = True):

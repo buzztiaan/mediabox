@@ -5,7 +5,7 @@ A shared pixmap for low memory consumption.
 from Pixmap import Pixmap
 
 
-_CACHE_SIZE = 50
+_CACHE_SIZE = 4
 
 
 class SharedPixmap(Pixmap):

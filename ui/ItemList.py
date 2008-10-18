@@ -53,6 +53,20 @@ class ItemList(ImageStrip):
         return idx
         
         
+    def insert_item(self, item, pos):
+    
+        w, h = self.get_size()
+        #w -= 20
+        item.set_size(w, self.__height)
+
+        self.insert_image(item, pos)
+
+
+    def remove_item(self, idx):
+    
+        self.remove_image(idx)
+        
+        
     def replace_item(self, idx, item):
         """
         Replaces the item at the given position with the given item.
