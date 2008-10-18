@@ -679,10 +679,17 @@ class AppWindow(Component):
             #self.__root_pane.render_buffered()            
             self.__root_pane.fx_slide_in()
     
-        elif (event == msgs.CORE_ACT_RENDER_ALL):
+    
+        elif (event == msgs.UI_ACT_FREEZE):
+            self.__root_pane.set_frozen(True)
+            
+        elif (event == msgs.UI_ACT_THAW):
+            self.__root_pane.set_frozen(False)
             self.__root_pane.render_buffered()
-            #self.__root_pane.render()
-            self.drop_event()
+            
+        elif (event == msgs.UI_ACT_RENDER):
+            self.__root_pane.render_buffered()
+            
 
         elif (event == msgs.CORE_ACT_VIEW_MODE):
             mode = args[0]
@@ -843,8 +850,8 @@ class AppWindow(Component):
         thumbnails = collection #[ item.thumbnail_pmap for item in collection ]
         
         self.__strip.set_images(thumbnails)
-        self.__strip.invalidate_buffer()
-        self.__strip.render()
+        #self.__strip.invalidate_buffer()
+        #self.__strip.render()
 
         # if the collection is empty, tell the user that she can add items
         #if (not collection and self.__view_mode == viewmodes.NORMAL):

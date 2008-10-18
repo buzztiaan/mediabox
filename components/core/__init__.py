@@ -93,5 +93,10 @@ messages = [
     #
     "NOTIFY_SVC_SHOW_INFO",     # (text)
     "NOTIFY_SVC_SHOW_PROGRESS", # (amount, total, text)
+    
+    "UI_ACT_FREEZE",
+    "UI_ACT_THAW",
+    "UI_ACT_RENDER",
+    "UI_ACT_VIEW_MODE",         # (mode)
 ]    
 
