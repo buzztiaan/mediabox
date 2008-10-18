@@ -85,8 +85,6 @@ class VideoWidget(MediaWidget):
 
     def render_this(self):
 
-        #while (gtk.events_pending()): gtk.main_iteration()
-
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()    
@@ -107,13 +105,14 @@ class VideoWidget(MediaWidget):
             self.__screen.show()
 
 
-    #def set_frozen(self, value):
-    # 
-    #    MediaWidget.set_frozen(self, value)
-    #    if (not value and self.may_render() and self.__player and self.__player.has_video()):
-    #        self.__screen.show()
-    #    else:
-    #        self.__screen.hide()
+    def set_frozen(self, value):
+     
+        MediaWidget.set_frozen(self, value)
+        if (not value and self.may_render() and self.__player and \
+              self.__player.has_video()):
+            self.__screen.show()
+        else:
+            self.__screen.hide()
 
         
     def __on_expose(self, src, ev):
