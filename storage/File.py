@@ -14,29 +14,59 @@ class File(object):
     def __init__(self, device):
     
         self.__device = device
-        self.path = ""
+
 
         self.can_add = False
+        """whether the user may add items to this folder"""
+        
         self.can_delete = False
+        """whether the user may delete this file"""
+                
         self.can_download = False
+        """whether the user may download this file"""
+
+        self.is_local = False
+        """whether this file is local"""
+        
+
+        self.path = ""
+        """virtual path of the file on the device"""
 
         self.name = ""
-        
-        self.title = ""
-        self.artist = ""
-        self.album = ""
-        self.trackno = 0
-        self.child_count = 0
+        """name of the file presented to the user"""
+
         self.info = ""
-        self.mimetype = self.FILE
-        self.emblem = None
-        self.source_icon = None
-        self.resource = ""
-        self.md5 = ""
-        self.thumbnail_md5 = ""
+        """some info text"""
+        
+        self.description = ""
+        """text for further description"""
+
+        self.parent = ""
+        """name of parent folder, if any (can be used for grouping items)"""
+
         self.thumbnail = ""
+        """may contain the URI of a thumbnail image"""
+        
+        self.mimetype = self.FILE
+        """MIME type of the file"""
+        
+        self.source_icon = None
+        """pixbuf icon representing the source device"""
+        
+        self.resource = ""
+        """URI for accessing the file"""
+
+        
+        #self.title = ""
+        #self.artist = ""
+        #self.album = ""
+        #self.trackno = 0
+        self.child_count = 0
+        self.emblem = None
         
         self.tags = None
+
+
 
 
     def __cmp__(self, other):
@@ -47,27 +77,49 @@ class File(object):
             return 1
 
 
-    def get_full_path(self):
-        """
-        Returns the full path for locating this file.
-        """
-        
+    def __repr__(self):
+    
+        return "<" + self.full_path + ">"
+
+
+    def __get_full_path(self):
+    
         return self.__device.get_prefix() + self.path
         
-        
-    def get_md5(self):
+    full_path = property(__get_full_path)
+    """full virtual path of the file"""
     
-        if (not self.md5):
-            self.md5 = md5.new(self.get_full_path()).hexdigest()
-        return self.md5
-
-
-    def get_thumbnail_md5(self):
     
-        if (not self.thumbnail_md5):
-            self.thumbnail_md5 = md5.new(self.get_full_path()).hexdigest()
-        return self.thumbnail_md5
+
+    def __get_md5(self):
         
+        try:
+            return self.__md5
+        except:
+            self.__md5 = md5.new(self.full_path).hexdigest()
+            return self.__md5
+
+    md5 = property(__get_md5)
+    """MD5 sum for uniquely identifying the file internally"""
+
+    
+
+    def __get_thumbnail_md5(self):
+    
+        try:
+            return self.__thumbnail_md5
+        except:
+            return self.md5
+            
+    def __set_thumbnail_md5(self, v):
+    
+        self.__thumbnail_md5 = v
+
+    thumbnail_md5 = property(__get_thumbnail_md5,
+                             __set_thumbnail_md5)
+    """MD5 sum for uniquely identifying the file's thumbnail preview"""
+
+       
         
     def new_file(self):
     
@@ -75,11 +127,17 @@ class File(object):
         
         
     def delete(self):
+        """
+        Deletes this file.
+        """
     
         return self.__device.delete(self)
         
         
     def get_children(self):
+        """
+        Returns a list of children of this folder.
+        """
     
         return self.__device.ls(self.path)
 
