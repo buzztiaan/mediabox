@@ -113,6 +113,6 @@ class Thumbnailer(object):
         Returns the path for the thumbnail for the given file.
         """
 
-        thumb = self.__thumb_folder + "/" + f.get_thumbnail_md5() + ".jpg"
+        thumb = self.__thumb_folder + "/" + f.thumbnail_md5 + ".jpg"
         return thumb
 
