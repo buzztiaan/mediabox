@@ -8,6 +8,7 @@ import theme
 class IRadio(Device):
 
     CATEGORY = Device.CATEGORY_WAN
+    TYPE = Device.TYPE_AUDIO
 
     def __init__(self):
     
@@ -36,7 +37,7 @@ class IRadio(Device):
         f = File(self)
         f.source_icon = self.get_icon()
         f.path = "/"
-        f.name = "Internet Radio"
+        f.name = self.get_name()
         f.mimetype = f.DIRECTORY
         f.resource = ""
         
