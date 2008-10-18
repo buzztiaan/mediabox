@@ -52,7 +52,7 @@ class AudioStorage(Device):
 
     def get_icon(self):
     
-        return theme.mb_device_n800
+        return theme.mb_device_audio
 
 
     def get_root(self):
