@@ -39,7 +39,6 @@ def make_thumbnail(f, dest):
     # look for a cover file    
     if (not cover):
         contents = os.listdir(f.resource)
-        print "CHILDREN", f, contents
         candidates = (".folder.png", "folder.jpg", "cover.jpg",
                       "cover.jpeg", "cover.png")
         for c in contents:
@@ -60,7 +59,6 @@ def make_thumbnail(f, dest):
         #end for
     #end if
     
-    print "COVER", cover
     # look for an embedded cover
     if (not cover):
         pbuf = __find_embedded_cover(f.get_children())
