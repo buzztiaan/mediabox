@@ -18,7 +18,8 @@ def make_thumbnail_async(f, dest, cb):
             loader.close()
             pbuf = loader.get_pixbuf()
             del loader
-            pbuf.save(dest, "jpeg")
+            if (pbuf):
+                pbuf.save(dest, "jpeg")
             del pbuf
         except:
             import traceback; traceback.print_exc()
