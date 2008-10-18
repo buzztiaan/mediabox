@@ -9,7 +9,6 @@ from mediabox.TitlePanel import TitlePanel
 from mediabox.ControlPanel import ControlPanel
 from mediabox.TabPanel import TabPanel
 from mediabox.WindowControls import WindowControls
-from mediabox.Thumbnailer import Thumbnailer
 from mediabox.ViewerState import ViewerState
 from ui.Image import Image
 from ui.Pixmap import Pixmap
@@ -118,11 +117,6 @@ class AppWindow(Component):
         self.__kscr = KineticScroller(self.__strip)
         self.__kscr.set_touch_area(0, 108)
         self.__kscr.add_observer(self.__on_observe_strip)
-
-        # thumbnail screen
-        self.__thumbnailer = Thumbnailer()
-        self.__thumbnailer.set_visible(False)
-        self.__root_pane.add(self.__thumbnailer)
 
         # title panel
         self.__title_panel_left = Image(None)
@@ -427,8 +421,6 @@ class AppWindow(Component):
         self.__set_view_mode(viewmodes.TITLE_ONLY)
         if (self.__current_viewer):
             self.__current_viewer.set_visible(False)
-        self.__thumbnailer.clear()        
-        self.__thumbnailer.set_visible(True)
         self.__root_pane.render_buffered()
         #while (gtk.events_pending()): gtk.main_iteration()
 
@@ -451,7 +443,6 @@ class AppWindow(Component):
 
         if (self.__current_viewer):
             self.__current_viewer.set_visible(True)        
-        self.__thumbnailer.set_visible(False)
         self.__root_pane.render_buffered()
 
         import gc; gc.collect()
@@ -500,9 +491,11 @@ class AppWindow(Component):
             self.emit_event(msgs.HWKEY_EV_DECREMENT)
             
         elif (key == "Up"):
-            self.__kscr.impulse(0, 7.075)
+            self.emit_event(msgs.HWKEY_EV_UP)
+            #self.__kscr.impulse(0, 7.075)
         elif (key == "Down"):
-            self.__kscr.impulse(0, -7.075)
+            self.emit_event(msgs.HWKEY_EV_DOWN)
+            #self.__kscr.impulse(0, -7.075)
             
         elif (key == "XF86Headset"):
             #self.__current_viewer.do_enter()
@@ -670,13 +663,7 @@ class AppWindow(Component):
         elif (event == msgs.CORE_ACT_SCAN_MEDIA):
             force = args[0]
             self.__scan_media(force)
-
-        #elif (event == msgs.MEDIASCANNER_EV_THUMBNAIL_GENERATED):
-        #    thumburi, f = args
-        #    name = os.path.basename(f.name)
-        #    self.__title_panel.set_title(name)
-        #    self.__thumbnailer.show_thumbnail(thumburi, name)
-    
+   
         #elif (event == msgs.CORE_EV_DEVICE_ADDED):
         #    ident, dev = args
         #    gobject.timeout_add(0, self.__scan_media, True)
@@ -707,7 +694,7 @@ class AppWindow(Component):
             def f():
                 self.__scan_media(True)
                 self.__media_scan_scheduled = False
-    
+
             if (not self.__media_scan_scheduled):
                 self.__media_scan_scheduled = True
                 gobject.timeout_add(500, f)
