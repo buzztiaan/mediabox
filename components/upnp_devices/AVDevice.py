@@ -25,6 +25,7 @@ class AVDevice(Device):
     """
 
     CATEGORY = Device.CATEGORY_LAN
+    TYPE = Device.TYPE_GENERIC
     
 
     # supported UPnP device types
