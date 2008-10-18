@@ -13,6 +13,7 @@ import commands
 class LocalDevice(Device):
 
     CATEGORY = Device.CATEGORY_CORE
+    TYPE = Device.TYPE_GENERIC
     
 
     def __init__(self):
@@ -50,6 +51,7 @@ class LocalDevice(Device):
     def get_root(self):
     
         f = File(self)
+        f.is_local = True
         f.path = "MENU"
         f.mimetype = f.DIRECTORY
         f.resource = ""
@@ -72,6 +74,7 @@ class LocalDevice(Device):
            ("Games", "/home/user/MyDocs/.games", File.DIRECTORY, None),
            ("System", "/", File.DIRECTORY, None)]:
             item = File(self)
+            item.is_local = True
             #item.source_icon = self.get_icon()
             item.path = path
             item.resource = path
@@ -92,6 +95,7 @@ class LocalDevice(Device):
                    if os.path.isdir(os.path.join("/media", f)) ]:
             path = os.path.join("/media", f)
             item = File(self)
+            item.is_local = True
             #item.source_icon = self.get_icon()
             item.path = path
             item.resource = path
@@ -107,6 +111,7 @@ class LocalDevice(Device):
     def get_file(self, path):
 
         item = File(self)
+        item.is_local = True
         #item.source_icon = self.get_icon()
         item.path = path
         item.name = os.path.basename(path)
@@ -154,9 +159,11 @@ class LocalDevice(Device):
         items = []
         for f in files:
             item = File(self)
+            item.is_local = True
             #item.source_icon = self.get_icon()
             item.path = os.path.join(path, f)
             item.name = f
+            item.parent = os.path.basename(path)
             item.resource = os.path.join(path, f)
 
             if (os.path.isdir(item.resource)):
