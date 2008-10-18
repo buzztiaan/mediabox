@@ -125,13 +125,19 @@ class ImageViewer(Viewer):
         def on_thumbnail(thumb, tn, files):
             tn.set_thumbnail(thumb)
             tn.invalidate()
-            self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
-            
+            self.call_service(msgs.NOTIFY_SVC_SHOW_PROGRESS,
+                              total_length - len(tn_list),
+                              total_length,
+                              "Creating thumbnails")
+
             if (tn_list):
                 f, tn = tn_list.pop(0)
                 self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
                                   on_thumbnail, tn, tn_list)
+            else:
+                self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
         
+        total_length = len(tn_list)
         f, tn = tn_list.pop(0)
         self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
                           on_thumbnail, tn, tn_list)

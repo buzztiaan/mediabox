@@ -1,6 +1,5 @@
-from AlbumViewer import AlbumViewer
-
-
 def get_classes():
 
-    return [AlbumViewer]
+    from AlbumViewer import AlbumViewer
+    return [] #[AlbumViewer]
+

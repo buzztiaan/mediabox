@@ -13,13 +13,6 @@ class HeaderItem(ButtonListItem):
     BUTTON_ADD_TO_LIBRARY = "add-to-library"
 
 
-    _ITEMS_CLOSED = [theme.mb_item_btn_menu]
-    _ITEMS_OPEN = [theme.mb_item_btn_add, theme.mb_item_btn_enqueue]
-
-    _BUTTONS = [ButtonListItem.BUTTON_MENU,
-                BUTTON_ADD_TO_LIBRARY, BUTTON_ENQUEUE]
-
-
     def __init__(self, title):
 
         self.__label = self.escape_xml(title)
@@ -29,6 +22,9 @@ class HeaderItem(ButtonListItem):
         self.set_graphics(theme.button_1, theme.button_2)
         self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
         self.set_font(theme.font_plain)
+
+        self.set_buttons((self.BUTTON_ADD_TO_LIBRARY, theme.mb_item_btn_add),
+                         (self.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
 
 
     def set_info(self, text):

@@ -1,9 +1,7 @@
-from FolderViewer import FolderViewer
-
-
 def get_classes():
 
-    return [FolderViewer]
+    from FolderViewer import FolderViewer
+    return [] #FolderViewer]
 
 
 

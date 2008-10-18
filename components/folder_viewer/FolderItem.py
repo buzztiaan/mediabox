@@ -6,9 +6,9 @@ class FolderItem(ListItem):
     """
     List item for folders.
     """
-
-    _ITEMS_CLOSED = [theme.mb_item_btn_play]
-    _ITEMS_OPEN = []
-
-    _BUTTONS = [ListItem.BUTTON_PLAY]
+    
+    def __init__(self, f, thumbnail):
+    
+        ListItem.__init__(self, f, thumbnail)
+        self.set_buttons((self.BUTTON_PLAY, theme.mb_item_btn_play))
 

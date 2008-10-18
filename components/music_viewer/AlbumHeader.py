@@ -13,10 +13,7 @@ class AlbumHeader(TrackItem):
     BUTTON_ADD_ALBUM = "add-album"
     BUTTON_ADD_TRACK = "add-track"
 
-    _ITEMS_CLOSED = [theme.mb_item_btn_enqueue]
-    _ITEMS_OPEN = []
 
-    _BUTTONS = [BUTTON_ADD_ALBUM]
     
 
     def __init__(self, cover, name, num_of_items):
@@ -26,4 +23,5 @@ class AlbumHeader(TrackItem):
         self.set_graphics(theme.button_1, theme.button_2)
         self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
         self.set_font(theme.font_plain)
-        
+
+        self.set_buttons((self.BUTTON_ADD_ALBUM, theme.mb_item_btn_enqueue))

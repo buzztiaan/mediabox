@@ -8,5 +8,5 @@ def get_classes():
     if (maemo.get_product_code() in ["SU-18"]):
         return []
     else:
-        return [VideoViewer]
+        return []#[VideoViewer]
 

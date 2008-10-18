@@ -22,7 +22,7 @@ class LibItem(ButtonListItem):
         self.__media_types = 7
         self.__icon = f.source_icon
         self.__label = self.escape_xml(f.name)
-        self.__fullpath = f.get_full_path()
+        self.__fullpath = f.full_path
         self.__sublabel = self.escape_xml(self.__fullpath)        
         
         ButtonListItem.__init__(self)

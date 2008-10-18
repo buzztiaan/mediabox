@@ -14,13 +14,6 @@ class ListItem(ButtonListItem):
     BUTTON_REMOVE = "remove"
 
 
-    _ITEMS_CLOSED = [theme.mb_item_btn_menu]
-    _ITEMS_OPEN = [theme.mb_item_btn_play, theme.mb_item_btn_enqueue]
-
-    _BUTTONS = [ButtonListItem.BUTTON_MENU,
-                BUTTON_PLAY, BUTTON_ENQUEUE]
-
-
     def __init__(self, f, thumbnail):
 
         self.__icon = thumbnail
@@ -31,9 +24,12 @@ class ListItem(ButtonListItem):
         self.__mimetype = f.mimetype
         
         
-        ButtonListItem.__init__(self)
+        ButtonListItem.__init__(self)        
         self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
-        self.set_font(theme.font_plain)
+        self.set_font(theme.font_tiny)
+        
+        self.set_buttons((self.BUTTON_PLAY, theme.mb_item_btn_play),
+                         (self.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
 
 
     def set_icon(self, icon):

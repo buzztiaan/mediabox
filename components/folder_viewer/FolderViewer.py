@@ -339,7 +339,7 @@ class FolderViewer(Viewer):
             self.__save_library()
         #end if
         
-                
+
     def __on_item_button(self, item, idx, button):
         
         def on_child(f, items):
