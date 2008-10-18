@@ -20,6 +20,11 @@ class ImageStrip(Widget):
     """
 
     def __init__(self, gapsize):
+        """
+        Creates a new ImageStrip object.
+        
+        @param gapsize: size of the gap between images in pixels.
+        """
     
         self.__arrows = (None, None, None, None)
         self.__arrows_save_under = None
@@ -52,11 +57,7 @@ class ImageStrip(Widget):
         
         self.__scroll_to_item_handler = None
         self.__scroll_to_item_index = 0
-        
-        # the selection offset initially selects the item in the middle and
-        # centers the view around it
-        self.__selection_offset = 0 #(self.__height - self.__itemsize) / 2
-        
+
         # whether we wrap around
         self.__wrap_around = True
         
@@ -129,6 +130,10 @@ class ImageStrip(Widget):
         """
         Sets the top and bottom caps for visual effects. Pass None as value to
         disable a cap.
+        Caps are overlay pixbufs and can e.g. be used for fading effects.
+        
+        @param top: pixbuf for the top cap
+        @param bottom: pixbuf for the bottom cap
         """
     
         self.invalidate_buffer()
@@ -144,6 +149,10 @@ class ImageStrip(Widget):
         """
         Sets arrow graphics from the given pixbufs. If 'arrows_off' is given,
         it must be the same size as 'arrows'.
+        Arrows are displayed if the list can be scrolled in that direction.        
+        
+        @param arrows:     pixbuf for the arrows
+        @param arrows_off: pixbuf for the disabled arrows
         """
 
         self.invalidate_buffer()
@@ -175,12 +184,22 @@ class ImageStrip(Widget):
     def get_arrows (self):
         """
         Returns the arrow graphics or None if no arrows were set.
+        
+        @return: the arrows pixbuf
         """
 
         return self.__arrows
 
 
     def set_scrollbar(self, pbuf):
+        """
+        Sets a pixbuf to use for displaying a scrollbar.
+        Pass 'None' in order to remove the scrollbar again.
+        
+        The scrollbar is not interactive.
+        
+        @param pbuf: the pixbuf for the scrollbar
+        """
     
         self.invalidate_buffer()
     
@@ -200,6 +219,9 @@ class ImageStrip(Widget):
         """
         Floats the given item at the given position. Position is relative
         to the current offset.
+        
+        @param idx: index number of the item to float
+        @param pos: position where to display the item
         """
 
         self.invalidate_buffer()
@@ -209,11 +231,22 @@ class ImageStrip(Widget):
 
 
     def get_image(self, idx):
+        """
+        Returns the item with the given index.
+        
+        @param idx: index number of the item to retrieve
+        @return: item object
+        """
     
         return self.__images[idx]
         
         
     def get_images(self):
+        """
+        Returns a list of all items.
+        
+        @return: list of all items
+        """
     
         return self.__images[:]
         
@@ -221,9 +254,11 @@ class ImageStrip(Widget):
     def set_images(self, images):
         """
         Sets the list of images to be displayed by the image strip.
+        
+        @param images: list of StripItem objects
         """
 
-        self.invalidate_buffer()        
+        # remove current images
         while (self.__images):
             img = self.__images.pop()
             del img  
@@ -231,26 +266,21 @@ class ImageStrip(Widget):
         
         import gc; gc.collect()
 
-        if (images):
-            #if (not self.__shared_pmap):
-            #    w, h = images[0].get_size()
-            #    self.__shared_pmap = SharedPixmap(w, h)
-                        
-            for img in images:
-                self.append_image(img)
-                #img.set_canvas(self.__shared_pmap)
-                #self.__images.append(img)
-                
-            #self.__images = [ f for f in images ]
-            #self.__itemsize = self.__images[0].get_size()[1]
-        
-        #self.__totalsize = (self.__itemsize + self.__gapsize) * len(images)
-               
+        # append new images
+        for img in images:
+            self.append_image(img)
+        #endfor
+
         self.__offset = 0
-        #self.render()
         
         
     def append_image(self, img):
+        """
+        Appends the given image item to the list.
+        
+        @param img: StripItem object to append
+        @return: index of the newly appended image
+        """
 
         w, h = self.get_size()
         img_w, img_h = img.get_size()
@@ -262,19 +292,25 @@ class ImageStrip(Widget):
         if (not self.__shared_pmap):
             self.__shared_pmap = SharedPixmap(w, img_h)
 
-        img.set_canvas(self.__shared_pmap)    
+        img.set_canvas(self.__shared_pmap)
         self.__images.append(img)
         self.__itemsize = img_h
+
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)
 
 
         #if (len(self.__images) < 30): self.__shared_pmap.prepare(img)
-        #self.render()
         
         return len(self.__images) - 1
 
 
     def insert_image(self, img, pos):
+        """
+        Inserts the given image item at the given position.
+        
+        @param img: StripItem object to insert
+        @param pos: index position after which the image gets inserted
+        """
 
         w, h = self.get_size()
         img_w, img_h = img.get_size()
@@ -291,12 +327,16 @@ class ImageStrip(Widget):
         self.__itemsize = img_h
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)
 
-
         #if (len(self.__images) < 30): self.__shared_pmap.prepare(img)
-        #self.render()
                      
         
     def replace_image(self, idx, image):
+       """
+       Replaces the image item at the given position with a new one.
+       
+       @param idx: index of the item to replace
+       @param image: StripItem object with which to replace
+       """
 
        self.invalidate_buffer()
        img = self.__images[idx]
@@ -307,12 +347,21 @@ class ImageStrip(Widget):
        
        
     def remove_image(self, idx):
+        """
+        Removes the image at the given position.
+        
+        @param idx: index of the image to remove
+        """
     
         self.invalidate_buffer()
         w, h = self.get_size()
         del self.__images[idx]
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)        
-        self.__offset = max(0, min(self.__offset, self.__totalsize - h))
+
+        if (self.__offset > idx * (self.__itemsize + self.__gapsize)):
+            self.__offset = max(0, self.__offset - \
+                                   (self.__itemsize + self.__gapsize))
+
         #self.render()
 
 
@@ -320,6 +369,8 @@ class ImageStrip(Widget):
     def set_wrap_around(self, value):
         """
         Sets whether the strip wraps around, i.e. it has no beginning or end.
+        
+        @param value: whether to wrap around
         """
     
         self.__wrap_around = value
@@ -327,27 +378,22 @@ class ImageStrip(Widget):
         if (not value):
             w, h = self.get_size()
             self.__offset = max(0, min(self.__offset, self.__totalsize - h))
-        
-        
-        
-    def set_selection_offset(self, seloff):
-        """
-        Sets the selection offset.
-        The selection offset is the position specifying the currently
-        selected item.
-        E.g., a selection offset of 0 selects the item displayed at the top,
-        while a selection offset of height / 2 - itemsize / 2 selects the item
-        in the middle.
-        This setting also affects the index_fraction.        
-        """
+
+    def __is_wrap_around(self):
     
-        self.__selection_offset = seloff
+        w, h = self.get_size()
+        h -= (self.__cap_top_size[1] + self.__cap_bottom_size[1])
         
+        return (self.__wrap_around and self.__totalsize > h)
+
         
     def get_index_at(self, y):
         """
         Returns the index of the item at the given position or -1 if there's no
         item at that position.
+        
+        @param y: position
+        @return: index of the item at that position
         """
         
         idx, relpos = self.get_index_at_and_relpos(y)
@@ -359,6 +405,10 @@ class ImageStrip(Widget):
         Returns the index of the item at the given position or -1 if there's no
         item at that position. Also returns, the per one percentage of the
         y position inside the row.
+
+        @param y: position
+        @return: tuple of index of the item at that position and the relative
+                 position
         """
       
         if (not self.__is_scrollable()):
@@ -374,7 +424,7 @@ class ImageStrip(Widget):
             inside_y = (float(pos) / blocksize) - index
             
             if (index < 0 or index >= len(self.__images)):
-                if (self.__wrap_around):
+                if (self.__is_wrap_around()):
                     index %= len(self.__images)
                 else:
                     index = -1
@@ -385,6 +435,9 @@ class ImageStrip(Widget):
     def swap(self, idx1, idx2):
         """
         Swaps the place of two images.
+        
+        @param idx1: place 1
+        @param idx2: place 2
         """
         
         self.invalidate_buffer()
@@ -406,11 +459,21 @@ class ImageStrip(Widget):
     
      
     def get_offset(self):
+        """
+        Returns the current display offset.
+        
+        @return: current display offset
+        """
     
         return self.__offset
         
         
     def set_offset(self, offset):
+        """
+        Sets the current display offset.
+        
+        @param offset: new display offset
+        """
     
         w, h = self.get_size()
         offset = min(offset, max(0, self.__totalsize - h))
@@ -418,6 +481,9 @@ class ImageStrip(Widget):
         
         
     def __render_arrows(self):
+        """
+        Renders the arrows onto the buffer.
+        """
 
         if (not self.may_render()): return
 
@@ -452,6 +518,9 @@ class ImageStrip(Widget):
 
 
     def __unrender_arrows(self):
+        """
+        Removes the arrows from the buffer.
+        """
 
         if (not self.may_render()): return
         
@@ -474,6 +543,9 @@ class ImageStrip(Widget):
         
         
     def __render_scrollbar(self):
+        """
+        Renders the scrollbar onto the buffer.
+        """
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
@@ -503,6 +575,9 @@ class ImageStrip(Widget):
 
     
     def __render_floating_item(self):
+        """
+        Renders the floating item onto the buffer.
+        """
     
         x, y = self.get_screen_pos()
         w, h = self.get_size()
@@ -522,12 +597,18 @@ class ImageStrip(Widget):
 
 
     def __render_buffered(self, screen, offset, height):
+        """
+        Composes the widget onto the buffer.
+        """
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
 
         TEMPORARY_PIXMAP.copy_pixmap(self.__buffer, x, y, x, y, w, h)
 
+        #if (self.__arrows[0]):
+        #    self.__render_arrows()
+        
         if (self.__scrollbar_pmap):
             self.__render_scrollbar()
             
@@ -548,23 +629,14 @@ class ImageStrip(Widget):
 
         
     def render_this(self):
-
-        def render_later():
-            print "LATER", self.may_render()
-            self.invalidate_buffer()
-            self.render()
-            
-        x, y = self.get_screen_pos()
+          
         w, h = self.get_size()
         screen = self.get_screen()
 
         if (self.__buffer_dirty):
-            #if (screen.is_buffered()):
             self.render_full()
-            #else:
-            #    gobject.idle_add(render_later)
-
             self.__render_buffered(screen, 0, h)
+            
         else:
             # nothing changed; simply render the buffer again
             #print "restoring from buffer"
@@ -574,7 +646,7 @@ class ImageStrip(Widget):
         
     def render_full(self):
         """
-        Fully renders the widget.
+        Fully renders the widget onto the buffer.
         """
     
         w, h = self.get_size()
@@ -610,7 +682,7 @@ class ImageStrip(Widget):
             idx = ((self.__offset + render_offset) / blocksize)
 
             # wrap around is not available when there are too few items
-            if (self.__wrap_around and h < self.__totalsize):
+            if (self.__is_wrap_around()):
                 idx %= len(self.__images)
             elif (idx >= len(self.__images) or idx < 0):
                 break                            
@@ -700,6 +772,12 @@ class ImageStrip(Widget):
 
         
     def move(self, nil, delta):
+        """
+        Scrolls the strip by the given amount.
+        
+        @param nil: ignored (for compatibility with the KineticScroller)
+        @param delta: amount to scroll
+        """
     
         if (not self.__scroll_to_item_handler):
             self.__move(nil, delta)
@@ -717,7 +795,7 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        if (not (self.__wrap_around and h < self.__totalsize)):
+        if (not self.__is_wrap_around()):
             if (self.__offset + delta > self.__totalsize - h):
                 return
             elif (self.__offset + delta < 0):
@@ -752,14 +830,14 @@ class ImageStrip(Widget):
         self.__render_buffered(screen, 0, h)
 
 
-    def scroll_to_item(self, idx):
+    def scroll_to_item(self, idx, force_on_top = False):
         """
         Scrolls to bring the given item into view.
+        
+        @param idx: index of the item to scroll to
+        @param force_on_top: whether the item must appear on top
         """
 
-        w, h = self.get_size()
-
-        
         def f():
             idx = self.__scroll_to_item_index
             offset = self.__offset
@@ -774,24 +852,30 @@ class ImageStrip(Widget):
                 offset2 -= self.__cap_top_size[1]
             if (self.__cap_bottom):
                 offset1 += self.__cap_bottom_size[1]
-            
-            #if (self.__totalsize > 2 * h):
-            #    offset1 += h / 3
-            #    offset2 -= h / 3
-            
+
             offset3 = offset1 + self.__totalsize
             offset4 = offset2 + self.__totalsize
-
-
-            if (offset1 <= self.__offset <= offset2 or 
+            
+            if (force_on_top):
+                offset1 = offset2
+                offset3 = offset4
+    
+            # stop scrolling if item is visible
+            elif (offset1 <= self.__offset <= offset2 or 
                 offset3 <= self.__offset <= offset4):
                 self.__scroll_to_item_handler = None
                 return False                
+
+            # no need to have this animated while the widget is hidden
+            if (not self.may_render()):
+                self.__offset = max(0, offset2)
+                self.__scroll_to_item_handler = None
+                return False
            
             # how far would we have to scroll up or down?
             distance1 = offset1 - self.__offset
             distance2 = offset2 - self.__offset
-            if (self.__wrap_around):
+            if (self.__is_wrap_around()):
                 distance3 = (offset2 - self.__totalsize) - self.__offset
                 distance4 = (offset1 + self.__totalsize) - self.__offset
             else:
@@ -803,7 +887,7 @@ class ImageStrip(Widget):
             distances = [distance1, distance2, distance3, distance4]
             distances.sort(c)
             distance = distances[0]
-                
+                                
             # cheat to make scrolling through laaaaarge lists faster
             if (distance > 1000):
                 self.__offset += distance - 500
@@ -812,9 +896,9 @@ class ImageStrip(Widget):
 
             delta = distance / 10
 
-            if (distance < 0):
+            if (distance < 2):
                 self.__move(0, max(-h, min(-1, delta)))
-            elif (distance > 0):
+            elif (distance > 2):
                 self.__move(0, min(h, max(1, delta)))
             else:
                 self.__scroll_to_item_handler = None
@@ -829,14 +913,17 @@ class ImageStrip(Widget):
 
             return True
 
-        def g():
-            if (not self.__scroll_to_item_handler):
-                self.__scroll_to_item_handler = gobject.timeout_add(5, f)
-
+        w, h = self.get_size()
         self.__scroll_to_item_index = idx
-        gobject.idle_add(g)
+        if (not self.__scroll_to_item_handler):
+            self.__scroll_to_item_handler = gobject.timeout_add(5, f)
+            self.set_events_blocked(True)
+            while (self.__scroll_to_item_handler):
+                gtk.main_iteration(False)
+            self.set_events_blocked(False)
 
 
+    """
     def fx_slide_left(self, wait = True):
     
         STEP = 16
@@ -944,4 +1031,4 @@ class ImageStrip(Widget):
 
         f(0)
         while (wait and not finished.isSet()): gtk.main_iteration(False)
-
+    """
