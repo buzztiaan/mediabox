@@ -7,12 +7,13 @@ import config
 
 import time
 import dbus, dbus.service
+import gobject
 
 
 class _Request(dbus.service.Object): 
   def __init__(self, bus_name): 
     dbus.service.Object.__init__(self, bus_name, '/com/nokia/bme/request')
-  
+
   @dbus.service.signal('com.nokia.bme.request') 
   def timeleft_info_req(self): 
      pass
@@ -40,7 +41,9 @@ class BatteryMonitor(Component):
         system_bus.add_signal_receiver(self.__charging_on_cb, 'charger_charging_on')
         system_bus.add_signal_receiver(self.__charging_off_cb, 'charger_charging_off')
         bus_name = dbus.service.BusName('com.nokia.bme.request', system_bus) 
-        self.__request = _Request(bus_name)        
+        self.__request = _Request(bus_name)
+        
+        gobject.idle_add(self.__request.timeleft_info_req)
 
 
     def __timeleft_cb(self, idle_time, active_time):
@@ -64,17 +67,17 @@ class BatteryMonitor(Component):
         self.__is_charging = False
        
         
-    def handle_event(self, msg, *args):
-    
-        # no matter what event
-        now = time.time()
-        if (now > self.__last_check + 60):
-            self.__last_check = now
-            self.__check_battery()
+    #def handle_event(self, msg, *args):
+    #
+    #    # no matter what event
+    #    now = time.time()
+    #    if (now > self.__last_check + 60):
+    #        self.__last_check = now
+    #        self.__check_battery()
             
             
     def __check_battery(self):
     
-        self.__request.status_info_req()
+        #self.__request.status_info_req()
         self.__request.timeleft_info_req()
 
