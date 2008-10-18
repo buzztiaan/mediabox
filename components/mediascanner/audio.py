@@ -25,6 +25,7 @@ def is_media(f):
 
 def make_thumbnail_async(f, dest, cb):
 
+    # TODO: make this truly async
     make_thumbnail(f, dest)
     cb()
 
@@ -37,11 +38,12 @@ def make_thumbnail(f, dest):
     
     # look for a cover file    
     if (not cover):
-        contents = f.get_children()
+        contents = os.listdir(f.resource)
+        print "CHILDREN", f, contents
         candidates = (".folder.png", "folder.jpg", "cover.jpg",
                       "cover.jpeg", "cover.png")
         for c in contents:
-            if (c.name in candidates):
+            if (c in candidates):
                 cover = c
                 break
         #end for
@@ -49,17 +51,22 @@ def make_thumbnail(f, dest):
     
     if (not cover):
         for c in contents:
-            if (c.mimetype.startswith("image/")):
+            cl = c.lower()
+            if (cl.endswith(".jpg") or \
+                  cl.endswith(".png") or \
+                  cl.endswith(".jpeg")):
                 cover = c
+                break
         #end for
     #end if
-
+    
+    print "COVER", cover
     # look for an embedded cover
     if (not cover):
-        pbuf = __find_embedded_cover(contents)
+        pbuf = __find_embedded_cover(f.get_children())
         
     else:
-        pbuf = __load_pbuf(cover)
+        pbuf = __load_pbuf(os.path.join(f.resource, cover))
 
     if (pbuf):
         pbuf.save(dest, "jpeg")
@@ -67,13 +74,6 @@ def make_thumbnail(f, dest):
         
         
 def __load_pbuf(cover):        
-
-    def on_data(d, amount, total, loader, finished):
-        if (d):
-            loader.write(d)
-        else:
-            finished.set()
-
 
     def on_size_available(loader, width, height):
         factor = 1
@@ -85,11 +85,7 @@ def __load_pbuf(cover):
 
     loader = gtk.gdk.PixbufLoader()
     loader.connect("size-prepared", on_size_available)
-
-    finished = threading.Event()
-    cover.load(0, on_data, loader, finished)
-    while (not finished.isSet()):
-        gtk.main_iteration(False)
+    loader.write(open(cover).read())
 
     try:
         loader.close()
