@@ -1,9 +1,12 @@
+from com import Component
+
+
 """
 Base class of all storage devices.
 """
 
 
-class Device(object):
+class Device(Component):
     """
     Base class for browsable storage devices.
     Storage devices provide virtual file systems for use by MediaBox.
@@ -16,14 +19,20 @@ class Device(object):
     CATEGORY_LAN = 2
     CATEGORY_WAN = 3
     CATEGORY_OTHER = 4
+    
+    TYPE_GENERIC = 0
+    TYPE_AUDIO = 1
+    TYPE_VIDEO = 2
+    TYPE_IMAGE = 3
 
 
     CATEGORY = CATEGORY_OTHER
+    TYPE = TYPE_GENERIC
 
 
     def __init__(self):
     
-        pass
+        Component.__init__(self)
         
         
     def get_prefix(self):
@@ -97,7 +106,18 @@ class Device(object):
         given path.
         """
     
-        raise NotImplementedError
+        def cb(f, items, finished):
+            if (f):
+                items.append(f)
+            else:
+                finished[0] = True
+                
+        finished = [False]
+        items = []
+        self.ls_async(path, cb, items, finished)
+        while (not finished[0]):
+            pass
+        return items
         
         
     def ls_async(self, path, cb, *args):
@@ -114,7 +134,7 @@ class Device(object):
                 if (not v):
                     return
                 else:
-                    gobject.timeout_add(10, do_async, files)
+                    gobject.timeout_add(0, do_async, files)
             else:
                 cb(None, *args)
         
