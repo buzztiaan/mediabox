@@ -25,22 +25,14 @@ class Clock(Viewer):
         Viewer.__init__(self)
 
         self.__sunclock = SunClock()
-        self.__sunclock.set_pos(0, 10)
+        self.__sunclock.set_pos(0, 0)
         self.add(self.__sunclock)
 
         # kinetic panning of the earth background is not optimized for speed
         # yet
         #kscr = KineticScroller(self.__sunclock)
 
-
-    def render_this(self):
-    
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
-        
-        screen.fill_area(x, y, w, h, "#000000")
-              
+             
         
     def __tick(self):
     
