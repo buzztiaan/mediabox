@@ -22,7 +22,11 @@ def _read_tagsoup(fd):
     btype = fd.read(1)
     if (ord(btype) & 0x04):
         size = _read_int(fd, 3)
-        soup = fd.read(size)
+        if (size < 50000):
+            # most likely not a comment block
+            soup = fd.read(size)
+        else:
+            soup = ""
     else:
         soup = ""
         
