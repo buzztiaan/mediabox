@@ -19,6 +19,7 @@ class Container(Component):
     def __init__(self, *paths):
     
         self.__components = []
+        self.__devices = []
         
         Component.__init__(self)
         
@@ -92,18 +93,18 @@ class Container(Component):
         sys.path = [mod._syspath] + syspath
 
         logging.debug("loading module [%s]", mod.__file__)
+        
         try:
             classes = mod.get_classes()
         except:
-            logging.error("could not retrieve classes:\n%s" \
-                          % logging.stacktrace())
+            logging.error(logging.stacktrace())
             classes = []
             
         for c in classes:
             try:
                 logging.debug("creating [%s]" % c.__name__)
                 comp = c()
-                comp._attach_to_message_bus()
+                #comp._attach_to_message_bus()
                 self.__components.append(comp)
                 
             except:
@@ -111,7 +112,27 @@ class Container(Component):
                               (`c`, logging.stacktrace()))
         #end for        
 
+        try:
+            device_classes = mod.get_devices()
+        except:
+            device_classes = []
+
+        for c in device_classes:
+            try:
+                logging.debug("adding device [%s]" % c.__name__)
+                comp = c()
+                #comp._attach_to_message_bus()
+                self.__devices.append(comp)
+
+            except:
+                logging.error("could not instantiate class [%s]:\n%s" %
+                              (`c`, logging.stacktrace()))
+        #end for
+        
         sys.path = syspath
+
+            
+
 
 
     def load_path(self, path):
@@ -129,4 +150,7 @@ class Container(Component):
 
         for c in self.__components:
             self.emit_event(msgs.COM_EV_COMPONENT_LOADED, c)
+
+        for dev in self.__devices:
+            self.emit_event(msgs.CORE_EV_DEVICE_ADDED, dev.get_prefix(), dev)
 

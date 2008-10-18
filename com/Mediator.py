@@ -22,6 +22,7 @@ class Mediator(object):
     
         self.__pass_type = self.PASS_TYPE_PASS_ON
         self.__event_bus = MessageBus()
+        self._attach_to_message_bus()
         
         
     def _attach_to_message_bus(self):
