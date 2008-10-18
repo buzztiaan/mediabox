@@ -12,6 +12,7 @@ _STATIONS_FILE = "/usr/share/applications/worldtv99/WorldTV99.xml"
 class WorldTV(Device):
 
     CATEGORY = Device.CATEGORY_WAN
+    TYPE = Device.TYPE_VIDEO
     
 
     def __init__(self):
