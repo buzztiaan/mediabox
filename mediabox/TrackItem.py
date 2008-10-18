@@ -8,12 +8,6 @@ import os
 def _to_utf8(s):
 
     return s.decode("utf-8", "replace").encode("utf-8")
-    
-def _xml_escape(s):
-
-    return s.replace("<", "&lt;") \
-            .replace(">", "&gt;") \
-            .replace("&", "&amp;")
             
 
 class TrackItem(ButtonListItem):
@@ -29,8 +23,8 @@ class TrackItem(ButtonListItem):
     
         label = label.decode("utf-8", "replace").encode("utf-8")
         sublabel = sublabel.decode("utf-8", "replace").encode("utf-8")
-        self.__label = _xml_escape(_to_utf8(label))
-        self.__sublabel = _xml_escape(_to_utf8(sublabel))
+        self.__label = self.escape_xml(_to_utf8(label))
+        self.__sublabel = self.escape_xml(_to_utf8(sublabel))
            
         ButtonListItem.__init__(self)
         

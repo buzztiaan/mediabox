@@ -3,7 +3,7 @@ from ui.HBox import HBox
 from ui.ImageButton import ImageButton
 from ui.SequenceButton import SequenceButton
 from ui.Label import Label
-from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
+from ui.Pixmap import Pixmap
 from ui import pixbuftools
 from utils.Observable import Observable
 import config as mb_config

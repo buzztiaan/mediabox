@@ -16,7 +16,7 @@ def set_bookmarks(f, bookmarks):
     out = " ".join([ `b` for b in bookmarks ])
     try:
         bm_zip = ZipFile(_BM_ZIP, os.path.exists(_BM_ZIP) and "a" or "w")
-        bm_zip.writestr(f.get_md5(), out)
+        bm_zip.writestr(f.md5, out)
         bm_zip.close()
     except:
         pass
@@ -26,7 +26,7 @@ def get_bookmarks(f):
 
     try:
         bm_zip = ZipFile(_BM_ZIP, "r")
-        data = bm_zip.read(f.get_md5())
+        data = bm_zip.read(f.md5)
         bm_zip.close()
         return [ float(b) for b in data.split() ]
     except:
