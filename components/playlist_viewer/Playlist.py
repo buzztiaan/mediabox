@@ -133,7 +133,7 @@ class Playlist(object):
     
         if (not self.__is_modified): return
         
-        items = [ (f.get_full_path(), f.name) for f in self.__files ]
+        items = [ (f.full_path, f.name) for f in self.__files ]
         m3u.save(path, items)
         
         self.__path = path

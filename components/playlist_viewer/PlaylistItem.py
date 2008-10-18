@@ -15,15 +15,6 @@ class PlaylistItem(ButtonListItem):
     BUTTON_REMOVE_FOLLOWING = "remove-following"
     BUTTON_REMOVE_PRECEEDING = "remove-preceeding"
 
-    _ITEMS_CLOSED = [theme.mb_item_btn_menu]
-    _ITEMS_OPEN = [theme.mb_item_btn_play, theme.mb_item_btn_remove,
-                   theme.mb_item_btn_remove_down, theme.mb_item_btn_remove_up]
-        
-    _BUTTONS = [ButtonListItem.BUTTON_MENU,
-                BUTTON_PLAY, BUTTON_REMOVE,
-                BUTTON_REMOVE_FOLLOWING,
-                BUTTON_REMOVE_PRECEEDING]
-
 
     def __init__(self, thumb, f):
 
@@ -35,14 +26,18 @@ class PlaylistItem(ButtonListItem):
 
         ButtonListItem.__init__(self)
         self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
-        self.set_font(theme.font_plain)        
+        self.set_font(theme.font_tiny)        
         self.set_grip(theme.mb_item_grip)
         
-       
+        self.set_buttons((self.BUTTON_PLAY, theme.mb_item_btn_play),
+                         (self.BUTTON_REMOVE, theme.mb_item_btn_remove),
+                         (self.BUTTON_REMOVE_FOLLOWING, theme.mb_item_btn_remove_down),
+                         (self.BUTTON_REMOVE_PRECEEDING, theme.mb_item_btn_remove_up))       
+        
         
     def render_this(self, cnv):
     
-        ButtonListItem.render_this(self, cnv)
+        self.render_bg(cnv)
 
         w, h = self.get_size()
         w = 160
