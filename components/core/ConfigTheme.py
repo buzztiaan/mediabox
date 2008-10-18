@@ -20,9 +20,7 @@ class ConfigTheme(Configurator):
     
         Configurator.__init__(self)
         
-        self.__list = TrackList(80)
-        #self.__list.set_caps(theme.list_top, theme.list_bottom)
-        #self.__list.set_bg_color(theme.color_bg)
+        self.__list = TrackList()
         self.__list.set_geometry(0, 0, 610, 370)
         self.__list.connect_button_clicked(self.__on_item_button)
         self.add(self.__list)

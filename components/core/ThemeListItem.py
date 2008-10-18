@@ -9,11 +9,6 @@ class ThemeListItem(ButtonListItem):
 
     BUTTON_PLAY = "play"
 
-    _ITEMS_CLOSED = [theme.mb_item_btn_play]
-    _ITEMS_OPEN = []
-
-    _BUTTONS = [BUTTON_PLAY]
-
 
     def __init__(self, preview, name, info):
 
@@ -24,14 +19,14 @@ class ThemeListItem(ButtonListItem):
         
         ButtonListItem.__init__(self)
         self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
-        self.set_font(theme.font_plain)
+        self.set_font(theme.font_tiny)
 
+        self.set_buttons((self.BUTTON_PLAY, theme.mb_item_btn_play))
 
 
     def render_this(self, cnv):
     
-        ButtonListItem.render_this(self, cnv)
-        #print "render this", self
+        self.render_bg(cnv)
 
         w, h = self.get_size()
         icon_y = (h - self.__preview.get_height()) / 2

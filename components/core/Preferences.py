@@ -22,7 +22,7 @@ class Preferences(Viewer):
     
         self.add(comp)    
         comp.set_visible(False)
-        comp.set_geometry(20, 0, 600, 370)
+        comp.set_geometry(0, 0, 610, 370)
 
         self.__configurators.append(comp)
 
