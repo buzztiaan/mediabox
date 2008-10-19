@@ -39,6 +39,7 @@ class TabPanel(Widget, Observable):
         # icon widgets
         self.__icons = []
         self.__viewers = []
+
         
         Widget.__init__(self)
         self.__label = Label("%s ver %s - %s" \
