@@ -374,7 +374,7 @@ class PlaylistViewer(Viewer):
         if (pl.has_previous()):
             idx = pl.get_position()
             self.__load_item(pl, idx - 1)
-            self.emit_event(msgs.CORE_ACT_SELECT_ITEM, idx - 1)
+            self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx - 1)
                     
         
     def __go_next(self):
@@ -483,7 +483,9 @@ class PlaylistViewer(Viewer):
         self.__media_box.add(self.__media_widget)
         self.__media_widget.set_visible(True)
 
-        self.__side_tabs.select_tab(1)
+        if (not f.mimetype in mimetypes.get_audio_types()):
+            self.__side_tabs.select_tab(1)
+
         self.emit_event(msgs.UI_ACT_RENDER)
 
         self.__playlist.hilight(idx)
@@ -504,6 +506,14 @@ class PlaylistViewer(Viewer):
         """
         Adds the given item to the playlist.
         """
+        
+        if (f.mimetype in (f.DIRECTORY, "audio/x-music-folder")):
+            items = [ c for c in f.get_children()
+                    if not c.mimetype in (f.DIRECTORY, "audio/x-music-folder") ]
+            for item in items:
+                self.__add_item(pl, item)
+            return
+        #end if
         
         thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
         plitem = PlaylistItem(thumb, f)

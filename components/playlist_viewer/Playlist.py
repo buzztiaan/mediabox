@@ -8,7 +8,7 @@ class Playlist(object):
 
     def __init__(self):
     
-        self.__current_pos = 0
+        self.__current_pos = -1
         self.__name = "playlist"
         self.__path = ""
     
