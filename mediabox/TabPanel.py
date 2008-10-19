@@ -53,7 +53,8 @@ class TabPanel(Widget, Observable):
 
         btn_repeat = SequenceButton(
              [(theme.mb_repeat_none, mb_config.REPEAT_MODE_NONE),
-              (theme.mb_repeat_one, mb_config.REPEAT_MODE_ONE)])
+              (theme.mb_repeat_one, mb_config.REPEAT_MODE_ONE),
+              (theme.mb_repeat_all, mb_config.REPEAT_MODE_ALL)])
         btn_repeat.connect_changed(
               lambda v:self.update_observer(self.OBS_REPEAT_MODE, v))
         btn_repeat.set_pos(730, 30)
