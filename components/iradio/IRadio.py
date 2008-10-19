@@ -35,7 +35,6 @@ class IRadio(Device):
     def get_root(self):
     
         f = File(self)
-        f.source_icon = self.get_icon()
         f.path = "/"
         f.name = self.get_name()
         f.mimetype = f.DIRECTORY
@@ -52,7 +51,6 @@ class IRadio(Device):
            ("SHOUTcast", "/shoutcast", File.DIRECTORY, None, False)]:
             item = File(self)
             item.can_add = can_add
-            item.source_icon = self.get_icon()
             item.path = path
             item.resource = path
             item.name = name
@@ -71,7 +69,6 @@ class IRadio(Device):
         for location, name in inetstations.get_stations():
             item = File(self)
             item.can_delete = True
-            item.source_icon = self.get_icon()
             item.path = location
             item.resource = location
             item.name = name
@@ -89,7 +86,6 @@ class IRadio(Device):
         def on_child(is_station, item):
             if (item):
                 f = File(self)
-                f.source_icon = self.get_icon()
                 f.path = "/shoutcast/" + item.path
                 f.resource = item.resource
                 f.name = item.name
@@ -135,7 +131,6 @@ class IRadio(Device):
         
             item = File(self)
             item.can_delete = True
-            item.source_icon = self.get_icon()
             item.path = location
             item.resource = location
             item.name = name

@@ -47,7 +47,6 @@ class WorldTV(Device):
     def get_root(self):
     
         f = File(self)
-        f.source_icon = self.get_icon()
         f.path = "/"
         f.name = "World TV"
         f.mimetype = f.DIRECTORY
@@ -59,7 +58,6 @@ class WorldTV(Device):
     def get_file(self, path):
     
         f = File(self)
-        f.source_icon = self.get_icon()
         f.path = path
         f.mimetype = "video/x-unknown"
         
@@ -109,7 +107,6 @@ class WorldTV(Device):
             f.name = node.get_attr("title")
         except:
             return None
-        f.source_icon = self.get_icon()
         f.path = path
         f.mimetype = f.DIRECTORY
         
@@ -130,7 +127,6 @@ class WorldTV(Device):
         f = File(self)
         f.name = name
         f.resource = url
-        f.source_icon = self.get_icon()
         f.path = path
         f.mimetype = "video/x-unknown"
         

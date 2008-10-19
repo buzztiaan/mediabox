@@ -52,6 +52,7 @@ class LocalDevice(Device):
     
         f = File(self)
         f.is_local = True
+        f.can_add_to_library = True
         f.path = "MENU"
         f.mimetype = f.DIRECTORY
         f.resource = ""
@@ -75,7 +76,7 @@ class LocalDevice(Device):
            ("System", "/", File.DIRECTORY, None)]:
             item = File(self)
             item.is_local = True
-            #item.source_icon = self.get_icon()
+            item.can_add_to_library = True
             item.path = path
             item.resource = path
             item.child_count = self.__get_child_count(path)
@@ -96,7 +97,7 @@ class LocalDevice(Device):
             path = os.path.join("/media", f)
             item = File(self)
             item.is_local = True
-            #item.source_icon = self.get_icon()
+            item.can_add_to_library = True
             item.path = path
             item.resource = path
             item.child_count = self.__get_child_count(path)            
@@ -112,7 +113,7 @@ class LocalDevice(Device):
 
         item = File(self)
         item.is_local = True
-        #item.source_icon = self.get_icon()
+        item.can_add_to_library = True
         item.path = path
         item.name = os.path.basename(path)
         item.resource = path
@@ -160,7 +161,7 @@ class LocalDevice(Device):
         for f in files:
             item = File(self)
             item.is_local = True
-            #item.source_icon = self.get_icon()
+            item.can_add_to_library = True
             item.path = os.path.join(path, f)
             item.name = f
             item.parent = os.path.basename(path)

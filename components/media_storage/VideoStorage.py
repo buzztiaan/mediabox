@@ -18,7 +18,7 @@ class VideoStorage(Device):
 
     def __init__(self):
     
-        self.__folders = {"All Videos": []}
+        self.__folders = {}
     
         Device.__init__(self)
         
@@ -31,6 +31,7 @@ class VideoStorage(Device):
 
     def __update_media(self):
 
+        self.__folders = {"All Videos": []}
         media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                   ["video/"])
         for f in media:
@@ -72,9 +73,18 @@ class VideoStorage(Device):
     
     def ls_async(self, path, cb, *args):
     
+        def folder_cmp(a, b):
+            if (a == "All Videos"):
+                return -1
+            if (b == "All Videos"):
+                return 1
+            else:
+                return cmp(a, b)
+            
+    
         if (path == "/"):
             folders = self.__folders.keys()
-            folders.sort()
+            folders.sort(folder_cmp)
             for folder in folders:
                 f = File(self)
                 f.is_local = True

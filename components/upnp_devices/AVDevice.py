@@ -111,7 +111,6 @@ class AVDevice(Device):
         url_base = self.__description.get_url_base()
 
         f = File(self)
-        f.source_icon = self.get_icon()
         f.mimetype = mimetype
         f.resource = res
         f.name = title
@@ -131,7 +130,6 @@ class AVDevice(Device):
 
         ident, clss, child_count, res, title, artist, mimetype = entry
         f = File(self)
-        f.source_icon = self.get_icon()
         f.mimetype = mimetype
         f.resource = res or urlparse.urljoin(url_base, ident)
         f.name = title

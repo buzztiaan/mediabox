@@ -18,7 +18,7 @@ class ImageStorage(Device):
 
     def __init__(self):
     
-        self.__folders = {"All Images": []}
+        self.__folders = {}
     
         Device.__init__(self)
         
@@ -31,6 +31,7 @@ class ImageStorage(Device):
 
     def __update_media(self):
 
+        self.__folders = {"All Images": []}
         media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                   ["image/"])
         for f in media:
@@ -71,10 +72,19 @@ class ImageStorage(Device):
     
     
     def ls_async(self, path, cb, *args):
+
+        def folder_cmp(a, b):
+            if (a == "All Images"):
+                return -1
+            if (b == "All Images"):
+                return 1
+            else:
+                return cmp(a, b)
+
     
         if (path == "/"):
             folders = self.__folders.keys()
-            folders.sort()
+            folders.sort(folder_cmp)
             for folder in folders:
                 f = File(self)
                 f.is_local = True
