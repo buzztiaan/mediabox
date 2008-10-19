@@ -271,6 +271,7 @@ class ImageStrip(Widget):
             self.append_image(img)
         #endfor
 
+        self.invalidate_buffer()
         self.__offset = 0
         
         

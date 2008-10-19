@@ -60,8 +60,8 @@ class ListItem(StripItem):
             
         canvas.draw_text(text, self.__font, x, 8,
                          self.__color_1, use_markup = True)
-        canvas.draw_pixbuf(theme.mb_listitem_end, w - 128, 0, 128, h - 8,
-                           scale = True)
+        #canvas.draw_pixbuf(theme.mb_listitem_end, w - 128, 0, 128, h - 8,
+        #                   scale = True)
     
     
     def render_grip(self, cnv):
