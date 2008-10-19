@@ -16,7 +16,7 @@ from utils import mimetypes
 from utils import logging
 from io import Downloader
 from mediabox import viewmodes
-from mediabox import config
+from mediabox import config as mb_config
 import idtags
 import theme
 
@@ -25,6 +25,7 @@ import time
 import urllib
 import gtk
 import gobject
+import random
 
 
 class GenericViewer(Viewer):
@@ -82,6 +83,10 @@ class GenericViewer(Viewer):
         # timestamp of the last list rendering
         self.__last_list_render_time = 0
     
+        # whether the library has been changed
+        self.__lib_is_dirty = False
+        
+    
         Viewer.__init__(self)
         
         # file list
@@ -105,12 +110,6 @@ class GenericViewer(Viewer):
         # side tabs
         self.__side_tabs = SideTabs()
         self.__side_tabs.set_geometry(560 + 4, 0 + 4, 60 - 8, 370 - 8)
-        #self.__side_tabs.add_tab(None, "Browser",
-        #                         self.__set_view_mode, self._VIEWMODE_BROWSER)
-        #self.__side_tabs.add_tab(None, "Player",
-        #                         self.__set_view_mode, self._VIEWMODE_PLAYER_NORMAL)
-        #self.__side_tabs.add_tab(None, "Library",
-        #                         self.__set_view_mode, self._VIEWMODE_LIBRARY)
         self.add(self.__side_tabs)
 
         self.__throbber = ThrobberDialog()
@@ -132,11 +131,11 @@ class GenericViewer(Viewer):
 
         self.__btn_prev = ImageButton(theme.mb_btn_previous_1,
                                       theme.mb_btn_previous_2)
-        #self.__btn_prev.connect_clicked(self.__on_previous)
+        self.__btn_prev.connect_clicked(self.__go_previous)
 
         self.__btn_next = ImageButton(theme.mb_btn_next_1,
                                       theme.mb_btn_next_2)
-        #self.__btn_next.connect_clicked(self.__on_next)
+        self.__btn_next.connect_clicked(self.__go_next)
 
         self.accept_device_types(Device.TYPE_GENERIC)
         #self.add_tab("Browser", self._VIEWMODE_BROWSER)
@@ -353,8 +352,11 @@ class GenericViewer(Viewer):
     
         Viewer.handle_event(self, msg, *args)
         
+        if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
+            self.__current_device = None
+        
         # watch for new storage devices
-        if (msg == msgs.CORE_EV_DEVICE_ADDED):
+        elif (msg == msgs.CORE_EV_DEVICE_ADDED):
             ident, device = args
             self.__add_device(ident, device)
             
@@ -463,24 +465,19 @@ class GenericViewer(Viewer):
 
     def __on_item_button(self, item, idx, button):
         
-        def on_child(f, items):
-            if (f and f.mimetype != f.DIRECTORY):
-                items.append(f)
-            else:
-                self.emit_event(msgs.PLAYLIST_ACT_APPEND, *items)
-            return True
-
         if (idx == -1): return
         
         if (button == item.BUTTON_PLAY):
             entry = self.__items[idx - 1]
             self.__list.hilight(idx)
+            self.__list.render()
             gobject.idle_add(self.__load_file, entry)
 
         elif (button == item.BUTTON_ENQUEUE):
             if (idx == 0):
                 path, list_offset = self.__path_stack[-1]
-                path.get_children_async(on_child, [])
+                self.emit_event(msgs.PLAYLIST_ACT_APPEND, path)
+
             else:
                 entry = self.__items[idx - 1]
                 self.emit_event(msgs.PLAYLIST_ACT_APPEND, entry)
@@ -508,7 +505,7 @@ class GenericViewer(Viewer):
         Loads the library folders.
         """
         
-        mediaroots = config.mediaroot()
+        mediaroots = mb_config.mediaroot()
         self.__lib_list.clear_items()
         
         for mroot, mtypes in mediaroots:
@@ -538,7 +535,8 @@ class GenericViewer(Viewer):
             uri = item.get_path()
             mtypes = item.get_media_types()
             mediaroots.append((uri, mtypes))
-            config.set_mediaroot(mediaroots)
+            mb_config.set_mediaroot(mediaroots)
+        self.__lib_is_dirty = True
 
         
     def __load_device(self, device):
@@ -570,7 +568,8 @@ class GenericViewer(Viewer):
             self.__current_file = f
             self.set_title(f.name)
 
-            self.emit_event(msgs.MEDIA_ACT_STOP)
+            if (not f.mimetype in mimetypes.get_image_types()):
+                self.emit_event(msgs.MEDIA_ACT_STOP)
 
             # request media widget
             media_widget = self.call_service(
@@ -608,6 +607,15 @@ class GenericViewer(Viewer):
             self.emit_event(msgs.UI_ACT_RENDER)
             self.__media_widget.load(f)
             self.emit_event(msgs.MEDIA_EV_LOADED, self, f)
+
+            # hilight item
+            if (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
+                idx = self.__non_folder_items.index(f)
+                self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
+            elif (self.__view_mode == self._VIEWMODE_BROWSER and self.is_active()):
+                idx = self.__items.index(f)
+                self.__list.hilight(idx + 1)
+                self.__list.scroll_to_item(idx + 1)
 
 
     def __load_folder(self, path, direction):
@@ -663,6 +671,10 @@ class GenericViewer(Viewer):
 
         header = HeaderItem(path.name)
         header.set_info("Retrieving...")
+        buttons = [(header.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue)]
+        if (path.can_add_to_library):
+            buttons.append((header.BUTTON_ADD_TO_LIBRARY, theme.mb_item_btn_add))
+        header.set_buttons(*buttons)
         self.__list.append_item(header)
     
         self.__update_toolbar()
@@ -709,6 +721,10 @@ class GenericViewer(Viewer):
         self.__non_folder_items = []
         self.__thumbnails = []
 
+        # change item button
+        item = self.__list.get_item(idx + 1)
+        item.set_buttons((item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
+
         gobject.timeout_add(0, path.get_children_async, on_child,
                             self.__path_stack[-1][0], [], [], idx + 1)
 
@@ -723,6 +739,9 @@ class GenericViewer(Viewer):
             self.__list.remove_item(idx1 + 1)
             del self.__items[idx1]
         #end for
+        
+        item = self.__list.get_item(idx1)
+        item.set_buttons((item.BUTTON_OPEN, theme.mb_item_btn_play))
         
         self.__subfolder_range = None
 
@@ -795,16 +814,8 @@ class GenericViewer(Viewer):
         """
         
         self.emit_event(msgs.MEDIA_EV_EOF)
-
-        #try:
-        #    idx = self.__items.index(self.__current_file)
-        #except:
-        #    return
-
-        #if (idx < len(self.__items) - 1):
-        #    new_item = self.__items[idx + 1]
-        #    self.__list.hilight(idx + 1)
-        #    gobject.idle_add(self.__load_item, new_item)
+        if (self.may_go_next()):
+            self.__go_next()
 
 
     def __on_media_volume(self, volume):
@@ -813,6 +824,89 @@ class GenericViewer(Viewer):
         """
 
         self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
+
+
+    def __go_previous(self):
+
+        try:
+            idx = self.__non_folder_items.index(self.__current_file)
+        except:
+            return False
+            
+        if (idx > 0):
+            next_item = self.__non_folder_items[idx - 1]
+            self.__load_file(next_item)
+            
+            
+    def __go_next(self):
+
+        repeat_mode = mb_config.repeat_mode()
+        shuffle_mode = mb_config.shuffle_mode()
+        
+        if (repeat_mode == mb_config.REPEAT_MODE_NONE):
+            if (shuffle_mode == mb_config.SHUFFLE_MODE_NONE):
+                self.__play_next(False)
+
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ONE):
+                self.__play_shuffled(False)
+                
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ALL):
+                self.__play_shuffled(True)
+            
+        elif (repeat_mode == mb_config.REPEAT_MODE_ONE):
+            self.__play_same()
+
+        elif (repeat_mode == mb_config.REPEAT_MODE_ALL):
+            if (shuffle_mode == mb_config.SHUFFLE_MODE_NONE):
+                self.__play_next(True)
+
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ONE):
+                self.__play_shuffled(False)
+
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ALL):
+                self.__play_shuffled(True)
+            
+
+    def __play_same(self):
+    
+        self.__load_file(self.__current_file)
+
+        return True
+        
+        
+    def __play_next(self, wraparound):
+        
+        try:
+            idx = self.__non_folder_items.index(self.__current_file)
+        except:
+            return False
+            
+        if (idx + 1 < len(self.__non_folder_items)):
+            next_item = self.__non_folder_items[idx + 1]
+            self.__load_file(next_item)
+            return True
+
+        elif (wraparound):
+            next_item = self.__non_folder_items[0]
+            self.__load_file(next_item)
+            return True
+            
+        else:
+            return False
+
+        
+    def __play_shuffled(self, from_all):
+    
+        if (from_all):
+            # TODO...
+            pass
+
+        idx = random.randint(0, len(self.__non_folder_items) - 1)
+        next_item = self.__non_folder_items[idx]
+        self.__load_file(next_item)
+        
+        return True
+
 
 
     def __on_btn_back(self):
@@ -947,9 +1041,20 @@ class GenericViewer(Viewer):
         #end for
 
 
-
     def show(self):
     
         Viewer.show(self)
-        self.emit_event(msgs.SSDP_ACT_SEARCH_DEVICES)
+        if (not self.__current_device):
+            self.__list.clear_items()
+            self.__subfolder_range = None
+            gobject.timeout_add(750, self.emit_event,
+                                msgs.CORE_ACT_SELECT_ITEM, 0)
+
+
+    def hide(self):
+    
+        if (self.__lib_is_dirty):
+            self.emit_event(msgs.CORE_ACT_SCAN_MEDIA, True)
+            self.__lib_is_dirty = False
+        Viewer.hide(self)
 

@@ -1,3 +1,4 @@
+from com import msgs
 from GenericViewer import GenericViewer
 from storage import Device
 import theme
@@ -15,4 +16,12 @@ class FolderViewer(GenericViewer):
         self.add_tab("Browser", self._VIEWMODE_BROWSER)
         self.add_tab("Player", self._VIEWMODE_PLAYER_NORMAL)
         self.add_tab("Library", self._VIEWMODE_LIBRARY)
+
+
+    def show(self):
+    
+        GenericViewer.show(self)
+        
+        # search for UPnP devices
+        self.emit_event(msgs.SSDP_ACT_SEARCH_DEVICES)
 

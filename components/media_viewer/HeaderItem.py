@@ -23,8 +23,6 @@ class HeaderItem(ButtonListItem):
         self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
         self.set_font(theme.font_plain)
 
-        self.set_buttons((self.BUTTON_ADD_TO_LIBRARY, theme.mb_item_btn_add),
-                         (self.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
 
 
     def set_info(self, text):
