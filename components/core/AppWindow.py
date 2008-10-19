@@ -316,7 +316,7 @@ class AppWindow(Component):
         if (repeat_mode == config.REPEAT_MODE_ONE):
             icon = theme.mb_status_repeat_one
         elif (repeat_mode == config.REPEAT_MODE_ALL):
-            icon = theme.mb_status_repeat_none
+            icon = theme.mb_status_repeat_all
         else:
             icon = theme.mb_status_repeat_none
         pixbuftools.draw_pbuf(left_top, icon, 50, 4)
@@ -395,8 +395,7 @@ class AppWindow(Component):
 
     def __scan_media(self, force_scan):
         """
-        Scans the media root locations for media files. Will create thumbnails
-        when missing.
+        Scans the media root locations for media files.
         """
         
         if (force_scan):
@@ -417,11 +416,11 @@ class AppWindow(Component):
         #end if
 
 
-        view_mode = self.__view_mode
-        self.__set_view_mode(viewmodes.TITLE_ONLY)
-        if (self.__current_viewer):
-            self.__current_viewer.set_visible(False)
-        self.__root_pane.render_buffered()
+        #view_mode = self.__view_mode
+        #self.__set_view_mode(viewmodes.TITLE_ONLY)
+        #if (self.__current_viewer):
+        #    self.__current_viewer.set_visible(False)
+        #self.__root_pane.render_buffered()
         #while (gtk.events_pending()): gtk.main_iteration()
 
 
@@ -439,11 +438,11 @@ class AppWindow(Component):
             self.__viewer_states[v].selected_item = -1
             self.__viewer_states[v].item_offset = 0
 
-        self.__set_view_mode(view_mode)
+        #self.__set_view_mode(view_mode)
 
-        if (self.__current_viewer):
-            self.__current_viewer.set_visible(True)        
-        self.__root_pane.render_buffered()
+        #if (self.__current_viewer):
+        #    self.__current_viewer.set_visible(True)        
+        #self.__root_pane.render_buffered()
 
         import gc; gc.collect()
 
@@ -867,6 +866,7 @@ class AppWindow(Component):
         result = dialogs.question("Exit", "Really quit?")
         if (result == 0):
             config.set_current_viewer(self.__current_viewer)
+            self.emit_event(msgs.MEDIA_ACT_STOP)
             self.emit_event(msgs.CORE_EV_APP_SHUTDOWN)
             gtk.main_quit()
 
