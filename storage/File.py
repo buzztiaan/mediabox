@@ -16,6 +16,9 @@ class File(object):
         self.__device = device
 
 
+        self.can_add_to_library = False
+        """whether the user may add this folder to the library"""
+
         self.can_add = False
         """whether the user may add items to this folder"""
         
@@ -27,7 +30,7 @@ class File(object):
 
         self.is_local = False
         """whether this file is local"""
-        
+                
 
         self.path = ""
         """virtual path of the file on the device"""
@@ -49,10 +52,7 @@ class File(object):
         
         self.mimetype = self.FILE
         """MIME type of the file"""
-        
-        self.source_icon = None
-        """pixbuf icon representing the source device"""
-        
+               
         self.resource = ""
         """URI for accessing the file"""
 
@@ -90,6 +90,13 @@ class File(object):
     """full virtual path of the file"""
     
     
+    def __get_source_icon(self):
+    
+        return self.__device.get_icon()
+        
+    source_icon = property(__get_source_icon)
+    """pixbuf icon representing the source device"""
+
 
     def __get_md5(self):
         
