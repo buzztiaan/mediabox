@@ -96,8 +96,10 @@ class Container(Component):
         
         try:
             classes = mod.get_classes()
+        except AttributeError:
+            classes = []
         except:
-            #logging.error(logging.stacktrace())
+            logging.error(logging.stacktrace())
             classes = []
             
         for c in classes:
