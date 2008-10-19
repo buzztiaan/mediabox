@@ -13,14 +13,6 @@ class StationItem(ButtonListItem):
     BUTTON_REMOVE = "remove"
 
 
-    _ITEMS_CLOSED = [theme.mb_item_btn_menu]
-    _ITEMS_OPEN = [theme.mb_item_btn_play,
-                   theme.mb_item_btn_remove]
-
-    _BUTTONS = [ButtonListItem.BUTTON_MENU,
-                BUTTON_PLAY, BUTTON_REMOVE]
-
-
     def __init__(self, freq, name):
 
         self.__title = self.escape_xml(name)
