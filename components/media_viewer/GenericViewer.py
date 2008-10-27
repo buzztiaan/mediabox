@@ -91,13 +91,11 @@ class GenericViewer(Viewer):
         
         # file list
         self.__list = TrackList()
-        self.__list.set_geometry(0, 0, 560, 370)
         self.add(self.__list)        
         self.__list.connect_button_clicked(self.__on_item_button)
 
         # library list
         self.__lib_list = TrackList()
-        self.__lib_list.set_geometry(10, 0, 730, 370)
         self.__lib_list.set_visible(False)
         self.add(self.__lib_list)
         self.__lib_list.connect_button_clicked(self.__on_lib_item_button)
@@ -109,7 +107,6 @@ class GenericViewer(Viewer):
 
         # side tabs
         self.__side_tabs = SideTabs()
-        self.__side_tabs.set_geometry(560 + 4, 0 + 4, 60 - 8, 370 - 8)
         self.add(self.__side_tabs)
 
         self.__throbber = ThrobberDialog()
@@ -138,10 +135,8 @@ class GenericViewer(Viewer):
         self.__btn_next.connect_clicked(self.__go_next)
 
         self.accept_device_types(Device.TYPE_GENERIC)
-        #self.add_tab("Browser", self._VIEWMODE_BROWSER)
-        #self.add_tab("Player", self._VIEWMODE_PLAYER_NORMAL)
-        #self.add_tab("Library", self._VIEWMODE_LIBRARY)
         
+        #self.set_size(800, 480)
         self.__set_view_mode(self._VIEWMODE_BROWSER)
         gobject.idle_add(self.__init_library)
 
@@ -165,7 +160,10 @@ class GenericViewer(Viewer):
         @param view_mode: view_mode to which the tab switches
         """
     
-        self.__side_tabs.add_tab(None, name, self.__set_view_mode, view_mode)
+        def f():
+            gobject.idle_add(self.__set_view_mode, view_mode)
+            
+        self.__side_tabs.add_tab(None, name, f)
 
 
     def __is_device_accepted(self, device):
@@ -246,18 +244,42 @@ class GenericViewer(Viewer):
         self.set_toolbar(items)
 
 
+    def render_this(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        if (self.__view_mode == self._VIEWMODE_BROWSER):
+            self.__side_tabs.set_geometry(w - 60 + 4, 4, 60 - 8, h - 8)
+            self.__list.set_geometry(0, 0, w - 60, h)
+            
+        elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
+            self.__side_tabs.set_geometry(w - 60 + 4, 4, 60 - 8, h - 8)
+            self.__media_box.set_geometry(2, 2, w - 60 - 4, h - 4)
+        
+        elif (self.__view_mode == self._VIEWMODE_PLAYER_FULLSCREEN):
+            self.__media_box.set_geometry(0, 0, w, h)
+            
+        elif (self.__view_mode == self._VIEWMODE_LIBRARY):
+            self.__side_tabs.set_geometry(w - 60 + 4, 4, 60 - 8, h - 8)
+            self.__lib_list.set_geometry(0, 0, w - 60, h)
+
+        
+
+
     def __set_view_mode(self, mode):
     
         if (mode == self.__view_mode): return
         self.__view_mode = mode
-    
+        w, h = self.get_size()
+
         if (mode == self._VIEWMODE_BROWSER):
             self.emit_event(msgs.UI_ACT_FREEZE)
 
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
             self.__update_device_list()
             
-            self.__side_tabs.set_pos(560 + 4, 0 + 4)
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(True)
             self.__media_box.set_visible(False)
@@ -273,22 +295,19 @@ class GenericViewer(Viewer):
                 self.__list.hilight(idx + 1)
                 self.__list.scroll_to_item(idx + 1)
                         
-
             self.emit_event(msgs.UI_ACT_THAW)
 
 
         elif (mode == self._VIEWMODE_PLAYER_NORMAL):
-            self.emit_event(msgs.UI_ACT_FREEZE)
-
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-            
-            self.__side_tabs.set_pos(560 + 4, 0 + 4)
+            self.__media_box.set_visible(True)
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
-            self.__media_box.set_visible(True)
-            self.__media_box.set_geometry(2, 2, 560 - 4, 370 - 4)
-
+            #self.render()
+            
+            self.emit_event(msgs.UI_ACT_FREEZE)
+            
             self.__update_toolbar()
             if (self.__current_file):
                 self.set_title(self.__current_file.name)
@@ -299,7 +318,7 @@ class GenericViewer(Viewer):
                 idx = self.__non_folder_items.index(self.__current_file)
                 self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
 
-            self.emit_event(msgs.UI_ACT_THAW)
+            gobject.idle_add(self.emit_event, msgs.UI_ACT_THAW)
 
 
         elif (mode == self._VIEWMODE_PLAYER_FULLSCREEN):
@@ -318,7 +337,6 @@ class GenericViewer(Viewer):
             
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)
             
-            self.__side_tabs.set_pos(740 + 4, 0 + 4)
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(True)
@@ -706,7 +724,6 @@ class GenericViewer(Viewer):
             if (not f or len(entries) == 4 or \
                   now > self.__last_list_render_time + 0.5):
                 self.__last_list_render_time = now
-            #if (not f or len(entries) == 4 or len(entries) % 10 == 0):
                 self.__list.invalidate_buffer()
                 self.__list.render()
             
@@ -779,9 +796,10 @@ class GenericViewer(Viewer):
         item.set_buttons(*buttons)
 
         # remember if thumbnail does not yet exist
-        if (insert_at == -1 and not os.path.exists(icon) and entry.is_local):
-            items_to_thumbnail.append((item, tn, entry))
-            #self.__download_icon(item, entry)
+        if (insert_at == -1 and not os.path.exists(icon)):
+            if (entry.is_local or entry.thumbnail):
+                items_to_thumbnail.append((item, tn, entry))
+        #end if
         
         self.__list.set_frozen(True)
         if (insert_at == -1):
@@ -1016,6 +1034,7 @@ class GenericViewer(Viewer):
             if (f.thumbnail):
                 # a thumbnail URI is specified
                 self.__items_downloading_thumbnails[f] = (item, tn)
+                print "GET FROM URI", f.thumbnail
                 Downloader(f.thumbnail, self.__on_download_thumbnail, f, [""],
                            path, items_to_thumbnail)
             else:
@@ -1043,12 +1062,19 @@ class GenericViewer(Viewer):
 
     def show(self):
     
+        def f():
+            if (self.may_render()):
+                self.emit_event(msgs.CORE_ACT_SELECT_ITEM, 0)
+                return False
+            else:
+                return True
+    
         Viewer.show(self)
         if (not self.__current_device):
             self.__list.clear_items()
             self.__subfolder_range = None
-            gobject.timeout_add(750, self.emit_event,
-                                msgs.CORE_ACT_SELECT_ITEM, 0)
+            
+            gobject.idle_add(f)
 
 
     def hide(self):

@@ -43,7 +43,7 @@ class BatteryMonitor(Component):
         bus_name = dbus.service.BusName('com.nokia.bme.request', system_bus) 
         self.__request = _Request(bus_name)
         
-        gobject.idle_add(self.__request.timeleft_info_req)
+        #gobject.idle_add(self.__request.timeleft_info_req)
 
 
     def __timeleft_cb(self, idle_time, active_time):

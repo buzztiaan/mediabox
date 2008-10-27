@@ -124,7 +124,7 @@ class ImageWidget(MediaWidget):
         #self.set_title(self.__get_name(uri))
         #self.set_info("%d / %d" % (self.__current_item + 1, len(self.__items)))
 
-        gobject.timeout_add(3000, self.send_event, self.EVENT_MEDIA_EOF)
+        #gobject.timeout_add(3000, self.send_event, self.EVENT_MEDIA_EOF)
 
 
 

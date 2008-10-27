@@ -186,6 +186,7 @@ class AVDevice(Device):
         
     def ls_async(self, path, cb, *args):
 
+        #path = "/11"
         def f(entry):
             if (entry):
                 item = self.__build_file(url_base, entry)

@@ -31,7 +31,7 @@ import time
 
 
 
-class AppWindow(Component):
+class AppWindow(Component, RootPane):
     """
     Main class of the application.
     """
@@ -45,11 +45,13 @@ class AppWindow(Component):
         self.__view_mode = viewmodes.TITLE_ONLY
         self.__battery_remaining = 100.0
         
+        self.__is_fullscreen = True
+        
         # mapping: viewer -> state
         self.__viewer_states = {}
 
         self.__saved_image = None
-        self.__saved_image_index = -1
+        self.__saved_image_index = -1        
         
         # flag for indicating whether media scanning has already been scheduled
         self.__media_scan_scheduled = False
@@ -78,7 +80,6 @@ class AppWindow(Component):
             # theme could not be loaded
             pass
 
-        Component.__init__(self)
 
         # window
         self.__window = MainWindow()
@@ -87,32 +88,36 @@ class AppWindow(Component):
         self.__window.connect("expose-event", self.__on_expose)
         self.__window.connect("key-press-event", self.__on_key)
         self.__window.connect("key-release-event", lambda x, y: True)
+        self.__window.connect("configure-event", self.__on_resize_window)
+        self.__window.set_title("%s %s" % (values.NAME, values.VERSION))
         self.__window.show()
-        
+        w, h = self.__window.get_size()
+
         if (maemo.IS_MAEMO):
             self.__program.add_window(self.__window)
 
         # screen pixmap
-        self.__screen = Pixmap(self.__window.window)
-        #self.__screen.draw_pixbuf(theme.background, 0, 0)
+        screen = Pixmap(self.__window.window)
 
-        # root pane
+        
+        Component.__init__(self)
         RootPane.set_event_sensor(self.__window)
-        self.__root_pane = RootPane()
-        self.__root_pane.set_screen(self.__screen)
+        RootPane.__init__(self)
+        self.set_size(w, h)
+        self.set_screen(screen)      
 
         # splash screen
         self.__splash = SplashScreen()
         self.__splash.set_visible(True)
-        self.__root_pane.add(self.__splash)
+        self.add(self.__splash)
 
         # image strip       
         self.__strip = ImageStrip(5)
-        self.__strip.set_geometry(0, 0, 170, 480)
+        #self.__strip.set_geometry(0, 0, 170, h)
         #self.__strip.set_caps(left_top, left_bottom)
         self.__strip.set_bg_color(theme.color_bg)
         self.__strip.set_visible(False)
-        self.__root_pane.add(self.__strip)
+        self.add(self.__strip)
 
         self.__kscr = KineticScroller(self.__strip)
         self.__kscr.set_touch_area(0, 108)
@@ -120,33 +125,34 @@ class AppWindow(Component):
 
         # title panel
         self.__title_panel_left = Image(None)
-        self.__title_panel_left.set_geometry(0, 0, 170, 40)
+        #self.__title_panel_left.set_geometry(0, 0, 170, 40)
         self.__title_panel_left.set_visible(False)
         
         self.__title_panel = TitlePanel()
-        self.__title_panel.set_geometry(170, 0, 630, 40)
+        #self.__title_panel.set_geometry(170, 0, w - 170, 40)
         self.__title_panel.set_title("Initializing")
         self.__title_panel.set_visible(False)
         self.__title_panel.connect_clicked(self.__on_click_title)
        
         # control panel
         self.__panel_left = Image(None)
-        self.__panel_left.set_geometry(0, 410, 160, 70)
+        #self.__panel_left.set_geometry(0, h - 70, 160, 70)
         self.__panel_left.connect_button_pressed(self.__on_menu_button)
         self.__panel_left.set_visible(False)
         
         self.__ctrl_panel = ControlPanel()
-        self.__ctrl_panel.set_geometry(170, 410, 630, 70)
+        #self.__ctrl_panel.set_geometry(170, h - 70, w - 170, 70)
         self.__ctrl_panel.set_visible(False)
 
         # tab panel and window controls
         self.__tab_panel = TabPanel()
-        self.__tab_panel.set_geometry(0, 330, 800, 150)
+        #self.__tab_panel.set_geometry(0, 330, 800, 150)
         self.__tab_panel.set_visible(False)
         self.__tab_panel.add_observer(self.__on_observe_tabs)
+        self.add(self.__tab_panel)
         
         self.__window_ctrls = WindowControls()
-        self.__window_ctrls.set_geometry(600, 0, 200, 80)
+        #self.__window_ctrls.set_geometry(w - 200, 0, 200, 80)
         self.__window_ctrls.set_visible(False)
         self.__window_ctrls.add_observer(self.__on_observe_window_ctrls)
 
@@ -154,7 +160,7 @@ class AppWindow(Component):
         self.__touch_back_area.connect_button_pressed(
                                           lambda x,y:self.__tab_panel.close())
         self.__touch_back_area.set_visible(False)
-        self.__root_pane.add(self.__touch_back_area)
+        self.add(self.__touch_back_area)
 
         self.__startup()
         
@@ -164,7 +170,7 @@ class AppWindow(Component):
         Runs a queue of actions to take for startup.
         """
 
-        actions = [(self.__root_pane.render_buffered, []),
+        actions = [(self.render_buffered, []),
                    (self.__splash.set_text, ["Loading Components..."]),
                    #(gtk.main_quit, []),
                    #(time.sleep, [10]),
@@ -172,9 +178,9 @@ class AppWindow(Component):
                    (self.__splash.set_text, ["Scanning Media Library..."]),
                    (self.__scan_media, [True]),
                    (self.__splash.set_visible, [False]),
-                   (self.__root_pane.render_buffered, []),
-                   (self.__root_pane.add, [self.__tab_panel]),
-                   (self.__root_pane.add, [self.__window_ctrls]),
+                   (self.render_buffered, []),
+                   (self.add, [self.__tab_panel]),
+                   (self.add, [self.__window_ctrls]),
                    (self.__add_panels, []),
                    (self.__select_initial_viewer, []),
                    ]
@@ -223,7 +229,7 @@ class AppWindow(Component):
 
         for viewer in self.__viewers:
             self.__tab_panel.add_viewer(viewer)
-            self.__root_pane.add(viewer)
+            self.add(viewer)
             viewer.set_visible(False)        
             vstate = ViewerState()
             self.__viewer_states[viewer] = vstate
@@ -234,11 +240,45 @@ class AppWindow(Component):
         Adds the panel components.
         """
     
-        self.__root_pane.add(self.__title_panel_left)
-        self.__root_pane.add(self.__title_panel)
-        self.__root_pane.add(self.__panel_left)
-        self.__root_pane.add(self.__ctrl_panel)
+        self.add(self.__title_panel_left)
+        self.add(self.__title_panel)
+        self.add(self.__panel_left)
+        self.add(self.__ctrl_panel)
         self.__prepare_collection_caps()
+
+
+    def render_this(self):
+    
+        RootPane.render_this(self)
+    
+        w, h = self.get_size()
+        screen = self.get_screen()
+
+        self.__title_panel_left.set_geometry(0, 0, 170, 40)
+        self.__title_panel.set_geometry(170, 0, w - 170, 40)
+        self.__panel_left.set_geometry(0, h - 70, 160, 70)
+        self.__ctrl_panel.set_geometry(170, h - 70, w - 170, 70)
+        self.__strip.set_geometry(0, 0, 170, h)
+
+        if (self.__view_mode == viewmodes.NORMAL):
+            if (self.__current_viewer):
+                self.__current_viewer.set_geometry(180, 40, w - 180, h - 110)
+
+        elif (self.__view_mode == viewmodes.NO_STRIP):
+            if (self.__current_viewer):
+                self.__current_viewer.set_geometry(0, 40, w, h - 110)
+
+        elif (self.__view_mode == viewmodes.NO_STRIP_PANEL):
+            if (self.__current_viewer):
+                self.__current_viewer.set_geometry(0, 0, w, h)
+            
+        elif (self.__view_mode == viewmodes.FULLSCREEN):
+            if (self.__current_viewer):
+                self.__current_viewer.set_geometry(0, 0, w, h)
+
+        elif (self.__view_mode == viewmodes.TITLE_ONLY):
+            if (self.__current_viewer):
+                self.__current_viewer.set_geometry(0, 40, w, h - 40)
         
         
     def __set_view_mode(self, view_mode):
@@ -248,6 +288,8 @@ class AppWindow(Component):
 
         if (not self.__is_initialized): return
 
+        w, h = self.get_size()
+
         if (view_mode == viewmodes.NORMAL):
             self.__title_panel_left.set_visible(False)
             self.__title_panel.set_visible(True)
@@ -255,7 +297,7 @@ class AppWindow(Component):
             self.__ctrl_panel.set_visible(True)
             self.__strip.set_visible(True)
             if (self.__current_viewer):
-                self.__current_viewer.set_geometry(180, 40, 620, 370)
+                self.__current_viewer.set_geometry(180, 40, w - 180, h - 110)
                 self.__get_vstate().collection_visible = True
             
         elif (view_mode == viewmodes.NO_STRIP):
@@ -265,7 +307,7 @@ class AppWindow(Component):
             self.__ctrl_panel.set_visible(True)
             self.__strip.set_visible(False)
             if (self.__current_viewer):            
-                self.__current_viewer.set_geometry(0, 40, 800, 370)
+                self.__current_viewer.set_geometry(0, 40, w, h - 110)
                 self.__get_vstate().collection_visible = False
 
         elif (view_mode == viewmodes.NO_STRIP_PANEL):
@@ -275,7 +317,7 @@ class AppWindow(Component):
             self.__ctrl_panel.set_visible(True)
             self.__strip.set_visible(False)
             if (self.__current_viewer):            
-                self.__current_viewer.set_geometry(0, 0, 800, 480)
+                self.__current_viewer.set_geometry(0, 0, w, h)
                 self.__get_vstate().collection_visible = False
             
         elif (view_mode == viewmodes.FULLSCREEN):
@@ -285,7 +327,7 @@ class AppWindow(Component):
             self.__ctrl_panel.set_visible(False)
             self.__strip.set_visible(False)
             if (self.__current_viewer):            
-                self.__current_viewer.set_geometry(0, 0, 800, 480)
+                self.__current_viewer.set_geometry(0, 0, w, h)
 
         elif (view_mode == viewmodes.TITLE_ONLY):
             self.__title_panel_left.set_visible(True)
@@ -294,7 +336,7 @@ class AppWindow(Component):
             self.__ctrl_panel.set_visible(False)
             self.__strip.set_visible(False)
             if (self.__current_viewer):            
-                self.__current_viewer.set_geometry(0, 40, 800, 440)
+                self.__current_viewer.set_geometry(0, 40, w, h - 40)
                 self.__get_vstate().collection_visible = False
 
         self.__view_mode = view_mode
@@ -313,13 +355,17 @@ class AppWindow(Component):
                                           pixbuftools.TOP |
                                           pixbuftools.LEFT)
 
+        x = 10
+
         if (repeat_mode == config.REPEAT_MODE_ONE):
             icon = theme.mb_status_repeat_one
         elif (repeat_mode == config.REPEAT_MODE_ALL):
             icon = theme.mb_status_repeat_all
         else:
             icon = theme.mb_status_repeat_none
-        pixbuftools.draw_pbuf(left_top, icon, 50, 4)
+        pixbuftools.draw_pbuf(left_top, icon, x, 4)
+        
+        x += 40
         
         if (shuffle_mode == config.SHUFFLE_MODE_ONE):
             icon = theme.mb_status_shuffle_one
@@ -327,7 +373,9 @@ class AppWindow(Component):
             icon = theme.mb_status_shuffle_none
         else:
             icon = theme.mb_status_shuffle_none
-        pixbuftools.draw_pbuf(left_top, icon, 90, 4)
+        pixbuftools.draw_pbuf(left_top, icon, x, 4)
+
+        x += 40
 
         br = self.__battery_remaining
         if (br > 80.0):
@@ -340,7 +388,7 @@ class AppWindow(Component):
             icon = theme.mb_status_battery_1
         else:
             icon = theme.mb_status_battery_0
-        pixbuftools.draw_pbuf(left_top, icon, 10, 4)
+        #pixbuftools.draw_pbuf(left_top, icon, x, 4)
 
         pixbuftools.draw_pbuf(left_bottom, theme.mb_btn_turn_1, 30, 15)
 
@@ -370,25 +418,31 @@ class AppWindow(Component):
 
     def __show_tabs(self):
     
-        self.__root_pane.set_enabled(False)
-        self.__root_pane.set_frozen(True)
+        w, h = self.get_size()
+
+        self.set_enabled(False)
+        self.set_frozen(True)
         
+        self.__tab_panel.render()
+
         self.__tab_panel.set_enabled(True)
-        self.__tab_panel.set_frozen(False)
+        self.__tab_panel.set_frozen(False)        
         self.__tab_panel.set_visible(True)
         
         self.__tab_panel.fx_raise()
+        
+        cw, ch = self.__window_ctrls.get_size()
+        tw, th = self.__tab_panel.get_size()
+        self.__tab_panel.set_pos(0, h - th)
 
         self.__window_ctrls.set_frozen(False)
         self.__window_ctrls.set_enabled(True)
+        self.__window_ctrls.set_geometry(w - cw, 0, cw, ch)        
         self.__window_ctrls.set_visible(True)
         self.__window_ctrls.fx_slide_in()
         
         self.__touch_back_area.set_visible(True)
         self.__touch_back_area.set_enabled(True)
-        w, h = self.__root_pane.get_size()
-        tw, th = self.__tab_panel.get_size()
-        cw, ch = self.__window_ctrls.get_size()
         self.__touch_back_area.set_geometry(0, 0, w - cw, h - th)
 
 
@@ -452,11 +506,22 @@ class AppWindow(Component):
         self.__try_quit()
         return True
         
+        
+    def __on_resize_window(self, src, ev):
+            
+        w, h = src.get_size()
+        if (src.get_size() != self.get_size()):
+            logging.debug("resizing window to (%d, %d)" % (w, h))
+            screen = Pixmap(self.__window.window)
+            self.set_screen(screen)
+            self.set_size(w, h)
+            self.render_buffered()
 
     def __on_expose(self, src, ev):
     
         x, y, w, h = ev.area
-        self.__screen.restore(x, y, w, h)
+        screen = self.get_screen()
+        screen.restore(x, y, w, h)
 
 
     def __on_key(self, src, ev):
@@ -467,9 +532,9 @@ class AppWindow(Component):
         size = int(open("/proc/%d/status" % pid, "r").read().splitlines()[15].split()[1])
         size /= 1024.0
         logging.debug("current Resident Set Size: %0.02f MB", size)
-                
-    
-        if (not self.__root_pane.is_enabled()): return
+
+
+        if (not self.is_enabled()): return
     
         keyval = ev.keyval
         key = gtk.gdk.keyval_name(keyval)
@@ -482,7 +547,7 @@ class AppWindow(Component):
             self.__try_quit()
         elif (key == "Return"):
             self.emit_event(msgs.HWKEY_EV_ENTER)
-        elif (key == "F6"):            
+        elif (key == "F6"):
             self.emit_event(msgs.HWKEY_EV_FULLSCREEN)
         elif (key == "F7"):
             self.emit_event(msgs.HWKEY_EV_INCREMENT)
@@ -491,18 +556,14 @@ class AppWindow(Component):
             
         elif (key == "Up"):
             self.emit_event(msgs.HWKEY_EV_UP)
-            #self.__kscr.impulse(0, 7.075)
         elif (key == "Down"):
             self.emit_event(msgs.HWKEY_EV_DOWN)
-            #self.__kscr.impulse(0, -7.075)
             
         elif (key == "XF86Headset"):
-            #self.__current_viewer.do_enter()
             self.emit_event(msgs.HWKEY_EV_HEADSET)
             
         
         elif (key == "BackSpace"):
-            print "BACKSPACE"
             term = self.__get_search_term()
             if (term):
                 term = term[:-1]
@@ -595,7 +656,13 @@ class AppWindow(Component):
     
         if (cmd == src.OBS_MINIMIZE_WINDOW):
             self.__window.iconify()
-            
+
+        elif (cmd == src.OBS_MAXIMIZE_WINDOW):
+            self.set_frozen(False)
+            self.__is_fullscreen = not self.__is_fullscreen
+            if (self.__is_fullscreen): self.__window.fullscreen()
+            else: self.__window.unfullscreen()
+
         elif (cmd == src.OBS_CLOSE_WINDOW):
             self.__try_quit()
 
@@ -613,14 +680,14 @@ class AppWindow(Component):
 
             if (self.__viewers[idx] != self.__current_viewer):
                 #self.__root_pane.fx_fade_out()
-                self.__root_pane.set_enabled(True)
-                self.__root_pane.set_frozen(False)
+                self.set_enabled(True)
+                self.set_frozen(False)
                 self.__select_viewer(idx)
             else:
                 self.__tab_panel.fx_lower()
-                self.__root_pane.set_enabled(True)
-                self.__root_pane.set_frozen(False)
-                self.__root_pane.render_buffered()
+                self.set_enabled(True)
+                self.set_frozen(False)
+                self.render_buffered()
         
         elif (cmd == src.OBS_REPEAT_MODE):
             mode = args[0]
@@ -632,8 +699,10 @@ class AppWindow(Component):
             config.set_shuffle_mode(mode)
             self.__prepare_collection_caps()
 
+
     def __on_observe_strip(self, src, cmd, *args):
     
+        w, h = self.get_size()
         handled = False
         if (cmd == src.OBS_SCROLLING):
             # invalidate ticket
@@ -641,11 +710,11 @@ class AppWindow(Component):
     
         elif (cmd == src.OBS_CLICKED):
             px, py = args
-            if (30 <= py < 420 and px > 108):
+            if (30 <= py < h - 60 and px > 108):
                 idx = self.__strip.get_index_at(py)            
                 self.__select_item(idx)
                 handled = True
-            elif (0 <= px <= 80 and py >= 420):
+            elif (0 <= px <= 80 and py >= h - 60):
                 self.__show_tabs()
                 handled = True
 
@@ -672,22 +741,22 @@ class AppWindow(Component):
         #    self.drop_event()
         
         elif (event == msgs.CORE_EV_THEME_CHANGED):
-            self.__root_pane.set_frozen(True)
-            self.__root_pane.propagate_theme_change()
+            self.set_frozen(True)
+            self.propagate_theme_change()
             self.__prepare_collection_caps()
             #self.__root_pane.render_buffered()            
-            self.__root_pane.fx_slide_in()
+            self.fx_slide_in()
     
     
         elif (event == msgs.UI_ACT_FREEZE):
-            self.__root_pane.set_frozen(True)
+            self.set_frozen(True)
             
         elif (event == msgs.UI_ACT_THAW):
-            self.__root_pane.set_frozen(False)
-            self.__root_pane.render_buffered()
+            self.set_frozen(False)
+            self.render_buffered()
             
         elif (event == msgs.UI_ACT_RENDER):
-            self.__root_pane.render_buffered()
+            self.render_buffered()
             
 
         elif (event == msgs.CORE_ACT_VIEW_MODE):
@@ -820,8 +889,8 @@ class AppWindow(Component):
             self.__set_view_mode(viewmodes.NO_STRIP)
         
         def f():
-            self.__scan_media(False)
-            self.__root_pane.set_frozen(True)
+            #self.__scan_media(False)
+            self.set_frozen(True)
             viewer.show()
             #self.__title_panel.set_time(0, 0)
             #self.__title_panel.set_title(vstate.title)
@@ -833,8 +902,8 @@ class AppWindow(Component):
             if (item_idx >= 0):
                 self.__hilight_item(item_idx)
 
-            self.__root_pane.fx_slide_in() #render() #_buffered()
-            self.__root_pane.set_frozen(False)
+            self.fx_slide_in() #render() #_buffered()
+            self.set_frozen(False)
 
         gobject.idle_add(f)
 
