@@ -87,9 +87,10 @@ class DragSorter(Observable):
             self.__auto_scroll_off()        
         
         # work around bad touch screens (e.g. Nokia 770)
-        if (self.__workaround_handler):
-            gobject.source_remove(self.__workaround_handler)
-        self.__workaround_handler = gobject.timeout_add(200, f)
+        #if (self.__workaround_handler):
+        #    gobject.source_remove(self.__workaround_handler)
+        #self.__workaround_handler = gobject.timeout_add(0, f)
+        f()
 
         
     def __on_drag(self, px, py):

@@ -61,7 +61,7 @@ class ImageStrip(Widget):
         # whether we wrap around
         self.__wrap_around = True
         
-        self.__buffer = Pixmap(None, 800, 480)
+        self.__buffer = Pixmap(None, 100, 100)
         self.__buffer_dirty = False
  
         self.set_size(100, 100)
@@ -78,8 +78,10 @@ class ImageStrip(Widget):
             self.__shared_pmap.clear_cache()
         if (self.__scrollbar_pbuf):
             self.set_scrollbar(self.__scrollbar_pbuf)
+        if (self.__images):
+            w, h = self.__images[0].get_size()
+            self.__images[0].set_size(w, h)
 
-        #self.render_full()
         self.render()
 
 
@@ -97,8 +99,11 @@ class ImageStrip(Widget):
     def set_size(self, w, h):
     
         if ((w, h) == self.get_size()): return
-        
+
         Widget.set_size(self, w, h)
+
+        if (w > 0 and h > 0):
+            self.__buffer = Pixmap(None, w, h)
         self.set_scrollbar(self.__scrollbar_pbuf)
 
         self.__shared_pmap = None
@@ -112,9 +117,10 @@ class ImageStrip(Widget):
 
     def set_bg_color(self, color):
     
+        w, h = self.get_size()
         self.invalidate_buffer()
         self.__bg_color = color
-        self.__buffer.fill_area(0, 0, 800, 480, self.__bg_color)
+        self.__buffer.fill_area(0, 0, w, h, self.__bg_color)
         
         
     def set_background(self, bg):
@@ -488,7 +494,7 @@ class ImageStrip(Widget):
 
         if (not self.may_render()): return
 
-        x, y = self.get_screen_pos()
+        x, y = 0, 0 #self.get_screen_pos()
         w, h = self.get_size()
         screen = self.__buffer #self.get_screen()
 
@@ -525,7 +531,7 @@ class ImageStrip(Widget):
 
         if (not self.may_render()): return
         
-        x, y = self.get_screen_pos()
+        x, y = 0, 0 #self.get_screen_pos()
         w, h = self.get_size()
         screen = self.__buffer #self.get_screen()
 
@@ -548,7 +554,7 @@ class ImageStrip(Widget):
         Renders the scrollbar onto the buffer.
         """
 
-        x, y = self.get_screen_pos()
+        x, y = 0, 0 #self.get_screen_pos()
         w, h = self.get_size()
         screen = self.__buffer
 
@@ -580,7 +586,7 @@ class ImageStrip(Widget):
         Renders the floating item onto the buffer.
         """
     
-        x, y = self.get_screen_pos()
+        x, y = 0, 0 #self.get_screen_pos()
         w, h = self.get_size()
         screen = self.__buffer
         
@@ -605,7 +611,7 @@ class ImageStrip(Widget):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
 
-        TEMPORARY_PIXMAP.copy_pixmap(self.__buffer, x, y, x, y, w, h)
+        TEMPORARY_PIXMAP.copy_pixmap(self.__buffer, 0, 0, 0, 0, w, h)
 
         #if (self.__arrows[0]):
         #    self.__render_arrows()
@@ -618,14 +624,14 @@ class ImageStrip(Widget):
 
         if (self.__cap_top):
             cw, ch = self.__cap_top_size
-            self.__buffer.draw_pixbuf(self.__cap_top, x, y, w, ch)
+            self.__buffer.draw_pixbuf(self.__cap_top, 0, 0, w, ch)
             
         if (self.__cap_bottom):
             cw, ch = self.__cap_bottom_size
-            self.__buffer.draw_pixbuf(self.__cap_bottom, x, y + h - ch, w, ch)
+            self.__buffer.draw_pixbuf(self.__cap_bottom, 0, h - ch, w, ch)
             
-        screen.copy_pixmap(self.__buffer, x, y + offset, x, y + offset, w, height)
-        self.__buffer.copy_pixmap(TEMPORARY_PIXMAP, x, y, x, y, w, h)
+        screen.copy_pixmap(self.__buffer, 0, offset, x, y + offset, w, height)
+        self.__buffer.copy_pixmap(TEMPORARY_PIXMAP, 0, 0, 0, 0, w, h)
         self.__buffer_dirty = False
 
         
@@ -664,19 +670,22 @@ class ImageStrip(Widget):
    
         if (not self.may_render()): return
 
+        
         blocksize = self.__itemsize + self.__gapsize
         render_to = render_offset + render_height
 
-        x, y = self.get_screen_pos()
+        x, y = 0, 0 #self.get_screen_pos()
         w, h = self.get_size()
         screen = self.__buffer
+        if (not self.__wrap_around and self.__totalsize > h and 
+              self.__offset > self.__totalsize - h):
+            self.__offset = self.__totalsize - h
 
         if (not self.__is_scrollable()):
             cw, ch = self.__cap_top_size
             screen.fill_area(x, y, w, ch, self.__bg_color)
             y += ch
             h -= ch
-
 
         # render items
         while (self.__images and render_offset < render_to):            
@@ -792,7 +801,7 @@ class ImageStrip(Widget):
 
         self.invalidate_buffer()
                 
-        x, y = self.get_screen_pos()
+        x, y = 0, 0 #self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
         
