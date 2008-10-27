@@ -280,6 +280,8 @@ class _Node(object):
     Class for representing a node in the DOM.
     """
 
+    __slots__ = ["__tagname", "__attrs", "__children", "__value"]
+
     def __init__(self, tagname, attrs):
         """
         Creates a new node with the given tagname and attributes.
