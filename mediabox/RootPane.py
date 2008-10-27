@@ -11,10 +11,16 @@ class RootPane(Widget):
 
     def __init__(self):
     
-        self.__buffer = Pixmap(None, 800, 480)
-    
+        self.__buffer = None
+        
         Widget.__init__(self)
-        self.set_size(800, 480)
+        self.set_size(100, 100)
+
+
+    def set_size(self, w, h):
+    
+        Widget.set_size(self, w, h)
+        self.__buffer = Pixmap(None, w, h)
 
 
     def render_this(self):
@@ -30,8 +36,9 @@ class RootPane(Widget):
     
         import time
         now = time.time()
+        w, h = self.get_size()
         self.render_at(self.__buffer)
-        self.get_screen().copy_pixmap(self.__buffer, 0, 0, 0, 0, 800, 480)
+        self.get_screen().copy_pixmap(self.__buffer, 0, 0, 0, 0, w, h)
         print "rendering took %fs" % (time.time() - now)
         
    
@@ -144,7 +151,7 @@ class RootPane(Widget):
             if (i > STEP):
                 screen.move_area(x, y, w, i - STEP, 0, STEP)
             screen.copy_pixmap(buf, x, y + h - i, 0, 0, w, STEP)
-            if (i < 480):
+            if (i < h):
                 gobject.timeout_add(7, fx, i + STEP)
             else:
                 finished.set()

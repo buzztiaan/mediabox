@@ -8,7 +8,8 @@ import theme
 class WindowControls(Widget, Observable):
 
     OBS_MINIMIZE_WINDOW = 0
-    OBS_CLOSE_WINDOW = 1
+    OBS_MAXIMIZE_WINDOW = 1
+    OBS_CLOSE_WINDOW = 2
 
 
     def __init__(self):        
@@ -18,21 +19,24 @@ class WindowControls(Widget, Observable):
     
         Widget.__init__(self)
         
-        btn_minimize = ImageButton(theme.window_minimize_1,
-                                   theme.window_minimize_2)
-        btn_minimize.set_size(80, 80)
-        btn_minimize.set_pos(10, 0)
-        self.add(btn_minimize)
-        btn_minimize.connect_clicked(self.update_observer,
-                                     self.OBS_MINIMIZE_WINDOW)
-
-        btn_close = ImageButton(theme.window_close_1,
-                                theme.window_close_2)
-        btn_close.set_size(80, 80)
-        btn_close.set_pos(110, 0)
-        self.add(btn_close)
-        btn_close.connect_clicked(self.update_observer,
-                                  self.OBS_CLOSE_WINDOW)
+        x = 10
+        for icon1, icon2, cmd in [(theme.window_minimize_1,
+                                   theme.window_minimize_2,
+                                   self.OBS_MINIMIZE_WINDOW),
+                                  #(theme.window_minimize_1,
+                                  # theme.window_minimize_2,
+                                  # self.OBS_MAXIMIZE_WINDOW),                                   
+                                  (theme.window_close_1,
+                                   theme.window_close_2,
+                                   self.OBS_CLOSE_WINDOW)]:
+            btn = ImageButton(icon1, icon2)
+            btn.set_geometry(x, 0, 80, 80)
+            self.add(btn)
+            btn.connect_clicked(self.update_observer, cmd)
+            x += 100
+        self.set_size(x, 80)
+            
+        
 
         
 

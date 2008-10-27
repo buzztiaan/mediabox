@@ -1,7 +1,7 @@
 from ui.Widget import Widget
 from ui.HBox import HBox
+from ui import pixbuftools
 from utils.Observable import Observable
-
 import theme
 
 import gtk
@@ -11,6 +11,9 @@ import pango
 class ControlPanel(Widget, Observable):   
 
     def __init__(self):
+    
+        self.__bg_pbuf = None
+    
 
         Widget.__init__(self)
         self.__box = HBox()
@@ -19,10 +22,23 @@ class ControlPanel(Widget, Observable):
         self.add(self.__box)        
 
 
+    def _reload(self):
+    
+        self.__bg_pbuf = None
+        w, h = self.get_size()
+        self.set_size(w, h)
+
+
     def set_size(self, w, h):
+
+        if (not self.__bg_pbuf or (w, h) != self.get_size()):
+            self.__bg_pbuf = pixbuftools.make_frame(theme.mb_panel, w, h, True,
+                                           pixbuftools.TOP | pixbuftools.RIGHT)
     
         Widget.set_size(self, w, h)
         self.__box.set_size(w - 20, h)
+        
+
         
 
     def render_this(self):
@@ -31,9 +47,8 @@ class ControlPanel(Widget, Observable):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        screen.draw_frame(theme.mb_panel, x, y, w, h, True,
-                          screen.TOP | screen.RIGHT)
-
+        if (self.__bg_pbuf):
+            screen.draw_pixbuf(self.__bg_pbuf, x, y)
  
 
     def set_toolbar(self, tbset):

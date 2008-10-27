@@ -2,6 +2,7 @@ from ui.Widget import Widget
 from ui.Image import Image
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from ui.Label import Label
+from ui import pixbuftools
 import theme
 
 import gobject
@@ -11,36 +12,39 @@ class TitlePanel(Widget):
 
     def __init__(self):
 
+        self.__bg_pbuf = None
+
         self.__title_text = ""
         self.__title_timer = None
 
         self.__volume_timer = None
+    
     
         Widget.__init__(self)
 
         self.__title = Label("", theme.font_plain,
                              theme.color_fg_panel_text)
         self.__title.set_alignment(self.__title.CENTERED)
-        self.__title.set_geometry(0, 5, 460, 30)
+        #self.__title.set_geometry(0, 5, 460, 30)
         self.add(self.__title)
         
         self.__info = Label("", theme.font_plain,
                             theme.color_fg_panel_text)
         self.__info.set_alignment(self.__title.RIGHT)
-        self.__info.set_geometry(500, 5, 110, 30)
+        #self.__info.set_geometry(500, 5, 110, 30)
         self.add(self.__info)
 
         self.__buffer = Pixmap(None, 32, 32)
 
         self.__speaker = Image(theme.speaker_volume)
-        self.__speaker.set_pos(520, 4)
+        #self.__speaker.set_pos(520, 4)
         self.__speaker.set_visible(False)
         self.add(self.__speaker)
         
         self.__volume = Label("", theme.font_plain,
                               theme.color_fg_panel_text)
         self.__volume.set_alignment(self.__title.RIGHT)
-        self.__volume.set_geometry(560, 5, 50, 30)
+        #self.__volume.set_geometry(560, 5, 50, 30)
         self.__volume.set_visible(False)
         self.add(self.__volume)      
         
@@ -50,9 +54,31 @@ class TitlePanel(Widget):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-        screen.draw_frame(theme.mb_panel, x, y, w, h, True,
-                          screen.BOTTOM | screen.RIGHT)
 
+        self.__title.set_geometry(0, 5, w - 180, 0)
+        self.__speaker.set_pos(w - 110, 4)
+        self.__info.set_geometry(w - 140, 5, 130, 0)
+        self.__volume.set_geometry(w - 140, 5, 130, 0)
+        
+        if (self.__bg_pbuf):
+            screen.draw_pixbuf(self.__bg_pbuf, x, y)
+
+
+    def _reload(self):
+    
+        self.__bg_pbuf = None
+        w, h = self.get_size()
+        self.set_size(w, h)
+
+
+    def set_size(self, w, h):
+
+        if (not self.__bg_pbuf or (w, h) != self.get_size()):
+            self.__bg_pbuf = pixbuftools.make_frame(theme.mb_panel, w, h, True,
+                                        pixbuftools.BOTTOM | pixbuftools.RIGHT)
+
+        Widget.set_size(self, w, h)
+        
 
     def set_title(self, title):
     

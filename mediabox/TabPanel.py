@@ -24,7 +24,7 @@ class TabPanel(Widget, Observable):
 
     def __init__(self):
     
-        self.__buffer = Pixmap(None, 800, 480)
+        self.__buffer = None
            
         # the currently selected tab
         self.__index = 0
@@ -39,9 +39,13 @@ class TabPanel(Widget, Observable):
         # icon widgets
         self.__icons = []
         self.__viewers = []
+        self.__buttons = []
+        
+        # whether the widget is prepared for rendering
+        self.__is_prepared = False
 
         
-        Widget.__init__(self)
+        Widget.__init__(self)        
         self.__label = Label("%s ver %s - %s" \
                       % (values.NAME, values.VERSION, values.COPYRIGHT),
                       theme.font_micro, theme.color_fg_splash)
@@ -58,7 +62,7 @@ class TabPanel(Widget, Observable):
               (theme.mb_repeat_all, mb_config.REPEAT_MODE_ALL)])
         btn_repeat.connect_changed(
               lambda v:self.update_observer(self.OBS_REPEAT_MODE, v))
-        btn_repeat.set_pos(730, 30)
+        #btn_repeat.set_pos(730, 30)
         btn_repeat.set_value(repeat_mode)
         self.add(btn_repeat)
         
@@ -67,9 +71,11 @@ class TabPanel(Widget, Observable):
               (theme.mb_shuffle_one, mb_config.SHUFFLE_MODE_ONE)])
         btn_shuffle.connect_changed(
               lambda v:self.update_observer(self.OBS_SHUFFLE_MODE, v))
-        btn_shuffle.set_pos(730, 100)
+        #btn_shuffle.set_pos(730, 100)
         btn_shuffle.set_value(shuffle_mode)
         self.add(btn_shuffle)
+        
+        self.__buttons = [btn_repeat, btn_shuffle]
 
 
     def _reload(self):
@@ -83,6 +89,13 @@ class TabPanel(Widget, Observable):
         
         for v in viewers:
             self.add_viewer(v)
+        self.__is_prepared = False
+
+
+    def set_size(self, w, h):
+        
+        Widget.set_size(self, w, h)
+        self.__is_prepared = False
 
 
     def __on_tab_selected(self, px, py, idx):
@@ -96,7 +109,7 @@ class TabPanel(Widget, Observable):
     def add_viewer(self, v):
     
         self.__viewers.append(v)
-        x, y = self.__pos        
+        #x, y = self.__pos
                 
         icon_active = pixbuftools.make_frame(theme.mb_selection_frame,
                                              120, 120, True)
@@ -110,22 +123,53 @@ class TabPanel(Widget, Observable):
         icon.connect_button_pressed(self.__on_tab_selected, len(self.__icons))
         self.__icons.append(icon)
         
-        offx = (128 - v.ICON.get_width()) / 2
-        offy = (128 - v.ICON.get_height()) / 2
-        icon.set_pos(10 + x * 128 + offx, 10 + y * 128 + offy)
+        #offx = (128 - v.ICON.get_width()) / 2
+        #offy = (128 - v.ICON.get_height()) / 2
+        #icon.set_pos(10 + x * 128 + offx, 10 + y * 128 + offy)
 
-        height = (y + 1) * 130 + 20
-        self.set_geometry(0, 480 - height, 800, height)
-        self.__label.set_geometry(0, height - 16, 790, 0)
+        #height = int(len(self.__icons) * 120 / w) * 120
+        #self.set_size(pw, height)
 
-        x += 1
-        if (x == 5):
-            x = 0
-            y += 1
-        self.__pos = (x, y)
+        #height = (y + 1) * 130 + 20
+        #self.set_geometry(0, ph - height, pw, height)
+        #self.__label.set_geometry(0, height - 16, 100 - 10, 0)
+
+        #x += 1
+        #if (x == 5):
+        #    x = 0
+        #    y += 1
+        #self.__pos = (x, y)
+
+
+    def __prepare(self):
+    
+        # compute size and position icons
+        pw, ph = self.get_parent().get_size()
+        i_x = i_y = i_w = i_h = 20
+        for icon in self.__icons:
+            if (i_x + i_w > pw - 80):
+                i_x = 20
+                i_y += i_h + 20
+                
+            icon.set_pos(i_x, i_y)
+            i_w, i_h = icon.get_size()
+            i_x += i_w + 20
+        #end for
+        w = pw
+        h = i_y + i_h + 20
+        self.set_size(w, h)
+        
+        # prepare offscreen-buffer
+        self.__buffer = Pixmap(None, w, h)
+        
+        self.__is_prepared = True
+        
 
 
     def render_this(self):
+
+        if (not self.__is_prepared):
+            self.__prepare()
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
@@ -134,6 +178,13 @@ class TabPanel(Widget, Observable):
         screen.fill_area(x, y, w - 80, h, theme.color_bg)
         screen.fill_area(w - 80, y, 80, h, "#aaaaaf")
         screen.fill_area(0, 0, w, 2, "#333333")
+        self.__label.set_geometry(0, h - 16, w - 16, 0)
+        
+        b_y = 10
+        for btn in self.__buttons:
+            b_w, b_h = btn.get_size()
+            btn.set_pos(w - b_w - 10, b_y)
+            b_y += 70
         
         if (self.__currently_playing >= 0):
             icon = self.__icons[self.__currently_playing]
@@ -169,20 +220,24 @@ class TabPanel(Widget, Observable):
         if (self.__lock.isSet()): return
         self.__lock.set()
 
+        if (not self.__is_prepared):
+            self.__prepare()
+
         STEP = 10
         x, y = self.get_screen_pos()
         w, h = self.get_size()
+        pw, ph = self.get_parent().get_size()
         screen = self.get_screen()
         
         buf = Pixmap(None, w, h)
         self.render_at(buf)       
-        self.__buffer.copy_pixmap(screen, 0, 0, 0, 0, 800, h)
+        self.__buffer.copy_pixmap(screen, 0, 0, 0, 0, pw, h)
         finished = threading.Event()
         
         
         def f(i):
-            screen.move_area(0, STEP, 800, 480 - i, 0, -STEP)
-            screen.copy_pixmap(buf, 0, h - i, 0, 480 - i, w, STEP)
+            screen.move_area(0, STEP, pw, ph - i, 0, -STEP)
+            screen.copy_pixmap(buf, 0, h - i, 0, ph - i, w, STEP)
             if (i < h):
                 gobject.timeout_add(2, f, i + STEP)
             else:
@@ -203,12 +258,13 @@ class TabPanel(Widget, Observable):
         STEP = 10
         x, y = self.get_screen_pos()
         w, h = self.get_size()
+        pw, ph = self.get_parent().get_size()
         screen = self.get_screen()
         
         finished = threading.Event()
         
         def f(i):
-            screen.move_area(0, 0, 800, 480 - h + i, 0, STEP)
+            screen.move_area(0, 0, pw, ph - h + i, 0, STEP)
             screen.copy_pixmap(self.__buffer, 0, h - i - STEP, 0, 0, w, STEP)
             if (i < h - STEP):
                 gobject.timeout_add(2, f, i + STEP)
