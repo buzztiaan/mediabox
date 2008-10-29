@@ -40,7 +40,7 @@ class ProgressBar(Widget):
         self.__current_message = ""
        
         Widget.__init__(self)
-        self.set_size(240, 64)
+        self.set_size(200, 64)
 
         self.connect_button_pressed(self.__on_button_press)
         self.connect_button_released(self.__on_button_release)

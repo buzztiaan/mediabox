@@ -9,6 +9,7 @@ from LibItem import LibItem
 from mediabox.TrackList import TrackList
 from ui.BoxLayout import BoxLayout
 from ui.ImageButton import ImageButton
+from ui.Image import Image
 from ui.SideTabs import SideTabs
 from ui import dialogs
 from mediabox.ThrobberDialog import ThrobberDialog
@@ -239,6 +240,7 @@ class GenericViewer(Viewer):
         items.append(self.__btn_next)
                 
         if (self.__view_mode == self._VIEWMODE_BROWSER):
+            items.append(Image(theme.mb_toolbar_space_1))
             items.append(self.__btn_back)
             
         self.set_toolbar(items)
@@ -575,12 +577,8 @@ class GenericViewer(Viewer):
         Loads the given file.
         """
 
-        if (f.mimetype == f.DIRECTORY):
+        if (f.mimetype.endswith("-folder")):    
             gobject.timeout_add(250, self.__load_folder, f, self.__GO_CHILD)
-
-        elif (f.mimetype == "audio/x-music-folder"):
-            gobject.timeout_add(250, self.__load_folder, f, self.__GO_CHILD)
-            
                 
         else:
             self.__current_file = f
@@ -782,11 +780,12 @@ class GenericViewer(Viewer):
             item = SubItem(entry)
         buttons = []
         
-        if (entry.mimetype == entry.DIRECTORY):
-            buttons.append((item.BUTTON_PLAY, theme.mb_item_btn_play))
-            pass
-        elif (entry.mimetype == "audio/x-music-folder"):    
+        if (entry.mimetype == "audio/x-music-folder"):
             buttons.append((item.BUTTON_OPEN, theme.mb_item_btn_play))
+            
+        elif (entry.mimetype.endswith("-folder")):
+            buttons.append((item.BUTTON_PLAY, theme.mb_item_btn_play))
+            
         else:
             buttons.append((item.BUTTON_PLAY, theme.mb_item_btn_play))
             buttons.append((item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
@@ -963,10 +962,15 @@ class GenericViewer(Viewer):
 
             data = data[0]
             if (data):
-                loader = gtk.gdk.PixbufLoader()
-                loader.write(data)
-                loader.close()
-                pbuf = loader.get_pixbuf()
+                try:
+                    loader = gtk.gdk.PixbufLoader()
+                    loader.write(data)
+                    loader.close()                                
+                    pbuf = loader.get_pixbuf()
+                except:
+                    gobject.idle_add(self.__create_thumbnails,
+                                     path, items_to_thumbnail)
+                    return
                 
                 thumbpath = self.call_service(msgs.MEDIASCANNER_SVC_SET_THUMBNAIL,
                                               f, pbuf)
@@ -1035,8 +1039,13 @@ class GenericViewer(Viewer):
                 # a thumbnail URI is specified
                 self.__items_downloading_thumbnails[f] = (item, tn)
                 print "GET FROM URI", f.thumbnail
-                Downloader(f.thumbnail, self.__on_download_thumbnail, f, [""],
-                           path, items_to_thumbnail)
+                if (f.thumbnail.startswith("/")):
+                    self.__on_download_thumbnail("", 0, 0, f,
+                                                 [open(f.thumbnail).read()],
+                                                 path, items_to_thumbnail)
+                else:
+                    Downloader(f.thumbnail, self.__on_download_thumbnail, f,
+                               [""], path, items_to_thumbnail)
             else:
                 # create new thumbnail
                 self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,

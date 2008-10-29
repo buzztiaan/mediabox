@@ -44,7 +44,7 @@ def parse_async(xml, cb, *args):
     """
     
     #open("/tmp/didl.xml", "w").write(xml)
-    def on_node(node):
+    def on_node(node):        
         if (node.get_name() == "{%s}DIDL-Lite" % _XMLNS_DIDL):
             # finished parsing
             return cb(None, *args)
@@ -56,6 +56,7 @@ def parse_async(xml, cb, *args):
                 return True
             
     MiniXML(xml, callback = on_node)
+    #pass
     
     
     
@@ -110,7 +111,7 @@ def _parse_container(node):
         import traceback; traceback.print_exc()
         return None
 
-    return (ident, clss, child_count, "", title, "", "application/x-directory")
+    return (ident, clss, child_count, "", title, "", "application/x-folder")
 
     
     

@@ -284,6 +284,7 @@ class YouTube(Device):
                 return True            
 
 
+        #open("/tmp/yt.xml", "w").write(xml)
         MiniXML(xml, callback = on_receive_item)
 
 

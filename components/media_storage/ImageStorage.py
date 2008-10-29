@@ -89,17 +89,36 @@ class ImageStorage(Device):
                 f = File(self)
                 f.is_local = True
                 f.path = "/" + folder
-                f.mimetype = f.DIRECTORY
+                f.mimetype = "image/x-image-folder"
                 f.resource = ""
                 f.name = folder
                 f.info = "%d items" % len(self.__folders.get(folder, []))
+                f.thumbnail = self.__find_image_in_folder(f)
                 cb(f, *args)
                 
         else:
             images = self.__folders.get(path[1:], [])
             for img in images:
+                img.name = self.__get_name(img.path)
                 cb(img, *args)
             #end for
         
         cb(None, *args)
 
+
+    def __find_image_in_folder(self, folder):
+    
+        for f in folder.get_children():
+            if (f.mimetype.startswith("image/")):
+                return f.resource
+        #end for
+        return ""
+
+
+    def __get_name(self, uri):
+    
+        basename = os.path.basename(uri)
+        name = os.path.splitext(basename)[0]
+        name = name.replace("_", " ")
+        
+        return name

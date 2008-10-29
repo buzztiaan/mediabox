@@ -19,14 +19,17 @@ class UPnPDeviceFactory(Component):
             uuid, descr = args
 
             device_type = descr.get_device_type()
-            print "DISCOVERED", device_type
 
             if (device_type in AVDevice.DEVICE_TYPES):
                 device = AVDevice(descr)
                 self.emit_event(msgs.CORE_EV_DEVICE_ADDED, uuid, device)
+                
+                self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
+                                   u"discovered network storage \xbb%s\xab" \
+                                   %  descr.get_friendly_name())
 
-            elif (device_type in DimmableLight.DEVICE_TYPES):
-                device = DimmableLight(descr)
+            #elif (device_type in DimmableLight.DEVICE_TYPES):
+            #    device = DimmableLight(descr)
 
 
         elif (ev == msgs.SSDP_EV_DEVICE_GONE):

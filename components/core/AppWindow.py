@@ -390,7 +390,7 @@ class AppWindow(Component, RootPane):
             icon = theme.mb_status_battery_0
         #pixbuftools.draw_pbuf(left_top, icon, x, 4)
 
-        pixbuftools.draw_pbuf(left_bottom, theme.mb_btn_turn_1, 30, 15)
+        pixbuftools.draw_pbuf(left_bottom, theme.mb_btn_turn, 10, 4)
 
         
 

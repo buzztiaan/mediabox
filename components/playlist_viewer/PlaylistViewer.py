@@ -79,11 +79,16 @@ class PlaylistViewer(Viewer):
         btn_add = ImageButton(theme.mb_btn_add_1, theme.mb_btn_add_2)
         btn_add.connect_clicked(self.__create_new_playlist)
 
+        btn_delete = ImageButton(theme.mb_btn_remove_1, theme.mb_btn_remove_2)
+        btn_delete.connect_clicked(self.__delete_playlist)
+
         self.__playlist_tbset = [
             btn_prev,
             btn_next,
             Image(theme.mb_toolbar_space_1),
-            btn_add
+            btn_add,
+            Image(theme.mb_toolbar_space_1),
+            btn_delete
         ]
         self.set_toolbar(self.__playlist_tbset)
 
@@ -154,24 +159,29 @@ class PlaylistViewer(Viewer):
                 self.__add_item(pl, f)
 
 
-        self.__lists = []
-
         # create playlist folder if it does not yet exist
         if (not os.path.exists(_PLAYLIST_DIR)):
             try:
                 os.makedirs(_PLAYLIST_DIR)
             except:
                 pass
-        pl_path = os.path.join(_PLAYLIST_DIR, "Playlist.m3u")
-        if (not os.path.exists(pl_path)):
-            try:
-                open(pl_path, "w").write("")
-            except:
-                pass
+        #pl_path = os.path.join(_PLAYLIST_DIR, "Playlist.m3u")
+        #if (not os.path.exists(pl_path)):
+        #    try:
+        #        open(pl_path, "w").write("")
+        #    except:
+        #        pass
 
         # initialize playqueue
-        queue = Playlist()
-        queue.set_name("Queue")
+        if (self.__lists):
+            queue = self.__lists[0]
+        else:
+            queue = Playlist()
+            queue.set_name("Queue")
+            
+        self.__lists = []
+        self.__pl_thumbnails = []
+
         self.__lists.append(queue)
         self.__pl_thumbnails.append(PlaylistThumbnail(queue))
         
@@ -237,6 +247,23 @@ class PlaylistViewer(Viewer):
             self.emit_event(msgs.CORE_ACT_SELECT_ITEM, len(self.__lists) - 1)
         #end if
         
+        
+    def __delete_playlist(self):
+        """
+        Deletes the current playlist.
+        """
+        
+        #if (self.__current_list == 0): return
+        
+        pl = self.__lists[self.__current_list]
+        ret = dialogs.question("Delete Playlist",
+                               u"Delete playlist\n\xbb%s\xab?" % pl.get_name())
+        if (ret == 0):
+            pl.delete_playlist()            
+            self.__load_playlists()
+            self.__update_playlist_thumbnail()
+            self.emit_event(msgs.CORE_ACT_SELECT_ITEM, 0)
+
 
     def __on_toggle_fullscreen(self):
     
@@ -475,8 +502,8 @@ class PlaylistViewer(Viewer):
         self.__media_widget.connect_media_eof(self.__on_media_eof)
         self.__media_widget.connect_media_volume(self.__on_media_volume)
         self.__media_widget.connect_media_position(self.__on_media_position)
-        #media_widget.connect_fullscreen_toggled(
-        #                                    self.__on_toggle_fullscreen)
+        self.__media_widget.connect_fullscreen_toggled(
+                                                   self.__on_toggle_fullscreen)
         
         self.set_toolbar(self.__media_widget.get_controls() + \
                          self.__playlist_tbset)

@@ -101,16 +101,6 @@ class ImageWidget(MediaWidget):
             
         elif (cmd == src.OBS_NEXT):
             self.__next_image()
-            
-            
-    def __get_name(self, uri):
-    
-        basename = os.path.basename(uri)
-        name = os.path.splitext(basename)[0]
-        name = name.replace("_", " ")
-        
-        return name
-            
 
 
     def load(self, item):

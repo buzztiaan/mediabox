@@ -81,6 +81,8 @@ class ImageStrip(Widget):
         if (self.__images):
             w, h = self.__images[0].get_size()
             self.__images[0].set_size(w, h)
+        for image in self.__images:
+            image.invalidate()
 
         self.render()
 

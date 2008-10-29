@@ -18,7 +18,7 @@ def render_pixbuf(thumbfile, mimetype):
     later use.
     """
 
-    if (mimetype == "application/x-directory"):
+    if (mimetype == "application/x-folder"):
         fx, fy = 20, 0
         tx, ty, tw, th = 23, 3, 109, 109
         if (os.path.exists(thumbfile)):
@@ -33,6 +33,11 @@ def render_pixbuf(thumbfile, mimetype):
             frame = theme.viewer_music_frame
         else:
             frame = None
+
+    elif (mimetype == "image/x-image-folder"):
+        fx, fy = 0, 0
+        tx, ty, tw, th = 35, 30, 100, 69
+        frame = theme.mb_thumbnail_image_folder
         
     elif (mimetype in mimetypes.get_audio_types()):
         fx, fy = 20, 0
@@ -105,10 +110,10 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
 
 def _get_fallback_thumbnail(mimetype):
 
-    if (mimetype == "application/x-directory"):
-        return theme.mb_filetype_folder
-    elif (mimetype == "audio/x-music-folder"):
+    if (mimetype == "audio/x-music-folder"):
         return theme.mb_unknown_album
+    elif (mimetype.endswith("-folder")):
+        return theme.mb_filetype_folder
     elif (mimetype in mimetypes.get_audio_types()):
         return theme.mb_filetype_audio
     elif (mimetype in mimetypes.get_image_types()):

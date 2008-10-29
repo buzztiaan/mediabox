@@ -146,3 +146,19 @@ class Playlist(object):
         if (self.__path):
             self.save_as(self.__path)
 
+
+    def delete_playlist(self):
+    
+        if (self.__path):
+            try:
+                os.unlink(self.__path)
+            except:
+                pass
+        #end if
+
+        self.__current_pos = -1
+        self.__path = ""
+        self.__items = []
+        self.__thumbnails = []
+        self.__files = []
+

@@ -8,7 +8,7 @@ import md5
 class File(object):
 
     FILE = "application/x-other"
-    DIRECTORY = "application/x-directory"
+    DIRECTORY = "application/x-folder"
     
 
     def __init__(self, device):
