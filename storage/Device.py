@@ -98,8 +98,17 @@ class Device(Component):
     def delete(self, f):
     
         raise NotImplementedError
+
+
+    def keep(self, f):
+        """
+        Keeps the given file. Storage device can implement this method to
+        let the user keep remote stuff locally.
+        """
         
-        
+        raise NotImplementedError
+
+
     def ls(self, path):
         """
         Returns a list of File objects representing the contents of the
@@ -118,8 +127,8 @@ class Device(Component):
         while (not finished[0]):
             pass
         return items
-        
-        
+
+
     def ls_async(self, path, cb, *args):
         """
         Lists the given path asynchronously by calling the given callback
@@ -166,12 +175,12 @@ class Device(Component):
         
         
         
-    def get_resource(self, resource):
+    def get_resource(self, f):
         """
         Returns the resource URI to access the given resource. Usually this
         method just returns the given resource. But sometimes (e.g. YouTube),
         this URI has to be specially determined.
         """
         
-        return resource
-        
+        return f.resource
+

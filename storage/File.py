@@ -24,7 +24,10 @@ class File(object):
         
         self.can_delete = False
         """whether the user may delete this file"""
-                
+
+        self.can_keep = False
+        """whether the user may keep this non-local file"""
+
         self.can_download = False
         """whether the user may download this file"""
 
@@ -166,5 +169,10 @@ class File(object):
         
     def get_resource(self):
     
-        return self.__device.get_resource(self.resource)
+        return self.__device.get_resource(self)
         
+        
+    def keep(self):
+    
+        self.__device.keep(self)
+

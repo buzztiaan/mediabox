@@ -22,8 +22,7 @@ class Prefs(Configurator):
         vbox.set_geometry(0, 0, 620, 370)
         self.add(vbox)
         
-        lbl = Label("Please specify where you want MediaBox to cache\n"
-                    "YouTube videos for playing:\n",
+        lbl = Label("Save YouTube videos to:\n",
                     theme.font_plain, theme.color_fg_item)
         vbox.add(lbl)
 

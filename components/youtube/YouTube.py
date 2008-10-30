@@ -1,3 +1,4 @@
+from com import msgs
 from storage import Device, File
 from utils.MiniXML import MiniXML
 from utils import logging
@@ -65,6 +66,8 @@ class YouTube(Device):
             
         self.__fileserver = FileServer()
         self.__flv_downloader = None
+        
+        self.__keep_video = False
         
         Device.__init__(self)
 
@@ -265,6 +268,7 @@ class YouTube(Device):
                 rating = self.__parse_rating(rating_node)
                
                 f = File(self)
+                f.can_keep = True
                 f.path = ident
                 f.mimetype = "video/x-flash-video"
                 f.resource = ident
@@ -379,28 +383,65 @@ class YouTube(Device):
             self.__ls_search(path, cb, *args)
             
             
-    def get_resource(self, resource):
+    def get_resource(self, f):
     
-        def f(d, a, t):
-            print "%d / %d         " % (a, t)
-            print gobject.main_depth()
-            if (gobject.main_depth() < 3): gtk.main_iteration(False)
-            
-        flv = self.__get_flv(resource)
+        def on_dload(d, a, t, flv_path, keep_path):
+            if (d):
+                print "%d / %d         " % (a, t)
+                print gobject.main_depth()
+                if (gobject.main_depth() < 3): gtk.main_iteration(False)
+            else:
+                if (self.__keep_video):
+                    try:
+                        os.rename(flv_path, keep_path)
+                    except:
+                        pass
+
+
+        flv = self.__get_flv(f.resource)
 
         if (self.__flv_downloader):
             self.__flv_downloader.cancel()
             
         cache_folder = config.get_cache_folder()
         flv_path = os.path.join(cache_folder, ".tube.flv")
-        self.__flv_downloader = FileDownloader(flv, flv_path, f)
+        keep_path = os.path.join(cache_folder, self.__make_filename(f.name))
+        self.__keep_video = False
+        self.__flv_downloader = FileDownloader(flv, flv_path, on_dload,
+                                               flv_path, keep_path)
         
         # we don't give the downloaded file directly to the player because
         # if we did so, the player would fall off the video if it reached
         # the end of file before it was downloaded completely.
         # instead we serve it on a webserver to make the player wait for
         # more if the download rate is too low
-        self.__fileserver.allow(flv_path, "/" + resource + ".flv")
+        self.__fileserver.allow(flv_path, "/" + f.resource + ".flv")
         
-        return self.__fileserver.get_location() + "/" + resource + ".flv"
+        return self.__fileserver.get_location() + "/" + f.resource + ".flv"
+
+
+    def keep(self, f):
+        """
+        Keeps the current video.
+        """
+        
+        self.__keep_video = True
+        self.emit_event(msgs.NOTIFY_SVC_SHOW_INFO,
+                        u"video will be saved as\n\xbb%s\xab" \
+                        % self.__make_filename(f.name))
+
+
+
+    def __make_filename(self, name):
+        """
+        Creates a valid filename from the given name.
+        """
+        
+        replace_map = [("/", "-"),
+                       ("?", "")]
+                       
+        for a, b in replace_map:
+            name = name.replace(a, b)
+
+        return name + ".flv"
 

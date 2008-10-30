@@ -135,6 +135,10 @@ class GenericViewer(Viewer):
                                       theme.mb_btn_next_2)
         self.__btn_next.connect_clicked(self.__go_next)
 
+        self.__btn_keep = ImageButton(theme.mb_btn_keep_1,
+                                      theme.mb_btn_keep_2, True)
+        self.__btn_keep.connect_clicked(self.__on_btn_keep)
+
         self.accept_device_types(Device.TYPE_GENERIC)
         
         #self.set_size(800, 480)
@@ -229,7 +233,11 @@ class GenericViewer(Viewer):
         """
         
         items = []
-        
+
+        if (self.__current_file and self.__current_file.can_keep):
+            self.__btn_keep.set_active(False)
+            items.append(self.__btn_keep)        
+
         if (self.__path_stack and self.__path_stack[-1][0].can_add):
             items.append(self.__btn_add)
         
@@ -948,6 +956,18 @@ class GenericViewer(Viewer):
             if (f):
                 self.__add_file(f, [])
                 self.__list.render()
+
+
+    def __on_btn_keep(self):
+        """
+        Reacts on pressing the [Keep] button.
+        """
+
+        self.__btn_keep.set_active(True)
+
+        if (self.__current_file):
+            self.__current_file.keep()
+            
 
 
     def __on_download_thumbnail(self, d, a, t, f, data, path, items_to_thumbnail):
