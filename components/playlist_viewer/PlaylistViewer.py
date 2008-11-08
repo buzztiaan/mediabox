@@ -235,7 +235,7 @@ class PlaylistViewer(Viewer):
 
             pl_path = os.path.join(_PLAYLIST_DIR,
                                    urlquote.quote(name, safe = "") + ".m3u")
-            print "PL PATH", pl_path
+            logging.info("creating playlist '%s'" % pl_path)
             pl = Playlist()
             pl.set_name(name)
             pl.save_as(pl_path)
@@ -349,20 +349,6 @@ class PlaylistViewer(Viewer):
         pl = self.__lists[self.__current_list]
         pl.swap(idx1, idx2)
         pl.save()
-        """
-        temp = self.__items[idx1]
-        self.__items[idx1] = self.__items[idx2]
-        self.__items[idx2] = temp
-
-        temp = self.__thumbnails[idx1]
-        self.__thumbnails[idx1] = self.__thumbnails[idx2]
-        self.__thumbnails[idx2] = temp
-
-        if (self.__current_index == idx1):
-            self.__current_index = idx2
-        elif (self.__current_index == idx2):
-            self.__current_index = idx1
-        """
         
 
     def __on_media_eof(self):
