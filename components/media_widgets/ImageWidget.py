@@ -71,6 +71,7 @@ class ImageWidget(MediaWidget):
         screen = self.get_screen()
 
         if (w < 800):
+            screen.fill_area(x, y, w, h, theme.color_bg)
             screen.draw_frame(theme.viewer_image_frame, x, y,
                               w, h, True)
             self.__image.set_geometry(11, 11, w - 28, h - 28)

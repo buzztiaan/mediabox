@@ -1,5 +1,6 @@
 from mediabox.MediaWidget import MediaWidget
 from mediabox import media_bookmarks
+from mediabox import tagreader
 from mediabox import config as mb_config
 from ui.EventBox import EventBox
 from ui.ImageButton import ImageButton
@@ -259,14 +260,10 @@ class AudioWidget(MediaWidget):
 
     def __show_info(self, item):
     
-        if (item.tags):
-            title = item.tags.get("TITLE") or item.name
-            artist = item.tags.get("ARTIST") or "-"
-            album = item.tags.get("ALBUM") or "-"
-        else:
-            title = item.name
-            artist = "-"
-            album = "-"
+        tags = tagreader.get_tags(item)
+        title = tags.get("TITLE") or item.name
+        artist = tags.get("ARTIST") or "-"
+        album = tags.get("ALBUM") or "-"
             
         self.__title.set_text(title or item.name)
         self.__artist.set_text(artist or item.artist)
@@ -358,13 +355,11 @@ class AudioWidget(MediaWidget):
         
         
     def __load_cover(self, item):
-    
+
         uri = item.get_resource()
-        if (item.tags):
-            coverdata = item.tags.get("PICTURE")
-        else:
-            coverdata = None
-            
+        tags = tagreader.get_tags(item)
+        coverdata = tags.get("PICTURE")
+
         pbuf = None
         if (coverdata):
             # load embedded APIC

@@ -72,15 +72,24 @@ class VideoWidget(MediaWidget):
 
     def _visibility_changed(self):
 
-        def f():
-            if (self.may_render() and \
-                self.__player and self.__player.has_video()):
-                self.__screen.show()
-
         if (not self.may_render()):
-            self.__screen.hide()
+            self.__hide_video_screen()
         else:
-            gobject.idle_add(f)
+            self.__show_video_screen()
+
+
+    def __show_video_screen(self):
+    
+        if (not self.get_screen().is_offscreen() and
+            self.may_render() and
+            self.__player and
+            self.__player.has_video()):
+            self.__screen.show()
+            
+    
+    def __hide_video_screen(self):
+    
+        self.__screen.hide()
 
 
     def render_this(self):
@@ -100,20 +109,19 @@ class VideoWidget(MediaWidget):
         else:
             screen.fill_area(x, y, w, h, "#000000")
 
-        if (self.__player and self.__player.has_video() and self.may_render()):
-            self.__scale_video()            
-            self.__screen.show()
+        if (self.__player and self.__player.has_video()):
+            self.__scale_video()
+            self.__show_video_screen()
 
 
     def set_frozen(self, value):
      
         MediaWidget.set_frozen(self, value)
-        if (not value and self.may_render() and self.__player and \
-              self.__player.has_video()):
-            self.__screen.show()
+        if (not value):
+            self.__show_video_screen()
         else:
-            self.__screen.hide()
-
+            self.__hide_video_screen()
+            
         
     def __on_expose(self, src, ev):
 
@@ -160,7 +168,7 @@ class VideoWidget(MediaWidget):
             print "Killed Player"
             self.__uri = ""
             self.__progress.set_message("")
-            self.__screen.hide()
+            self.__hide_video_screen()
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
 
@@ -172,7 +180,7 @@ class VideoWidget(MediaWidget):
                                            theme.mb_btn_play_2)
                 self.__progress.set_message("error")
                 self.__show_error(err)
-                self.__screen.hide()
+                self.__hide_video_screen()
             
         elif (cmd == src.OBS_PLAYING):
             ctx = args[0]
@@ -194,7 +202,7 @@ class VideoWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):        
                 self.__uri = ""
-                self.__screen.hide()
+                self.__hide_video_screen()
 
                 # unfullscreen
                 #if (self.__is_fullscreen): self.__on_fullscreen()
@@ -289,12 +297,12 @@ class VideoWidget(MediaWidget):
         print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
         #while (gtk.events_pending()): gtk.main_iteration()
-        self.__screen.show()
+        self.__show_video_screen()
 
 
     def load(self, item):
     
-        self.__screen.show()
+        self.__show_video_screen()
     
         def f():
             uri = item.get_resource()
@@ -319,7 +327,7 @@ class VideoWidget(MediaWidget):
                 except:
                     logging.error("could not load video '%s'\n%s" \
                                   % (uri, logging.stacktrace()))
-                    self.__screen.hide()
+                    self.__hide_video_screen()
                     return
                                 
                 self.__player.set_volume(mb_config.volume())
