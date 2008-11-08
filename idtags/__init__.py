@@ -81,5 +81,11 @@ def read(filename):
     
 if (__name__ == "__main__"):
     import sys
-    read(sys.argv[1]).keys()
-        
+    import time
+    
+    now = time.time()
+    for k, v in read(sys.argv[1]).items():
+        if (len(v) < 80):
+            print "%s:\t%s" % (k, v)
+    print "took %0.5f seconds" % (time.time() - now)
+
