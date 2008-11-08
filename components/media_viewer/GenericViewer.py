@@ -18,7 +18,6 @@ from utils import logging
 from io import Downloader
 from mediabox import viewmodes
 from mediabox import config as mb_config
-import idtags
 import theme
 
 import os
@@ -166,7 +165,7 @@ class GenericViewer(Viewer):
         """
     
         def f():
-            gobject.idle_add(self.__set_view_mode, view_mode)
+            gobject.timeout_add(50, self.__set_view_mode, view_mode)
             
         self.__side_tabs.add_tab(None, name, f)
 
@@ -239,14 +238,17 @@ class GenericViewer(Viewer):
             items.append(self.__btn_keep)        
 
         if (self.__path_stack and self.__path_stack[-1][0].can_add):
+            items.append(Image(theme.mb_toolbar_space_1))
             items.append(self.__btn_add)
         
         if (self.__media_widget):
             items += self.__media_widget.get_controls()
             
-        items.append(self.__btn_prev)
-        items.append(self.__btn_next)
-                
+        if (self.__path_stack and self.__path_stack[-1][0].can_skip):
+            items.append(Image(theme.mb_toolbar_space_1))
+            items.append(self.__btn_prev)
+            items.append(self.__btn_next)
+
         if (self.__view_mode == self._VIEWMODE_BROWSER):
             items.append(Image(theme.mb_toolbar_space_1))
             items.append(self.__btn_back)
@@ -328,7 +330,7 @@ class GenericViewer(Viewer):
                 idx = self.__non_folder_items.index(self.__current_file)
                 self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
 
-            gobject.idle_add(self.emit_event, msgs.UI_ACT_THAW)
+            gobject.timeout_add(50, self.emit_event, msgs.UI_ACT_THAW)
 
 
         elif (mode == self._VIEWMODE_PLAYER_FULLSCREEN):
@@ -499,7 +501,7 @@ class GenericViewer(Viewer):
             entry = self.__items[idx - 1]
             self.__list.hilight(idx)
             self.__list.render()
-            gobject.idle_add(self.__load_file, entry)
+            gobject.timeout_add(50, self.__load_file, entry)
 
         elif (button == item.BUTTON_ENQUEUE):
             if (idx == 0):
@@ -525,7 +527,7 @@ class GenericViewer(Viewer):
             
         elif (button == item.BUTTON_OPEN):
             entry = self.__items[idx - 1]
-            gobject.idle_add(self.__insert_folder, entry)
+            gobject.timeout_add(50, self.__insert_folder, entry)
                         
             
     def __init_library(self):
@@ -573,6 +575,7 @@ class GenericViewer(Viewer):
         """
 
         self.__current_device = device
+        self.__path_stack = []
         
         root = device.get_root()
         self.set_title(device.get_name())
@@ -684,7 +687,7 @@ class GenericViewer(Viewer):
         if (self.__path_stack):
             self.__path_stack[-1][1] = self.__list.get_offset()
         self.__path_stack.append([path, 0])
-        print self.__path_stack
+        #print self.__path_stack
 
         self.__list.clear_items()        
         #if (direction == self.__GO_PARENT):
@@ -954,7 +957,7 @@ class GenericViewer(Viewer):
             path, list_offset = self.__path_stack[-1]
             f = path.new_file()
             if (f):
-                self.__add_file(f, [])
+                self.__add_file(f, [], -1)
                 self.__list.render()
 
 
@@ -1103,7 +1106,7 @@ class GenericViewer(Viewer):
             self.__list.clear_items()
             self.__subfolder_range = None
             
-            gobject.idle_add(f)
+            gobject.timeout_add(50, f)
 
 
     def hide(self):
