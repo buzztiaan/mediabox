@@ -1,5 +1,5 @@
 """
-Object representing a file or folder on a storage device.
+The File object represents a file or folder on a storage device.
 """
 
 import md5
@@ -8,13 +8,24 @@ import md5
 class File(object):
 
     FILE = "application/x-other"
+    """MIME type for unknown file types"""
+
     DIRECTORY = "application/x-folder"
+    """MIME type for folders"""
     
 
     def __init__(self, device):
+        """
+        Creates a new File object belonging to the given storage device.
+        
+        @param device: the storage device of the file
+        """
     
         self.__device = device
 
+
+        self.can_skip = False
+        """whether the user may skip files (previous/next) in this folder"""
 
         self.can_add_to_library = False
         """whether the user may add this folder to the library"""
@@ -60,16 +71,9 @@ class File(object):
         """URI for accessing the file"""
 
         
-        #self.title = ""
-        #self.artist = ""
-        #self.album = ""
-        #self.trackno = 0
         self.child_count = 0
         self.emblem = None
         
-        self.tags = None
-
-
 
 
     def __cmp__(self, other):
@@ -90,7 +94,7 @@ class File(object):
         return self.__device.get_prefix() + self.path
         
     full_path = property(__get_full_path)
-    """full virtual path of the file"""
+    """read-only: full virtual path of the file"""
     
     
     def __get_source_icon(self):
@@ -98,7 +102,7 @@ class File(object):
         return self.__device.get_icon()
         
     source_icon = property(__get_source_icon)
-    """pixbuf icon representing the source device"""
+    """read-only: pixbuf icon representing the source device"""
 
 
     def __get_md5(self):
@@ -110,7 +114,7 @@ class File(object):
             return self.__md5
 
     md5 = property(__get_md5)
-    """MD5 sum for uniquely identifying the file internally"""
+    """read-only: MD5 sum for uniquely identifying the file internally"""
 
     
 
@@ -125,20 +129,26 @@ class File(object):
     
         self.__thumbnail_md5 = v
 
-    thumbnail_md5 = property(__get_thumbnail_md5,
-                             __set_thumbnail_md5)
-    """MD5 sum for uniquely identifying the file's thumbnail preview"""
+    thumbnail_md5 = property(__get_thumbnail_md5, __set_thumbnail_md5)
+    """read-write: MD5 sum for uniquely identifying the file's thumbnail preview"""
 
        
         
     def new_file(self):
+        """
+        Creates a new file in this folder. This only works if the storage
+        device implements the new_file method.
+        
+        @return: the new File object
+        """
     
         return self.__device.new_file(self.path)
         
         
     def delete(self):
         """
-        Deletes this file.
+        Deletes this file. This only works if the storage device implements
+        the delete method.
         """
     
         return self.__device.delete(self)
@@ -147,25 +157,40 @@ class File(object):
     def get_children(self):
         """
         Returns a list of children of this folder.
+        
+        @return: list of File objects
         """
     
         return self.__device.ls(self.path)
 
 
     def get_children_async(self, cb, *args):
+        """
+        Lists the children of this folder asynchronously by invoking the
+        given callback handler on every file. Terminates with a None object.
+        
+        @param cb: callback handler
+        @param *args: variable list of arguments to the callback handler
+        """
         
         self.__device.ls_async(self.path, cb, *args)
 
 
     def load(self, maxlen, cb, *args):
+        """
+        Retrieves the given amount of bytes of the file asynchronously.
         
-        self.__device.load(self.get_resource(), maxlen, cb, *args)
+        May raise an IOError if retrieving is not supported.
+        
+        @param maxlen: number of bytes to retrieve or -1 for retrieving the
+                       whole file
+        @param cb:     callback handler for accepting the data chunks
+        @param *args:  variable list of arguments to the callback handler
+        """
+        
+        self.__device.load(self, maxlen, cb, *args)
 
 
-    def get_fd(self):
-    
-        return self.__device.get_fd(self.resource)
-        
         
     def get_resource(self):
     
@@ -173,6 +198,11 @@ class File(object):
         
         
     def keep(self):
+        """
+        Instructs the storage device to keep this file. This method can be used
+        for keeping a local copy of a remote file. This only works if the
+        storage device implements the keep method.
+        """
     
         self.__device.keep(self)
 

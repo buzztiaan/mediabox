@@ -153,28 +153,21 @@ class Device(Component):
         do_async(files)
 
 
-    def load(self, resource, maxlen, cb, *args):
+    def load(self, f, maxlen, cb, *args):
         """
-        Loads the file contents asynchronously calling the given callback
-        when new data is available.
-        If maxlen is greater than 0, loading stops after reading at least
-        maxlen bytes.
+        Retrieves the given amount of bytes of the file asynchronously.
+        
+        May raise an IOError if retrieving is not supported.
+        
+        @param maxlen: number of bytes to retrieve or -1 for retrieving the
+                       whole file
+        @param cb:     callback handler for accepting the data chunks
+        @param *args:  variable list of arguments to the callback handler
         """
         
-        raise NotImplementedError
-        
+        raise IOError("retrieval not supported")
 
 
-    def get_fd(self, resource):
-        """
-        Returns a file descriptor for reading the given resource.
-        This method may raise an exception to signalize failure or timeout.
-        """
-
-        raise NotImplementedError
-        
-        
-        
     def get_resource(self, f):
         """
         Returns the resource URI to access the given resource. Usually this
