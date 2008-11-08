@@ -7,6 +7,7 @@ import theme
 
 import os
 import commands
+import gobject
 
 
 
@@ -187,12 +188,40 @@ class LocalDevice(Device):
         return items
         
         
-    def load(self, resource, maxlen, cb, *args):
+    def load(self, f, maxlen, cb, *args):
     
-        fd = open(resource, "r")
+        def on_data(fd, read_size, total_size):
+            data = fd.read(0xffff)
+            read_size[0] += len(data)
+            
+            try:
+                cb(data, read_size[0], total_size, *args)
+            except:
+                fd.close()
+                return False
+                
+            if (data and maxlen > 0 and read_size[0] >= maxlen):
+                try:
+                    cb("", read_size[0], total_size, *args)
+                except:
+                    pass
+                fd.close()
+                return False
+
+            elif (not data):
+                fd.close()
+                return False
+            
+            return True
+        
+
+        fd = open(f.resource, "r")
         fd.seek(0, 2)
         total_size = fd.tell()
         fd.seek(0)
+        
+        gobject.timeout_add(50, on_data, fd, [0], total_size)
+        """
         read_size = 0
         while (True):
             d = fd.read(65536)
@@ -212,10 +241,4 @@ class LocalDevice(Device):
             elif (not d):
                 break
         #end while
-
-        
-        
-    def get_fd(self, resource):
-    
-        fd = open(resource, "r")
-        return fd
+        """
