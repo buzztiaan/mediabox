@@ -25,10 +25,16 @@ class TabPanel(Widget, Observable):
     def __init__(self):
     
         self.__buffer = None
-           
-        # the currently selected tab
-        self.__index = 0
+        self.__backing_buffer = None
+        self.__motion_buffer = Pixmap(None, 160, 160)
         
+        self.__hilight_box = None
+        self.__position_matrix = [[]]
+        self.__cursor_position = (0, 0)
+        self.__in_motion = False
+
+        self.__index = 0
+
         # the index of the component that is currently playing
         self.__currently_playing = -1
         
@@ -50,7 +56,7 @@ class TabPanel(Widget, Observable):
                       % (values.NAME, values.VERSION, values.COPYRIGHT),
                       theme.font_micro, theme.color_fg_splash)
         self.add(self.__label)
-        self.__label.set_alignment(self.__label.RIGHT)
+        #self.__label.set_alignment(self.__label.RIGHT)
 
         # playmode buttons
         repeat_mode = mb_config.repeat_mode()
@@ -78,10 +84,16 @@ class TabPanel(Widget, Observable):
         self.__buttons = [btn_repeat, btn_shuffle]
 
 
+        self.__hilight_box = pixbuftools.make_frame(theme.mb_selection_frame,
+                                                    120, 120, True)
+
+
+
     def _reload(self):
     
-        self.__icons[self.__index].set_active(False)
-    
+        self.__hilight_box = pixbuftools.make_frame(theme.mb_selection_frame,
+                                                    120, 120, True)
+       
         viewers = self.__viewers
         self.__pos = (0, 0)
         self.__icons = []
@@ -89,6 +101,7 @@ class TabPanel(Widget, Observable):
         
         for v in viewers:
             self.add_viewer(v)
+        self.__buffer = None
         self.__is_prepared = False
 
 
@@ -103,7 +116,6 @@ class TabPanel(Widget, Observable):
         if (self.__lock.isSet()): return
 
         self.select_viewer(idx)
-        self.update_observer(self.OBS_TAB_SELECTED, idx)
 
 
     def add_viewer(self, v):
@@ -111,56 +123,41 @@ class TabPanel(Widget, Observable):
         self.__viewers.append(v)
         #x, y = self.__pos
                 
-        icon_active = pixbuftools.make_frame(theme.mb_selection_frame,
-                                             120, 120, True)
-        pixbuftools.draw_pbuf(icon_active, v.ICON, 0, 0)
-        
-        icon = ImageButton(v.ICON, icon_active, manual = True)
+        icon = ImageButton(v.ICON, v.ICON, manual = True)
         icon.set_size(120, 120)
         self.add(icon)
-        if (len(self.__icons) == self.__index):
-            icon.set_active(True)
         icon.connect_button_pressed(self.__on_tab_selected, len(self.__icons))
         self.__icons.append(icon)
-        
-        #offx = (128 - v.ICON.get_width()) / 2
-        #offy = (128 - v.ICON.get_height()) / 2
-        #icon.set_pos(10 + x * 128 + offx, 10 + y * 128 + offy)
-
-        #height = int(len(self.__icons) * 120 / w) * 120
-        #self.set_size(pw, height)
-
-        #height = (y + 1) * 130 + 20
-        #self.set_geometry(0, ph - height, pw, height)
-        #self.__label.set_geometry(0, height - 16, 100 - 10, 0)
-
-        #x += 1
-        #if (x == 5):
-        #    x = 0
-        #    y += 1
-        #self.__pos = (x, y)
 
 
     def __prepare(self):
     
+    
         # compute size and position icons
         pw, ph = self.get_parent().get_size()
         i_x = i_y = i_w = i_h = 20
+
+        self.__position_matrix = []
+        row = []
         for icon in self.__icons:
             if (i_x + i_w > pw - 80):
                 i_x = 20
                 i_y += i_h + 20
+                self.__position_matrix.append(row)
+                row = []
                 
             icon.set_pos(i_x, i_y)
+            row.append((i_x, i_y))
             i_w, i_h = icon.get_size()
             i_x += i_w + 20
         #end for
+        self.__position_matrix.append(row)
         w = pw
         h = i_y + i_h + 20
         self.set_size(w, h)
-        
-        # prepare offscreen-buffer
-        self.__buffer = Pixmap(None, w, h)
+
+        # prepare backing buffer
+        self.__backing_buffer = Pixmap(None, w, h)
         
         self.__is_prepared = True
         
@@ -178,7 +175,7 @@ class TabPanel(Widget, Observable):
         screen.fill_area(x, y, w - 80, h, theme.color_bg)
         screen.fill_area(w - 80, y, 80, h, "#aaaaaf")
         screen.fill_area(0, 0, w, 2, "#333333")
-        self.__label.set_geometry(0, h - 16, w - 16, 0)
+        self.__label.set_geometry(8, h - 16, w - 16, 0)
         
         b_y = 10
         for btn in self.__buttons:
@@ -192,27 +189,212 @@ class TabPanel(Widget, Observable):
             screen.draw_pixbuf(theme.mb_btn_load, i_x + 120 - 32, i_y)
 
 
-    def select_viewer(self, idx):
+    def __get_cursor_position(self, index):
+        """
+        Returns the cursor position of the given item.
+        """
+    
+        row_size = len(self.__position_matrix[0])
+        if (row_size == 0):
+            x = 0
+            y = 0
 
-        if (idx != self.__index):            
-            icon = self.__icons[self.__index]
-            icon.set_active(False)
- 
-            icon = self.__icons[idx]
-            icon.set_active(True)
+        else:
+            y = index / row_size
+            x = index % row_size
+        
+        return (x, y)
+        
+        
+    def __get_index_from_cursor(self, csr_x, csr_y):
+        """
+        Returns the index of the item at the given cursor.
+        """
+        
+        try:
+            idx = csr_y * len(self.__position_matrix[0]) + csr_x
+        except:
+            idx = 0
             
-            self.__index = idx    
+        return idx
+        
+        
+    def __hilight_item(self, idx, cb, *args):
+        """
+        Hilights the item at the given position. Invokes the given callback
+        when ready.
+        """
+    
+        def move_box(from_x, from_y, to_x, to_y):
+            dx = (to_x - from_x) / 5
+            dy = (to_y - from_y) / 5
+            if (abs(dx) > 0 or abs(dy) > 0):
+                self.__move_cursor(from_x, from_y, dx, dy)            
+                gobject.timeout_add(10, move_box, from_x + dx, from_y + dy,
+                                    to_x, to_y)
+            else:
+                self.__move_cursor(from_x, from_y, to_x - from_x, to_y - from_y)
+                self.__in_motion = False
+                if (cb):
+                    cb(*args)
+    
+    
+        if (not self.__is_prepared): return
+        if (self.__in_motion): return
+
+        csr_x, csr_y = self.__get_cursor_position(idx)
+
+        prev_x, prev_y = self.__cursor_position
+        x, y = self.__position_matrix[prev_y][prev_x]
+        try:
+            new_x, new_y = self.__position_matrix[csr_y][csr_x]
+        except:
+            return
+        
+        self.__in_motion = True
+        self.__cursor_position = (csr_x, csr_y)
+        move_box(x, y, new_x, new_y)
+        
+        
+        
+       
+
+    def __move_cursor(self, x1, y1, dx, dy):
+        """
+        Moves the cursor by the given amount.
+        
+        x,y                             
+        +-----------------+  |       |     x,y     - position of motion buffer
+        |x1,y1            |  |dy     |     w,h     - size of motion buffer          
+        |                 |  v       |     x1,y1   - previous cursor position
+        |   +-----------------+ |    |h    x2,y2   - new cursor position
+        |   |x2,y2        |   | |    |     dx,dy   - offset between old and new
+        +---|-------------+   | |bh  |               cursor position
+            |                 | |    |     bw,bh   - size of cursor
+        --->|                 | |    |     bx1,by1 - previous position of cursor
+        dx  +-----------------+ V    v               in the motion buffer
+                                           bx2,by2 - new position of cursor in
+            ------------------>                      the motion buffer
+                    bw
+                   
+        ---------------------->
+                    w
+
+        1. create motion buffer if necessary
+        2. create buffer if necessary
+        3. copy screen to motion buffer
+        4. copy buffer to motion buffer at current cursor position
+        5. save motion buffer at new cursor position to buffer
+        6. draw cursor onto motion buffer
+        7. copy motion buffer to screen
+            
+        """
+
+        screen = self.get_screen()
+        scr_x, scr_y = self.get_screen_pos()
+        
+        x2 = x1 + dx
+        y2 = y1 + dy
+        bw = self.__hilight_box.get_width()
+        bh = self.__hilight_box.get_height()
+        x = x1 + min(dx, 0)
+        y = y1 + min(dy, 0)
+        w = bw + abs(dx)
+        h = bh + abs(dy)
+        bx1 = x1 - x
+        by1 = y1 - y
+        bx2 = x2 - x
+        by2 = y2 - y
+        
+
+        # 1. create motion buffer if necessary
+        motion_buf_w, motion_buf_h = self.__motion_buffer.get_size()
+        if (w > motion_buf_w or h > motion_buf_h):
+            self.__motion_buffer = Pixmap(None, w, h)
+
+        # 2. create buffer if necessary
+        if (not self.__buffer):
+            self.__buffer = Pixmap(None, bw, bh)
+            self.__buffer.copy_pixmap(screen, scr_x + x1, scr_y + y1,
+                                      0, 0, bw, bh)
+        
+        # 3. copy screen to motion buffer
+        self.__motion_buffer.copy_pixmap(screen, scr_x + x, scr_y + y,
+                                         0, 0, w, h)
+                                         
+        # 4. copy buffer to motion buffer at current cursor position
+        self.__motion_buffer.copy_pixmap(self.__buffer, 0, 0,
+                                         bx1, by1, bw, bh)
+
+        # 5. save motion buffer at new cursor position to buffer
+        self.__buffer.copy_pixmap(self.__motion_buffer, bx2, by2,
+                                  0, 0, bw, bh)
+
+        # 6. draw cursor onto motion buffer
+        #screen.copy_pixmap(self.__motion_buffer, 0, 0, 0, 0, w, h)
+        self.__motion_buffer.draw_pixbuf(self.__hilight_box, x2 - x, y2 - y)
+                                  
+        # 7. copy motion buffer to screen        
+        screen.copy_pixmap(self.__motion_buffer, 0, 0,
+                           scr_x + x, scr_y + y, w, h)
+
+
+    def select_viewer(self, idx):
+        """
+        Selects the given viewer.
+        
+        @param idx: index of the viewer
+        """
+
+        if (self.__in_motion): return
+
+        if (self.may_render()):
+            self.__hilight_item(idx,
+                              self.update_observer, self.OBS_TAB_SELECTED, idx)
+
+        self.__index = idx
 
 
     def set_currently_playing(self, idx):
     
         self.__currently_playing = idx
+
         
         
     def close(self):
 
-        self.select_viewer(self.__index)
+        if (self.__in_motion): return
+        
+        self.__index = self.__get_index_from_cursor(*self.__cursor_position)
         self.update_observer(self.OBS_TAB_SELECTED, self.__index)
+
+
+    def up(self):
+    
+        csr_x, csr_y = self.__cursor_position
+        idx = self.__get_index_from_cursor(csr_x, csr_y - 1)
+        self.__hilight_item(idx, None)
+
+
+    def down(self):
+    
+        csr_x, csr_y = self.__cursor_position
+        idx = self.__get_index_from_cursor(csr_x, csr_y + 1)
+        self.__hilight_item(idx, None)
+
+
+    def left(self):
+    
+        csr_x, csr_y = self.__cursor_position
+        idx = self.__get_index_from_cursor(csr_x - 1, csr_y)
+        self.__hilight_item(idx, None)
+
+
+    def right(self):
+    
+        csr_x, csr_y = self.__cursor_position
+        idx = self.__get_index_from_cursor(csr_x + 1, csr_y)
+        self.__hilight_item(idx, None)
 
 
     def fx_raise(self, wait = True):
@@ -230,8 +412,9 @@ class TabPanel(Widget, Observable):
         screen = self.get_screen()
         
         buf = Pixmap(None, w, h)
-        self.render_at(buf)       
-        self.__buffer.copy_pixmap(screen, 0, 0, 0, 0, pw, h)
+        self.render_at(buf)
+        
+        self.__backing_buffer.copy_pixmap(screen, 0, 0, 0, 0, pw, h)
         finished = threading.Event()
         
         
@@ -246,7 +429,10 @@ class TabPanel(Widget, Observable):
                 
         self.set_events_blocked(True)
         f(STEP)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)        
+        while (wait and not finished.isSet()): gtk.main_iteration(False)
+        
+        self.__cursor_position = self.__get_cursor_position(self.__index)
+        gobject.timeout_add(0, self.__hilight_item, self.__index, None)
         gobject.timeout_add(250, self.set_events_blocked, False)
 
 
@@ -265,7 +451,8 @@ class TabPanel(Widget, Observable):
         
         def f(i):
             screen.move_area(0, 0, pw, ph - h + i, 0, STEP)
-            screen.copy_pixmap(self.__buffer, 0, h - i - STEP, 0, 0, w, STEP)
+            screen.copy_pixmap(self.__backing_buffer, 0, h - i - STEP,
+                               0, 0, w, STEP)
             if (i < h - STEP):
                 gobject.timeout_add(2, f, i + STEP)
             else:
