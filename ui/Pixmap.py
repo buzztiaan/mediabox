@@ -249,13 +249,31 @@ class Pixmap(object):
         #del pbuf
 
         return target
-        
-        
+
+
+    def set_clip_rect(self, *args):
+        """
+        Sets the clipping rectangle.
+        Pass None to disable clipping.
+        """
+    
+        if (len(args) == 4):
+            cx, cy, cw, ch = args
+            rect = gtk.gdk.Rectangle(cx, cy, cw, ch)
+            
+        else:
+            rect = gtk.gdk.Rectangle(0, 0, self.__width, self.__height)
+
+        self.__gc.set_clip_rectangle(rect)
+        if (self.__buffered):
+            self.__buffer_gc.set_clip_rectangle(rect)
+
+
     def set_clip_mask(self, mask = None):
         """
         @todo: DEPRECATED
         """
-    
+     
         if (mask):
             self.__gc.set_clip_mask(mask)
             if (self.__buffered):
@@ -265,7 +283,9 @@ class Pixmap(object):
             self.__gc.set_clip_rectangle(rect)
             if (self.__buffered):
                 self.__buffer_gc.set_clip_rectangle(rect)
-        
+
+
+              
         
     def get_size(self):
         """

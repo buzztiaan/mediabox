@@ -91,6 +91,7 @@ class ChoiceBox(Widget):
         w, h = self.get_size()
         screen = self.get_screen()
 
+        self.use_clipping(True)
         screen.draw_frame(theme.mb_choicebox, x, y, w, h, True)
         #screen.fill_area(x, y, w - 64, h, "#000000")
         #screen.fill_area(x + 1, y + 1, w - 66, h - 2, "#ffffff")
@@ -103,6 +104,7 @@ class ChoiceBox(Widget):
         screen.draw_pixmap(self.__label_pmap,
                            x + max(0, (w - l_w) / 2),
                            y + (h - l_h) / 2)
+        self.use_clipping(False)
 
 
     def fx_slide_in(self, wait = True):
@@ -125,8 +127,10 @@ class ChoiceBox(Widget):
         
         def fx(i):
             if (i + STEP > w): i = w - STEP
+            self.use_clipping(True)
             screen.move_area(x + STEP, y, w - STEP, h, -STEP, 0)
             screen.copy_pixmap(buf, i, 0, x + w - STEP, y, STEP, h)
+            self.use_clipping(False)
             if (i + STEP < w):
                 gobject.timeout_add(7, fx, i + STEP)
             else:

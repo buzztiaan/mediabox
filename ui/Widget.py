@@ -44,6 +44,8 @@ class Widget(object):
         self.__position = (0, 0)
         self.__size = (0, 0)
         
+        self.__clip_rect = None
+        
         self.__screen = None
         self.__instances.append(self)
           
@@ -171,6 +173,30 @@ class Widget(object):
     
         return self.__screen
         
+        
+    def set_clip_rect(self, *args):
+        """
+        Sets the clipping rectangle that can be used for this widget.
+        """
+    
+        self.__clip_rect = args
+        
+        
+    def use_clipping(self, value):
+        """
+        Activates or deactivates clipping.
+        
+        @param value: whether to activate (True) or deactivate (False) clipping
+        """
+    
+        if (not self.__clip_rect): return
+    
+        screen = self.get_screen()
+        if (value):
+            screen.set_clip_rect(*self.__clip_rect)
+        else:
+            screen.set_clip_rect(None)
+            
         
     def set_zone(self, ident, x, y, w, h):
         """

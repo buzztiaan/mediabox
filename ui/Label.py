@@ -190,8 +190,10 @@ class Label(Widget):
             
         if (self.may_render()):
             text_y = (h - text_h) / 2
+            self.use_clipping(True)
             screen.copy_pixmap(self.__text_pmap, pos, 0, x + text_x, y + text_y,
                                min(text_w, w), text_h)
+            self.use_clipping(False)
 
         # handle scrolling
         if (text_w > w and self.may_render()):
