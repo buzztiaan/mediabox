@@ -1,4 +1,5 @@
 import thief
+from utils import logging
 
 import os
 import gtk
@@ -29,7 +30,6 @@ def make_thumbnail_async(f, dest, cb):
         if (d):
             loader.write(d)
         else:
-            print "finished"
             finish_loading(loader)
 
     def on_size_available(loader, width, height):
@@ -41,7 +41,6 @@ def make_thumbnail_async(f, dest, cb):
         
 
     uri = f.resource
-    print "loading", uri
     uri = thief.steal_image(uri) or uri
 
     loader = gtk.gdk.PixbufLoader()

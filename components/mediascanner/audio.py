@@ -97,11 +97,11 @@ def __load_pbuf(cover):
 
 def __find_embedded_cover(contents):
 
-    import idtags
+    from mediabox import tagreader
     
     for c in contents[:10]:
         if (c.mimetype.startswith("audio/")):
-            tags = idtags.read(c.resource)
+            tags = tagreader.get_tags(c)
             if ("PICTURE" in tags):
                 return __load_apic(tags["PICTURE"])
         #end if

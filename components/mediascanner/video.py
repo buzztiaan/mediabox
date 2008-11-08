@@ -40,10 +40,11 @@ def make_thumbnail_async(f, dest, cb):
                 pass
             os.system("rm -f /tmp/00000*.jpg")
             
-            print "... OK"
+            #print "... OK"
             
         else:
-            print "... failed"
+            pass
+            #print "... failed"
         #end if        
         cb()
 
@@ -76,7 +77,7 @@ def make_thumbnail_async(f, dest, cb):
               % ("/tmp", f.resource)
         mplayer_pid = commands.getoutput(cmd)
 
-        print "thumbnailing", f.resource,
+        #print "thumbnailing", f.resource,
         now = time.time()
         gobject.idle_add(wait_for_thumb, now, mplayer_pid)
 
