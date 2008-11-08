@@ -2,7 +2,7 @@ from com import msgs
 
 from storage import Device, File
 from utils import logging
-import idtags
+from mediabox import tagreader
 import theme
 
 import os
@@ -47,7 +47,7 @@ class AudioStorage(Device):
         
     def get_name(self):
     
-        return "Audio Library"
+        return "Albums"
 
 
     def get_icon(self):
@@ -58,8 +58,9 @@ class AudioStorage(Device):
     def get_root(self):
     
         f = File(self)
-        f.is_local = True        
+        f.is_local = True
         f.path = "/"
+        f.can_skip = True
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = self.get_name()
@@ -74,6 +75,7 @@ class AudioStorage(Device):
             for album in self.__albums:
                 f = File(self)
                 f.is_local = True
+                f.can_skip = True
                 f.name = album.name
                 f.info = album.info
                 f.mimetype = album.mimetype
@@ -98,10 +100,7 @@ class AudioStorage(Device):
 
             for trk in album.get_children():
                 if (trk.mimetype.startswith("audio")):
-                    fd = trk.get_fd()
-                    tags = idtags.read_fd(fd) or {}
-                    fd.close()
-                
+                    tags = tagreader.get_tags(trk)
                     title = tags.get("TITLE", trk.name)
                     artist = tags.get("ARTIST", "")
                     album_name = tags.get("ALBUM", "")
@@ -158,9 +157,3 @@ class AudioStorage(Device):
                 break
         #end while
 
-        
-        
-    def get_fd(self, resource):
-    
-        fd = open(resource, "r")
-        return fd

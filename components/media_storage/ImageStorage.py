@@ -2,7 +2,6 @@ from com import msgs
 
 from storage import Device, File
 from utils import logging
-import idtags
 import theme
 
 import os
@@ -50,7 +49,7 @@ class ImageStorage(Device):
         
     def get_name(self):
     
-        return "Image Library"
+        return "Images"
 
 
     def get_icon(self):
@@ -62,6 +61,7 @@ class ImageStorage(Device):
     
         f = File(self)
         f.is_local = True
+        f.can_skip = True
         f.path = "/"
         f.mimetype = f.DIRECTORY
         f.resource = ""
@@ -89,6 +89,7 @@ class ImageStorage(Device):
                 f = File(self)
                 f.is_local = True
                 f.path = "/" + folder
+                f.can_skip = True
                 f.mimetype = "image/x-image-folder"
                 f.resource = ""
                 f.name = folder

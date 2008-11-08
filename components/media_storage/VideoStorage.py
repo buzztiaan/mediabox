@@ -2,7 +2,6 @@ from com import msgs
 
 from storage import Device, File
 from utils import logging
-import idtags
 import theme
 
 import os
@@ -50,7 +49,7 @@ class VideoStorage(Device):
         
     def get_name(self):
     
-        return "Video Library"
+        return "Videos"
 
 
     def get_icon(self):
@@ -62,6 +61,7 @@ class VideoStorage(Device):
     
         f = File(self)
         f.is_local = True
+        f.can_skip = True
         f.path = "/"
         f.mimetype = f.DIRECTORY
         f.resource = ""
@@ -88,6 +88,7 @@ class VideoStorage(Device):
             for folder in folders:
                 f = File(self)
                 f.is_local = True
+                f.can_skip = True
                 f.path = "/" + folder
                 f.mimetype = f.DIRECTORY
                 f.resource = ""
