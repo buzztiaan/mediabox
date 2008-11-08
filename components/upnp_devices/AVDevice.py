@@ -217,11 +217,4 @@ class AVDevice(Device):
         
         
         dloader = Downloader(resource, f)
-            
-
-
-    def get_fd(self, resource):
-    
-        fd = urllib.urlopen(resource)
-        return SeekableFD(fd)
 
