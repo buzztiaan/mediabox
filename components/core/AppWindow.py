@@ -534,7 +534,7 @@ class AppWindow(Component, RootPane):
         logging.debug("current Resident Set Size: %0.02f MB", size)
 
 
-        if (not self.is_enabled()): return
+        #if (not self.is_enabled()): return
     
         keyval = ev.keyval
         key = gtk.gdk.keyval_name(keyval)
@@ -544,9 +544,16 @@ class AppWindow(Component, RootPane):
         if (key == "space"): key = " "
         
         if (key == "Escape"):
-            self.__try_quit()
+            if (self.__tab_panel.is_visible()):
+                self.__tab_panel.close()
+            else:
+                self.__show_tabs()
         elif (key == "Return"):
-            self.emit_event(msgs.HWKEY_EV_ENTER)
+            if (self.__tab_panel.is_visible()):
+                self.__tab_panel.close()
+            else:
+                self.emit_event(msgs.HWKEY_EV_ENTER)
+                
         elif (key == "F6"):
             self.emit_event(msgs.HWKEY_EV_FULLSCREEN)
         elif (key == "F7"):
@@ -555,9 +562,26 @@ class AppWindow(Component, RootPane):
             self.emit_event(msgs.HWKEY_EV_DECREMENT)
             
         elif (key == "Up"):
-            self.emit_event(msgs.HWKEY_EV_UP)
+            if (self.__tab_panel.is_visible()):
+                self.__tab_panel.up()
+            else:
+                self.emit_event(msgs.HWKEY_EV_UP)
         elif (key == "Down"):
-            self.emit_event(msgs.HWKEY_EV_DOWN)
+            if (self.__tab_panel.is_visible()):
+                self.__tab_panel.down()
+            else:
+                self.emit_event(msgs.HWKEY_EV_DOWN)
+        elif (key == "Left"):
+            if (self.__tab_panel.is_visible()):
+                self.__tab_panel.left()
+            else:
+                self.emit_event(msgs.HWKEY_EV_LEFT)
+        elif (key == "Right"):
+            if (self.__tab_panel.is_visible()):
+                self.__tab_panel.right()
+            else:
+                self.emit_event(msgs.HWKEY_EV_RIGHT)
+
             
         elif (key == "XF86Headset"):
             self.emit_event(msgs.HWKEY_EV_HEADSET)
