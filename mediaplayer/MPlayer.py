@@ -349,9 +349,9 @@ class _MPlayer(GenericMediaPlayer):
         elif (data.endswith("No stream found.\n")):
             self.update_observer(self.OBS_ERROR, self.__context_id,
                                  self.ERR_NOT_FOUND)
-        elif (" failed to load: " in data):
-            self.update_observer(self.OBS_ERROR, self.__context_id,
-                                 self.ERR_INVALID)
+        #elif (" failed to load: " in data):
+        #    self.update_observer(self.OBS_ERROR, self.__context_id,
+        #                         self.ERR_INVALID)
         elif (data.startswith("Error opening/initializing ")):
             self.update_observer(self.OBS_ERROR, self.__context_id,
                                  self.ERR_INVALID)
