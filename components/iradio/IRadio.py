@@ -43,6 +43,24 @@ class IRadio(Device):
         return f
 
 
+    def get_file(self, path):
+    
+        f = File(self)
+        f.path = path
+        f.name = path[1:]
+        f.info = path[1:]
+        f.mimetype = "audio/x-unknown"
+        f.resource = path[1:]
+        
+        for location, name in inetstations.get_stations():
+            if (location == path[1:]):
+                f.name = name
+                break
+        #end for
+        
+        return f
+        
+
     def __ls_root(self):
     
         items = []
@@ -69,7 +87,7 @@ class IRadio(Device):
         for location, name in inetstations.get_stations():
             item = File(self)
             item.can_delete = True
-            item.path = location
+            item.path = "/" + location
             item.resource = location
             item.name = name
             item.info = location
@@ -131,7 +149,7 @@ class IRadio(Device):
         
             item = File(self)
             item.can_delete = True
-            item.path = location
+            item.path = "/" + location
             item.resource = location
             item.name = name
             item.info = location
