@@ -193,7 +193,7 @@ class YouTube(Device):
     
         items = []
         for name, path, mimetype, emblem in \
-          [("Downloaded Videos", "/local", File.DIRECTORY, None),
+          [("Saved Videos", "/local", File.DIRECTORY, None),
            ("Search", "/search/video,,1", File.DIRECTORY, None),
            ("Featured", "/search/recently_featured,1", File.DIRECTORY, None),
            ("Most viewed", "/search/most_viewed,1", File.DIRECTORY, None),
