@@ -23,7 +23,7 @@ class ProgressBanner(object):
         self.__amount = min(self.__total, amount)
         fraction = self.__amount / float(self.__total)
         self.__progress.set_fraction(fraction)
-        while (gtk.events_pending()): gtk.main_iteration()
+        while (gtk.events_pending()): gtk.main_iteration(False)
 
 
     def get(self):

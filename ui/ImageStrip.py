@@ -95,7 +95,6 @@ class ImageStrip(Widget):
         """
 
         self.__buffer_dirty = True
-        
 
  
     def set_size(self, w, h):
@@ -648,7 +647,7 @@ class ImageStrip(Widget):
             
         else:
             # nothing changed; simply render the buffer again
-            #print "restoring from buffer"
+            print "restoring from buffer"
             self.__render_buffered(screen, 0, h)
         
         
@@ -750,36 +749,38 @@ class ImageStrip(Widget):
                 #                      w, render_to - render_offset)
             #end if
 
-            # compute position of first gap
-            gap_offset = 0 - (self.__offset % blocksize) - self.__gapsize
-            
-            # render gap by gap
-            while (gap_offset < h):
-                if (gap_offset + self.__gapsize < 0):
-                    # gap is off screen
-                    gap_offset += self.__gapsize + self.__itemsize
-                    continue
-                elif (gap_offset < 0):
-                    # gap is partially on screen
-                    render_offset = 0
-                    remain = self.__gapsize - abs(gap_offset)
-                else:
-                    # gap is on screen
-                    render_offset = gap_offset
-                    remain = min(self.__gapsize, h - render_offset)
-                    
-                # render gap if visible
-                if (remain > 0):
-                    screen.fill_area(x, y + render_offset, w, remain,
-                                     self.__bg_color)
-                    #screen.draw_subpixbuf(self.__bg,
-                    #                   0, render_offset, x, y + render_offset,
-                    #                   min(w, self.__bg.get_width()),
-                    #                   min(remain, self.__bg.get_height()))
-                #end if
+            if (self.__gapsize > 0):
+                # compute position of first gap
+                gap_offset = 0 - (self.__offset % blocksize) - self.__gapsize
+                
+                # render gap by gap
+                while (gap_offset < h):
+                    if (gap_offset + self.__gapsize < 0):
+                        # gap is off screen
+                        gap_offset += self.__gapsize + self.__itemsize
+                        continue
+                    elif (gap_offset < 0):
+                        # gap is partially on screen
+                        render_offset = 0
+                        remain = self.__gapsize - abs(gap_offset)
+                    else:
+                        # gap is on screen
+                        render_offset = gap_offset
+                        remain = min(self.__gapsize, h - render_offset)
+                        
+                    # render gap if visible
+                    if (remain > 0):
+                        screen.fill_area(x, y + render_offset, w, remain,
+                                         self.__bg_color)
+                        #screen.draw_subpixbuf(self.__bg,
+                        #                   0, render_offset, x, y + render_offset,
+                        #                   min(w, self.__bg.get_width()),
+                        #                   min(remain, self.__bg.get_height()))
+                    #end if
 
-                gap_offset += blocksize
-            #end while
+                    gap_offset += blocksize    
+                #end while
+            #end if
         #end if
 
         
