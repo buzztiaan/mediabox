@@ -43,7 +43,6 @@ class NotificationService(Component):
             from ui.Widget import Widget
             hildon.hildon_banner_show_information(Widget().get_window(), icon, text)
         else:
-            # TODO: send fdo compliant notification over dbus
             import dbus
             bus = maemo.get_session_bus()
             obj = bus.get_object("org.freedesktop.Notifications", 
