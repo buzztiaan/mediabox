@@ -22,6 +22,12 @@ _PREFIX = "/apps/maemo-mediabox/"
 class Config(object):
     """
     Class for storing and retrieving configuration values via GConf.
+    
+    Example::
+      cfg = Config("my-plugin", [("foo", Config.STRING, "foobar"),
+                                 ("bar", Config.INTEGER, 10)])
+      cfg["foo"] = "Some string"
+      print cfg["bar"]
     """
 
     INTEGER = 0
@@ -33,11 +39,16 @@ class Config(object):
     def __init__(self, agent, schema):
         """
         Creates a new Config object for storing configuration of the given
-        agent with the given schema.
+        agent with the given schema. The agent name is used to avoid clashes
+        when different plugins use keys of the same name. The agent name should
+        usually be the name of your plugin.
         
         Schema is a list of tuples of the form
-          (key_name, datatype, default_value)
+          C{(key_name, datatype, default_value)}
         describing the valid keys that can be stored.
+        
+        @param agent: name of agent
+        @param schema: list of schema tuples
         """
         
         if (agent):

@@ -15,6 +15,12 @@ except:
 
 
 def show_im(win, cb, *args):
+    """
+    Shows the hildon input method window.
+    
+    @param win: GtkWindow to receive input
+    @param cb:  callback handler to receive "C{commit}" signals
+    """
     global _current_signal_handler
 
     if (_current_signal_handler):

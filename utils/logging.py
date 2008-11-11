@@ -1,22 +1,33 @@
 """
-Lightweight logger
+Lightweight logging module with formatted output. Logs are written to C{stdout}.
 """
 
 import time
 import traceback
 
 
-OFF = 0         # log nothing
-ERROR = 1       # log errors
-WARNING = 2     # log errors and warnings
-INFO = 3        # log errors, warnings, and info
-DEBUG = 4       # log errors, warnings, info, and debugging
+OFF = 0
+"""log nothing"""
+ERROR = 1
+"""log errors"""
+WARNING = 2
+"""log errors and warnings"""
+INFO = 3
+"""log errors, warnings, and info"""
+DEBUG = 4
+"""log errors, warnings, info, and debugging"""
 
 
 _level = ERROR
 
 
 def set_level(level):
+    """
+    Sets the log level. This is a global setting. The default log level
+    is C{ERROR}.
+    
+    @param level: log level
+    """
     global _level
     
     _level = level
@@ -76,5 +87,11 @@ def debug(msg, *args):
 
 
 def stacktrace():
+    """
+    Returns the current stack trace.
+    
+    @return: stack trace
+    """
 
     return traceback.format_exc()
+
