@@ -5,6 +5,9 @@ Parser for Media Tags
 This package provides a quick and dirty tag parser for quickly finding
 tags in a media file. It just aims to be quick, but not necessarily correct.
 Well, it works for me (TM).
+
+B{Do not use these functions directly in MediaBox. Use L{mediabox.tagreader}
+instead.}
 """
 
 
