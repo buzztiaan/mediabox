@@ -2,7 +2,6 @@ from com import Configurator, msgs
 from ui.ItemList import ItemList
 from ThemeListItem import ThemeListItem
 from mediabox.TrackList import TrackList
-from mediabox.ThrobberDialog import ThrobberDialog
 from mediabox import config
 import theme
 
@@ -24,13 +23,7 @@ class ConfigTheme(Configurator):
         self.__list.set_geometry(0, 0, 610, 370)
         self.__list.connect_button_clicked(self.__on_item_button)
         self.add(self.__list)
-            
-        self.__throbber = ThrobberDialog()
-        self.__throbber.set_throbber(theme.throbber)
-        self.__throbber.set_text("Loading Theme")
-        self.add(self.__throbber)
-        self.__throbber.set_visible(False)
-        
+                  
         self.__update_list()
         
         
@@ -38,7 +31,10 @@ class ConfigTheme(Configurator):
     
         self.__list.hilight(idx)
         self.render()
-        gobject.idle_add(self.__change_theme, self.__themes[idx])
+        theme = self.__themes[idx]
+        self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
+                          "Loading theme %s..." % theme)
+        gobject.idle_add(self.__change_theme, theme)
 
 
 
@@ -59,10 +55,6 @@ class ConfigTheme(Configurator):
     def __change_theme(self, t):
 
         config.set_theme(t)
-        self.__throbber.set_visible(True)
-        self.__throbber.render()
-        self.__throbber.rotate()
         theme.set_theme(t)
-        self.__throbber.set_visible(False)
         self.emit_event(msgs.CORE_EV_THEME_CHANGED)
 
