@@ -21,7 +21,7 @@ class TrackList(ItemList):
         self.__open_item = -1
         self.__has_header = with_header
     
-        ItemList.__init__(self, 110, 5)
+        ItemList.__init__(self, 110, 0)
         self.set_caps(theme.list_top, theme.list_bottom)
         self.set_bg_color(theme.color_bg)
         #self.set_arrows(theme.arrows)
