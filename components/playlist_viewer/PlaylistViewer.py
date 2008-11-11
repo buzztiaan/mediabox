@@ -46,6 +46,8 @@ class PlaylistViewer(Viewer):
         # list of thumbnails representing the playlists
         self.__pl_thumbnails = []
     
+        self.__random_items = []
+    
         self.__current_file = None
         self.__media_widget = None
         self.__view_mode = _VIEWMODE_NONE
@@ -129,6 +131,7 @@ class PlaylistViewer(Viewer):
     
         pieces = []
         for f in pl.get_files():
+            if (not f): continue
             thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
             if (not (thumb, f.mimetype) in pieces and os.path.exists(thumb)):
                 pieces.append((thumb, f.mimetype))
@@ -157,6 +160,10 @@ class PlaylistViewer(Viewer):
             f = self.call_service(msgs.CORE_SVC_GET_FILE, location)
             if (f):
                 self.__add_item(pl, f)
+            else:
+                # insert a placeholder for files that are currently
+                # not available
+                self.__add_item(pl, None)
 
 
         # create playlist folder if it does not yet exist
@@ -165,12 +172,6 @@ class PlaylistViewer(Viewer):
                 os.makedirs(_PLAYLIST_DIR)
             except:
                 pass
-        #pl_path = os.path.join(_PLAYLIST_DIR, "Playlist.m3u")
-        #if (not os.path.exists(pl_path)):
-        #    try:
-        #        open(pl_path, "w").write("")
-        #    except:
-        #        pass
 
         # initialize playqueue
         if (self.__lists):
@@ -202,7 +203,8 @@ class PlaylistViewer(Viewer):
         #end for
         
         self.set_collection(self.__pl_thumbnails)
-        self.__current_list = 0
+        if (self.__current_list >= len(self.__lists)):
+            self.__current_list = 0
         self.__display_playlist(self.__lists[self.__current_list])
        
         
@@ -458,7 +460,14 @@ class PlaylistViewer(Viewer):
             # TODO...
                     
         pl = self.__lists[self.__current_list]
-        new_idx = random.randint(0, pl.get_size() - 1)
+        if (not self.__random_items):
+            self.__random_items = pl.get_files()
+        idx = random.randint(0, len(self.__random_items) - 1)
+        f = self.__random_items.pop(idx)
+        try:
+            new_idx = pl.get_files().index(f)
+        except:
+            return False
         self.__load_item(pl, new_idx)
         
         return True
@@ -470,6 +479,7 @@ class PlaylistViewer(Viewer):
         self.emit_event(msgs.MEDIA_ACT_STOP)
         
         f = pl.get_files()[idx]
+        if (not f): return
         #if (f == self.__current_file): return
         self.__current_file = f
 
@@ -493,8 +503,9 @@ class PlaylistViewer(Viewer):
         
         self.set_toolbar(self.__media_widget.get_controls() + \
                          self.__playlist_tbset)
-        self.__media_box.add(self.__media_widget)
-        self.__media_widget.set_visible(True)
+        if (not self.__media_widget in self.__media_box.get_children()):
+            self.__media_box.add(self.__media_widget)
+            self.__media_widget.set_visible(True)
 
         if (not f.mimetype in mimetypes.get_audio_types()):
             self.__side_tabs.select_tab(1)
@@ -520,24 +531,29 @@ class PlaylistViewer(Viewer):
         Adds the given item to the playlist.
         """
         
-        if (f.mimetype in (f.DIRECTORY, "audio/x-music-folder")):
-            items = [ c for c in f.get_children()
-                    if not c.mimetype in (f.DIRECTORY, "audio/x-music-folder") ]
-            for item in items:
-                self.__add_item(pl, item)
-            return
-        #end if
-        
-        thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+        if (f):
+            if (f.mimetype in (f.DIRECTORY, "audio/x-music-folder")):
+                items = [ c for c in f.get_children()
+                        if not c.mimetype in (f.DIRECTORY, "audio/x-music-folder") ]
+                for item in items:
+                    self.__add_item(pl, item)
+                return
+            #end if
+            
+            thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+        else:
+            thumb = None
+
         plitem = PlaylistItem(thumb, f)
         self.__playlist.append_item(plitem)
         self.__playlist.render()
-
         tn = ItemThumbnail(thumb, f)
+
         #self.__thumbnails.append(tn)
         #self.set_collection(self.__thumbnails)
 
         pl.append(plitem, tn, f)
+        self.__random_items.append(f)
         
 
 
@@ -546,6 +562,11 @@ class PlaylistViewer(Viewer):
         Removes the item at the given index position.
         """
 
+        f = pl.get_files()[idx]
+        try:
+            self.__random_items.remove(f)
+        except:
+            pass
         pl.remove(idx)
 
         self.__playlist.remove_item(idx)
@@ -565,15 +586,18 @@ class PlaylistViewer(Viewer):
         """
 
         self.__playlist.clear_items()
+        self.__random_items = []
         for item in pl.get_items():
             self.__playlist.append_item(item)
+        for f in pl.get_files():            
+            self.__random_items.append(f)
         self.__playlist.render()
         
         
     def handle_event(self, msg, *args):
               
         Viewer.handle_event(self, msg, *args)
-                    
+
         if (msg == msgs.PLAYLIST_ACT_APPEND):
             files = args
             if (not files): return
@@ -603,9 +627,8 @@ class PlaylistViewer(Viewer):
                 self.__go_next()
                 self.drop_event()
 
-        #elif (msg == msgs.CORE_EV_DEVICE_ADDED):
-        #    if (not self.__playlist_modified):
-        #        self.__load_playlist(_PLAYLIST_FILE)
+        elif (msg == msgs.CORE_EV_DEVICE_ADDED):
+            self.__load_playlists()
 
         #elif (msg == msgs.CORE_EV_APP_SHUTDOWN):
         #    self.__save_playlist(_PLAYLIST_FILE)
