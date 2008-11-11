@@ -2,7 +2,6 @@ from mediabox.MediaWidget import MediaWidget
 from ui.KineticScroller import KineticScroller
 from ui.Label import Label
 from ui.ImageButton import ImageButton
-from mediabox.ThrobberDialog import ThrobberDialog
 from mediabox import viewmodes
 from Image import Image
 from OverlayControls import OverlayControls
@@ -43,13 +42,6 @@ class ImageWidget(MediaWidget):
         self.__image.add(self.__overlay_ctrls)
         self.__overlay_ctrls.set_visible(False)
 
-        self.__throbber = ThrobberDialog()
-        self.__throbber.set_throbber(theme.throbber)
-        self.__throbber.set_text("Loading")
-        self.add(self.__throbber)
-        self.__throbber.set_visible(False)
-        
-
         # controls
         ctrls = []
         for icon1, icon2, action in [
@@ -84,15 +76,14 @@ class ImageWidget(MediaWidget):
     def __on_observe_image(self, src, cmd, *args):
     
         if (cmd == src.OBS_BEGIN_LOADING):
-            self.__throbber.set_visible(True)
-            self.__throbber.render()            
-            
+            pass
+                        
         elif (cmd == src.OBS_END_LOADING):
-            self.__throbber.set_visible(False)
             self.__image.render()
            
-        elif (cmd == src.OBS_PROGRESS):        
-            self.__throbber.rotate()
+        elif (cmd == src.OBS_PROGRESS):
+            amount, total = args
+            pass
 
 
     def __on_observe_overlay_ctrls(self, src, cmd, *args):

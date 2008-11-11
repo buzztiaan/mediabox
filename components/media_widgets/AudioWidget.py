@@ -40,13 +40,14 @@ class AudioWidget(MediaWidget):
         
         self.__title = Label("-", theme.font_headline,
                              theme.color_fg_trackinfo)
+        self.__title.set_alignment(Label.CENTERED)
         self.add(self.__title)
 
-        self.__album = Label("-", theme.font_plain,
+        self.__album = Label("-", theme.font_tiny,
                              theme.color_fg_trackinfo)
         self.add(self.__album)
 
-        self.__artist = Label("-", theme.font_plain,
+        self.__artist = Label("-", theme.font_tiny,
                               theme.color_fg_trackinfo)
         self.add(self.__artist)
 
@@ -82,24 +83,22 @@ class AudioWidget(MediaWidget):
 
         screen.fill_area(x, y, w, h, theme.color_bg)
         
-        cover_size = h - 58 - 10 #min(h - 20, w / 2 - 20)
-        
         # place labels
         lbl_x = 10
-        lbl_y = 10
+        lbl_y = h - 96
         lbl_w = w - 20
         self.__title.set_geometry(lbl_x, lbl_y, lbl_w, 0)
         
         lbl_y += 48
-        lbl_w = w - 30 - cover_size
+        lbl_w = w / 2 - 20
         screen.draw_pixbuf(theme.viewer_music_album,
                                   x + lbl_x, y + lbl_y)
-        self.__album.set_geometry(lbl_x + 48, lbl_y, lbl_w -48, 0)
+        self.__album.set_geometry(lbl_x + 48, lbl_y + 4, lbl_w -48, 0)
         
-        lbl_y += 48
+        lbl_x += w / 2
         screen.draw_pixbuf(theme.viewer_music_artist,
                                   x + lbl_x, y + lbl_y)
-        self.__artist.set_geometry(lbl_x + 48, lbl_y, lbl_w - 48, 0)
+        self.__artist.set_geometry(lbl_x + 48, lbl_y + 4, lbl_w - 48, 0)
 
         # place lyrics box
         lb_x = lbl_x
@@ -119,9 +118,9 @@ class AudioWidget(MediaWidget):
         w, h = self.get_size()
         screen = self.get_screen()
     
-        cover_size = h - 58 - 10 #min(h - 20, w / 2 - 20)
-        cover_x = w - 10 - cover_size
-        cover_y = 58 #(h - cover_size) / 2
+        cover_size = h - 116
+        cover_x = (w - cover_size) / 2
+        cover_y = 10
         
         self.__buffer.fill_area(0, 0, cover_size + 11, cover_size + 11,
                                 theme.color_bg)

@@ -75,7 +75,21 @@ class VideoWidget(MediaWidget):
         if (not self.may_render()):
             self.__hide_video_screen()
         else:
-            self.__show_video_screen()
+            pass #self.__show_video_screen()
+
+
+    def set_frozen(self, v):
+    
+        if (v):
+            self.__hide_video_screen()
+        #else:
+        #    self.__show_video_screen()
+
+    def set_size(self, w, h):
+    
+        if ((w, h) != self.get_size()):
+            MediaWidget.set_size(self, w, h)
+            self.__scale_video()
 
 
     def __show_video_screen(self):
@@ -109,19 +123,7 @@ class VideoWidget(MediaWidget):
         else:
             screen.fill_area(x, y, w, h, "#000000")
 
-        if (self.__player and self.__player.has_video()):
-            self.__scale_video()
-            self.__show_video_screen()
-
-
-    def set_frozen(self, value):
-     
-        MediaWidget.set_frozen(self, value)
-        if (not value):
-            self.__show_video_screen()
-        else:
-            self.__hide_video_screen()
-            
+        gobject.idle_add(self.__show_video_screen)
         
     def __on_expose(self, src, ev):
 
@@ -188,7 +190,8 @@ class VideoWidget(MediaWidget):
                 print "Playing"
                 self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
-                                           theme.mb_btn_pause_2)                
+                                           theme.mb_btn_pause_2)
+                self.__show_video_screen()
             
         elif (cmd == src.OBS_STOPPED):
             ctx = args[0]
@@ -294,10 +297,10 @@ class VideoWidget(MediaWidget):
             w2, h2 = w2, h
 
         self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
-        print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
+        #print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
-        #while (gtk.events_pending()): gtk.main_iteration()
-        self.__show_video_screen()
+        while (gtk.events_pending()): gtk.main_iteration(False)
+        #self.__show_video_screen()
 
 
     def load(self, item):
