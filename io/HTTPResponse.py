@@ -28,26 +28,52 @@ class HTTPResponse(object):
         
         
     def get_status(self):
+        """
+        Returns the numeric HTTP status code.
+        
+        @return: numeric status code
+        """
     
         return self.__status
         
         
     def get_header(self, h):
+        """
+        Returns the value of the given header. Returns an empty string if the
+        specified header does not exist.
+        
+        @param h: name of header
+        @return: value of header
+        """
     
         return self.__headers.get(h, "")
         
         
     def set_finished(self):
+        """
+        Marks this response as finished. This is used by the L{HTTPConnection}.
+        """
     
         self.__finished = True
         
     
     def finished(self):
+        """
+        Returns whether this response is finished.
+        
+        @return: whether this response is finished
+        """
     
         return self.__finished
         
     
     def feed(self, data):
+        """
+        Feeds this response with chunks of data. This is used by the
+        L{HTTPConnection}.
+        
+        @param data: string of data
+        """
 
         if (self.__transfer_encoding == "CHUNKED"):
             self.__feed_chunked(data)
@@ -106,16 +132,33 @@ class HTTPResponse(object):
        
        
     def get_amount(self):
+        """
+        Returns the currently downloaded amount and the content length.
+        The content length may be C{-1} if the server did not send the
+        C{Content-Length} header.
+
+        @return: tuple C{(amount, content_length)}
+        """
     
         return (self.__body_length, self.__content_length)
        
        
     def body_length(self):
+        """
+        Returns the length of the currently downloaded body.
+        
+        @return: body length
+        """
     
         return self.__body_length
                
         
     def read(self):
+        """
+        Reads data from this response.
+        
+        @returns: string of data
+        """
     
         data = self.__body#[self.__read_pos:]
         #self.__read_pos += len(data)
@@ -125,10 +168,19 @@ class HTTPResponse(object):
         
         
     def close(self):
+        """
+        Closes this response.
+        """
     
         pass
         
         
     def getheaders(self):
+        """
+        Returns a dictionary of the HTTP response headers.
+        
+        @return: dictionary of headers
+        """
     
         return self.__headers
+

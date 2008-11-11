@@ -15,6 +15,13 @@ _BUFFER_SIZE = 4096
  
     
 def parse_addr(addr):
+    """
+    Splits the given address URL into a tuple
+    C{(host, port, path)}.
+    
+    @param addr: address URL
+    @return: C{(host, port, path)}
+    """
         
     urlparts = urlparse.urlparse(addr)
     
@@ -63,6 +70,11 @@ class HTTPConnection(object):
 
 
     def _get_id(self):
+        """
+        Returns the unique ID of this connection.
+        
+        @return: unique connection ID
+        """
     
         return self.__id
 
@@ -71,6 +83,9 @@ class HTTPConnection(object):
     def redirect(self, host, port):
         """
         Redirects this HTTP connection to another host.
+        
+        @param host: host name
+        @param port: port number
         """
 
         self.__address = (host, port)
@@ -112,8 +127,8 @@ class HTTPConnection(object):
 
     def wait_until_closed(self):
         """
-        Waits until this connection is closed.
-        Returns False in case of a connection timeout.
+        Waits until this connection gets closed.
+        Returns C{False} in case of a connection timeout.
         """
         
         import gtk
@@ -124,6 +139,22 @@ class HTTPConnection(object):
 
         
     def putrequest(self, method, path, protocol = "HTTP/1.1"):
+        """
+        Puts a HTTP request. After issuing this command, use L{putheader}
+        to set the HTTP headers and afterwards L{endheaders} to terminate the
+        headers block.
+        
+        Example::
+          request = HTTPConnection("localhost")
+          request.putrequest("GET", "/index.html")
+          request.putheader("Host", "localhost")
+          request.endheaders()
+          
+        
+        @param method: HTTP method, e.g. C{GET} or C{POST}
+        @param path:   the requested path
+        @param protocol: protocol version (optional, defaults to HTTP/1.1)
+        """
     
         self.__data = "%s %s %s\r\n" % (method, path, protocol)
         
@@ -132,19 +163,39 @@ class HTTPConnection(object):
         
         
     def putheader(self, key, value):
+        """
+        Puts a HTTP header.
+        
+        @param key:   header name
+        @param value: header value
+        """
     
         self.__data += "%s: %s\r\n" % (key, value)
         
         
     def endheaders(self):
+        """
+        Terminates the headers block.
+        """
 
         self.__data += "\r\n"
         
         
-    def send(self, body, cb, *args):
+    def send(self, body, cb, *user_args):
+        """
+        Sends the HTTP request and installs the given callback handler for
+        receiving the L{HTTPResponse}.
+        
+        Signature of the callback::
+          def handler(response, *user_args)
+        
+        @param body: payload (may be an empty string)
+        @param cb:   callback handler
+        @param *user_args: variable list of user arguments to the callback handler
+        """
 
         self.__callback = cb
-        self.__user_args = args
+        self.__user_args = user_args
         self.__data += body    
 
         try:
@@ -154,6 +205,17 @@ class HTTPConnection(object):
 
 
     def send_raw(self, raw, cb, *args):
+        """
+        Sends a raw request ignoring L{putrequest}, L{putheader}, and
+        L{endheaders}.
+
+        Signature of the callback::
+          def handler(response, *user_args)
+        
+        @param raw: string containing the whole request including headers and payload
+        @param cb:   callback handler
+        @param *user_args: variable list of user arguments to the callback handler        
+        """
     
         self.__callback = cb
         self.__user_args = args
