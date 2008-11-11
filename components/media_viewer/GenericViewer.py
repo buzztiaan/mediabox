@@ -12,7 +12,6 @@ from ui.ImageButton import ImageButton
 from ui.Image import Image
 from ui.SideTabs import SideTabs
 from ui import dialogs
-from mediabox.ThrobberDialog import ThrobberDialog
 from utils import mimetypes
 from utils import logging
 from io import Downloader
@@ -67,6 +66,11 @@ class GenericViewer(Viewer):
         # file items of the current directory
         self.__items = []
         self.__non_folder_items = []
+
+        # list for choosing random files from when in shuffle mode
+        self.__random_items = []
+        
+        # list of thumbnails
         self.__thumbnails = []
         
         # range of subfolder, if any
@@ -108,13 +112,6 @@ class GenericViewer(Viewer):
         # side tabs
         self.__side_tabs = SideTabs()
         self.add(self.__side_tabs)
-
-        self.__throbber = ThrobberDialog()
-        self.__throbber.set_throbber(theme.throbber)
-        self.__throbber.set_visible(False)
-        self.add(self.__throbber)
-
-
 
         # toolbar
         self.__btn_back = ImageButton(theme.mb_btn_dir_up_1,
@@ -283,6 +280,7 @@ class GenericViewer(Viewer):
     def __set_view_mode(self, mode):
     
         if (mode == self.__view_mode): return
+        was_fullscreen = (self.__view_mode == self._VIEWMODE_PLAYER_FULLSCREEN)
         self.__view_mode = mode
         w, h = self.get_size()
 
@@ -316,21 +314,26 @@ class GenericViewer(Viewer):
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
-            #self.render()
+
+            if (was_fullscreen):
+                self.render()
             
             self.emit_event(msgs.UI_ACT_FREEZE)
-            
-            self.__update_toolbar()
-            if (self.__current_file):
-                self.set_title(self.__current_file.name)
 
-            # hilight current item
-            self.set_collection(self.__thumbnails)
-            if (self.__current_file in self.__non_folder_items):
-                idx = self.__non_folder_items.index(self.__current_file)
-                self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
+            if (not was_fullscreen):
+                self.__update_toolbar()
+                if (self.__current_file):
+                    self.set_title(self.__current_file.name)
+
+                # hilight current item
+                self.set_collection(self.__thumbnails)
+                if (self.__current_file in self.__non_folder_items):
+                    idx = self.__non_folder_items.index(self.__current_file)
+                    self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
+            #end if
 
             gobject.timeout_add(50, self.emit_event, msgs.UI_ACT_THAW)
+            #self.emit_event(msgs.UI_ACT_THAW)
 
 
         elif (mode == self._VIEWMODE_PLAYER_FULLSCREEN):
@@ -626,7 +629,8 @@ class GenericViewer(Viewer):
                                                 self.__on_toggle_fullscreen)
             logging.debug("using media widget [%s] for MIME type %s" \
                             % (str(self.__media_widget), f.mimetype))
-            self.__media_box.add(self.__media_widget)
+            if (not self.__media_widget in self.__media_box.get_children()):
+                self.__media_box.add(self.__media_widget)
 
             if (not f.mimetype in mimetypes.get_audio_types()):
                 self.__side_tabs.select_tab(1)
@@ -680,6 +684,7 @@ class GenericViewer(Viewer):
         # clear items
         self.__items = []
         self.__non_folder_items = []
+        self.__random_items = []
         self.__thumbnails = []
         self.__items_downloading_thumbnails.clear()
 
@@ -745,6 +750,7 @@ class GenericViewer(Viewer):
     
         # clear items
         self.__non_folder_items = []
+        self.__random_items = []
         self.__thumbnails = []
 
         # change item button
@@ -822,6 +828,7 @@ class GenericViewer(Viewer):
         
         if (entry.mimetype != entry.DIRECTORY):
             self.__non_folder_items.append(entry)
+            self.__random_items.append(entry)
             
         # hilight currently selected item
         if (self.__current_file == entry):
@@ -929,8 +936,10 @@ class GenericViewer(Viewer):
             # TODO...
             pass
 
-        idx = random.randint(0, len(self.__non_folder_items) - 1)
-        next_item = self.__non_folder_items[idx]
+        if (not self.__random_items):
+            self.__random_items = self.__non_folder_items[:]
+        idx = random.randint(0, len(self.__random_items) - 1)
+        next_item = self.__random_items.pop(idx)
         self.__load_file(next_item)
         
         return True
@@ -977,7 +986,17 @@ class GenericViewer(Viewer):
         """
         Callback for downloading a thumbnail image.
         """
-    
+
+        def on_size_available(loader, width, height):
+            if (width > 160 or height > 120):
+                factor = 1            
+                factor1 = 160 / float(width)
+                factor2 = 120 / float(height)
+                factor = min(factor1, factor2)
+                loader.set_size(int(width * factor), int(height * factor))
+            #end if
+            
+
         data[0] += d
         if (not d):
             item, tn = self.__items_downloading_thumbnails.get(f, (None, None))
@@ -987,6 +1006,7 @@ class GenericViewer(Viewer):
             if (data):
                 try:
                     loader = gtk.gdk.PixbufLoader()
+                    loader.connect("size-prepared", on_size_available)
                     loader.write(data)
                     loader.close()                                
                     pbuf = loader.get_pixbuf()
