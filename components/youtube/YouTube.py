@@ -2,6 +2,7 @@ from com import msgs
 from storage import Device, File
 from utils.MiniXML import MiniXML
 from utils import logging
+from utils import urlquote
 from ui.Dialog import Dialog
 from io import Downloader
 from io import FileDownloader
@@ -14,6 +15,7 @@ import gobject
 import gtk
 import urllib
 import os
+import shutil
 
 
 _VIDEO_SEARCH = "http://gdata.youtube.com/feeds/api/videos/" \
@@ -29,6 +31,7 @@ _XMLNS_OPENSEARCH = "http://a9.com/-/spec/opensearchrss/1.0/"
 _XMLNS_GOOGLE = "http://schemas.google.com/g/2005"
 
 _SEARCH_CACHE_DIR = os.path.join(values.USER_DIR, "youtube/search-cache")
+_VIDEO_FOLDER = "Saved Videos"
 
 _PAGE_SIZE = 25
 
@@ -190,7 +193,8 @@ class YouTube(Device):
     
         items = []
         for name, path, mimetype, emblem in \
-          [("Search", "/search/video,,1", File.DIRECTORY, None),
+          [("Downloaded Videos", "/local", File.DIRECTORY, None),
+           ("Search", "/search/video,,1", File.DIRECTORY, None),
            ("Featured", "/search/recently_featured,1", File.DIRECTORY, None),
            ("Most viewed", "/search/most_viewed,1", File.DIRECTORY, None),
            ("Top rated", "/search/top_rated,1", File.DIRECTORY, None),
@@ -371,6 +375,34 @@ class YouTube(Device):
             self.__generic_search("top_rated", cb, args, *params)
 
 
+
+    def __ls_local_videos(self, cb, *args):
+    
+        videos = []
+        for path in [os.path.join(os.path.expanduser("~"), _VIDEO_FOLDER),
+                     os.path.join("/media/mmc1", _VIDEO_FOLDER),
+                     os.path.join("/media/mmc2", _VIDEO_FOLDER)]:
+            if (os.path.exists(path) and os.path.isdir(path)):
+                for filename in os.listdir(path):
+                    if (filename.lower().endswith(".flv")):
+                        videos.append(os.path.join(path, filename))
+                #end for
+            #end if
+        #end for
+        
+        videos.sort()
+        for video in videos:
+            f = File(self)
+            f.path = "/local" + video
+            f.mimetype = "video/x-flash-video"
+            f.resource = video
+            f.name = urlquote.unquote(os.path.basename(video))
+            #f.info = "%s\nby %s" % (rating, authors)
+            #f.thumbnail = thumbnail
+            
+            cb(f, *args)
+        #end for
+        cb(None, *args)
         
 
     def ls_async(self, path, cb, *args):
@@ -382,6 +414,9 @@ class YouTube(Device):
         elif (path.startswith("/search")):
             self.__ls_search(path, cb, *args)
             
+        elif (path.startswith("/local")):
+            self.__ls_local_videos(cb, *args)
+            
             
     def get_resource(self, f):
     
@@ -389,15 +424,31 @@ class YouTube(Device):
             if (d):
                 print "%d / %d         " % (a, t)
                 print gobject.main_depth()
-                if (gobject.main_depth() < 3): gtk.main_iteration(False)
+                #if (gobject.main_depth() < 3): 
+                gtk.main_iteration(False)
+                
             else:
                 if (self.__keep_video):
+                    keep_dir = os.path.dirname(keep_path)
+                    if (not os.path.exists(keep_dir)):
+                        try:
+                            os.makedirs(os.path.dirname(keep_path))
+                        except:
+                            pass
+                    #end if
                     try:
                         os.rename(flv_path, keep_path)
                     except:
-                        pass
+                        logging.error("could not save video '%s'\n%s" \
+                                      % (keep_path, logging.stacktrace()))
+                    # copy thumbnail
+                    self.__copy_thumbnail(f, keep_path)
+                #end if
+            #end if
 
 
+        if (f.resource.startswith("/")): return f.resource
+        
         flv = self.__get_flv(f.resource)
 
         if (self.__flv_downloader):
@@ -405,7 +456,8 @@ class YouTube(Device):
             
         cache_folder = config.get_cache_folder()
         flv_path = os.path.join(cache_folder, ".tube.flv")
-        keep_path = os.path.join(cache_folder, self.__make_filename(f.name))
+        keep_path = os.path.join(cache_folder, _VIDEO_FOLDER,
+                                 self.__make_filename(f.name))
         self.__keep_video = False
         self.__flv_downloader = FileDownloader(flv, flv_path, on_dload,
                                                flv_path, keep_path)
@@ -434,14 +486,31 @@ class YouTube(Device):
 
     def __make_filename(self, name):
         """
-        Creates a valid filename from the given name.
+        Creates a (hopefully) valid filename from the given name.
         """
         
         replace_map = [("/", "-"),
-                       ("?", "")]
+                       ("?", ""),
+                       ("\\", "-"),
+                       (":", "-")]
                        
         for a, b in replace_map:
             name = name.replace(a, b)
 
+        #return urlquote.quote(name, " ") + ".flv"
         return name + ".flv"
 
+
+    def __copy_thumbnail(self, f, path):
+    
+        tn = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+        f2 = File(self)
+        f2.path = "/local" + path
+        tn2 = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f2)
+
+        if (os.path.exists(tn)):
+            try:
+                shutil.copyfile(tn, tn2)
+            except:
+                pass
+                
