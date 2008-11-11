@@ -1,3 +1,8 @@
+"""
+This module reads ID tags of media files. The tags are cached automatically
+so that the files don't need to be parsed when reading the tags again.
+"""
+
 import values
 import idtags
 
@@ -76,7 +81,7 @@ def _read_cached_tags(tagfile):
 
 def get_tags(f):
     """
-    Returns a dictionary of tags.
+    Returns a dictionary of tags for the given File object.
     
     @param f: the file to scan
     """
