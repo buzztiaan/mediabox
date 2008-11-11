@@ -7,6 +7,7 @@ from Pixmap import Pixmap, pixmap_for_text
 
 import gobject
 import pango
+import time
 
 
 
@@ -158,9 +159,11 @@ class Label(Widget):
             self.__render_text(0, 1)    
         
         
-    def __render_text(self, pos, direction):
+    def __render_text(self, pos, direction, begin_time = 0):
 
         if (not self.may_render()): return
+
+        if (not begin_time): begin_time = time.time()
 
         if (self.__is_new_text):
             self.__restore_background()
@@ -196,7 +199,8 @@ class Label(Widget):
             self.use_clipping(False)
 
         # handle scrolling
-        if (text_w > w and self.may_render()):
+        # (only scroll for 10 minutes, then stop to save battery)
+        if (text_w > w and self.may_render() and begin_time + 600 > time.time()):
             if (pos == 0):
                 direction = 1
                 delay = 1500
@@ -212,7 +216,8 @@ class Label(Widget):
                 pos -= 1
 
             self.__render_timer = \
-              gobject.timeout_add(delay, self.__render_text, pos, direction)
+              gobject.timeout_add(delay, self.__render_text, pos, direction,
+                                  begin_time)
             
         else:
             self.__render_timer = None
