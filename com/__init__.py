@@ -2,7 +2,7 @@
 Component Subsystem
 ===================
 
-This package contains the component subsystem for extending the application.
+Component subsystem for extending the application.
 """
 
 import msgs

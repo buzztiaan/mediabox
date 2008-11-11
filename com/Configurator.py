@@ -13,7 +13,9 @@ class Configurator(Component, Widget):
     """
 
     ICON = None
+    """theme reference to the icon which appears in the preferences viewer"""
     TITLE = ""
+    """title text of the configurator"""
     
 
     def __init__(self):
