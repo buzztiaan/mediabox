@@ -280,6 +280,7 @@ class AudioWidget(MediaWidget):
             #if (item == self.__current_file): return
 
             self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
+            self.__player.set_options("-novideo")
             
             uri = item.get_resource()
             try:
