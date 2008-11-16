@@ -183,6 +183,7 @@ class AppWindow(Component, RootPane):
                    (self.add, [self.__window_ctrls]),
                    (self.__add_panels, []),
                    (self.__select_initial_viewer, []),
+                   (self.emit_event, [msgs.CORE_EV_APP_STARTED]),
                    ]
                    
         def f():
@@ -477,7 +478,7 @@ class AppWindow(Component, RootPane):
         #self.__root_pane.render_buffered()
         #while (gtk.events_pending()): gtk.main_iteration()
 
-
+        self.call_service(msgs.NOTIFY_SVC_SHOW_INFO, "Scanning media")
         paths = []
         for path, mtypes in mediaroots:
             f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
