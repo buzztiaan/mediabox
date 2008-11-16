@@ -1,4 +1,4 @@
-from ui.Widget import Widget
+from ui.HilightingWidget import HilightingWidget
 from ui.HBox import HBox
 from ui.ImageButton import ImageButton
 from ui.SequenceButton import SequenceButton
@@ -15,7 +15,7 @@ import gtk
 import gobject
 
 
-class TabPanel(Widget, Observable):
+class TabPanel(HilightingWidget, Observable):
 
     OBS_TAB_SELECTED = 0
     OBS_SHUFFLE_MODE = 1
@@ -24,14 +24,10 @@ class TabPanel(Widget, Observable):
 
     def __init__(self):
     
-        self.__buffer = None
         self.__backing_buffer = None
-        self.__motion_buffer = Pixmap(None, 160, 160)
         
-        self.__hilight_box = None
         self.__position_matrix = [[]]
         self.__cursor_position = (0, 0)
-        self.__in_motion = False
 
         self.__index = 0
 
@@ -51,7 +47,10 @@ class TabPanel(Widget, Observable):
         self.__is_prepared = False
 
         
-        Widget.__init__(self)        
+        HilightingWidget.__init__(self)        
+        self.set_hilighting_box(
+              pixbuftools.make_frame(theme.mb_selection_frame, 120, 120, True))
+
         self.__label = Label("%s ver %s - %s" \
                       % (values.NAME, values.VERSION, values.COPYRIGHT),
                       theme.font_micro, theme.color_fg_splash)
@@ -107,7 +106,7 @@ class TabPanel(Widget, Observable):
 
     def set_size(self, w, h):
         
-        Widget.set_size(self, w, h)
+        HilightingWidget.set_size(self, w, h)
         self.__is_prepared = False
 
 
@@ -225,118 +224,17 @@ class TabPanel(Widget, Observable):
         when ready.
         """
     
-        def move_box(from_x, from_y, to_x, to_y):
-            dx = (to_x - from_x) / 5
-            dy = (to_y - from_y) / 5
-            if (abs(dx) > 0 or abs(dy) > 0):
-                self.__move_cursor(from_x, from_y, dx, dy)            
-                gobject.timeout_add(10, move_box, from_x + dx, from_y + dy,
-                                    to_x, to_y)
-            else:
-                self.__move_cursor(from_x, from_y, to_x - from_x, to_y - from_y)
-                self.__in_motion = False
-                if (cb):
-                    cb(*args)
-    
-    
         if (not self.__is_prepared): return
-        if (self.__in_motion): return
 
         csr_x, csr_y = self.__get_cursor_position(idx)
-
         prev_x, prev_y = self.__cursor_position
-        x, y = self.__position_matrix[prev_y][prev_x]
         try:
             new_x, new_y = self.__position_matrix[csr_y][csr_x]
         except:
             return
         
-        self.__in_motion = True
         self.__cursor_position = (csr_x, csr_y)
-        move_box(x, y, new_x, new_y)
-        
-        
-        
-       
-
-    def __move_cursor(self, x1, y1, dx, dy):
-        """
-        Moves the cursor by the given amount.
-        
-        x,y                             
-        +-----------------+  |       |     x,y     - position of motion buffer
-        |x1,y1            |  |dy     |     w,h     - size of motion buffer          
-        |                 |  v       |     x1,y1   - previous cursor position
-        |   +-----------------+ |    |h    x2,y2   - new cursor position
-        |   |x2,y2        |   | |    |     dx,dy   - offset between old and new
-        +---|-------------+   | |bh  |               cursor position
-            |                 | |    |     bw,bh   - size of cursor
-        --->|                 | |    |     bx1,by1 - previous position of cursor
-        dx  +-----------------+ V    v               in the motion buffer
-                                           bx2,by2 - new position of cursor in
-            ------------------>                      the motion buffer
-                    bw
-                   
-        ---------------------->
-                    w
-
-        1. create motion buffer if necessary
-        2. create buffer if necessary
-        3. copy screen to motion buffer
-        4. copy buffer to motion buffer at current cursor position
-        5. save motion buffer at new cursor position to buffer
-        6. draw cursor onto motion buffer
-        7. copy motion buffer to screen
-            
-        """
-
-        screen = self.get_screen()
-        scr_x, scr_y = self.get_screen_pos()
-        
-        x2 = x1 + dx
-        y2 = y1 + dy
-        bw = self.__hilight_box.get_width()
-        bh = self.__hilight_box.get_height()
-        x = x1 + min(dx, 0)
-        y = y1 + min(dy, 0)
-        w = bw + abs(dx)
-        h = bh + abs(dy)
-        bx1 = x1 - x
-        by1 = y1 - y
-        bx2 = x2 - x
-        by2 = y2 - y
-        
-
-        # 1. create motion buffer if necessary
-        motion_buf_w, motion_buf_h = self.__motion_buffer.get_size()
-        if (w > motion_buf_w or h > motion_buf_h):
-            self.__motion_buffer = Pixmap(None, w, h)
-
-        # 2. create buffer if necessary
-        if (not self.__buffer):
-            self.__buffer = Pixmap(None, bw, bh)
-            self.__buffer.copy_pixmap(screen, scr_x + x1, scr_y + y1,
-                                      0, 0, bw, bh)
-        
-        # 3. copy screen to motion buffer
-        self.__motion_buffer.copy_pixmap(screen, scr_x + x, scr_y + y,
-                                         0, 0, w, h)
-                                         
-        # 4. copy buffer to motion buffer at current cursor position
-        self.__motion_buffer.copy_pixmap(self.__buffer, 0, 0,
-                                         bx1, by1, bw, bh)
-
-        # 5. save motion buffer at new cursor position to buffer
-        self.__buffer.copy_pixmap(self.__motion_buffer, bx2, by2,
-                                  0, 0, bw, bh)
-
-        # 6. draw cursor onto motion buffer
-        #screen.copy_pixmap(self.__motion_buffer, 0, 0, 0, 0, w, h)
-        self.__motion_buffer.draw_pixbuf(self.__hilight_box, x2 - x, y2 - y)
-                                  
-        # 7. copy motion buffer to screen        
-        screen.copy_pixmap(self.__motion_buffer, 0, 0,
-                           scr_x + x, scr_y + y, w, h)
+        self.move_hilighting_box(new_x, new_y, cb, *args)
 
 
     def select_viewer(self, idx):
@@ -345,8 +243,6 @@ class TabPanel(Widget, Observable):
         
         @param idx: index of the viewer
         """
-
-        if (self.__in_motion): return
 
         if (self.may_render()):
             self.__hilight_item(idx,
@@ -362,9 +258,7 @@ class TabPanel(Widget, Observable):
         
         
     def close(self):
-
-        if (self.__in_motion): return
-        
+      
         self.__index = self.__get_index_from_cursor(*self.__cursor_position)
         self.update_observer(self.OBS_TAB_SELECTED, self.__index)
 
