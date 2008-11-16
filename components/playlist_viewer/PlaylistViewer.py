@@ -498,6 +498,8 @@ class PlaylistViewer(Viewer):
         self.__media_widget.connect_media_eof(self.__on_media_eof)
         self.__media_widget.connect_media_volume(self.__on_media_volume)
         self.__media_widget.connect_media_position(self.__on_media_position)
+        self.__media_widget.connect_media_previous(self.__go_previous)
+        self.__media_widget.connect_media_next(self.__go_next)
         self.__media_widget.connect_fullscreen_toggled(
                                                    self.__on_toggle_fullscreen)
         
@@ -637,38 +639,58 @@ class PlaylistViewer(Viewer):
             if (self.__media_widget):
                 self.__media_widget.stop()
 
-        if (self.is_active()):
-            # load selected file
-            if (msg == msgs.CORE_ACT_LOAD_ITEM):
-                idx = args[0]
-                if (self.__view_mode == _VIEWMODE_PLAYLIST):
-                    self.__current_list = idx
-                    pl = self.__lists[self.__current_list]
-                    self.__display_playlist(pl)
-                else:
-                    pl = self.__lists[self.__current_list]
-                    self.__load_item(pl, idx)
+
+        # the following messages are only accepted when the viewer is active
+        if (not self.is_active()): return
+
+
+        # load selected file
+        if (msg == msgs.CORE_ACT_LOAD_ITEM):
+            idx = args[0]
+            if (self.__view_mode == _VIEWMODE_PLAYLIST):
+                self.__current_list = idx
+                pl = self.__lists[self.__current_list]
+                self.__display_playlist(pl)
+            else:
+                pl = self.__lists[self.__current_list]
+                self.__load_item(pl, idx)
+            
+        # provide search-as-you-type
+        elif (msg == msgs.CORE_ACT_SEARCH_ITEM):
+            key = args[0]
+            self.__search(key)                  
+
+        elif (msg == msgs.HWKEY_EV_DOWN):
+            w, h = self.__playlist.get_size()
+            idx = self.__playlist.get_index_at(h)
+            if (idx != -1):
+                size = len(self.__playlist.get_items())
+                self.__playlist.scroll_to_item(min(size, idx + 2))
+
+            
+        elif (msg == msgs.HWKEY_EV_UP):
+            idx = self.__playlist.get_index_at(0)
+            if (idx != -1):
+                self.__playlist.scroll_to_item(max(0, idx - 2))
+            #self.__list.impulse(0, -7.075)
+
+
+        # the following messages are only accepted when we have a media widget
+        if (not self.__media_widget): return
+
+        # watch FULLSCREEN hw key
+        if (msg == msgs.HWKEY_EV_FULLSCREEN):
+            if (self.__view_mode in \
+                (_VIEWMODE_PLAYER, _VIEWMODE_PLAYER_FULLSCREEN)):
+                self.__on_toggle_fullscreen()
                 
-            # provide search-as-you-type
-            elif (msg == msgs.CORE_ACT_SEARCH_ITEM):
-                key = args[0]
-                self.__search(key)                  
-
-            if (self.__media_widget):
-                # watch FULLSCREEN hw key
-                if (msg == msgs.HWKEY_EV_FULLSCREEN):
-                    if (self.__view_mode in \
-                      (_VIEWMODE_PLAYER, _VIEWMODE_PLAYER_FULLSCREEN)):
-                        self.__on_toggle_fullscreen()
-                # watch INCREMENT hw key
-                elif (msg == msgs.HWKEY_EV_INCREMENT):
-                    self.__media_widget.increment()
-                # watch DECREMENT hw key
-                elif (msg == msgs.HWKEY_EV_DECREMENT):
-                    self.__media_widget.decrement()
-            #end if
-
-        #end if
+        # watch INCREMENT hw key
+        elif (msg == msgs.HWKEY_EV_INCREMENT):
+            self.__media_widget.increment()
+            
+        # watch DECREMENT hw key
+        elif (msg == msgs.HWKEY_EV_DECREMENT):
+            self.__media_widget.decrement()
 
 
     def show(self):
