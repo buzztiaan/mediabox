@@ -10,6 +10,8 @@ class MediaWidget(Widget):
     EVENT_MEDIA_EOF = "media-eof"
     EVENT_MEDIA_VOLUME = "media-volume"
     EVENT_FULLSCREEN_TOGGLED = "media-fullscreen-toggled"
+    EVENT_MEDIA_PREVIOUS = "media-previous"
+    EVENT_MEDIA_NEXT = "media-next"
     
 
     def __init__(self):
@@ -87,4 +89,14 @@ class MediaWidget(Widget):
     def connect_fullscreen_toggled(self, cb, *args):
     
         self._connect(self.EVENT_FULLSCREEN_TOGGLED, cb, *args)
+
+
+    def connect_media_previous(self, cb, *args):
+    
+        self._connect(self.EVENT_MEDIA_PREVIOUS, cb, *args)
+
+
+    def connect_media_next(self, cb, *args):
+    
+        self._connect(self.EVENT_MEDIA_NEXT, cb, *args)
 
