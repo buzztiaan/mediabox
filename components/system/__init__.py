@@ -6,7 +6,7 @@ def get_classes():
 
     classes = []
     classes.append(System)
-    if (maemo.IS_MAEMO): classes.append(BatteryMonitor)
+    #if (maemo.IS_MAEMO): classes.append(BatteryMonitor)
 
     return classes
 
