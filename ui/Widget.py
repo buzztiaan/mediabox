@@ -540,6 +540,18 @@ class Widget(object):
         pass
 
 
+    def overlay_this(self):
+        """
+        Widgets may override this method for overlay effects. This method is
+        invoked after all children of this widget have been rendered.
+
+        This method gets invoked automatically by the framework. Do not place
+        calls of this method in your code. Use the C{render} method instead.
+        """
+    
+        pass
+
+
     def render(self):
         """
         Renders this widget onto the current screen pixmap.
@@ -556,6 +568,8 @@ class Widget(object):
         for c in self.__children:
             if (c.is_visible()):
                 c.render()
+
+        self.overlay_this()
 
 
     def render_all(self):
