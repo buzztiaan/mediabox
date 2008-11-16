@@ -6,8 +6,7 @@ class StripItem(object):
     Base class for items for the ImageStrip.
     """
 
-    # table for sharing the same prerendered background pixmap among instances.
-    # instances rendering onto the same canvas share the same background pixmaps
+    # table for sharing the same prerendered background pixmap among instances
     __bg_store = {}
     
 
@@ -28,7 +27,7 @@ class StripItem(object):
         self.__height = h
         
         if (self.__canvas in self.__bg_store):
-            del self.__bg_store[self.__canvas]
+            del self.__bg_store[(self.__class__, self.__canvas)]
         if (self.__background):
             self.set_background(self.__background)
 
@@ -46,10 +45,10 @@ class StripItem(object):
         
         # prerender the background pixmap in order to have it ready on the
         # server-side
-        if (not self.__canvas in self.__bg_store):
+        if (not (self.__class__, self.__canvas) in self.__bg_store):
             w, h = self.get_size()
             pmap = Pixmap(None, w, h)
-            self.__bg_store[self.__canvas] = pmap
+            self.__bg_store[(self.__class__, self.__canvas)] = pmap
             
             pmap.draw_frame(bg, 0, 0, w, h, True)
         #end if
@@ -84,7 +83,7 @@ class StripItem(object):
         
     def render_bg(self, canvas):
 
-        pmap = self.__bg_store.get(self.__canvas)
+        pmap = self.__bg_store.get((self.__class__, self.__canvas))
         if (pmap):    
             canvas.draw_pixmap(pmap, 0, 0)
         
