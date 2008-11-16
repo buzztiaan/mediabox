@@ -40,14 +40,14 @@ class AudioWidget(MediaWidget):
         
         self.__title = Label("-", theme.font_headline,
                              theme.color_fg_trackinfo)
-        self.__title.set_alignment(Label.CENTERED)
+        #self.__title.set_alignment(Label.CENTERED)
         self.add(self.__title)
 
-        self.__album = Label("-", theme.font_tiny,
+        self.__album = Label("-", theme.font_plain,
                              theme.color_fg_trackinfo)
         self.add(self.__album)
 
-        self.__artist = Label("-", theme.font_tiny,
+        self.__artist = Label("-", theme.font_plain,
                               theme.color_fg_trackinfo)
         self.add(self.__artist)
 
@@ -74,6 +74,25 @@ class AudioWidget(MediaWidget):
                            btn_bookmark,
                            Image(theme.mb_toolbar_space_1))
 
+        # car controls
+        self.__car_btn_prev = ImageButton(theme.mb_btn_car_previous_1,
+                                          theme.mb_btn_car_previous_2)
+        self.__car_btn_prev.connect_clicked(
+                                    self.send_event, self.EVENT_MEDIA_PREVIOUS)
+        self.add(self.__car_btn_prev)
+
+        self.__car_btn_next = ImageButton(theme.mb_btn_car_next_1,
+                                          theme.mb_btn_car_next_2)
+        self.__car_btn_next.connect_clicked(
+                                        self.send_event, self.EVENT_MEDIA_NEXT)
+        self.add(self.__car_btn_next)
+        
+        self.__cover_ebox = EventBox()
+        self.__cover_ebox.connect_clicked(self.__on_play_pause)
+                                    
+        self.add(self.__cover_ebox)
+        
+
 
     def render_this(self):
 
@@ -83,12 +102,23 @@ class AudioWidget(MediaWidget):
 
         screen.fill_area(x, y, w, h, theme.color_bg)
         
+        if (w < 800):
+            self.__car_btn_prev.set_visible(False)
+            self.__car_btn_next.set_visible(False)
+        else:
+            self.__car_btn_prev.set_visible(True)
+            self.__car_btn_next.set_visible(True)
+            self.__car_btn_prev.set_geometry(0, 0, 128, h - 96 - 10)
+            self.__car_btn_next.set_geometry(w - 128, 0, 128, h - 96 - 10)
+                
         # place labels
         lbl_x = 10
         lbl_y = h - 96
         lbl_w = w - 20
         self.__title.set_geometry(lbl_x, lbl_y, lbl_w, 0)
         
+        screen.fill_area(x, y + lbl_y - 10, w, 96 + 10, "#dddddd")
+               
         lbl_y += 48
         lbl_w = w / 2 - 20
         screen.draw_pixbuf(theme.viewer_music_album,
@@ -118,10 +148,13 @@ class AudioWidget(MediaWidget):
         w, h = self.get_size()
         screen = self.get_screen()
     
-        cover_size = h - 116
+        cover_size = h - 128
         cover_x = (w - cover_size) / 2
         cover_y = 10
         
+        self.__cover_ebox.set_geometry(cover_x, cover_y,
+                                       cover_size + 11, cover_size + 11)
+                                       
         self.__buffer.fill_area(0, 0, cover_size + 11, cover_size + 11,
                                 theme.color_bg)
         
