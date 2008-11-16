@@ -16,6 +16,7 @@ class System(Component):
                              "/org/gnome/GnomeVFS/Daemon")
         iface = dbus.Interface(obj, 'org.gnome.GnomeVFS.Daemon')
         iface.connect_to_signal("VolumeMountedSignal", self.__on_mount_mmc)
+        iface.connect_to_signal("VolumeUnmountedSignal", self.__on_mount_mmc)
         
         
         self.__headset = Headset()
