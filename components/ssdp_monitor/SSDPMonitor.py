@@ -35,7 +35,8 @@ class SSDPMonitor(Component):
 
     def handle_event(self, event, *args):
 
-        if (event == msgs.SSDP_ACT_SEARCH_DEVICES):
+        if (event == msgs.SSDP_ACT_SEARCH_DEVICES or
+            event == msgs.CORE_EV_APP_STARTED):
             # initialize monitor if needed
             if (not self.__monitoring):
                 logging.info("SSDP Monitor waking up")
