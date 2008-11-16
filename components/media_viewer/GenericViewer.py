@@ -386,7 +386,8 @@ class GenericViewer(Viewer):
         Viewer.handle_event(self, msg, *args)
         
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
-            self.__current_device = None
+            if (self.__current_device):
+                self.__load_device(self.__current_device)
         
         # watch for new storage devices
         elif (msg == msgs.CORE_EV_DEVICE_ADDED):
@@ -625,6 +626,8 @@ class GenericViewer(Viewer):
             self.__media_widget.connect_media_position(self.__on_media_position)
             self.__media_widget.connect_media_eof(self.__on_media_eof)
             self.__media_widget.connect_media_volume(self.__on_media_volume)
+            self.__media_widget.connect_media_previous(self.__go_previous)
+            self.__media_widget.connect_media_next(self.__go_next)
             self.__media_widget.connect_fullscreen_toggled(
                                                 self.__on_toggle_fullscreen)
             logging.debug("using media widget [%s] for MIME type %s" \
@@ -1132,7 +1135,7 @@ class GenericViewer(Viewer):
     def hide(self):
     
         if (self.__lib_is_dirty):
-            self.emit_event(msgs.CORE_ACT_SCAN_MEDIA, True)
+            self.emit_event(msgs.CORE_ACT_SCAN_MEDIA, False)
             self.__lib_is_dirty = False
         Viewer.hide(self)
 
