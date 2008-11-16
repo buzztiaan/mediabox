@@ -151,7 +151,7 @@ class _MPlayer(GenericMediaPlayer):
             if (total > 0.001 and total - pos < 0.01):
                 self.__on_eof()
                 
-            if (total < 0.001):
+            if (total < 0.001 and self.__media_length < 0):
                 self.__send_cmd("get_time_length")                
 
         else:
@@ -303,6 +303,8 @@ class _MPlayer(GenericMediaPlayer):
 
         elif (data.startswith("ID_LENGTH")):
             self.__media_length = float(self.__read_ans(data))
+            self.__player_values[_LENGTH] = self.__media_length
+            logging.debug("length reported: %f" % self.__media_length)
 
         elif (data.startswith("Name   : ")):
             self.__player_values[_NAME] = self.__read_info(data)
