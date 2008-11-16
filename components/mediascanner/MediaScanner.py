@@ -30,12 +30,17 @@ class MediaScanner(Component):
         # table: resource -> scantime
         self.__scantimes = {}
         
-        # table: path -> item
+        # table: root path -> items
+        self.__media_items = {}
+        
+        # table: path -> 1
         self.__media = {}
+        
+        # paths of previously scanned mediaroots
+        self.__scanned_media_roots = []
         
         self.__thumbnailer = Thumbnailer()
         self.__thumbnailer.set_thumb_folder(os.path.abspath(config.thumbdir()))
-        self.__media_roots = []
         
     
         Component.__init__(self)
@@ -87,28 +92,72 @@ class MediaScanner(Component):
         self.__scantime = int(time.time())
         self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_STARTED)
         
-        for mediaroot, mediatypes in mediaroots:
+        # find out which media roots are new
+        new_roots = [ m.resource for m, t in mediaroots
+                      if not (m.resource, t) in self.__scanned_media_roots and
+                         os.path.exists(m.resource) ]
+                
+        # find out which media roots have been removed
+        mediapaths = [ m.resource for m, t in mediaroots ]
+        removed_roots = [ m for m, t in self.__scanned_media_roots
+                          if not os.path.exists(m) or not m in mediapaths ]
+
+        # find out which media roots haven't changed
+        unchanged_roots = [ (m, t) for m, t in self.__scanned_media_roots
+                            if not m in new_roots and not m in removed_roots ]
+                          
+        logging.debug("new mediaroots:       %s", new_roots)
+        logging.debug("removed mediaroots:   %s", removed_roots)
+        logging.debug("unchanged mediaroots: %s", unchanged_roots)
+                          
+        # remove items of removed roots
+        for root in removed_roots:
+            del self.__media_items[root]
+        
+        # scan new roots
+        self.__scanned_media_roots = unchanged_roots
+        self.__media = {}
+        to_scan = [ (m, t) for m, t in mediaroots
+                    if m.resource in new_roots ]
+        for mediaroot, mediatypes in to_scan:
+            self.__scanned_media_roots.append((mediaroot.resource, mediatypes))
             logging.info("scanning [%s] for media", mediaroot.resource)
             
+            if (not mediaroot in self.__media_items):
+                self.__media_items[mediaroot.resource] = []
+            
             try:
-                self.__process_media(mediatypes, mediaroot, {})
+                self.__process_media(mediaroot, mediatypes, mediaroot, {})
             except:
                 import traceback; traceback.print_exc()
                 pass
 
-            logging.debug("finished scanning [%s]", mediaroot.resource)
+            logging.info("finished scanning [%s]", mediaroot.resource)
         #end for
 
         # get rid of items which haven't been found now
-        for key, item in self.__media.items():
-            if (self.__scantimes.get(key, self.__scantime) < self.__scantime):
-                del self.__media[key]
+        for root, nil in to_scan:
+            new_items = []            
+            for item in self.__media_items[root.resource]:
+                scantime = self.__scantimes.get(item.resource, self.__scantime)
+                if (scantime < self.__scantime):
+                    logging.info("file '%s' is gone", item.resource)
+                else:
+                    new_items.append(item)
+            #end for
+            self.__media_items[root.resource] = new_items
         #end for
-        
+                    
+            
+        #for key, item in self.__media.items():
+        #    if (self.__scantimes.get(key, self.__scantime) < self.__scantime):
+        #        del self.__media[key]
+        #end for
+             
         self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
         
         
-    def __process_media(self, mediatypes, path, seen):
+    def __process_media(self, mediaroot, mediatypes, path, seen):
         """
         Checks the given path for the given mediatypes
         """
@@ -124,7 +173,7 @@ class MediaScanner(Component):
         # process directory recursively
         if (path.mimetype == path.DIRECTORY):
             for f in path.get_children():
-                self.__process_media(mediatypes, f, seen)
+                self.__process_media(mediaroot, mediatypes, f, seen)
         #end if
         
         
@@ -133,7 +182,9 @@ class MediaScanner(Component):
                                   (self.MEDIA_IMAGE, image)]:
 
             if (mediatypes & mediatype and module.is_media(path)):
-                self.__media[path.resource] = path
+                if (not path.resource in self.__media):
+                    self.__media_items[mediaroot.resource].append(path)
+                    self.__media[path.resource] = 1
                 self.__scantimes[path.resource] = self.__scantime
             #end if
         #end for
@@ -164,9 +215,13 @@ class MediaScanner(Component):
                     # get rid of old thumbnail first
                     self.__thumbnailer.remove_thumbnail(f)
 
-                    module.make_thumbnail_async(f,
+                    try:
+                        module.make_thumbnail_async(f,
                                       self.__thumbnailer.get_thumbnail_path(f),
                                       on_generated)
+                    except:
+                        pass
+                        
                 else:
                     logging.debug("thumbnail up to date for %s" % f.resource)
                     on_generated()
@@ -189,13 +244,23 @@ class MediaScanner(Component):
         """
         
         media = []
-        for f in self.__media.values():
-            for m in mime_types:
-                if (f.mimetype.startswith(m)):
-                    media.append(f)
-                    continue
+        for items in self.__media_items.values():
+            for f in items:
+                for m in mime_types:
+                    if (f.mimetype.startswith(m)):
+                        media.append(f)
+                        continue
+                #end for
             #end for
         #end for
+            
+        #for f in self.__media.values():
+        #    for m in mime_types:
+        #        if (f.mimetype.startswith(m)):
+        #            media.append(f)
+        #            continue
+        #    #end for
+        ##end for
 
         def comp(a, b): return cmp(a.path.lower(), b.path.lower())
         media.sort(comp)
