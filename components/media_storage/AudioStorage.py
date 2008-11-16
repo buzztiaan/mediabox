@@ -66,7 +66,11 @@ class AudioStorage(Device):
         f.name = self.get_name()
         
         return f
-          
+
+
+    def get_file(self, path):
+    
+        f = File(self)
     
     
     def ls_async(self, path, cb, *args):
@@ -98,6 +102,21 @@ class AudioStorage(Device):
             
             if (not album): return
 
+            for f in album.get_children():
+                if (not f.mimetype.startswith("audio")):
+                    continue
+                                   
+                tags = tagreader.get_tags(f)
+                f.name = tags.get("TITLE") or f.name
+                f.info = tags.get("ARTIST") or "unknown"
+                f.thumbnail_md5 = album.thumbnail_md5
+                
+                cb(f, *args)
+            #end for
+            
+            cb(None, *args)
+
+            """
             for trk in album.get_children():
                 if (trk.mimetype.startswith("audio")):
                     tags = tagreader.get_tags(trk)
@@ -125,7 +144,7 @@ class AudioStorage(Device):
             #end for
             
             cb(None, *args)
-            
+            """
         #end if        
 
 
