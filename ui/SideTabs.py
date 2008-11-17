@@ -25,16 +25,18 @@ class SideTabs(HilightingWidget):
 
     def _reload(self):
     
+        HilightingWidget._reload(self)
+    
         self.__prepare_tabs()
 
 
     def set_size(self, w, h):
-    
+
         if ((w, h) != self.get_size()):
             need_prepare = True
         else:
             need_prepare = False
-    
+
         HilightingWidget.set_size(self, w, h)
 
         if (need_prepare):

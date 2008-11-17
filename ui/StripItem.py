@@ -28,8 +28,6 @@ class StripItem(object):
         
         if (self.__canvas in self.__bg_store):
             del self.__bg_store[(self.__class__, self.__canvas)]
-        if (self.__background):
-            self.set_background(self.__background)
 
 
     def get_size(self):
@@ -40,18 +38,6 @@ class StripItem(object):
     def set_background(self, bg):
     
         self.__background = bg
-    
-        if (not self.__canvas): return
-        
-        # prerender the background pixmap in order to have it ready on the
-        # server-side
-        if (not (self.__class__, self.__canvas) in self.__bg_store):
-            w, h = self.get_size()
-            pmap = Pixmap(None, w, h)
-            self.__bg_store[(self.__class__, self.__canvas)] = pmap
-            
-            pmap.draw_frame(bg, 0, 0, w, h, True)
-        #end if
             
 
     def set_canvas(self, canvas):
@@ -72,6 +58,7 @@ class StripItem(object):
     
         if (self.__canvas):
             self.__canvas.invalidate_cache(self)
+        self.__bg_store.clear()
         
 
     def render(self):
@@ -83,9 +70,19 @@ class StripItem(object):
         
     def render_bg(self, canvas):
 
+        if (not self.__background): return
+
         pmap = self.__bg_store.get((self.__class__, self.__canvas))
-        if (pmap):    
-            canvas.draw_pixmap(pmap, 0, 0)
+        if (not pmap):
+            # prerender the background pixmap in order to have it ready on the
+            # server-side
+            w, h = self.get_size()
+            pmap = Pixmap(None, w, h)
+            self.__bg_store[(self.__class__, self.__canvas)] = pmap
+            pmap.draw_frame(self.__background, 0, 0, w, h, True)
+        #end if
+
+        canvas.draw_pixmap(pmap, 0, 0)
         
         
     def render_selection_frame(self, canvas):

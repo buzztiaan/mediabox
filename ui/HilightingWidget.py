@@ -31,7 +31,14 @@ class HilightingWidget(Widget):
         
         
     def _reload(self):
-    
+        
+        Widget._reload(self)
+        self.__buffer = None
+        
+        
+    def set_size(self, w, h):
+     
+        Widget.set_size(self, w, h)
         self.__buffer = None
         
         
