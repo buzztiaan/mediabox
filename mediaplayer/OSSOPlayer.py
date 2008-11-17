@@ -58,7 +58,10 @@ class _OSSOPlayer(GenericMediaPlayer):
     """
     Singleton class for controlling and embedding the OSSO media server in
     other applications.
-    """            
+    
+    @todo: replace with gstreamer backend since the osso-media-server D-Bus
+           API is private and subject to change
+    """
 
     def __init__(self):
         """
@@ -186,8 +189,8 @@ class _OSSOPlayer(GenericMediaPlayer):
         if (self.__idle_counter == 500):
             self.__idle_counter = 0
             self.__heartbeat_running = False
-            self.close()
-            print "player closed due to idle timeout"            
+        #    self.close()
+            print "player closed due to idle timeout"
             return False
            
         gobject.timeout_add(300, self.__heartbeat)
@@ -329,6 +332,7 @@ class _OSSOPlayer(GenericMediaPlayer):
     def play(self):
            
         if (not self.__playing):
+            self.__run_heartbeat()
             self.__position_valid = False
             self.__current_player.play()
             self.set_volume(self.__volume)            
@@ -341,6 +345,7 @@ class _OSSOPlayer(GenericMediaPlayer):
             self.__current_player.pause()
             self.__position = 0
         else:
+            self.__run_heartbeat()
             self.__current_player.pause()
 
 
@@ -363,6 +368,7 @@ class _OSSOPlayer(GenericMediaPlayer):
     def seek(self, pos):
     
         if (self.__player_values[_SEEKABLE]):
+            self.__run_heartbeat()
             self.__current_player.seek(1, dbus.Int32(pos * 10))
             self.play()
             self.__position_valid = False
