@@ -83,23 +83,14 @@ class TabPanel(HilightingWidget, Observable):
         self.__buttons = [btn_repeat, btn_shuffle]
 
 
-        self.__hilight_box = pixbuftools.make_frame(theme.mb_selection_frame,
-                                                    120, 120, True)
-
-
 
     def _reload(self):
     
-        self.__hilight_box = pixbuftools.make_frame(theme.mb_selection_frame,
-                                                    120, 120, True)
-       
-        viewers = self.__viewers
-        self.__pos = (0, 0)
-        self.__icons = []
-        self.__viewers = []
-        
-        for v in viewers:
-            self.add_viewer(v)
+        HilightingWidget._reload(self)
+    
+        self.set_hilighting_box(
+              pixbuftools.make_frame(theme.mb_selection_frame, 120, 120, True))
+
         self.__buffer = None
         self.__is_prepared = False
 
