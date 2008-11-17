@@ -123,7 +123,7 @@ class _MPlayer(GenericMediaPlayer):
 
         self.__playing = False
         print "REACHED EOF"
-        self.__suspension_point = None #(self.__uri, 0)
+        self.__suspension_point = (self.__uri, 0)
         self.update_observer(self.OBS_EOF, self.__context_id)
 
 
