@@ -53,7 +53,7 @@ class Image(Widget, Observable):
         self.__original_size = (0, 0)
 
         # the visible size is the size of the image widget
-        self.__visible_size = (0, 0)
+        self.__visible_size = (100, 100)
 
         # the virtual size is the size of whole image zoomed
         self.__virtual_size = (0, 0)
