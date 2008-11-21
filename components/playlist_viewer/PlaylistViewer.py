@@ -330,6 +330,7 @@ class PlaylistViewer(Viewer):
         elif (button == item.BUTTON_REMOVE):
             self.__remove_item(pl, idx)
             pl.save()
+            self.__update_playlist_thumbnail()
                 
         elif (button == item.BUTTON_REMOVE_PRECEEDING):
             self.__playlist.set_frozen(True)
@@ -337,6 +338,7 @@ class PlaylistViewer(Viewer):
                 self.__remove_item(pl, 0)
             pl.save()
             self.__playlist.set_frozen(False)
+            self.__update_playlist_thumbnail()
 
         elif (button == item.BUTTON_REMOVE_FOLLOWING):
             self.__playlist.set_frozen(True)
@@ -344,6 +346,7 @@ class PlaylistViewer(Viewer):
                 self.__remove_item(pl, idx)
             pl.save()
             self.__playlist.set_frozen(False)
+            self.__update_playlist_thumbnail()
 
 
     def __on_swap(self, idx1, idx2):
@@ -463,7 +466,7 @@ class PlaylistViewer(Viewer):
         if (not self.__random_items):
             self.__random_items = pl.get_files()
         idx = random.randint(0, len(self.__random_items) - 1)
-        f = self.__random_items.pop(idx)
+        f = self.__random_items[idx]
         try:
             new_idx = pl.get_files().index(f)
         except:
@@ -482,6 +485,12 @@ class PlaylistViewer(Viewer):
         if (not f): return
         #if (f == self.__current_file): return
         self.__current_file = f
+
+        # remove from random items list
+        try:
+            self.__random_items.remove(f)
+        except ValueError:
+            pass
 
         if (self.__media_widget):
             self.__media_widget.stop()
@@ -551,9 +560,6 @@ class PlaylistViewer(Viewer):
         self.__playlist.render()
         tn = ItemThumbnail(thumb, f)
 
-        #self.__thumbnails.append(tn)
-        #self.set_collection(self.__thumbnails)
-
         pl.append(plitem, tn, f)
         self.__random_items.append(f)
         
@@ -567,19 +573,11 @@ class PlaylistViewer(Viewer):
         f = pl.get_files()[idx]
         try:
             self.__random_items.remove(f)
-        except:
+        except ValueError:
             pass
         pl.remove(idx)
 
         self.__playlist.remove_item(idx)
-        #if (idx == self.__current_index):
-        #    self.__current_index = -1
-        #elif (idx < self.__current_index):
-        #    self.__current_index -= 1
-
-        #self.set_collection(self.__thumbnails)
-        self.__update_playlist_thumbnail()
-
 
 
     def __display_playlist(self, pl):
@@ -621,8 +619,6 @@ class PlaylistViewer(Viewer):
             self.__playlist.set_frozen(False)
             
             self.__update_playlist_thumbnail()
-            #self.__playlist_modified = True
-            #self.__save_playlist(_PLAYLIST_FILE)
 
         elif (msg == msgs.MEDIA_EV_EOF):
             if (self.__is_queue()):
@@ -631,9 +627,6 @@ class PlaylistViewer(Viewer):
 
         elif (msg == msgs.CORE_EV_DEVICE_ADDED):
             self.__load_playlists()
-
-        #elif (msg == msgs.CORE_EV_APP_SHUTDOWN):
-        #    self.__save_playlist(_PLAYLIST_FILE)
 
         elif (msg == msgs.MEDIA_ACT_STOP):
             if (self.__media_widget):
@@ -667,16 +660,15 @@ class PlaylistViewer(Viewer):
                 size = len(self.__playlist.get_items())
                 self.__playlist.scroll_to_item(min(size, idx + 2))
 
-            
         elif (msg == msgs.HWKEY_EV_UP):
             idx = self.__playlist.get_index_at(0)
             if (idx != -1):
                 self.__playlist.scroll_to_item(max(0, idx - 2))
-            #self.__list.impulse(0, -7.075)
 
 
         # the following messages are only accepted when we have a media widget
         if (not self.__media_widget): return
+
 
         # watch FULLSCREEN hw key
         if (msg == msgs.HWKEY_EV_FULLSCREEN):
