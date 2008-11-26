@@ -1,4 +1,4 @@
-from utils.Observable import Observable
+from com import Component, msgs
 from utils import maemo
 from utils import logging
 
@@ -13,17 +13,16 @@ _HAL_DEVICE_IFACE = "org.freedesktop.Hal.Device"
 _HEADPHONE_SYS = "/sys/devices/platform/gpio-switch/headphone/state"
 
 
-class _Headset(Observable):
-
-    OBS_CONNECTED = 0
-    OBS_DISCONNECTED = 1
-    OBS_BUTTON_PRESSED = 2
-    
+class Headset(Component):
 
     def __init__(self):
     
         self.__is_connected = True
         
+        self.__click_count = 0
+        self.__click_handler = None
+        
+        Component.__init__(self)
     
         # monitor headset button
         try:
@@ -57,12 +56,31 @@ class _Headset(Observable):
 
 
 
+    def __handle_click(self):
+
+        if (self.__click_count == 1):
+            self.emit_event(msgs.HWKEY_EV_HEADSET)
+
+        elif (self.__click_count == 2):
+            self.emit_event(msgs.HWKEY_EV_HEADSET_DOUBLE)
+            
+        elif (self.__click_count == 3):
+            self.emit_event(msgs.HWKEY_EV_HEADSET_TRIPLE)
+            
+        self.__click_count = 0
+        self.__click_handler = None
+
+
     def __on_hal_condition(self, arg1, arg2):
 
         if ((arg1, arg2) == ("ButtonPressed", "phone")):
             logging.info("headset button pressed")
-            self.update_observer(self.OBS_BUTTON_PRESSED)
+            self.__click_count += 1
 
+            if (self.__click_handler):
+                gobject.source_remove(self.__click_handler)
+
+            self.__click_handler = gobject.timeout_add(500, self.__handle_click)
 
 
     def __on_connect(self, src, cond):
@@ -73,11 +91,12 @@ class _Headset(Observable):
         if (state == "disconnected"):
             self.__is_connected = False
             logging.info("headphones disconnected")
-            self.update_observer(self.OBS_DISCONNECTED)
+            self.emit_event(msgs.SYSTEM_EV_HEADPHONES_REMOVED)
+
         elif (state == "connected"):
             self.__is_connected = True
             logging.info("headphones connected")
-            self.update_observer(self.OBS_CONNECTED)
+            self.emit_event(msgs.SYSTEM_EV_HEADPHONES_INSERTED)
 
         return True
 
@@ -87,7 +106,7 @@ class _Headset(Observable):
         return self.__is_connected
 
 
-    def set_force_speaker(self, value):
+    def __set_force_speaker(self, value):
         
         if (not self.__speaker): return
 
@@ -97,7 +116,12 @@ class _Headset(Observable):
         else:
             self.__speaker.force_loudspeaker_off()
 
-        
-_singleton = _Headset()
-def Headset(): return _singleton
+
+    def handle_event(self, msg, *args):
+    
+        if (msg == msgs.SYSTEM_ACT_FORCE_SPEAKER_ON):
+            self.__set_force_speaker(True)
+            
+        elif (msg == msgs.SYSTEM_ACT_FORCE_SPEAKER_OFF):
+            self.__set_force_speaker(False)
 
