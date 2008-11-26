@@ -2,6 +2,7 @@ def get_classes():
 
     from AppWindow import AppWindow
     from Preferences import Preferences
+    #from ConfigPlayer import ConfigPlayer
     from ConfigTheme import ConfigTheme
     from DirectoryService import DirectoryService
     from MediaWidgetRegistry import MediaWidgetRegistry
@@ -26,6 +27,8 @@ messages = [
     "HWKEY_EV_FULLSCREEN",
     "HWKEY_EV_MENU",
     "HWKEY_EV_HEADSET",
+    "HWKEY_EV_HEADSET_DOUBLE",
+    "HWKEY_EV_HEADSET_TRIPLE",
     "HWKEY_EV_UP",
     "HWKEY_EV_DOWN",
     "HWKEY_EV_LEFT",
@@ -33,16 +36,12 @@ messages = [
 
     "CORE_EV_APP_STARTED",
     "CORE_EV_APP_SHUTDOWN",
-    #"CORE_EV_MEDIA_SCANNING_FINISHED",  # (scanner)
     
     # Notifications about adding or removing storage devices.
     #
     "CORE_EV_DEVICE_ADDED",     # (id, device)
     "CORE_EV_DEVICE_REMOVED",   # (id)
-
-    #"CORE_EV_PANEL_CHANGED",    # (top_pbuf, bottom_pbuf)
-    #"CORE_ACT_SHOW_MENU",
-    
+   
     "CORE_SVC_LIST_PATH",       # (path)
     "CORE_SVC_GET_FILE",        # (path)
     
@@ -72,6 +71,8 @@ messages = [
     "CORE_ACT_SELECT_ITEM",     # (index)
     "CORE_ACT_HILIGHT_ITEM",    # (index)
     "CORE_ACT_SCROLL_TO_ITEM",  # (index)
+    "CORE_ACT_SCROLL_UP",
+    "CORE_ACT_SCROLL_DOWN",
     "CORE_ACT_RENDER_ITEMS",
  
     "CORE_ACT_OPEN_URI",        # (uri)
