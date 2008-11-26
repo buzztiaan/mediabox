@@ -387,7 +387,9 @@ class GenericViewer(Viewer):
         
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             if (self.__current_device):
-                self.__load_device(self.__current_device)
+                #self.__load_device(self.__current_device)
+                path = self.__path_stack[-1][0]
+                self.__load_folder(path, None)
         
         # watch for new storage devices
         elif (msg == msgs.CORE_EV_DEVICE_ADDED):
@@ -417,15 +419,17 @@ class GenericViewer(Viewer):
             w, h = self.__list.get_size()
             idx = self.__list.get_index_at(h)
             if (idx != -1):
-                self.__list.scroll_to_item(min(len(self.__items), idx + 2))
-
+                new_idx = min(len(self.__items), idx + 2)
+                self.__list.scroll_to_item(new_idx)
+                self.emit_event(msgs.CORE_ACT_SCROLL_UP)
             
         elif (msg == msgs.HWKEY_EV_UP):
             idx = self.__list.get_index_at(0)
             if (idx != -1):
-                self.__list.scroll_to_item(max(0, idx - 2))
-            #self.__list.impulse(0, -7.075)
-        
+                new_idx = max(0, idx - 2)
+                self.__list.scroll_to_item(new_idx)
+                self.emit_event(msgs.CORE_ACT_SCROLL_DOWN)
+            
         
         # load selected device or file
         if (msg == msgs.CORE_ACT_LOAD_ITEM):
@@ -446,6 +450,14 @@ class GenericViewer(Viewer):
             self.__search(key)
 
 
+        # go to previous
+        elif (msg == msgs.MEDIA_ACT_PREVIOUS):
+            self.__go_previous()
+            
+        # go to next
+        elif (msg == msgs.MEDIA_ACT_NEXT):
+            self.__go_next()
+
 
         # the following messages are only accepted when we have a media widget
         if (not self.__media_widget): return
@@ -465,7 +477,6 @@ class GenericViewer(Viewer):
         # watch DECREMENT hw key
         elif (msg == msgs.HWKEY_EV_DECREMENT):
             self.__media_widget.decrement()
-
 
 
     def __on_lib_item_button(self, item, idx, button):
@@ -635,7 +646,8 @@ class GenericViewer(Viewer):
             if (not self.__media_widget in self.__media_box.get_children()):
                 self.__media_box.add(self.__media_widget)
 
-            if (not f.mimetype in mimetypes.get_audio_types()):
+            if (not f.mimetype in mimetypes.get_audio_types()
+                and not self.__view_mode == self._VIEWMODE_PLAYER_FULLSCREEN):
                 self.__side_tabs.select_tab(1)
 
             self.emit_event(msgs.UI_ACT_RENDER)
@@ -692,10 +704,16 @@ class GenericViewer(Viewer):
         self.__items_downloading_thumbnails.clear()
 
         # update path stack
+        reload_only = False
         if (self.__path_stack):
+            if (path == self.__path_stack[-1][0]):
+                reload_only = True
+
             self.__path_stack[-1][1] = self.__list.get_offset()
-        self.__path_stack.append([path, 0])
-        #print self.__path_stack
+        #end if
+
+        if (not reload_only):
+            self.__path_stack.append([path, 0])
 
         self.__list.clear_items()        
         #if (direction == self.__GO_PARENT):
@@ -851,8 +869,10 @@ class GenericViewer(Viewer):
         Reacts on media EOF.
         """
         
+        logging.debug("reached EOF")
         self.emit_event(msgs.MEDIA_EV_EOF)
         if (self.may_go_next()):
+            logging.debug("going to next item")
             self.__go_next()
 
 
@@ -917,7 +937,8 @@ class GenericViewer(Viewer):
         try:
             idx = self.__non_folder_items.index(self.__current_file)
         except:
-            return False
+            idx = -1
+            #return False
             
         if (idx + 1 < len(self.__non_folder_items)):
             next_item = self.__non_folder_items[idx + 1]
