@@ -27,6 +27,7 @@ class AudioWidget(MediaWidget):
     def __init__(self):
     
         self.__player = None
+        self.__load_handler = None
         mediaplayer.add_observer(self.__on_observe_player)
 
         self.__current_file = None
@@ -51,7 +52,10 @@ class AudioWidget(MediaWidget):
                               theme.color_fg_trackinfo)
         self.add(self.__artist)
 
-
+        self.__progress_label = Label("", theme.font_headline,
+                                      theme.color_fg_trackinfo)
+        self.add(self.__progress_label)
+        self.__progress_label.set_alignment(Label.RIGHT)
 
         # controls
         self.__btn_play = ImageButton(theme.mb_btn_play_1,
@@ -105,11 +109,14 @@ class AudioWidget(MediaWidget):
         if (w < 800):
             self.__car_btn_prev.set_visible(False)
             self.__car_btn_next.set_visible(False)
+            self.__progress_label.set_visible(False)
         else:
             self.__car_btn_prev.set_visible(True)
             self.__car_btn_next.set_visible(True)
+            self.__progress_label.set_visible(True)
             self.__car_btn_prev.set_geometry(0, 0, 128, h - 96 - 10)
             self.__car_btn_next.set_geometry(w - 128, 0, 128, h - 96 - 10)
+            self.__progress_label.set_geometry(w - 200, 10, 190, 0)
                 
         # place labels
         lbl_x = 10
@@ -194,6 +201,7 @@ class AudioWidget(MediaWidget):
 
                 self.send_event(self.EVENT_MEDIA_POSITION, info)
                 self.__progress.set_position(pos, total)
+                self.__progress_label.set_text(info)
 
         elif (cmd == src.OBS_STARTED):
             print "Started Player"
@@ -269,11 +277,13 @@ class AudioWidget(MediaWidget):
 
     def __on_set_position(self, pos):
     
+        self.__player.set_volume(mb_config.volume())
         self.__player.seek_percent(pos)
 
 
     def __on_play_pause(self):
     
+        self.__player.set_volume(mb_config.volume())
         self.__player.pause()
 
 
@@ -310,6 +320,7 @@ class AudioWidget(MediaWidget):
     def load(self, item):
 
         def f():
+            self.__load_handler = None
             #if (item == self.__current_file): return
 
             self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
@@ -332,7 +343,10 @@ class AudioWidget(MediaWidget):
             self.render()
             
                 
-        gobject.idle_add(f)
+        if (self.__load_handler):
+            gobject.source_remove(self.__load_handler)
+            
+        self.__load_handler = gobject.idle_add(f)
 
 
     def stop(self):

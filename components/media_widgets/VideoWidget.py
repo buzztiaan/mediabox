@@ -24,6 +24,7 @@ class VideoWidget(MediaWidget):
     def __init__(self):
     
         self.__player = None
+        self.__load_handler = None
         mediaplayer.add_observer(self.__on_observe_player)
 
         self.__aspect_ratio = 1.0
@@ -237,11 +238,13 @@ class VideoWidget(MediaWidget):
 
     def __on_set_position(self, pos):
     
+        self.__player.set_volume(mb_config.volume())
         self.__player.seek_percent(pos)
 
 
     def __on_play_pause(self):
     
+        self.__player.set_volume(mb_config.volume())
         self.__player.pause()
         
    
@@ -299,7 +302,10 @@ class VideoWidget(MediaWidget):
         self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
         #print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
-        while (gtk.events_pending()): gtk.main_iteration(False)
+        cnt = 0
+        while (gtk.events_pending() and cnt < 10):
+            gtk.main_iteration(False)
+            cnt += 1
         #self.__show_video_screen()
 
 
@@ -308,6 +314,7 @@ class VideoWidget(MediaWidget):
         self.__show_video_screen()
     
         def f():
+            self.__load_handler = None
             uri = item.get_resource()
             if (self.__screen.window.xid):
                 #if (uri == self.__uri): return
@@ -342,8 +349,11 @@ class VideoWidget(MediaWidget):
                 self.__current_file = item
                 
                 #self.update_observer(self.OBS_SHOW_PANEL)
-                
-        gobject.idle_add(f)
+
+        if (self.__load_handler):
+            gobject.source_remove(self.__load_handler)
+            
+        self.__load_handler = gobject.idle_add(f)                
 
 
 

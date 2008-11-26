@@ -4,7 +4,6 @@ from ui.Label import Label
 from ui.ImageButton import ImageButton
 from mediabox import viewmodes
 from Image import Image
-from OverlayControls import OverlayControls
 import theme
 
 import gtk
@@ -21,6 +20,7 @@ class ImageWidget(MediaWidget):
     def __init__(self):
             
         self.__is_fullscreen = False
+        self.__click_pos = (0, 0)
             
         self.__uri = ""
     
@@ -32,15 +32,12 @@ class ImageWidget(MediaWidget):
         self.__image = Image()
         self.__image.add_observer(self.__on_observe_image)
         self.__image.set_background(_BACKGROUND_COLOR)
+        self.__image.connect_button_pressed(self.__on_image_clicked, True)
+        self.__image.connect_button_released(self.__on_image_clicked, False)
         self.add(self.__image)
 
         kscr = KineticScroller(self.__image)
-        kscr.set_touch_area(0, 730)
-
-        self.__overlay_ctrls = OverlayControls()
-        self.__overlay_ctrls.add_observer(self.__on_observe_overlay_ctrls)
-        self.__image.add(self.__overlay_ctrls)
-        self.__overlay_ctrls.set_visible(False)
+        kscr.set_touch_area(0, 800)
 
         # controls
         ctrls = []
@@ -84,6 +81,24 @@ class ImageWidget(MediaWidget):
         elif (cmd == src.OBS_PROGRESS):
             amount, total = args
             pass
+
+
+    def __on_image_clicked(self, px, py, is_pressed):
+    
+        if (is_pressed):
+            self.__click_pos = (px, py)
+        else:
+            cx, cy = self.__click_pos
+            dx = abs(cx - px)
+            dy = abs(cy - py)
+            if (dx < 30 and dy < 30):
+                w, h = self.__image.get_size()
+                if (px < 80):
+                    #self.__image.slide_from_left()
+                    self.send_event(self.EVENT_MEDIA_PREVIOUS)
+                elif (px > w - 80):
+                    #self.__image.slide_from_right()
+                    self.send_event(self.EVENT_MEDIA_NEXT)
 
 
     def __on_observe_overlay_ctrls(self, src, cmd, *args):
