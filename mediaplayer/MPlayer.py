@@ -272,9 +272,13 @@ class _MPlayer(GenericMediaPlayer):
             self.__player_values[_POSITION] = self.__read_ans(data)
             self.__on_position()
         elif (data.startswith("ANS_PERCENT_POSITION")):
-            self.__player_values[_PERCENT_POSITION] = self.__read_ans(data)
+            pos = float(self.__read_ans(data)) / 100.0
+            self.__player_values[_PERCENT_POSITION] = pos
+            self.__player_values[_POSITION] = \
+                                            self.__player_values[_LENGTH] * pos
+            self.__on_position()
         elif (data.startswith("ANS_LENGTH")):
-            self.__player_values[_LENGTH] = self.__read_ans(data)
+            self.__player_values[_LENGTH] = float(self.__read_ans(data))
         elif (data.startswith("ANS_VIDEO_RESOLUTION")):
             self.__player_values[_VIDEO_RESOLUTION] = self.__read_ans(data)
         elif (data.startswith("ANS_filename")):
@@ -601,7 +605,7 @@ class _MPlayer(GenericMediaPlayer):
             self.__send_cmd("play")
             self.update_observer(self.OBS_PLAYING, self.__context_id)
             
-        self.__send_cmd("get_time_pos")            
+        self.__send_cmd("get_percent_pos")            
         
         
     def pause(self):
@@ -612,7 +616,7 @@ class _MPlayer(GenericMediaPlayer):
         if (self.__playing):
             self.set_volume(self.__volume)
             self.__send_cmd("pause")
-            self.__send_cmd("get_time_pos")
+            self.__send_cmd("get_percent_pos")
             self.update_observer(self.OBS_PLAYING, self.__context_id)
         else:
             self.__send_cmd("pause")
@@ -640,7 +644,7 @@ class _MPlayer(GenericMediaPlayer):
 
     def seek_percent(self, pos):
 
-        self.__ensure_mplayer()    
+        self.__ensure_mplayer()
         self.__send_cmd("seek %d 1" % pos)
         self.play()
 
