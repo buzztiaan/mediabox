@@ -313,6 +313,7 @@ class TabPanel(HilightingWidget, Observable):
                 self.__lock.clear()
                 
         self.set_events_blocked(True)
+        while (gtk.events_pending()): gtk.main_iteration(False)
         f(STEP)
         while (wait and not finished.isSet()): gtk.main_iteration(False)
         
