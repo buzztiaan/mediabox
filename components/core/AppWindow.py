@@ -628,6 +628,7 @@ class AppWindow(Component, RootPane):
             term += s.lower()
             self.__set_search_term(term)
 
+
         try:
             hildon_input_method.show_im(self.__window, f)
         except:
@@ -674,7 +675,7 @@ class AppWindow(Component, RootPane):
         
         if (term):
             self.emit_event(msgs.CORE_ACT_SEARCH_ITEM, term)
-        
+            
         
 
     def __on_observe_window_ctrls(self, src, cmd, *args):
@@ -766,6 +767,8 @@ class AppWindow(Component, RootPane):
         #    self.drop_event()
         
         elif (event == msgs.CORE_EV_THEME_CHANGED):
+            from mediabox import thumbnail
+            thumbnail.clear_cache()
             self.set_frozen(True)
             self.propagate_theme_change()
             self.__prepare_collection_caps()
@@ -829,9 +832,24 @@ class AppWindow(Component, RootPane):
             idx = args[0]
             self.__select_item(idx, hilight_only = True)
             
+            
         elif (event == msgs.CORE_ACT_SCROLL_TO_ITEM):
             idx = args[0]
             self.__strip.scroll_to_item(idx)
+
+        elif (event == msgs.CORE_ACT_SCROLL_UP):
+            w, h = self.__strip.get_size()
+            idx = self.__strip.get_index_at(h)
+            if (idx != -1):
+                new_idx = min(len(self.__strip.get_images()), idx + 2)
+                self.__strip.scroll_to_item(new_idx)
+
+        elif (event == msgs.CORE_ACT_SCROLL_DOWN):
+            idx = self.__strip.get_index_at(0)
+            if (idx != -1):
+                new_idx = max(0, idx - 2)
+                self.__strip.scroll_to_item(new_idx)
+
             
         elif (event == msgs.CORE_ACT_RENDER_ITEMS):
             self.__strip.invalidate_buffer()
@@ -849,7 +867,8 @@ class AppWindow(Component, RootPane):
             viewer, f = args
             idx = self.__viewers.index(viewer)
             self.__tab_panel.set_currently_playing(idx)
-         
+
+
     def __get_vstate(self, viewer = None):
     
         if (not viewer):
