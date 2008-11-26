@@ -25,7 +25,7 @@ audio/mp4                             .aac,.m4a           MP4-Audio      A
 audio/x-flac                          .flac               FLAC           A
 audio/x-ms-wma                        .wma                WMA            A
 audio/x-unknown                       -                   Unknown-Audio  A      # used by MediaBox for unguessable audio types
-audio/x-vorbis+ogg                    .ogg                Ogg-Vorbis     A
+audio/x-vorbis+ogg                    .ogg,.oga           Ogg-Vorbis     A
 audio/x-wav                           .wav                WAV            A
 
 video/*                               -                   Unknown-Video  V
@@ -35,6 +35,7 @@ application/vnd.rn-realmedia          .rm,.ram,.ra,.rmvb  Realmedia      V
 application/x-flash-video             -                   Flash-Video    V      # used by Fuppes
 video/mp4                             .m4v,.mp4           MP4-Video      V
 video/mpeg                            .mpg,.mpeg          MPEG           V
+video/ogg                             .ogv                Ogg-Theora     V
 video/quicktime                       .mov,.qt            Quicktime      V
 video/x-flash-video                   .flv                Flash-Video    V      # used by MediaTomb
 video/flv                             -                   Flash-Video    V      # used by YouTube
