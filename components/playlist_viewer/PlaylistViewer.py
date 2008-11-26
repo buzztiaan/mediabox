@@ -666,6 +666,15 @@ class PlaylistViewer(Viewer):
                 self.__playlist.scroll_to_item(max(0, idx - 2))
 
 
+        # go to previous
+        elif (msg == msgs.MEDIA_ACT_PREVIOUS):
+            self.__go_previous()
+            
+        # go to next
+        elif (msg == msgs.MEDIA_ACT_NEXT):
+            self.__go_next()
+
+
         # the following messages are only accepted when we have a media widget
         if (not self.__media_widget): return
 
