@@ -197,8 +197,8 @@ class YouTube(Device):
            ("Search", "/search/video,,1", File.DIRECTORY, None),
            ("Featured", "/search/recently_featured,1", File.DIRECTORY, None),
            ("Most viewed", "/search/most_viewed,1", File.DIRECTORY, None),
-           ("Top rated", "/search/top_rated,1", File.DIRECTORY, None),
-           ("Categories", "/categories", File.DIRECTORY, None)]:
+           ("Top rated", "/search/top_rated,1", File.DIRECTORY, None)]:
+           #("Categories", "/categories", File.DIRECTORY, None)]:
             item = File(self)
             item.path = path
             item.resource = path
@@ -297,17 +297,22 @@ class YouTube(Device):
 
 
     def __parse_rating(self, node):
+        """
+        Parses the rating node and returns a string representation.
+        """
     
         try:
             rating = float(node.get_attr("{%s}average" % _XMLNS_ATOM))
-            rating = int(rating + 0.5)
+            #rating = int(rating + 0.5)
             max_rating = int(node.get_attr("{%s}max" % _XMLNS_ATOM))
         except:
             #import traceback; traceback.print_exc()
-            return _STAR_CHAR * 5
+            #return _STAR_CHAR * 5
+            return ""
 
-        out = _STAR2_CHAR * rating
-        out += _STAR_CHAR * (max_rating - rating)
+        out = "rated %0.1f stars" % (rating)
+        #out = _STAR2_CHAR * rating
+        #out += _STAR_CHAR * (max_rating - rating)
         
         return out
 
@@ -406,6 +411,9 @@ class YouTube(Device):
         
 
     def ls_async(self, path, cb, *args):
+
+        if (self.__flv_downloader):
+            self.__flv_downloader.cancel()
     
         if (path == "/"):
             gobject.timeout_add(0, self.__send_async, self.__ls_menu(),
