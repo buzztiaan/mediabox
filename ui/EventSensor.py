@@ -15,8 +15,8 @@ class EventSensor(object):
         
         gtkwidget.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                              gtk.gdk.BUTTON_RELEASE_MASK |
-                             gtk.gdk.POINTER_MOTION_MASK) # |
-                             #gtk.gdk.POINTER_MOTION_HINT_MASK)
+                             gtk.gdk.POINTER_MOTION_MASK |
+                             gtk.gdk.POINTER_MOTION_HINT_MASK)
 
 
     def __on_button_pressed(self, src, ev):

@@ -40,7 +40,7 @@ class ProgressBar(Widget):
         self.__current_message = ""
        
         Widget.__init__(self)
-        self.set_size(200, 64)
+        self.set_size(180, 64)
 
         self.connect_button_pressed(self.__on_button_press)
         self.connect_button_released(self.__on_button_release)
@@ -65,7 +65,7 @@ class ProgressBar(Widget):
     
         x, y = self.get_screen_pos()        
         screen = self.get_screen()
-        if (not screen):
+        if (not screen or not self.may_render()):
             return
     
         w, h = self.get_size()
