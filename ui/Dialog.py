@@ -19,7 +19,6 @@ class Dialog(gtk.Dialog):
         #self.set_decorated(False)
         self.set_size_request(600, -1)
         self.move(100, -1000)
-        #self.set_flags(gtk.CAN_FOCUS)
         
         #self.vbox = gtk.VBox()
         #self.vbox.show()
@@ -52,7 +51,7 @@ class Dialog(gtk.Dialog):
     
         while (self.__response == None):
             time.sleep(0.01)
-            while (gtk.events_pending()): gtk.main_iteration()
+            while (gtk.events_pending()): gtk.main_iteration(False)
             
         return self.__response
         
@@ -73,7 +72,6 @@ class Dialog(gtk.Dialog):
         hbox.pack_start(lbl, False, False)
     
         entry = gtk.Entry()
-        #entry.set_flags(gtk.CAN_FOCUS)
         entry.modify_font(theme.font_headline)
         if (value): entry.set_text(value)
         entry.show()
@@ -109,32 +107,7 @@ class Dialog(gtk.Dialog):
         else:
             values = []            
         self.destroy()
-        while (gtk.events_pending()): gtk.main_iteration()
+        while (gtk.events_pending()): gtk.main_iteration(False)
         
         return values
-        
-        
-        
-    def __slide_in(self):
-    
-        nil, nil, w, h = self.get_allocation()
-        for y in range(-h, 0, 10):
-            now = time.time()
-            self.move(100, y)
-            while (gtk.events_pending()): gtk.main_iteration()
-            then = time.time()            
-            delay = max(0, (now + 0.01) - then)
-            time.sleep(delay)
-            
-            
-    def __slide_out(self):
-    
-        nil, nil, w, h = self.get_allocation()
-        for y in range(0, -h, -10):
-            now = time.time()
-            self.move(100, y)
-            while (gtk.events_pending()): gtk.main_iteration()
-            then = time.time()            
-            delay = max(0, (now + 0.01) - then)
-            time.sleep(delay)
-    
+

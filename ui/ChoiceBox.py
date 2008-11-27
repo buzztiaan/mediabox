@@ -138,6 +138,6 @@ class ChoiceBox(Widget):
 
         self.set_events_blocked(True)
         fx(0)
-        while (wait and not finished.isSet()): gtk.main_iteration()
+        while (wait and not finished.isSet()): gtk.main_iteration(False)
         self.set_events_blocked(False)
 

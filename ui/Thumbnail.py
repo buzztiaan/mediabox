@@ -52,8 +52,8 @@ class Thumbnail(StripItem):
         cnv.fill_area(0, 0, w, h, theme.color_bg)
 
         if (self.__thumb):
-            thumbnail.draw_decorated(cnv, 9, 4, 152, 102,
-                                     self.__thumb, self.__mimetype)
+            thumbnail.render_on_canvas(cnv, 9, 4, 152, 102,
+                                       self.__thumb, self.__mimetype)
         elif (self.__thumb_pbuf):
             cnv.fit_pixbuf(self.__thumb_pbuf, 9, 4, 152, 102)
 
