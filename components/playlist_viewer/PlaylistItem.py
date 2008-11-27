@@ -55,8 +55,8 @@ class PlaylistItem(ButtonListItem):
 
         if (self.__icon_path):
             x += 4
-            icon = thumbnail.draw_decorated(cnv, x, 4, w - 8, h - 8,
-                                            self.__icon_path, self.__mimetype)
+            icon = thumbnail.render_on_canvas(cnv, x, 4, w - 8, h - 8,
+                                              self.__icon_path, self.__mimetype)
             x += w - 8
         
         x += 8

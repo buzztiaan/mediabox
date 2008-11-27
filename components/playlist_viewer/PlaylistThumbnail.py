@@ -25,7 +25,7 @@ class PlaylistThumbnail(Thumbnail):
 
         pos = [(10, 0), (30, 20), (50, 40), (70, 60)]
         for tn, mimetype in tns[:4]:
-            tn_pbuf = thumbnail.render_pixbuf(tn, mimetype)
+            tn_pbuf = thumbnail.render_on_pixbuf(tn, mimetype)
 
             x, y = pos.pop(0)            
             pixbuftools.draw_pbuf(pbuf, tn_pbuf, x, y, 70, 50)
