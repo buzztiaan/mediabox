@@ -114,19 +114,20 @@ class AudioWidget(MediaWidget):
             self.__car_btn_prev.set_visible(True)
             self.__car_btn_next.set_visible(True)
             self.__progress_label.set_visible(True)
-            self.__car_btn_prev.set_geometry(0, 0, 128, h - 96 - 10)
-            self.__car_btn_next.set_geometry(w - 128, 0, 128, h - 96 - 10)
-            self.__progress_label.set_geometry(w - 200, 10, 190, 0)
+            self.__car_btn_prev.set_geometry(0, 50, 128, h - 100)
+            self.__car_btn_next.set_geometry(w - 128, 50, 128, h - 100)
+            self.__progress_label.set_geometry(w - 200, h - 90, 190, 0)
                 
         # place labels
         lbl_x = 10
-        lbl_y = h - 96
+        lbl_y = 6
         lbl_w = w - 20
         self.__title.set_geometry(lbl_x, lbl_y, lbl_w, 0)
         
-        screen.fill_area(x, y + lbl_y - 10, w, 96 + 10, "#dddddd")
+        screen.fill_area(x, y, w, 50, "#dddddd")
+        screen.fill_area(x, y + h - 50, w, 50, "#dddddd")
                
-        lbl_y += 48
+        lbl_y = h - 42
         lbl_w = w / 2 - 20
         screen.draw_pixbuf(theme.viewer_music_album,
                                   x + lbl_x, y + lbl_y)
@@ -157,7 +158,7 @@ class AudioWidget(MediaWidget):
     
         cover_size = h - 128
         cover_x = (w - cover_size) / 2
-        cover_y = 10
+        cover_y = 60
         
         self.__cover_ebox.set_geometry(cover_x, cover_y,
                                        cover_size + 11, cover_size + 11)
@@ -327,6 +328,12 @@ class AudioWidget(MediaWidget):
             self.__player.set_options("-novideo")
             
             uri = item.get_resource()
+            if (not uri.startswith("/") and
+                not "://localhost" in uri and
+                not "://127.0.0.1" in uri):                    
+                maemo.request_connection()
+            #end if
+            
             try:
                 self.__context_id = self.__player.load(uri)
             except:
@@ -341,7 +348,7 @@ class AudioWidget(MediaWidget):
                         
             self.__show_info(item)
             self.render()
-            
+
                 
         if (self.__load_handler):
             gobject.source_remove(self.__load_handler)
