@@ -1,5 +1,6 @@
 from utils import mimetypes
 import theme
+from ui import pixbuftools
 
 import gtk
 import os
@@ -11,6 +12,7 @@ _HEIGHT = 120
 _PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, _WIDTH, _HEIGHT)
 
 
+# cache for thumbnail frames
 _frame_cache = {}
 
 # cache for thumbnails
@@ -31,9 +33,28 @@ def clear_cache():
         _cache_history.pop()
     #end while
     
+    
+    
+def render_on_pixbuf(thumbfile, mimetype):
+    """
+    Decorates the given thumbnail according to the given MIME type and returns
+    a pixbuf. This pixbuf is shared and volatile and must NOT be stored for
+    later use.
+    """
+
+    return _render_thumbnail(None, 0, 0, _WIDTH, _HEIGHT, thumbfile, mimetype)
+    
+    
+def render_on_canvas(cnv, x, y, w, h, thumbfile, mimetype):
+
+    _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype)    
+
 
 
 def _make_frame(thumbfile, mimetype):
+    """
+    Returns the appropriate frame for the given MIME type.
+    """
 
     if (mimetype == "application/x-folder"):
         tx, ty, tw, th = 3, 3, 109, 109
@@ -78,6 +99,9 @@ def _make_frame(thumbfile, mimetype):
 
 
 def _make_thumbnail(thumbfile, mimetype):
+    """
+    Loads and returns the thumbnail image.
+    """
 
     # render thumbnail
     try:
@@ -89,89 +113,16 @@ def _make_thumbnail(thumbfile, mimetype):
     
 
 
-def render_pixbuf(thumbfile, mimetype):
+def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
     """
-    Decorates the given thumbnail according to the given MIME type and returns
-    a pixbuf. This pixbuf is shared and volatile and must NOT be stored for
-    later use.
-    """
-
-    if (mimetype == "application/x-folder"):
-        fx, fy = 20, 0
-        tx, ty, tw, th = 23, 3, 109, 109
-        if (os.path.exists(thumbfile)):
-            frame = theme.viewer_music_frame
-        else:
-            frame = None
-
-    elif (mimetype == "audio/x-music-folder"):
-        fx, fy = 20, 0
-        tx, ty, tw, th = 23, 3, 109, 109
-        if (os.path.exists(thumbfile)):
-            frame = theme.viewer_music_frame
-        else:
-            frame = None
-
-    elif (mimetype == "image/x-image-folder"):
-        fx, fy = 0, 0
-        tx, ty, tw, th = 35, 30, 100, 69
-        frame = theme.mb_thumbnail_image_folder
-        
-    elif (mimetype in mimetypes.get_audio_types()):
-        fx, fy = 20, 0
-        tx, ty, tw, th = 23, 3, 109, 109
-        if (os.path.exists(thumbfile)):
-            frame = theme.viewer_music_frame
-        else:
-            frame = None
-
-    elif (mimetype in mimetypes.get_image_types()):
-        fx, fy = 0, 0
-        tx, ty, tw, th = 7, 7, 142, 102
-        frame = theme.viewer_image_frame
-        
-    elif (mimetype in mimetypes.get_video_types()):
-        fx, fy = 0, 0
-        tx, ty, tw, th = 14, 4, 134, 112
-        frame = theme.viewer_video_film
-        
-    else:
-        fx, fy = 0, 0
-        tx, ty, tw, th = 0, 0, _WIDTH, _HEIGHT
-        frame = None
-
-    _PBUF.fill(0x00000000)
-
-    # render frame
-    if (frame):
-        pw, ph = frame.get_width(), frame.get_height()
-        subpbuf = _PBUF.subpixbuf(fx, fy, pw, ph)
-        frame.composite(subpbuf, 0, 0, pw, ph, 0, 0, 1, 1,
-                        gtk.gdk.INTERP_NEAREST, 0xff)
-        del subpbuf
-        
-    # render thumbnail
-    try:
-        thumb_pbuf = gtk.gdk.pixbuf_new_from_file(thumbfile)
-    except:
-        thumb_pbuf = _get_fallback_thumbnail(mimetype)
-        
-          
-    pw, ph = thumb_pbuf.get_width(), thumb_pbuf.get_height()
-    thumb_pbuf.composite(subpbuf, 0, 0, pw, ph, 0, 0,
-                         scale, scale, gtk.gdk.INTERP_BILINEAR, 0xff)
-    del subpbuf
-    del thumb_pbuf
-        
-    return _PBUF
-
-
-def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
-    """
-    Decorates the given thumbnail according to the given MIME type and renders
-    it onto the canvas at the given coordinates.
+    Decorates the given thumbnail according to the given MIME type and,
+    if C{cnv} is not C{None}, renders it onto the canvas at the given
+    coordinates, or returns a pixbuf, if C{cnv} is C{None}.
     """
    
+   
+    if (not cnv):
+        _PBUF.fill(0x00000000)
    
     frame_pbuf, tx, ty, tw, th = _frame_cache.get(thumbfile, (None, 0, 0, _WIDTH, _HEIGHT))
     if (not frame_pbuf):
@@ -182,7 +133,12 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
         sx = w / float(frame_pbuf.get_width())
         sy = h / float(frame_pbuf.get_height())
         scale = min(sx, sy)
-        cnv.fit_pixbuf(frame_pbuf, x, y, w, h)
+
+        if (cnv):
+            cnv.fit_pixbuf(frame_pbuf, x, y, w, h)
+        else:
+            pixbuftools.draw_pbuf(_PBUF, frame_pbuf, 0, 0)
+            
         fx = (w - scale * frame_pbuf.get_width()) / 2
         fy = (h - scale * frame_pbuf.get_height()) / 2
     else:
@@ -195,7 +151,7 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
 
     pbuf = _thumbnail_cache.get((thumbfile, w, h))
     if (not pbuf):
-        print "not in cache:", thumbfile
+        #print "not in cache:", thumbfile
         pbuf = _make_thumbnail(thumbfile, mimetype)
         if (pbuf):
             _thumbnail_cache[(thumbfile, w, h)] = pbuf
@@ -209,9 +165,20 @@ def draw_decorated(cnv, x, y, w, h, thumbfile, mimetype):
     #end while
     
     if (pbuf):
-        cnv.fit_pixbuf(pbuf, x + fx + tx * scale, y + fy + ty * scale, tw * scale, th * scale)
+        if (cnv):
+            cnv.fit_pixbuf(pbuf, int(x + fx + tx * scale),
+                                 int(y + fy + ty * scale),
+                                 int(tw * scale), int(th * scale))
+        else:
+            pixbuftools.draw_pbuf(_PBUF, pbuf,
+                                  int(fx + tx * scale),
+                                  int(fy + ty * scale),
+                                  int(tw * scale), int(th * scale))
         del pbuf
     #end if
+    
+    if (not cnv):
+        return _PBUF
     
 
 def _get_fallback_thumbnail(mimetype):
