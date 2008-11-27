@@ -5,6 +5,7 @@ Asynchronous lowlevel HTTP connection.
 from HTTPResponse import HTTPResponse
 from utils import threads
 from utils import logging
+from utils import maemo
 
 import gobject
 import socket
@@ -66,6 +67,9 @@ class HTTPConnection(object):
         self.__socket_connected = False
         
         self.__is_aborted = False
+
+        if (not host in ("localhost", "127.0.0.1")):
+            maemo.request_connection()
 
 
 
