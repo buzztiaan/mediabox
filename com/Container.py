@@ -46,7 +46,8 @@ class Container(Component):
             if (os.path.isdir(comppath) and 
                   not f.startswith(".")):
                 mod = self.__load_module(comppath)
-                modules.append(mod)
+                if (mod):
+                    modules.append(mod)
         #end for
 
         return modules
