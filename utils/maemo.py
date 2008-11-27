@@ -87,3 +87,18 @@ def get_product_code():
     
     return product
 
+
+def request_connection():
+    """
+    Does nothing if the device does already have a network connection.
+    If the device is not connected, tries to establish the default connection
+    or pop up the connection dialog.
+    """
+    
+    try:
+        import conic
+        conn = conic.Connection()
+        conn.request_connection(conic.CONNECT_FLAG_NONE)
+    except:
+        pass
+
