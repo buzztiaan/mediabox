@@ -572,5 +572,5 @@ class Image(Widget, Observable):
                 finished.set()
 
         f(0)
-        while (wait and not finished.isSet()): gtk.main_iteration()
+        while (wait and not finished.isSet()): gtk.main_iteration(False)
         

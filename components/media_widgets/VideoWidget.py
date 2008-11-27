@@ -316,6 +316,12 @@ class VideoWidget(MediaWidget):
         def f():
             self.__load_handler = None
             uri = item.get_resource()
+            if (not uri.startswith("/") and
+                not "://localhost" in uri and
+                not "://127.0.0.1" in uri):                    
+                maemo.request_connection()
+            #end if
+            
             if (self.__screen.window.xid):
                 #if (uri == self.__uri): return
                 
