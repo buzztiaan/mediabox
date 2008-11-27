@@ -932,14 +932,10 @@ class AppWindow(Component, RootPane):
         else:
             self.__set_view_mode(viewmodes.NO_STRIP)
         
+        self.set_frozen(True)
+        viewer.show()
+        
         def f():
-            #self.__scan_media(False)
-            self.set_frozen(True)
-            viewer.show()
-            #self.__title_panel.set_time(0, 0)
-            #self.__title_panel.set_title(vstate.title)
-            #self.__title_panel.set_info(vstate.info)
-            
             offset = vstate.item_offset
             item_idx = vstate.selected_item
             self.__strip.set_offset(offset)
