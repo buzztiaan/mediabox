@@ -1,0 +1,50 @@
+#
+# Fonts
+#
+font_mb_headline: Nokia Sans bold 22
+font_mb_plain:    Nokia Sans Cn 16
+font_mb_tiny:     Nokia Sans Cn 13
+font_mb_micro:    Nokia Sans Cn 10
+
+
+#
+# Background
+#
+color_mb_background: #eef0ff
+color_mb_text: #000000
+
+
+#
+# Overlay
+#
+color_mb_overlay: #000000d0
+color_mb_overlay_text: #ffffff
+color_mb_overlay_subtext: #a0a0a0
+font_mb_overlay_text: Nokia Sans bold 22
+font_mb_overlay_subtext: Nokia Sans Cn 16
+
+
+#
+# Thumbnails
+#
+color_mb_thumbnail_caption: #ffffff
+
+
+#
+# Panel
+#
+color_mb_panel_text: #ffffff
+
+
+#
+# List Items
+#
+color_mb_listitem_text: #000000
+color_mb_listitem_subtext: #888888
+
+
+#
+# Track info
+#
+color_mb_trackinfo_text: #000000
+
