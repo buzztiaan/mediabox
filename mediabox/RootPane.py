@@ -1,5 +1,5 @@
 from ui.Widget import Widget
-from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
+from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP, text_extents
 import theme
 
 import threading
@@ -12,6 +12,7 @@ class RootPane(Widget):
     def __init__(self):
     
         self.__buffer = None
+        self.__has_overlay = False
         
         Widget.__init__(self)
         self.set_size(100, 100)
@@ -29,7 +30,7 @@ class RootPane(Widget):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        screen.fill_area(x, y, w, h, theme.color_bg)
+        screen.fill_area(x, y, w, h, theme.color_mb_background)
         
 
     def render_buffered(self):
@@ -40,7 +41,63 @@ class RootPane(Widget):
         self.render_at(self.__buffer)
         self.get_screen().copy_pixmap(self.__buffer, 0, 0, 0, 0, w, h)
         print "rendering took %fs" % (time.time() - now)
+
+
+    def show_overlay(self, text, subtext, icon):
+    
+        w, h = self.get_size()
+
+        if (self.__has_overlay):
+            screen = TEMPORARY_PIXMAP
+            screen.draw_pixmap(self.__buffer, 0, 0)
+        else:
+            screen = self.get_screen()
+            self.__buffer.draw_pixmap(screen, 0, 0)
         
+        self.set_frozen(True)
+        screen.fill_area(0, 0, w, h, theme.color_mb_overlay)
+
+        tw, th = text_extents(text, theme.font_mb_overlay_text)
+        tw2, th2 = text_extents(subtext, theme.font_mb_overlay_subtext)
+       
+        tx1 = (w - tw) / 2
+        tx2 = (w - tw2) / 2
+        ty = (h - th - th2) / 2
+        
+        screen.draw_text(text, theme.font_mb_overlay_text,
+                         tx1, ty,
+                         theme.color_mb_overlay_text)
+        screen.draw_text(subtext, theme.font_mb_overlay_subtext,
+                         tx2, ty + th,
+                         theme.color_mb_overlay_subtext)
+        
+
+        if (icon):
+            iw = icon.get_width()
+            ih = icon.get_height()       
+            screen.draw_pixbuf(icon, w - iw - 10, h - ih - 10)
+
+        if (self.__has_overlay):
+            self.get_screen().draw_pixmap(screen, 0, 0)
+            
+        cnt = 0
+        while (gtk.events_pending() and cnt < 10):
+            gtk.main_iteration(False)
+            cnt += 1
+
+        self.__has_overlay = True
+
+
+    def hide_overlay(self):
+    
+        self.__has_overlay = False
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        screen.draw_pixmap(self.__buffer, x, y)
+        self.set_frozen(False)
+
    
 
     def fx_slide_in(self, wait = True):

@@ -3,7 +3,6 @@ import components
 from utils import logging
 
 from mediabox.MainWindow import MainWindow
-from mediabox.SplashScreen import SplashScreen
 from mediabox.RootPane import RootPane
 from mediabox.TitlePanel import TitlePanel
 from mediabox.ControlPanel import ControlPanel
@@ -106,16 +105,9 @@ class AppWindow(Component, RootPane):
         self.set_size(w, h)
         self.set_screen(screen)      
 
-        # splash screen
-        self.__splash = SplashScreen()
-        self.__splash.set_visible(True)
-        self.add(self.__splash)
-
         # image strip       
         self.__strip = ImageStrip(5)
-        #self.__strip.set_geometry(0, 0, 170, h)
-        #self.__strip.set_caps(left_top, left_bottom)
-        self.__strip.set_bg_color(theme.color_bg)
+        self.__strip.set_bg_color(theme.color_mb_background)
         self.__strip.set_visible(False)
         self.add(self.__strip)
 
@@ -125,34 +117,28 @@ class AppWindow(Component, RootPane):
 
         # title panel
         self.__title_panel_left = Image(None)
-        #self.__title_panel_left.set_geometry(0, 0, 170, 40)
         self.__title_panel_left.set_visible(False)
         
         self.__title_panel = TitlePanel()
-        #self.__title_panel.set_geometry(170, 0, w - 170, 40)
         self.__title_panel.set_title("Initializing")
         self.__title_panel.set_visible(False)
         self.__title_panel.connect_clicked(self.__on_click_title)
        
         # control panel
         self.__panel_left = Image(None)
-        #self.__panel_left.set_geometry(0, h - 70, 160, 70)
         self.__panel_left.connect_button_pressed(self.__on_menu_button)
         self.__panel_left.set_visible(False)
         
         self.__ctrl_panel = ControlPanel()
-        #self.__ctrl_panel.set_geometry(170, h - 70, w - 170, 70)
         self.__ctrl_panel.set_visible(False)
 
         # tab panel and window controls
         self.__tab_panel = TabPanel()
-        #self.__tab_panel.set_geometry(0, 330, 800, 150)
         self.__tab_panel.set_visible(False)
         self.__tab_panel.add_observer(self.__on_observe_tabs)
         self.add(self.__tab_panel)
         
         self.__window_ctrls = WindowControls()
-        #self.__window_ctrls.set_geometry(w - 200, 0, 200, 80)
         self.__window_ctrls.set_visible(False)
         self.__window_ctrls.add_observer(self.__on_observe_window_ctrls)
 
@@ -170,18 +156,17 @@ class AppWindow(Component, RootPane):
         Runs a queue of actions to take for startup.
         """
 
-        actions = [(self.render_buffered, []),
-                   (self.__splash.set_text, ["Loading Components..."]),
+        actions = [#(self.render_buffered, []),
                    #(gtk.main_quit, []),
-                   #(time.sleep, [10]),
+                   (self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
+                                        "- Loading Components -",
+                                        theme.mb_viewer_audio]),
                    (self.__register_viewers, []),
-                   (self.__splash.set_text, ["Scanning Media Library..."]),
-                   (self.__scan_media, [True]),
-                   (self.__splash.set_visible, [False]),
-                   (self.render_buffered, []),
                    (self.add, [self.__tab_panel]),
                    (self.add, [self.__window_ctrls]),
                    (self.__add_panels, []),
+                   #(time.sleep, [5]),
+                   (self.__scan_media, [True]),
                    (self.__select_initial_viewer, []),
                    (self.emit_event, [msgs.CORE_EV_APP_STARTED]),
                    ]
@@ -229,6 +214,7 @@ class AppWindow(Component, RootPane):
         self.__viewers.sort(lambda a,b:cmp(a.PRIORITY, b.PRIORITY))
 
         for viewer in self.__viewers:
+            logging.info("registering viewer [%s]", viewer)
             self.__tab_panel.add_viewer(viewer)
             self.add(viewer)
             viewer.set_visible(False)        
@@ -471,14 +457,9 @@ class AppWindow(Component, RootPane):
         #end if
 
 
-        #view_mode = self.__view_mode
-        #self.__set_view_mode(viewmodes.TITLE_ONLY)
-        #if (self.__current_viewer):
-        #    self.__current_viewer.set_visible(False)
-        #self.__root_pane.render_buffered()
-        #while (gtk.events_pending()): gtk.main_iteration()
+        self.show_overlay("Scanning Media", "", theme.mb_viewer_audio)
+        #self.call_service(msgs.NOTIFY_SVC_SHOW_INFO, "Scanning media")
 
-        self.call_service(msgs.NOTIFY_SVC_SHOW_INFO, "Scanning media")
         paths = []
         for path, mtypes in mediaroots:
             f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
@@ -487,19 +468,13 @@ class AppWindow(Component, RootPane):
         self.emit_event(msgs.MEDIASCANNER_ACT_SCAN, paths)
         
 
-        #while (gtk.events_pending()): gtk.main_iteration()
-
         for v in self.__viewers:
             self.__viewer_states[v].selected_item = -1
             self.__viewer_states[v].item_offset = 0
 
-        #self.__set_view_mode(view_mode)
-
-        #if (self.__current_viewer):
-        #    self.__current_viewer.set_visible(True)        
-        #self.__root_pane.render_buffered()
 
         import gc; gc.collect()
+        self.hide_overlay()
 
                         
     def __on_close_window(self, src, ev):
@@ -758,6 +733,11 @@ class AppWindow(Component, RootPane):
             force = args[0]
             self.__scan_media(force)
    
+        elif (event == msgs.MEDIASCANNER_EV_SCANNING_PROGRESS):
+            name = args[0]
+            self.show_overlay("Scanning Media", "- %s -" % name,
+                              theme.mb_viewer_audio)
+   
         #elif (event == msgs.CORE_EV_DEVICE_ADDED):
         #    ident, dev = args
         #    gobject.timeout_add(0, self.__scan_media, True)
@@ -785,6 +765,13 @@ class AppWindow(Component, RootPane):
             
         elif (event == msgs.UI_ACT_RENDER):
             self.render_buffered()
+
+        elif (event == msgs.UI_ACT_SHOW_MESSAGE):
+            text, subtext, icon = args
+            self.show_overlay(text, subtext, icon)
+            
+        elif (event == msgs.UI_ACT_HIDE_MESSAGE):
+            self.hide_overlay()
             
 
         elif (event == msgs.CORE_ACT_VIEW_MODE):
@@ -972,10 +959,13 @@ class AppWindow(Component, RootPane):
         
     def __try_quit(self):
     
+        self.show_overlay("", "", None)
         result = dialogs.question("Exit", "Really quit?")
         if (result == 0):
             config.set_current_viewer(self.__current_viewer)
             self.emit_event(msgs.MEDIA_ACT_STOP)
             self.emit_event(msgs.CORE_EV_APP_SHUTDOWN)
             gtk.main_quit()
+        else:
+            self.hide_overlay()
 
