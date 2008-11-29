@@ -59,14 +59,14 @@ def _make_frame(thumbfile, mimetype):
     if (mimetype == "application/x-folder"):
         tx, ty, tw, th = 3, 3, 109, 109
         if (os.path.exists(thumbfile)):
-            frame = theme.viewer_music_frame
+            frame = theme.mb_frame_music
         else:
             frame = None
 
     elif (mimetype == "audio/x-music-folder"):
         if (os.path.exists(thumbfile)):
             tx, ty, tw, th = 3, 3, 109, 109
-            frame = theme.viewer_music_frame
+            frame = theme.mb_frame_music
         else:
             tx, ty, tw, th = 0, 0, _WIDTH, _HEIGHT
             frame = None
@@ -78,17 +78,17 @@ def _make_frame(thumbfile, mimetype):
     elif (mimetype in mimetypes.get_audio_types()):
         tx, ty, tw, th = 3, 3, 109, 109
         if (os.path.exists(thumbfile)):
-            frame = theme.viewer_music_frame
+            frame = theme.mb_frame_music
         else:
             frame = None
 
     elif (mimetype in mimetypes.get_image_types()):
         tx, ty, tw, th = 7, 7, 142, 102
-        frame = theme.viewer_image_frame
+        frame = theme.mb_frame_image
         
     elif (mimetype in mimetypes.get_video_types()):
         tx, ty, tw, th = 14, 4, 134, 112
-        frame = theme.viewer_video_film
+        frame = theme.mb_frame_video
         
     else:
         tx, ty, tw, th = 0, 0, _WIDTH, _HEIGHT

@@ -304,14 +304,23 @@ class Pixmap(object):
         @param x y w h: area to fill
         @param color: fill color
         """
-    
-        col = self.__cmap.alloc_color(str(color))
-        self.__gc.set_foreground(col)
-        self.__pixmap.draw_rectangle(self.__gc, True, x, y, w, h)
 
-        if (self.__buffered):
-            self.__buffer_gc.set_foreground(col)
-            self.__buffer.draw_rectangle(self.__buffer_gc, True, x, y, w, h)
+        if (len(str(color)) == 9):
+            # RGBA
+            pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
+            pbuf.fill(long(str(color)[1:], 16))
+            self.draw_pixbuf(pbuf, x, y)
+            del pbuf
+            
+        else:
+            # RGB
+            col = self.__cmap.alloc_color(str(color))
+            self.__gc.set_foreground(col)
+            self.__pixmap.draw_rectangle(self.__gc, True, x, y, w, h)
+
+            if (self.__buffered):
+                self.__buffer_gc.set_foreground(col)
+                self.__buffer.draw_rectangle(self.__buffer_gc, True, x, y, w, h)
         
         
     def move_area(self, x, y, w, h, dx, dy):

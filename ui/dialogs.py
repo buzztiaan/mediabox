@@ -5,22 +5,22 @@ import gtk
 
 def info(title, message):
 
-    return choice(title, message, ("OK",), theme.dialog_info)
+    return choice(title, message, ("OK",), theme.mb_dialog_info)
 
 
 def warning(title, message):
 
-    return choice(title, message, ("OK",), theme.dialog_warning)
+    return choice(title, message, ("OK",), theme.mb_dialog_warning)
     
 
 def error(title, message):
 
-    return choice(title, message, ("OK",), theme.dialog_error)
+    return choice(title, message, ("OK",), theme.mb_dialog_error)
 
 
 def question(title, message):
 
-    return choice(title, message, ("Yes", "No"), theme.dialog_question)
+    return choice(title, message, ("Yes", "No"), theme.mb_dialog_question)
     
     
     

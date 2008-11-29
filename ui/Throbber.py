@@ -28,7 +28,7 @@ class Throbber(Widget):
         self.set_size(self.__throbber_width, self.__throbber_height)
         
         
-        self.__label = Label(esens, "", theme.font_plain, "#000000")
+        self.__label = Label(esens, "", theme.font_mb_plain, "#000000")
         self.__label.set_alignment(self.__label.CENTERED)
         self.__label.set_pos(10, self.__throbber_height + 20)
         self.__label.set_size(self.__throbber_width - 20, 0)
@@ -40,8 +40,8 @@ class Throbber(Widget):
         w, h = self.get_size()
 
         import theme
-        self.__bg.draw_frame(theme.viewer_image_frame, 0, 0, w, h, True)
-        self.__bg.draw_text("Loading...", theme.font_plain,
+        self.__bg.draw_frame(theme.mb_frame_image, 0, 0, w, h, True)
+        self.__bg.draw_text("Loading...", theme.font_mb_plain,
                             10, self.__throbber_height + 20,
                             "#000000")
     

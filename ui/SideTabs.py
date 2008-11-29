@@ -11,8 +11,8 @@ class SideTabs(HilightingWidget):
 
     def __init__(self):
     
-        self.__color_bg = theme.color_bg
-        self.__color_bg_selected = theme.color_bg
+        self.__color_bg = theme.color_mb_background
+        self.__color_bg_selected = theme.color_mb_background
         self.__tab_size = (0, 0)
         self.__tabs = []
         self.__tab_callbacks = []
@@ -116,12 +116,12 @@ class SideTabs(HilightingWidget):
         if (icon):
             pmap.draw_pixbuf(icon, 8, (h - icon.get_height()) / 2)
         
-        font = theme.font_plain
+        font = theme.font_mb_plain
         text_w, text_h = text_extents(text, font)
         pmap.draw_text(text, font,
                        max(0, (tab_width - text_w) / 2),
                        max(0, (h - text_h) / 2),
-                       theme.color_fg_item)
+                       theme.color_mb_listitem_text)
         
         pmap.rotate(270)
         self.__tab_pmaps[idx] = pmap

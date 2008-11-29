@@ -60,8 +60,8 @@ def discover_devices():
     try:
         _discover_socket.sendto(_M_SEARCH, (_SSDP_IP, _SSDP_PORT))
     except:
-        logging.error("could not search for UPnP devices\n%s",
-                      logging.stacktrace())
+        logging.warning("could not search for UPnP devices\n%s",
+                        logging.stacktrace())
 
 
 

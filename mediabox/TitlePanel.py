@@ -22,27 +22,27 @@ class TitlePanel(Widget):
     
         Widget.__init__(self)
 
-        self.__title = Label("", theme.font_plain,
-                             theme.color_fg_panel_text)
+        self.__title = Label("", theme.font_mb_plain,
+                             theme.color_mb_panel_text)
         self.__title.set_alignment(self.__title.CENTERED)
         #self.__title.set_geometry(0, 5, 460, 30)
         self.add(self.__title)
         
-        self.__info = Label("", theme.font_plain,
-                            theme.color_fg_panel_text)
+        self.__info = Label("", theme.font_mb_plain,
+                            theme.color_mb_panel_text)
         self.__info.set_alignment(self.__title.RIGHT)
         #self.__info.set_geometry(500, 5, 110, 30)
         self.add(self.__info)
 
         self.__buffer = Pixmap(None, 32, 32)
 
-        self.__speaker = Image(theme.speaker_volume)
+        self.__speaker = Image(theme.mb_speaker_volume)
         #self.__speaker.set_pos(520, 4)
         self.__speaker.set_visible(False)
         self.add(self.__speaker)
         
-        self.__volume = Label("", theme.font_plain,
-                              theme.color_fg_panel_text)
+        self.__volume = Label("", theme.font_mb_plain,
+                              theme.color_mb_panel_text)
         self.__volume.set_alignment(self.__title.RIGHT)
         #self.__volume.set_geometry(560, 5, 50, 30)
         self.__volume.set_visible(False)

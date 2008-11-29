@@ -457,7 +457,10 @@ class YouTube(Device):
 
         if (f.resource.startswith("/")): return f.resource
         
+        self.emit_event(msgs.UI_ACT_SHOW_MESSAGE,
+                        "Requesting Video", "", theme.youtube_device)
         flv = self.__get_flv(f.resource)
+        self.emit_event(msgs.UI_ACT_HIDE_MESSAGE)
 
         if (self.__flv_downloader):
             self.__flv_downloader.cancel()

@@ -16,6 +16,7 @@ class MainWindow(_Window, EventSensor):
         if (maemo.IS_MAEMO):
             _Window.__init__(self)
             self.fullscreen()
+            self.set_size_request(800, 480)
             self.set_resizable(False)
         else:
             _Window.__init__(self, gtk.WINDOW_TOPLEVEL)

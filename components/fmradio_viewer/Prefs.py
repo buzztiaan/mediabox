@@ -22,7 +22,7 @@ class Prefs(Configurator):
         self.add(vbox)
         
         lbl = Label("FM radio region:\n",
-                    theme.font_plain, theme.color_fg_item)
+                    theme.font_mb_plain, theme.color_mb_listitem_text)
         vbox.add(lbl)
 
         chbox = ChoiceBox("US/Europe", "EUR",
@@ -34,7 +34,7 @@ class Prefs(Configurator):
         lbl = Label("\nDepending on the laws in your country,\n"
                     "operating a FM radio with an inappropriate\n"
                     "region setting may be illegal.",
-                    theme.font_plain, theme.color_fg_item)
+                    theme.font_mb_plain, theme.color_mb_listitem_text)
         vbox.add(lbl)
 
 
@@ -46,7 +46,7 @@ class Prefs(Configurator):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        screen.fill_area(x, y, w, h, theme.color_bg)
+        screen.fill_area(x, y, w, h, theme.color_mb_background)
         
         
     def __on_select_fm_band(self, value):

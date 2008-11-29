@@ -39,21 +39,21 @@ class AudioWidget(MediaWidget):
         self.__cover = None
         self.__buffer = TEMPORARY_PIXMAP
         
-        self.__title = Label("-", theme.font_headline,
-                             theme.color_fg_trackinfo)
+        self.__title = Label("-", theme.font_mb_headline,
+                             theme.color_mb_trackinfo_text)
         #self.__title.set_alignment(Label.CENTERED)
         self.add(self.__title)
 
-        self.__album = Label("-", theme.font_plain,
-                             theme.color_fg_trackinfo)
+        self.__album = Label("-", theme.font_mb_plain,
+                             theme.color_mb_trackinfo_text)
         self.add(self.__album)
 
-        self.__artist = Label("-", theme.font_plain,
-                              theme.color_fg_trackinfo)
+        self.__artist = Label("-", theme.font_mb_plain,
+                              theme.color_mb_trackinfo_text)
         self.add(self.__artist)
 
-        self.__progress_label = Label("", theme.font_headline,
-                                      theme.color_fg_trackinfo)
+        self.__progress_label = Label("", theme.font_mb_headline,
+                                      theme.color_mb_trackinfo_text)
         self.add(self.__progress_label)
         self.__progress_label.set_alignment(Label.RIGHT)
 
@@ -104,7 +104,7 @@ class AudioWidget(MediaWidget):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        screen.fill_area(x, y, w, h, theme.color_bg)
+        screen.fill_area(x, y, w, h, theme.color_mb_background)
         
         if (w < 800):
             self.__car_btn_prev.set_visible(False)
@@ -129,12 +129,12 @@ class AudioWidget(MediaWidget):
                
         lbl_y = h - 42
         lbl_w = w / 2 - 20
-        screen.draw_pixbuf(theme.viewer_music_album,
+        screen.draw_pixbuf(theme.mb_music_album,
                                   x + lbl_x, y + lbl_y)
         self.__album.set_geometry(lbl_x + 48, lbl_y + 4, lbl_w -48, 0)
         
         lbl_x += w / 2
-        screen.draw_pixbuf(theme.viewer_music_artist,
+        screen.draw_pixbuf(theme.mb_music_artist,
                                   x + lbl_x, y + lbl_y)
         self.__artist.set_geometry(lbl_x + 48, lbl_y + 4, lbl_w - 48, 0)
 
@@ -164,10 +164,10 @@ class AudioWidget(MediaWidget):
                                        cover_size + 11, cover_size + 11)
                                        
         self.__buffer.fill_area(0, 0, cover_size + 11, cover_size + 11,
-                                theme.color_bg)
+                                theme.color_mb_background)
         
         if (self.__cover):
-            self.__buffer.draw_frame(theme.viewer_music_frame,
+            self.__buffer.draw_frame(theme.mb_frame_music,
                                      0, 0,
                                      cover_size + 11, cover_size + 11,
                                      True)

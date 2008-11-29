@@ -9,9 +9,6 @@ class ShoutcastDirectory(object):
 
     def __init__(self):
     
-        # table: path -> (name, [sub_paths])
-        #self.__genres = {}
-        
         # table: genre_path -> genre_name
         self.__genres = {}
         
@@ -20,8 +17,9 @@ class ShoutcastDirectory(object):
 
         # find genre list
         idx = data.find(">Stations by Genre</span>")
-        id1 = data.find("<li>", idx)
+        idx1 = data.find("<li>", idx)
         idx2 = data.find("setUpRadio")
+        data = data[idx1:idx2]
 
         # read genre by genre
         pos = 0
@@ -96,6 +94,7 @@ class ShoutcastDirectory(object):
             if (d):
                 data[0] += d
             else:
+                #open("/tmp/shoutcast-genres.html", "w").write(data[0])
                 self.__parse_genres(data[0])
                 if (self.__genres):
                     self.__list_path(path, cb)
@@ -105,6 +104,7 @@ class ShoutcastDirectory(object):
 
         print "GET PATH", path
         if (not path and not self.__genres):
+            #on_load("", 0, 0, [open("/tmp/shoutcast-genres.html").read()])
             dl = Downloader(_SHOUTCAST_BASE + "/", on_load, [""])            
         else:
             self.__list_path(path, cb)
@@ -116,12 +116,15 @@ class ShoutcastDirectory(object):
             if (d):
                 data[0] += d
             else:
+                #open("/tmp/shoutcast-stations.html", "w").write(data[0])
                 self.__parse_stations(data[0], cb)
 
 
         if (not path):
             # list genres
-            for p, n in self.__genres.items():
+            items = self.__genres.items()
+            items.sort(lambda a,b:cmp(a[1],b[1]))
+            for p, n in items:
                 station = Station()
                 station.name = n
                 station.path = p
@@ -132,10 +135,12 @@ class ShoutcastDirectory(object):
                 
         else:
             # list stations
-            #on_load("", 0, 0, [open("/tmp/debug-shoutcast.html").read()])
+            #on_load("", 0, 0, [open("/tmp/shoutcast-stations.html").read()])
+            #return
             name = self.__genres[path]
             dl = Downloader(_SHOUTCAST_BASE + \
-                "/directory/genreSearchResult.jsp?startIndex=1&mode=listeners&maxbitrate=all&sgenre=%s" % name,
+                "/directory/genreSearchResult.jsp?startIndex=1&" \
+                "mode=listeners&maxbitrate=all&sgenre=%s" % name,
                 #"/genre/%s?numresult=25&startat=0" % name,
-                            on_load, [""])
+                on_load, [""])
 

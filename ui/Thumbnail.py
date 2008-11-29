@@ -49,7 +49,7 @@ class Thumbnail(StripItem):
     def render_this(self, cnv):
 
         w, h, = self.get_size()
-        cnv.fill_area(0, 0, w, h, theme.color_bg)
+        cnv.fill_area(0, 0, w, h, theme.color_mb_background)
 
         if (self.__thumb):
             thumbnail.render_on_canvas(cnv, 9, 4, 152, 102,
@@ -64,8 +64,8 @@ class Thumbnail(StripItem):
 
         if (self.__caption):
             cnv.draw_pixbuf(theme.mb_caption_bg, 0, 88)
-            cnv.draw_text(self.__caption, theme.font_tiny, 2, 86,
-                          theme.color_fg_thumbnail_label)
+            cnv.draw_text(self.__caption, theme.font_mb_tiny, 2, 86,
+                          theme.color_mb_thumbnail_caption)
 
         if (not self.is_hilighted()):
             cnv.draw_pixbuf(theme.mb_btn_load, 138, 78)

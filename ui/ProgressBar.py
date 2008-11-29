@@ -224,8 +224,8 @@ class ProgressBar(Widget):
     
         if (self.__current_message):
             w, h = self.get_size()
-            t_w, t_h = text_extents(self.__current_message, theme.font_plain)
-            pmap.draw_text(self.__current_message, theme.font_plain,
+            t_w, t_h = text_extents(self.__current_message, theme.font_mb_plain)
+            pmap.draw_text(self.__current_message, theme.font_mb_plain,
                            (w - t_w) / 2, (h - t_h) / 2, "#ffffff")
         
 

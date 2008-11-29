@@ -22,8 +22,8 @@ class TrackList(ItemList):
         self.__has_header = with_header
     
         ItemList.__init__(self, 110, 0)
-        self.set_caps(theme.list_top, theme.list_bottom)
-        self.set_bg_color(theme.color_bg)
+        self.set_caps(theme.mb_list_top, theme.mb_list_bottom)
+        self.set_bg_color(theme.color_mb_background)
         #self.set_arrows(theme.arrows)
                
         self.__kscr = KineticScroller(self)

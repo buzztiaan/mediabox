@@ -43,7 +43,7 @@ class RadioScale(Widget):
         w, h = self.get_size()
         #h -= 20
         self.__scala_pmap = Pixmap(None, w, h)
-        self.__scala_pmap.fill_area(0, 0, w, h, theme.color_bg)
+        self.__scala_pmap.fill_area(0, 0, w, h, theme.color_mb_background)
         
         a, b = self.__range
         step_size = h / (b - a)
@@ -56,7 +56,7 @@ class RadioScale(Widget):
                 self.__scala_pmap.draw_line(0, y, 55, y, "#666666")
                 if (int(j) % 5 == 0):
                     self.__scala_pmap.draw_text("%3.1f" % (j + 0.5),
-                                                theme.font_micro, 
+                                                theme.font_mb_micro, 
                                                 2, y, "#666666")
             else:
                 self.__scala_pmap.draw_line(40, y, 55, y, "#666666")

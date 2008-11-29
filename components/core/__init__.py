@@ -99,5 +99,7 @@ messages = [
     "UI_ACT_THAW",
     "UI_ACT_RENDER",
     "UI_ACT_VIEW_MODE",         # (mode)
+    "UI_ACT_SHOW_MESSAGE",          # (text, subtext, icon)
+    "UI_ACT_HIDE_MESSAGE",
 ]    
 

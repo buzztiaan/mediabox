@@ -20,8 +20,8 @@ class HeaderItem(ButtonListItem):
         self.__info = ""
 
         ButtonListItem.__init__(self)
-        self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
-        self.set_font(theme.font_plain)
+        self.set_colors(theme.color_mb_listitem_text, theme.color_mb_listitem_subtext)
+        self.set_font(theme.font_mb_plain)
 
 
 

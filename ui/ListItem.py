@@ -13,9 +13,9 @@ class ListItem(StripItem):
 
     def __init__(self):
 
-        self.__color_1 = theme.color_fg_item
-        self.__color_2 = theme.color_fg_item_2
-        self.__font = theme.font_plain
+        self.__color_1 = theme.color_mb_listitem_text
+        self.__color_2 = theme.color_mb_listitem_subtext
+        self.__font = theme.font_mb_plain
         self.__grip = None
         
         StripItem.__init__(self)

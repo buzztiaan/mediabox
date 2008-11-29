@@ -26,7 +26,7 @@ class GridList(ItemList):
         self.__receptive = True
 
         ItemList.__init__(self, 178, 10)
-        self.set_bg_color(theme.color_bg)
+        self.set_bg_color(theme.color_mb_background)
         
         self.set_arrows (arrows, arrows_off)
         

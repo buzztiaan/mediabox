@@ -20,7 +20,7 @@ class Thumbnailer(Widget):
         Widget.__init__(self)
         self.set_size(800, 400)
        
-        self.__label = Label("", theme.font_tiny, theme.color_fg_item)
+        self.__label = Label("", theme.font_mb_tiny, theme.color_mb_listitem_text)
         self.add(self.__label)
         self.__label.set_alignment(self.__label.RIGHT)
         self.__label.set_size(780, 0)

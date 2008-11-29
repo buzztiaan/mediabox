@@ -40,6 +40,10 @@ class AudioArtistsStorage(Device):
 
         def f():
             for folder in media:
+                self.emit_event(msgs.UI_ACT_SHOW_MESSAGE,
+                                "Scanning Folders",
+                                "- %s -" % folder.name,
+                                theme.mb_device_artists)
                 for f in folder.get_children():
                     if (not f.mimetype.startswith("audio/")): continue
                     
@@ -58,6 +62,7 @@ class AudioArtistsStorage(Device):
                 #end for
             #end for
             
+            self.emit_event(msgs.UI_ACT_HIDE_MESSAGE)
             finished.set()
           
           
@@ -66,8 +71,9 @@ class AudioArtistsStorage(Device):
         media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                   ["audio/"])
         
-        self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
-                          "Please wait...\nScanning %d folders" % len(media))
+        #self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
+        #                  "Please wait...\nScanning %d folders" % len(media))
+        
         gobject.idle_add(f)
         
         

@@ -14,10 +14,6 @@ import pango
 import os
 
 
-# versions of theme formats this release works with
-_COMPATIBILITY = ["danube"]
-
-
 _THEMES_DIR = os.path.dirname(__file__)
 _USER_THEMES_DIR = os.path.join(values.USER_DIR, "themes")
 _DEFAULT_THEME_DIR = os.path.join(_THEMES_DIR, "default")
@@ -45,34 +41,25 @@ def list_themes():
             if (os.path.isdir(path) and not d.startswith(".")):
                 preview = os.path.join(path, "PREVIEW.png")
                 name, description, compat = _get_info(path)
-                if (_is_compatible(compat)):
-                    themes.append((d, preview, name, description))
+                themes.append((d, preview, name, description))
         #end for
     #end for
         
     return themes
 
 
-def _is_compatible(compat):
 
-    for c in compat:
-        if (c in _COMPATIBILITY):
-            return True
-    #end for
-    return False
+def _read_definitions(themepath):
 
-
-def _read_colors(themepath):
-
-    color_files = [ f for f in os.listdir(themepath)
-                    if f.endswith(".col") ]
-    for f in color_files:
+    def_files = [ f for f in os.listdir(themepath) if f.endswith(".def") ]
+    for f in def_files:
         try:
-            _read_color_file(os.path.join(themepath, f))
+            _read_def_file(os.path.join(themepath, f))
         except:
             pass
+            
 
-def _read_color_file(f):
+def _read_def_file(f):
 
     lines = open(f).readlines()
         
@@ -83,76 +70,28 @@ def _read_color_file(f):
 
         idx = line.find(":")
         name = line[:idx].strip()
-        colorname = line[idx + 1:].strip()
+        
+        if (name.startswith("color_")):
+            colorname = line[idx + 1:].strip()
 
-        if (name in globals()):
-            globals()[name].set_color(colorname)
-        else:
-            globals()[name] = Color(colorname)
-    #end for
-    
-    
-def _read_fonts(themepath):
-
-    font_files = [ f for f in os.listdir(themepath)
-                   if f.endswith(".fnt") ]
-    for f in font_files:
-        try:
-            _read_font_file(os.path.join(themepath, f))
-        except:
-            pass
-
-
-def _read_font_file(f):
-
-    lines = open(f).readlines()
-    for line in lines:
-        line = line.strip()
-        if (not line or line.startswith("#")):
-            continue
-
-        idx = line.find(":")
-        name = line[:idx].strip()
-        fontname = line[idx + 1:].strip()
-        try:
-            font = pango.FontDescription(fontname)
-        except:
-            pass
-        else:
             if (name in globals()):
-                globals()[name].merge(font, True)
+                globals()[name].set_color(colorname)
             else:
-                globals()[name] = font
-        
-    #end for
-    
-
-    """
-    try:
-        lines = open(os.path.join(themepath, "fonts")).readlines()
-    except:
-        lines = open(os.path.join(_DEFAULT_THEME_DIR, "fonts")).readlines()
-        
-    for line in lines:
-        line = line.strip()
-        if (not line or line.startswith("#")):
-            continue
-
-        idx = line.find(":")
-        name = line[:idx].strip()
-        fontname = line[idx + 1:].strip()
-        try:
-            font = pango.FontDescription(fontname)
-        except:
-            pass
-        else:
-            if (name in globals()):
-                globals()[name].merge(font, True)
+                globals()[name] = Color(colorname)
+                
+        elif (name.startswith("font_")):
+            fontname = line[idx + 1:].strip()
+            try:
+                font = pango.FontDescription(fontname)
+            except:
+                pass
             else:
-                globals()[name] = font
-        
-    #end for
-    """
+                if (name in globals()):
+                    globals()[name].merge(font, True)
+                else:
+                    globals()[name] = font
+    #end for            
+            
     
 
 def _get_info(themepath):
@@ -200,7 +139,7 @@ def _set_theme(name):
     for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
         theme_dir = os.path.join(themes_dir, name)
         name, description, compat = _get_info(theme_dir)
-        if (os.path.exists(theme_dir) and _is_compatible(compat)):
+        if (os.path.exists(theme_dir)):
             break
     #end for
 
@@ -226,8 +165,7 @@ def _set_theme(name):
     #end for
 
     # read fonts and colors
-    _read_fonts(theme_dir)
-    _read_colors(theme_dir)
+    _read_definitions(theme_dir)
 
 
 _set_theme("default")

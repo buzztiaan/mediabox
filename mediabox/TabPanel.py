@@ -53,7 +53,7 @@ class TabPanel(HilightingWidget, Observable):
 
         self.__label = Label("%s ver %s - %s" \
                       % (values.NAME, values.VERSION, values.COPYRIGHT),
-                      theme.font_micro, theme.color_fg_splash)
+                      theme.font_mb_micro, theme.color_mb_text)
         self.add(self.__label)
         #self.__label.set_alignment(self.__label.RIGHT)
 
@@ -162,7 +162,7 @@ class TabPanel(HilightingWidget, Observable):
         w, h = self.get_size()
         screen = self.get_screen()
        
-        screen.fill_area(x, y, w - 80, h, theme.color_bg)
+        screen.fill_area(x, y, w - 80, h, theme.color_mb_background)
         screen.fill_area(w - 80, y, 80, h, "#aaaaaf")
         screen.fill_area(0, 0, w, 2, "#333333")
         self.__label.set_geometry(8, h - 16, w - 16, 0)

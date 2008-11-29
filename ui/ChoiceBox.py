@@ -60,11 +60,11 @@ class ChoiceBox(Widget):
         name = self.__names[idx]
         value = self.__values[idx]
         
-        self.__label_pmap = pixmap_for_text(name, theme.font_plain)
+        self.__label_pmap = pixmap_for_text(name, theme.font_mb_plain)
         w, h = self.__label_pmap.get_size()
         self.__label_pmap.fill_area(0, 0, w, h, "#ffffff")
-        self.__label_pmap.draw_text(name, theme.font_plain, 0, 0,
-                                    theme.color_fg_item_2)
+        self.__label_pmap.draw_text(name, theme.font_mb_plain, 0, 0,
+                                    theme.color_mb_listitem_subtext)
         if (self.may_render()):
             self.fx_slide_in()
             

@@ -121,6 +121,9 @@ class MediaScanner(Component):
                     if m.resource in new_roots ]
         for mediaroot, mediatypes in to_scan:
             self.__scanned_media_roots.append((mediaroot.resource, mediatypes))
+
+            self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_PROGRESS,
+                            mediaroot.name)
             logging.info("scanning [%s] for media", mediaroot.resource)
             
             if (not mediaroot in self.__media_items):
@@ -137,7 +140,7 @@ class MediaScanner(Component):
 
         # get rid of items which haven't been found now
         for root, nil in to_scan:
-            new_items = []            
+            new_items = []
             for item in self.__media_items[root.resource]:
                 scantime = self.__scantimes.get(item.resource, self.__scantime)
                 if (scantime < self.__scantime):

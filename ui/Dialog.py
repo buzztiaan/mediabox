@@ -29,14 +29,14 @@ class Dialog(gtk.Dialog):
         #self.vbox.pack_end(self.action_area, False, False)
         
         btn = gtk.Button("OK")
-        btn.get_children()[0].modify_font(theme.font_headline)
+        btn.get_children()[0].modify_font(theme.font_mb_headline)
         btn.connect("clicked", lambda x: self.response(gtk.RESPONSE_ACCEPT))
         #btn.connect("clicked", self.__on_close)
         btn.show()
         self.action_area.pack_start(btn, True, True, 12)
 
         btn = gtk.Button("Cancel")
-        btn.get_children()[0].modify_font(theme.font_headline)
+        btn.get_children()[0].modify_font(theme.font_mb_headline)
         btn.connect("clicked", lambda x: self.response(gtk.RESPONSE_CANCEL))
         btn.show()
         self.action_area.pack_start(btn, True, True, 12)
@@ -67,12 +67,12 @@ class Dialog(gtk.Dialog):
         hbox.show()
     
         lbl = gtk.Label(name)
-        lbl.modify_font(theme.font_headline)
+        lbl.modify_font(theme.font_mb_headline)
         lbl.show()
         hbox.pack_start(lbl, False, False)
     
         entry = gtk.Entry()
-        entry.modify_font(theme.font_headline)
+        entry.modify_font(theme.font_mb_headline)
         if (value): entry.set_text(value)
         entry.show()
         hbox.pack_start(entry, True, True)

@@ -20,14 +20,14 @@ class WindowControls(Widget, Observable):
         Widget.__init__(self)
         
         x = 10
-        for icon1, icon2, cmd in [(theme.window_minimize_1,
-                                   theme.window_minimize_2,
+        for icon1, icon2, cmd in [(theme.mb_window_minimize_1,
+                                   theme.mb_window_minimize_2,
                                    self.OBS_MINIMIZE_WINDOW),
                                   #(theme.window_minimize_1,
                                   # theme.window_minimize_2,
                                   # self.OBS_MAXIMIZE_WINDOW),                                   
-                                  (theme.window_close_1,
-                                   theme.window_close_2,
+                                  (theme.mb_window_close_1,
+                                   theme.mb_window_close_2,
                                    self.OBS_CLOSE_WINDOW)]:
             btn = ImageButton(icon1, icon2)
             btn.set_geometry(x, 0, 80, 80)

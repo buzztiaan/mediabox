@@ -23,7 +23,7 @@ class Prefs(Configurator):
         self.add(vbox)
         
         lbl = Label("Save YouTube videos to:\n",
-                    theme.font_plain, theme.color_fg_item)
+                    theme.font_mb_plain, theme.color_mb_listitem_text)
         vbox.add(lbl)
 
         current_cache = config.get_cache_folder()
@@ -43,7 +43,7 @@ class Prefs(Configurator):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        screen.fill_area(x, y, w, h, theme.color_bg)
+        screen.fill_area(x, y, w, h, theme.color_mb_background)
         
         
     def __on_select_cache_location(self, location):

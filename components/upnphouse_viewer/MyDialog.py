@@ -36,8 +36,8 @@ class DeviceDialog(Widget):
         Widget.__init__(self)
         self.set_size(_WIDTH, 200)
 
-        self.__label = Label(label, theme.font_plain,
-                             theme.color_fg_panel_text)
+        self.__label = Label(label, theme.font_mb_plain,
+                             theme.color_mb_panel_text)
         self.__label.set_alignment(self.__label.CENTERED)
         self.__label.set_pos(10, 10)
         self.__label.set_size(_WIDTH - 20, 0)

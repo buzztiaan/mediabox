@@ -38,7 +38,6 @@ class HeadsetControl(Component):
     def handle_event(self, msg, *args):
     
         if (msg == msgs.HWKEY_EV_HEADSET):
-            print "Headset Button was pressed"
             self.__click_count += 1
             if (self.__click_handler):
                 gobject.source_remove(self.__click_handler)

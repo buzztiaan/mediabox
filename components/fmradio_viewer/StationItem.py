@@ -19,8 +19,8 @@ class StationItem(ButtonListItem):
         self.__freq = freq      
         
         ButtonListItem.__init__(self)
-        self.set_colors(theme.color_fg_item, theme.color_fg_item_2)
-        self.set_font(theme.font_tiny)
+        self.set_colors(theme.color_mb_listitem_text, theme.color_mb_listitem_subtext)
+        self.set_font(theme.font_mb_tiny)
         self.set_grip(theme.mb_item_grip)
         self.set_buttons((self.BUTTON_PLAY, theme.mb_item_btn_play),
                          (self.BUTTON_REMOVE, theme.mb_item_btn_remove))
