@@ -31,8 +31,8 @@ class VideoStorage(Device):
     def __update_media(self):
 
         self.__folders = {"All Videos": []}
-        media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
-                                  ["video/"])
+        media, nil, nil = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
+                                            ["video/"])
         for f in media:
             parent = f.parent
             if (not parent in self.__folders):
@@ -98,6 +98,7 @@ class VideoStorage(Device):
                 
         else:
             videos = self.__folders.get(path[1:], [])
+            videos.sort()
             for video in videos:
                 cb(video, *args)
             #end for

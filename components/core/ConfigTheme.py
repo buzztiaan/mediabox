@@ -32,9 +32,9 @@ class ConfigTheme(Configurator):
         self.__list.hilight(idx)
         self.render()
         theme = self.__themes[idx]
-        self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
-                          "Loading theme %s..." % theme)
-        gobject.idle_add(self.__change_theme, theme)
+        #self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
+        #                  "Loading theme %s..." % theme)
+        gobject.idle_add(self.__change_theme, theme, item.get_preview())
 
 
 
@@ -42,9 +42,12 @@ class ConfigTheme(Configurator):
     
         themes = theme.list_themes()
         self.__themes = []
-        for name, preview, title, description in themes:
-            img = gtk.gdk.pixbuf_new_from_file(preview)
-            item = ThemeListItem(img, title, description)
+        for name, preview, title, description, author in themes:
+            try:
+                img = gtk.gdk.pixbuf_new_from_file(preview)
+            except:
+                continue
+            item = ThemeListItem(img, title, description, author)
             idx = self.__list.append_item(item)
             self.__themes.append(name)
             
@@ -52,9 +55,14 @@ class ConfigTheme(Configurator):
                 self.__list.hilight(idx)
 
 
-    def __change_theme(self, t):
+    def __change_theme(self, t, preview):
 
+        self.emit_event(msgs.UI_ACT_SHOW_MESSAGE, "Loading Theme",
+                        "- %s -" % t, preview)
+                        
         config.set_theme(t)
         theme.set_theme(t)
+
+        self.emit_event(msgs.UI_ACT_HIDE_MESSAGE)
         self.emit_event(msgs.CORE_EV_THEME_CHANGED)
 

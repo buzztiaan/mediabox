@@ -5,7 +5,7 @@ This package contains the media player backends.
 from DummyPlayer import DummyPlayer
 from MPlayer import MPlayer
 from OSSOPlayer import OSSOPlayer
-#from utils import maemo
+from utils import maemo
 from mediabox import values
 from utils import mimetypes
 from utils import logging
@@ -18,7 +18,10 @@ _OMS = OSSOPlayer()
 _DUMMY = DummyPlayer()
 
 _PLAYERS = [_MPLAYER, _OMS, _DUMMY]
-_PLAYER_NAMES = {"mplayer": _MPLAYER, "oms": _OMS, "dummy": _DUMMY}
+if (maemo.get_product_code() == "SU-18"):
+    _PLAYER_NAMES = {"mplayer": _MPLAYER, "oms": _MPLAYER, "dummy": _DUMMY}
+else:
+    _PLAYER_NAMES = {"mplayer": _MPLAYER, "oms": _OMS, "dummy": _DUMMY}
 
 _current_player = _DUMMY
 

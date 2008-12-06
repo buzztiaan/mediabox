@@ -117,7 +117,10 @@ class Container(Component):
 
         try:
             device_classes = mod.get_devices()
+        except AttributeError:
+            device_classes = []
         except:
+            logging.error(logging.stacktrace())
             device_classes = []
 
         for c in device_classes:

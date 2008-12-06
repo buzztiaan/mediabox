@@ -12,9 +12,6 @@ try:
 except:
     IS_MAEMO = False
 
-import dbus, dbus.glib
-_system_bus = dbus.SystemBus(private = True)
-_session_bus = dbus.SessionBus(private = True)
 
 
 def set_osso_context(ctx):
@@ -101,4 +98,19 @@ def request_connection():
         conn.request_connection(conic.CONNECT_FLAG_NONE)
     except:
         pass
+
+
+
+if (get_product_code() == "SU-18"):
+    # bad hack!
+    # work around broken D-Bus bindings on OS 2006; this breaks urllib2 for us,
+    # but we don't use it anyway
+    def f(*args): raise RuntimeError("Ignore me...")
+    import urllib2
+    urllib2.AbstractHTTPHandler.do_open = f
+#end if
+
+import dbus, dbus.glib
+_system_bus = dbus.SystemBus(private = True)
+_session_bus = dbus.SessionBus(private = True)
 

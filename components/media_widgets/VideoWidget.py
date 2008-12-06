@@ -329,12 +329,13 @@ class VideoWidget(MediaWidget):
                 self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
                 
                 self.__player.set_window(self.__screen.window.xid)
-                if (maemo.IS_MAEMO):
+                product = maemo.get_product_code()
+                if (product == "?"):
                     self.__player.set_options("-vo xv")
-                    # the Nokia 770 would require something like this, instead
-                    #self.__player.set_options("-ao gst -ac dspmp3 "
-                    #                      "-vo xv,nokia770:fb_overlay_only:"
-                    #                      "x=%d:y=%d:w=%d:h=%d" % (x, y, w, h))
+                elif (product == "SU-18"):
+                    self.__player.set_options("-vo nokia770:" \
+                                              "fb_overlay_only:" \
+                                              "x=174:y=60:w=600:h=360")
                 else:
                     self.__player.set_options("-vo xv")
                     

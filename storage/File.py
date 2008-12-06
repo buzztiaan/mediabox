@@ -58,6 +58,9 @@ class File(object):
         self.description = ""
         """text for further description"""
 
+        self.index = 0
+        """index number that can be used for sorting"""
+
         self.parent = ""
         """name of parent folder, if any (can be used for grouping items)"""
 
@@ -79,7 +82,8 @@ class File(object):
     def __cmp__(self, other):
     
         if (other):
-            return cmp((self.name, self.resource), (other.name, other.resource))
+            return cmp((self.index, self.name, self.resource),
+                       (other.index, other.name, other.resource))
         else:
             return 1
 

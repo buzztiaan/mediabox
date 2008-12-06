@@ -46,5 +46,7 @@ color_mb_listitem_subtext: #888888
 #
 # Track info
 #
+color_mb_trackinfo_background: #eef0ff
+color_mb_trackinfo_background_2: #dddddd
 color_mb_trackinfo_text: #000000
 

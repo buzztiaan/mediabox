@@ -8,6 +8,7 @@ from ui.Image import Image
 from ui.ProgressBar import ProgressBar
 from ui.Label import Label
 from ui.Pixmap import TEMPORARY_PIXMAP
+from ui import pixbuftools
 from ui import dialogs
 import mediaplayer
 from utils import maemo
@@ -36,7 +37,7 @@ class AudioWidget(MediaWidget):
         MediaWidget.__init__(self)
 
 
-        self.__cover = None
+        self.__cover_pbuf = None
         self.__buffer = TEMPORARY_PIXMAP
         
         self.__title = Label("-", theme.font_mb_headline,
@@ -57,6 +58,13 @@ class AudioWidget(MediaWidget):
         self.add(self.__progress_label)
         self.__progress_label.set_alignment(Label.RIGHT)
 
+        self.__cover = ImageButton(theme.mb_btn_play_1,
+                                   theme.mb_btn_play_2,
+                                   True)
+        self.add(self.__cover)
+        self.__cover.connect_clicked(self.__on_play_pause)
+        
+        
         # controls
         self.__btn_play = ImageButton(theme.mb_btn_play_1,
                                       theme.mb_btn_play_2)
@@ -91,11 +99,20 @@ class AudioWidget(MediaWidget):
                                         self.send_event, self.EVENT_MEDIA_NEXT)
         self.add(self.__car_btn_next)
         
-        self.__cover_ebox = EventBox()
-        self.__cover_ebox.connect_clicked(self.__on_play_pause)
-                                    
-        self.add(self.__cover_ebox)
+
+
         
+
+    def set_size(self, w, h):
+    
+        old_w, old_h = self.get_size()
+        MediaWidget.set_size(self, w, h)
+        if ((w, h) != (old_w, old_h)):
+            self.__prepare_cover()
+
+    def _reload(self):
+    
+        self.__prepare_cover()
 
 
     def render_this(self):
@@ -104,7 +121,7 @@ class AudioWidget(MediaWidget):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        screen.fill_area(x, y, w, h, theme.color_mb_background)
+        screen.fill_area(x, y, w, h, theme.color_mb_trackinfo_background)
         
         if (w < 800):
             self.__car_btn_prev.set_visible(False)
@@ -124,8 +141,10 @@ class AudioWidget(MediaWidget):
         lbl_w = w - 20
         self.__title.set_geometry(lbl_x, lbl_y, lbl_w, 0)
         
-        screen.fill_area(x, y, w, 50, "#dddddd")
-        screen.fill_area(x, y + h - 50, w, 50, "#dddddd")
+        screen.fill_area(x, y, w, 50,
+                         theme.color_mb_trackinfo_background_2)
+        screen.fill_area(x, y + h - 50, w, 50,
+                         theme.color_mb_trackinfo_background_2)
                
         lbl_y = h - 42
         lbl_w = w / 2 - 20
@@ -143,45 +162,53 @@ class AudioWidget(MediaWidget):
         lb_y = lbl_y + 48
         lb_w = lbl_w
         lb_h = h - lb_y - 10
-        #screen.fill_area(x + lb_x, y + lb_y, lb_w, lb_h, "#666666")
+        
+        # place cover
+        cover_size = h - 128
+        cover_x = (w - cover_size) / 2
+        cover_y = 60
 
-        gobject.idle_add(self.__render_cover)
+        self.__cover.set_geometry(cover_x, cover_y,
+                                  cover_size + 11, cover_size + 11)
+                                               
 
 
-    def __render_cover(self):
+    def __prepare_cover(self):
 
-        if (not self.may_render()): return
-
-        x, y = self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.get_screen()
+    
+        if (w <= 0 or h <= 0): return
     
         cover_size = h - 128
         cover_x = (w - cover_size) / 2
         cover_y = 60
         
-        self.__cover_ebox.set_geometry(cover_x, cover_y,
-                                       cover_size + 11, cover_size + 11)
-                                       
-        self.__buffer.fill_area(0, 0, cover_size + 11, cover_size + 11,
-                                theme.color_mb_background)
-        
-        if (self.__cover):
-            self.__buffer.draw_frame(theme.mb_frame_music,
-                                     0, 0,
-                                     cover_size + 11, cover_size + 11,
-                                     True)
-            self.__buffer.fit_pixbuf(self.__cover,
-                                     3, 3,
-                                     cover_size, cover_size)
-        
-        else:
-            self.__buffer.fit_pixbuf(theme.mb_unknown_album,
-                                     3, 3,
-                                     cover_size, cover_size)        
 
-        screen.copy_pixmap(self.__buffer, 0, 0, x + cover_x, y + cover_y,
-                           cover_size + 11, cover_size + 11)
+        pbuf = pixbuftools.make_frame(theme.mb_frame_music,
+                                      cover_size + 11, cover_size + 11,
+                                      True)
+        
+        if (self.__cover_pbuf):
+            pixbuftools.draw_pbuf(pbuf, self.__cover_pbuf, 3, 3,
+                                  cover_size, cover_size)
+      
+        else:
+            pixbuftools.draw_pbuf(pbuf, theme.mb_unknown_album, 3, 3,
+                                  cover_size, cover_size)
+    
+
+        cover1 = pbuf.copy()
+        pixbuftools.draw_pbuf(pbuf, theme.mb_trackinfo_btn_play,
+                              3 + (cover_size - 120) / 2,
+                              3 + (cover_size - 120) / 2)
+        cover2 = pbuf.copy()
+        self.__cover.set_images(cover1, cover2)
+        del pbuf
+        del cover1
+        del cover2
+        
+
+
         
 
 
@@ -207,6 +234,7 @@ class AudioWidget(MediaWidget):
         elif (cmd == src.OBS_STARTED):
             print "Started Player"
             self.__progress.set_message("")
+            self.__cover.set_active(True)
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
             
@@ -214,6 +242,7 @@ class AudioWidget(MediaWidget):
             print "Killed Player"
             self.__current_file = None
             self.__progress.set_message("")
+            self.__cover.set_active(True)
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
 
@@ -228,6 +257,7 @@ class AudioWidget(MediaWidget):
                 self.__current_file = None
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
+                self.__cover.set_active(True)
                 self.__progress.set_message("error")
                 self.__show_error(err)
                 
@@ -240,6 +270,7 @@ class AudioWidget(MediaWidget):
                 self.__player.set_volume(mb_config.volume())
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)                
+                self.__cover.set_active(False)
             
         elif (cmd == src.OBS_STOPPED):
             ctx = args[0]
@@ -248,6 +279,7 @@ class AudioWidget(MediaWidget):
                 self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
+                self.__cover.set_active(True)
             
         elif (cmd == src.OBS_EOF):
             ctx = args[0]
@@ -256,6 +288,7 @@ class AudioWidget(MediaWidget):
                 self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
+                self.__cover.set_active(True)
                 self.send_event(self.EVENT_MEDIA_EOF)
 
         elif (cmd == src.OBS_NEW_STREAM_TRACK):
@@ -312,9 +345,10 @@ class AudioWidget(MediaWidget):
         self.__artist.set_text(artist or item.artist)
         if (album): self.__album.set_text(album)
         try:
-            self.__cover = self.__load_cover(item)
+            self.__cover_pbuf = self.__load_cover(item)
         except:
-            pass
+            self.__cover_pbuf = None
+        self.__prepare_cover()
 
 
 
@@ -428,15 +462,7 @@ class AudioWidget(MediaWidget):
                 pass
         
         return pbuf           
-            
-        
-        path = os.path.dirname(uri)
-        for i in (".folder.png", "folder.jpg", "cover.jpg",
-                  "cover.jpeg", "cover.png"):
-            coverpath = os.path.join(path, i)
-            if (os.path.exists(coverpath)): return coverpath
-            
-        return None
+
         
         
     def __load_apic(self, data):

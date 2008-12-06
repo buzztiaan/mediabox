@@ -31,8 +31,9 @@ class ImageStorage(Device):
     def __update_media(self):
 
         self.__folders = {"All Images": []}
-        media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
-                                  ["image/"])
+        media, nil, removed = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
+                                                ["image/"])
+        #print "removed", removed
         for f in media:
             parent = f.parent
             if (not parent in self.__folders):
@@ -94,11 +95,12 @@ class ImageStorage(Device):
                 f.resource = ""
                 f.name = folder
                 f.info = "%d items" % len(self.__folders.get(folder, []))
-                f.thumbnail = self.__find_image_in_folder(f)
+                f.thumbnail = self.__find_image_in_folder(folder)
                 cb(f, *args)
                 
         else:
             images = self.__folders.get(path[1:], [])
+            images.sort()
             for img in images:
                 img.name = self.__get_name(img.path)
                 cb(img, *args)
@@ -109,11 +111,12 @@ class ImageStorage(Device):
 
     def __find_image_in_folder(self, folder):
     
-        for f in folder.get_children():
-            if (f.mimetype.startswith("image/")):
-                return f.resource
-        #end for
-        return ""
+        imgs = self.__folders.get(folder)
+        if (imgs):
+            return imgs[0].resource
+        else:
+            return ""
+            
 
 
     def __get_name(self, uri):

@@ -33,8 +33,9 @@ class AudioStorage(Device):
     
         self.__albums = []
         
-        media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
-                                  ["audio/"])
+        media, nil, nil = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
+                                            ["audio/x-music-folder"])
+        print "MEDIA", media
         for f in media:
             self.__albums.append(f)            
         #end for
@@ -47,7 +48,7 @@ class AudioStorage(Device):
         
     def get_name(self):
     
-        return "Albums"
+        return "Folders"
 
 
     def get_icon(self):
@@ -102,6 +103,7 @@ class AudioStorage(Device):
             
             if (not album): return
 
+            tracks = []
             for f in album.get_children():
                 if (not f.mimetype.startswith("audio")):
                     continue
@@ -109,11 +111,21 @@ class AudioStorage(Device):
                 tags = tagreader.get_tags(f)
                 f.name = tags.get("TITLE") or f.name
                 f.info = tags.get("ARTIST") or "unknown"
+                try:
+                    trackno = tags.get("TRACKNUMBER")
+                    trackno = trackno.split("/")[0]
+                    trackno = int(trackno)
+                except:
+                    trackno = 0
+                f.index = trackno
                 f.thumbnail_md5 = album.thumbnail_md5
                 
-                cb(f, *args)
+                tracks.append(f)
             #end for
             
+            tracks.sort()
+            for trk in tracks:
+                cb(trk, *args)
             cb(None, *args)
 
             """

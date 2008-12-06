@@ -8,18 +8,13 @@ import threading
 
 def is_media(f):
     
-    if (f.mimetype == "audio/x-music-folder"):
-        return True
+    if (f.mimetype == f.DIRECTORY):
+        for c in f.get_children():
+            if (c.mimetype.startswith("audio/")):
+                return True
+        #end for        
+    #end if
 
-    elif (f.mimetype != f.DIRECTORY):
-        return False
-        
-    for c in f.get_children():
-        if (c.mimetype.startswith("audio/")):
-            f.mimetype = "audio/x-music-folder"
-            return True
-    #end for
-    
     return False
 
 

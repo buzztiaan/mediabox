@@ -80,7 +80,7 @@ class LocalDevice(Device):
             item.can_add_to_library = True
             item.path = path
             item.resource = path
-            item.child_count = self.__get_child_count(path)
+            #item.child_count = self.__get_child_count(path)
             item.name = name
             item.mimetype = mimetype
             item.emblem = emblem
@@ -101,7 +101,7 @@ class LocalDevice(Device):
             item.can_add_to_library = True
             item.path = path
             item.resource = path
-            item.child_count = self.__get_child_count(path)            
+            #item.child_count = self.__get_child_count(path)            
             item.name = mmc.get_label(path)
             item.mimetype = File.DIRECTORY
             items.append(item)
@@ -118,16 +118,23 @@ class LocalDevice(Device):
         item.path = path
         item.name = os.path.basename(path)
         item.resource = path
+        item.parent = os.path.basename(os.path.dirname(path))
         if (os.path.isdir(item.resource)):
             item.mimetype = item.DIRECTORY
-            item.child_count = self.__get_child_count(item.path)
+            #children = item.get_children()
+            #for c in children:
+            #    if (c.mimetype.startswith("audio/")
+            #        and c.mimetype != "audio/x-music-folder"):
+            #        item.mimetype = "audio/x-music-folder"
+            #        break
+            ##end for
+            #item.child_count = len(children)
         else:
             ext = os.path.splitext(path)[-1].lower()
             item.mimetype = mimetypes.lookup_ext(ext)
         
         return item
     
-        
         
         
     def ls(self, path):
@@ -160,21 +167,22 @@ class LocalDevice(Device):
             
         items = []
         for f in files:
-            item = File(self)
-            item.is_local = True
-            item.can_add_to_library = True
-            item.path = os.path.join(path, f)
-            item.name = f
-            item.parent = os.path.basename(path)
-            item.resource = os.path.join(path, f)
+            item = self.get_file(os.path.join(path, f))
+            #item = File(self)
+            #item.is_local = True
+            #item.can_add_to_library = True
+            #item.path = os.path.join(path, f)
+            #item.name = f
+            #item.parent = os.path.basename(path)
+            #item.resource = os.path.join(path, f)
 
-            if (os.path.isdir(item.resource)):
-                item.mimetype = item.DIRECTORY
-                item.child_count = self.__get_child_count(item.path)
-            else:
-                ext = os.path.splitext(f)[-1].lower()
-                item.mimetype = mimetypes.lookup_ext(ext)
-                #item.emblem = theme.filetype_image
+            #if (os.path.isdir(item.resource)):
+            #    item.mimetype = item.DIRECTORY
+            #    item.child_count = self.__get_child_count(item.path)
+            #else:
+            #    ext = os.path.splitext(f)[-1].lower()
+            #    item.mimetype = mimetypes.lookup_ext(ext)
+            #    #item.emblem = theme.filetype_image
 
             if (item.mimetype.startswith("audio/") or
                 item.mimetype.startswith("image/") or
@@ -221,24 +229,4 @@ class LocalDevice(Device):
         fd.seek(0)
         
         gobject.timeout_add(50, on_data, fd, [0], total_size)
-        """
-        read_size = 0
-        while (True):
-            d = fd.read(65536)
-            read_size += len(d)
-            
-            try:
-                cb(d, read_size, total_size, *args)
-            except:
-                break
-            
-            if (d and maxlen > 0 and read_size >= maxlen):
-                try:
-                    cb("", read_size, total_size, *args)
-                except:
-                    pass
-                break
-            elif (not d):
-                break
-        #end while
-        """
+

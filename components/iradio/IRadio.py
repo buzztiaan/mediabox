@@ -107,8 +107,11 @@ class IRadio(Device):
                 f.path = "/shoutcast/" + item.path
                 f.resource = item.resource
                 f.name = item.name
+                f.info = ""
+                if (item.bitrate):
+                    f.info += "Bitrate: " + item.bitrate + "\n"
                 if (item.now_playing):
-                    f.info = "Now Playing: " + item.now_playing
+                    f.info += "Now Playing: " + item.now_playing
                 if (is_station):
                     f.mimetype = "audio/x-unknown"
                 else:

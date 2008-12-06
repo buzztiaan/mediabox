@@ -46,16 +46,15 @@ class RootPane(Widget):
     def show_overlay(self, text, subtext, icon):
     
         w, h = self.get_size()
+        screen = self.get_screen()
 
-        if (self.__has_overlay):
-            screen = TEMPORARY_PIXMAP
-            screen.draw_pixmap(self.__buffer, 0, 0)
-        else:
-            screen = self.get_screen()
+        if (not self.__has_overlay):
             self.__buffer.draw_pixmap(screen, 0, 0)
         
+        TEMPORARY_PIXMAP.draw_pixmap(self.__buffer, 0, 0)
+        
         self.set_frozen(True)
-        screen.fill_area(0, 0, w, h, theme.color_mb_overlay)
+        TEMPORARY_PIXMAP.fill_area(0, 0, w, h, theme.color_mb_overlay)
 
         tw, th = text_extents(text, theme.font_mb_overlay_text)
         tw2, th2 = text_extents(subtext, theme.font_mb_overlay_subtext)
@@ -64,21 +63,20 @@ class RootPane(Widget):
         tx2 = (w - tw2) / 2
         ty = (h - th - th2) / 2
         
-        screen.draw_text(text, theme.font_mb_overlay_text,
-                         tx1, ty,
-                         theme.color_mb_overlay_text)
-        screen.draw_text(subtext, theme.font_mb_overlay_subtext,
-                         tx2, ty + th,
-                         theme.color_mb_overlay_subtext)
+        TEMPORARY_PIXMAP.draw_text(text, theme.font_mb_overlay_text,
+                                   tx1, ty,
+                                   theme.color_mb_overlay_text)
+        TEMPORARY_PIXMAP.draw_text(subtext, theme.font_mb_overlay_subtext,
+                                   tx2, ty + th,
+                                   theme.color_mb_overlay_subtext)
         
 
         if (icon):
             iw = icon.get_width()
             ih = icon.get_height()       
-            screen.draw_pixbuf(icon, w - iw - 10, h - ih - 10)
+            TEMPORARY_PIXMAP.draw_pixbuf(icon, w - iw - 10, h - ih - 10)
 
-        if (self.__has_overlay):
-            self.get_screen().draw_pixmap(screen, 0, 0)
+        screen.draw_pixmap(TEMPORARY_PIXMAP, 0, 0)
             
         cnt = 0
         while (gtk.events_pending() and cnt < 10):

@@ -74,12 +74,20 @@ class ShoutcastDirectory(object):
             now_playing = data[pos1 + 1:pos2].strip()
             pos = pos2
 
+            # Bitrate
+            pos = data.find("Bitrate:", pos)
+            pos = data.find("<span", pos)
+            pos1 = data.find(">", pos)
+            pos2 = data.find("<", pos1)
+            bitrate = data[pos1 + 1:pos2].strip()
+            pos = pos2
+
             # build station object
             station = Station()
             station.name = name
             station.now_playing = now_playing
             station.resource = pls_url
-            #station.bitrate = bitrate
+            station.bitrate = bitrate
             
             cb(True, station)
         #end while

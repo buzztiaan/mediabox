@@ -1,20 +1,20 @@
 from com import msgs
-
+from MusicIndex import MusicIndex
 from storage import Device, File
 from utils import urlquote
 from utils import logging
 from mediabox import tagreader
+from mediabox import values
 import theme
 
 import os
-import commands
 import gtk
 import gobject
 import threading
 
 
 
-class AudioArtistsStorage(Device):
+class AudioArtistStorage(Device):
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_AUDIO
@@ -22,60 +22,77 @@ class AudioArtistsStorage(Device):
 
     def __init__(self):
     
-        self.__artists = {}
-        self.__albums = {}
-    
+        self.__index = MusicIndex()
+
+
         Device.__init__(self)
+
         
-        
+ 
     def handle_event(self, msg, *args):
     
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
-            self.__artists = {}
-            self.__albums = {}
-            #self.__update_media()
+            self.__index.schedule_scanner(self.__update_media)
 
 
-    def __update_media(self, finished):
+    def __update_media(self):
 
         def f():
-            for folder in media:
+            # add new files to index
+            total_length = len(added)
+            cnt = 0
+            for folder in added:
+                cnt += 1
+                percent = int((cnt / float(total_length)) * 100)
                 self.emit_event(msgs.UI_ACT_SHOW_MESSAGE,
-                                "Scanning Folders",
-                                "- %s -" % folder.name,
-                                theme.mb_device_artists)
-                for f in folder.get_children():
-                    if (not f.mimetype.startswith("audio/")): continue
-                    
-                    tags = tagreader.get_tags(f)
-                    artist = (tags.get("ARTIST") or "unknown").encode("utf-8")
-                    album = (tags.get("ALBUM") or "unknown").encode("utf-8")
-                    
-                    if (not artist in self.__artists):
-                        self.__artists[artist] = []
-                    if (not album in self.__artists[artist]):
-                        self.__artists[artist].append(album)
-                        
-                    if (not (artist, album) in self.__albums):
-                        self.__albums[(artist, album)] = []
-                    self.__albums[(artist, album)].append(f)
-                #end for
+                                "Updating Index",
+                                #"- %s -" % folder.name,
+                                "- %d%% complete -" % (percent),
+                                self.get_icon())
+                                
+                self.__index.add_album(folder)
             #end for
             
+            # delete removed files from index
+            for folder in removed:
+                self.__index.remove_album(folder)
+            #end for
+
             self.emit_event(msgs.UI_ACT_HIDE_MESSAGE)
             finished.set()
           
-          
-        self.__artists = {}
-        self.__albums = {}
-        media = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
-                                  ["audio/"])
+
+        media, added, removed = \
+                self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
+                                 [File.DIRECTORY])
+
+        finished = threading.Event()
+        gobject.idle_add(f)        
+        while (not finished.isSet()): gtk.main_iteration(False)
         
-        #self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
-        #                  "Please wait...\nScanning %d folders" % len(media))
         
-        gobject.idle_add(f)
+    def _list_artists(self):
+    
+        return self.__index.list_artists()  
+
+
+    def _list_albums(self, artist):
+    
+        return self.__index.list_albums(artist)  
         
+
+    def _list_files(self, artist, album):
+
+        album_fp = self.__index.get_album(artist, album)
+        f = self.call_service(msgs.CORE_SVC_GET_FILE, album_fp)
+
+        if (f):
+            files = [ c for c in f.get_children()
+                      if c.mimetype.startswith("audio/") ]
+            return files
+        else:
+            return []
+
         
     def get_prefix(self):
     
@@ -107,24 +124,19 @@ class AudioArtistsStorage(Device):
     
     
     def ls_async(self, path, cb, *args):
-        
-        if (not self.__artists):
-            finished = threading.Event()
-            self.__update_media(finished)
-            while (not finished.isSet()): gtk.main_iteration(False)
-        
+
         if (not path.endswith("/")): path += "/"        
         num_of_slash = len(path) - len(path.replace("/", ""))
         
-        if (num_of_slash == 1):
-            artists = self.__artists.keys()
+        if (num_of_slash == 1):        
+            artists = self._list_artists()
             artists.sort()
             for artist in artists:
                 f = File(self)
                 f.can_skip = True
                 f.path = path + urlquote.quote(artist)
                 f.name = artist
-                f.info = "%d albums" % len(self.__artists[artist])
+                #f.info = "%d albums" % len(self.__artists[artist])
                 f.mimetype = f.DIRECTORY
 
                 cb(f, *args)
@@ -134,22 +146,20 @@ class AudioArtistsStorage(Device):
 
         elif (num_of_slash == 2):
             artist = urlquote.unquote(path.replace("/", ""))
-            albums = self.__artists[artist]
+            albums = self._list_albums(artist)
             albums.sort()
-            for album in albums:
+            for album, fp in albums:
+                album_f = self.call_service(msgs.CORE_SVC_GET_FILE, fp)
                 f = File(self)
                 f.path = path + urlquote.quote(album)
                 f.can_skip = True
                 f.name = album
-                f.info = "%d items" % len(self.__albums[(artist, album)])
-                f.mimetype = f.DIRECTORY
-                              
-                #try:
-                #    sample = self.__albums[(artist, album)][0]
-                #    f.thumbnail_md5 = sample.thumbnail_md5
-                #except:
-                #    pass
-                
+                f.info = artist
+                #f.info = "%d items" % len(self.__albums[(artist, album)])
+                f.mimetype = "audio/x-music-folder" #f.DIRECTORY
+                if (album_f):
+                    f.thumbnail_md5 = album_f.md5
+
                 cb(f, *args)
             #end for
             
@@ -160,14 +170,30 @@ class AudioArtistsStorage(Device):
             artist = urlquote.unquote(parts[1])
             album = urlquote.unquote(parts[2])
 
-            for f in self.__albums[(artist, album)]:
+            tracks = []
+            
+            for f in self._list_files(artist, album):
                 tags = tagreader.get_tags(f)
                 f.name = tags.get("TITLE") or f.name
                 f.info = tags.get("ARTIST") or "unknown"
+                al = tags.get("ALBUM") or "unknown"
+                
+                if ((artist, album) != (f.info, al)): continue
+                
+                try:
+                    trackno = tags.get("TRACKNUMBER")
+                    trackno = trackno.split("/")[0]
+                    trackno = int(trackno)
+                except:
+                    trackno = 0
+                f.index = trackno
 
-                cb(f, *args)
+                tracks.append(f)
             #end for
-            
+
+            tracks.sort()
+            for trk in tracks:            
+                cb(trk, *args)
             cb(None, *args)
             
         #end if        

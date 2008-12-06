@@ -744,13 +744,13 @@ class GenericViewer(Viewer):
             if (self.__path_stack[-1][0] != path): return False
 
             if (f):
-                self.__list.get_item(insert_at).set_info("Loading (%d items)" \
-                                                         % len(entries))
+                #self.__list.get_item(insert_at).set_info("Loading (%d items)" \
+                #                                         % len(entries))
                 self.__add_file(f, items_to_thumbnail, insert_at + len(entries))
                 entries.append(f)
 
             else:
-                self.__list.get_item(insert_at).set_info("%d items" % len(entries))
+                #self.__list.get_item(insert_at).set_info("%d items" % len(entries))
                 # finished loading items; now create thumbnails
                 self.__create_thumbnails(path, items_to_thumbnail)
 

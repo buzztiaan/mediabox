@@ -1,7 +1,8 @@
 def get_devices():
 
-    from AudioStorage import AudioStorage
-    from AudioArtistsStorage import AudioArtistsStorage
+    from AudioAlbumStorage import AudioAlbumStorage
+    from AudioArtistStorage import AudioArtistStorage
     from VideoStorage import VideoStorage
     from ImageStorage import ImageStorage
-    return [AudioStorage, AudioArtistsStorage, VideoStorage, ImageStorage]
+    return [AudioAlbumStorage, AudioArtistStorage,
+            VideoStorage, ImageStorage]

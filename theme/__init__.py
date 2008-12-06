@@ -25,7 +25,8 @@ def list_themes():
     """
     Lists the available themes.
     
-    @return: list of (theme_path, preview_icon_path, name, description) tuples
+    @return: list of (theme_path, preview_icon_path, name, description, author)
+             tuples
     """
 
     themes = []
@@ -34,17 +35,18 @@ def list_themes():
             files = os.listdir(themes_dir)
         except:
             continue
-        files.sort()
+        #files.sort()
         
         for d in files:
             path = os.path.join(themes_dir, d)
             if (os.path.isdir(path) and not d.startswith(".")):
                 preview = os.path.join(path, "PREVIEW.png")
-                name, description, compat = _get_info(path)
-                themes.append((d, preview, name, description))
+                name, description, author = _get_info(path)
+                themes.append((d, preview, name, description, author))
         #end for
     #end for
         
+    themes.sort(lambda a,b:cmp(a[2],b[2]))
     return themes
 
 
@@ -96,7 +98,7 @@ def _read_def_file(f):
 
 def _get_info(themepath):
 
-    name, description, compat = (os.path.basename(themepath), "", [])
+    name, description, author = (os.path.basename(themepath), "", "")
 
     try:
         lines = open(os.path.join(themepath, "info")).readlines()
@@ -114,12 +116,12 @@ def _get_info(themepath):
         elif (line.startswith("description:")):
             idx = line.find(":")
             description = line[idx + 1:].strip()
-        elif (line.startswith("compatible:")):
+        elif (line.startswith("author:")):
             idx = line.find(":")
-            compat = line[idx + 1:].split()
+            author = line[idx + 1:].strip()
     #end for
     
-    return (name, description, compat)
+    return (name, description, author)
         
 
 def set_theme(name):
@@ -138,7 +140,7 @@ def _set_theme(name):
     theme_dir = _DEFAULT_THEME_DIR
     for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
         theme_dir = os.path.join(themes_dir, name)
-        name, description, compat = _get_info(theme_dir)
+        name, description, author = _get_info(theme_dir)
         if (os.path.exists(theme_dir)):
             break
     #end for
