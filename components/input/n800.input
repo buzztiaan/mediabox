@@ -1,0 +1,57 @@
+# Maemo Input Schema
+
+
+
+[MENU]
+LEFT            LEFT            -
+RIGHT           RIGHT           -
+UP              UP              -
+DOWN            DOWN            -
+MENU            MENU            -
+ENTER           ENTER           -
+
+
+[BROWSER]
+UP              UP              -
+DOWN            DOWN            -
+INCREMENT       VOLUME_UP       -
+DECREMENT       VOLUME_DOWN     -
+FULLSCREEN      FULLSCREEN      -
+ENTER           -               CUSTOM_0
+MENU            MENU            -
+
+
+[CUSTOM_0]
+ENTER           PLAY            -
+MENU            -               BROWSER
+UP              PREVIOUS        -
+DOWN            NEXT            -
+LEFT            REWIND          -
+RIGHT           FORWARD         -
+INCREMENT       VOLUME_UP       -
+DECREMENT       VOLUME_DOWN     -
+
+
+
+[PLAYER]
+UP              PREVIOUS        -
+DOWN            NEXT            -
+LEFT            REWIND          -
+RIGHT           FORWARD         -
+INCREMENT       VOLUME_UP       -
+DECREMENT       VOLUME_DOWN     -
+MENU            MENU            -
+ENTER           PLAY            -
+FULLSCREEN      FULLSCREEN      -
+
+
+[FULLSCREEN]
+UP              PREVIOUS        -
+DOWN            NEXT            -
+LEFT            REWIND          -
+RIGHT           FORWARD         -
+INCREMENT       VOLUME_UP       -
+DECREMENT       VOLUME_DOWN     -
+MENU            FULLSCREEN      -
+ENTER           PLAY            -
+
