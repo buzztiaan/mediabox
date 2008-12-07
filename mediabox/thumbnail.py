@@ -63,7 +63,7 @@ def _make_frame(thumbfile, mimetype):
         else:
             frame = None
 
-    elif (mimetype == "audio/x-music-folder"):
+    elif (mimetype == "application/x-music-folder"):
         if (os.path.exists(thumbfile)):
             tx, ty, tw, th = 3, 3, 109, 109
             frame = theme.mb_frame_music
@@ -71,7 +71,7 @@ def _make_frame(thumbfile, mimetype):
             tx, ty, tw, th = 0, 0, _WIDTH, _HEIGHT
             frame = None
 
-    elif (mimetype == "image/x-image-folder"):
+    elif (mimetype == "application/x-image-folder"):
         tx, ty, tw, th = 35, 30, 100, 69
         frame = theme.mb_thumbnail_image_folder
         
@@ -106,10 +106,12 @@ def _make_thumbnail(thumbfile, mimetype):
     # render thumbnail
     try:
         thumb_pbuf = gtk.gdk.pixbuf_new_from_file(thumbfile)
+        cachable = True
     except:
         thumb_pbuf = _get_fallback_thumbnail(mimetype)
+        cachable = False
         
-    return thumb_pbuf
+    return (thumb_pbuf, cachable)
     
 
 
@@ -152,8 +154,8 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
     pbuf = _thumbnail_cache.get((thumbfile, w, h))
     if (not pbuf):
         #print "not in cache:", thumbfile
-        pbuf = _make_thumbnail(thumbfile, mimetype)
-        if (pbuf):
+        pbuf, cachable = _make_thumbnail(thumbfile, mimetype)
+        if (pbuf and cachable):
             _thumbnail_cache[(thumbfile, w, h)] = pbuf
             _cache_history.append((thumbfile, w, h))
         #end if
@@ -183,8 +185,10 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
 
 def _get_fallback_thumbnail(mimetype):
 
-    if (mimetype == "audio/x-music-folder"):
+    if (mimetype == "application/x-music-folder"):
         return theme.mb_unknown_album
+    elif (mimetype == "application/x-image-folder"):
+        return None
     elif (mimetype.endswith("-folder")):
         return theme.mb_filetype_folder
     elif (mimetype in mimetypes.get_audio_types()):

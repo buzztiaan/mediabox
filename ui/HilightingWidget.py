@@ -28,7 +28,7 @@ class HilightingWidget(Widget):
         
     
         Widget.__init__(self)
-        
+    
         
     def _reload(self):
         
@@ -58,6 +58,11 @@ class HilightingWidget(Widget):
         self.__hilight_box = pbuf
 
 
+    def place_hilighting_box(self, x, y):
+    
+        self.__box_pos = (x, y)
+
+
     def move_hilighting_box(self, new_x, new_y, cb, *user_args):
         """
         Moves the hilighting box to the given position.
@@ -81,14 +86,19 @@ class HilightingWidget(Widget):
                 self.__move_cursor(from_x, from_y, to_x - from_x, to_y - from_y)
                 self.__box_pos = (to_x, to_y)
                 self.__motion_timer = None
+                self.set_animation_lock(False)
+
                 if (cb):
                     cb(*user_args)
     
-    
+
+        if (self.have_animation_lock()): return
+        self.set_animation_lock(True)
+
         prev_x, prev_y = self.__box_pos
         if (self.__motion_timer):
             gobject.source_remove(self.__motion_timer)
-            
+
         self.__motion_timer = gobject.timeout_add(10, move_box,
                                                   prev_x, prev_y, new_x, new_y)
 

@@ -26,7 +26,7 @@ class _MessageBus(object):
         
     def send_event(self, src, event, *args):
     
-        #logging.debug("*** %s%s ***" % (msgs._id_to_name(event), `args`[:30]))
+        logging.debug("*** %s%s ***" % (msgs._id_to_name(event), `args`[:30]))
         
         for mediator in self.__mediators:
             if (mediator == src): continue

@@ -96,11 +96,12 @@ class RootPane(Widget):
         screen.draw_pixmap(self.__buffer, x, y)
         self.set_frozen(False)
 
-   
 
     def fx_slide_in(self, wait = True):
     
-        STEP = 20
+        if (self.have_animation_lock()): return
+        self.set_animation_lock(True)
+    
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
@@ -111,17 +112,22 @@ class RootPane(Widget):
         self.set_frozen(True)
         finished = threading.Event()
         
-        def fx(i):
-            if (i > STEP):
-                screen.move_area(x, y, w, i - STEP, 0, STEP)
-            screen.copy_pixmap(buf, x, y + h - i, 0, 0, w, STEP)
-            if (i < h):
-                gobject.timeout_add(7, fx, i + STEP)
+        def fx(from_y, to_y):
+            dy = (to_y - from_y) / 10
+            if (dy > 0):
+                screen.move_area(x, y, w, from_y, 0, dy)
+                screen.copy_pixmap(buf, x, y + h - from_y - dy, 0, 0, w, dy)
+                gobject.timeout_add(10, fx, from_y + dy, to_y)
             else:
+                dy = to_y - from_y
+                screen.move_area(x, y, w, from_y, 0, dy)
+                screen.copy_pixmap(buf, x, y + h - from_y - dy, 0, 0, w, dy)
                 finished.set()
-
+        
         self.set_events_blocked(True)
-        fx(STEP)
+        fx(0, h)
         while (wait and not finished.isSet()): gtk.main_iteration(False)
         self.set_events_blocked(False)
         self.set_frozen(False)
+        self.set_animation_lock(False)
+

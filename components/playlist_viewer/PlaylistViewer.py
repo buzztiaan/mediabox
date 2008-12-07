@@ -543,9 +543,9 @@ class PlaylistViewer(Viewer):
         """
         
         if (f):
-            if (f.mimetype in (f.DIRECTORY, "audio/x-music-folder")):
+            if (f.mimetype in (f.DIRECTORY, "application/x-music-folder")):
                 items = [ c for c in f.get_children()
-                        if not c.mimetype in (f.DIRECTORY, "audio/x-music-folder") ]
+                        if not c.mimetype in (f.DIRECTORY, "application/x-music-folder") ]
                 for item in items:
                     self.__add_item(pl, item)
                 return

@@ -123,6 +123,9 @@ class Image(Widget, Observable):
             self.__visible_size = (w, h)
             if (self.__original_size != (0, 0)):
                 self.__invalidated = True
+                #self.__offscreen = Pixmap(None, w, h)
+                #self.__buffer = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
+                #                               True, 8, w, h)
                 self._render()
                 self.__scale_to_fit()
                 #gobject.idle_add(self.__scale_to_fit)

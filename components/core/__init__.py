@@ -26,6 +26,7 @@ messages = [
     "HWKEY_EV_ENTER",
     "HWKEY_EV_FULLSCREEN",
     "HWKEY_EV_MENU",
+    "HWKEY_EV_ESCAPE",
     "HWKEY_EV_HEADSET",
     "HWKEY_EV_HEADSET_DOUBLE",
     "HWKEY_EV_HEADSET_TRIPLE",
@@ -101,5 +102,7 @@ messages = [
     "UI_ACT_VIEW_MODE",         # (mode)
     "UI_ACT_SHOW_MESSAGE",          # (text, subtext, icon)
     "UI_ACT_HIDE_MESSAGE",
+    
+    "UI_EV_CONTEXT_CHANGED",    # (context)
 ]    
 

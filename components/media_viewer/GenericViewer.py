@@ -253,6 +253,27 @@ class GenericViewer(Viewer):
         self.set_toolbar(items)
 
 
+    def __update_input_context(self):
+        """
+        Updates the input context according to the current view mode.
+        """
+        
+        if (self.__view_mode == self._VIEWMODE_BROWSER):
+            self.emit_event(msgs.INPUT_EV_CONTEXT_BROWSER)
+
+        elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
+            self.emit_event(msgs.INPUT_EV_CONTEXT_PLAYER)
+
+        elif (self.__view_mode == self._VIEWMODE_PLAYER_FULLSCREEN):
+            self.emit_event(msgs.INPUT_EV_CONTEXT_FULLSCREEN)
+
+        elif (self.__view_mode == self._VIEWMODE_LIBRARY):
+            self.emit_event(msgs.INPUT_EV_CONTEXT_BROWSER)
+
+    
+    
+    
+    
     def render_this(self):
     
         x, y = self.get_screen_pos()
@@ -282,6 +303,7 @@ class GenericViewer(Viewer):
         if (mode == self.__view_mode): return
         was_fullscreen = (self.__view_mode == self._VIEWMODE_PLAYER_FULLSCREEN)
         self.__view_mode = mode
+        self.__update_input_context()
         w, h = self.get_size()
 
         if (mode == self._VIEWMODE_BROWSER):
@@ -361,6 +383,8 @@ class GenericViewer(Viewer):
             self.set_title("Media Library")
             
             self.emit_event(msgs.UI_ACT_THAW)
+       
+        
         
           
 
@@ -415,7 +439,7 @@ class GenericViewer(Viewer):
         if (not self.is_active()): return
         
         
-        if (msg == msgs.HWKEY_EV_DOWN):
+        if (msg == msgs.INPUT_EV_DOWN):
             w, h = self.__list.get_size()
             idx = self.__list.get_index_at(h)
             if (idx != -1):
@@ -423,7 +447,7 @@ class GenericViewer(Viewer):
                 self.__list.scroll_to_item(new_idx)
                 self.emit_event(msgs.CORE_ACT_SCROLL_UP)
             
-        elif (msg == msgs.HWKEY_EV_UP):
+        elif (msg == msgs.INPUT_EV_UP):
             idx = self.__list.get_index_at(0)
             if (idx != -1):
                 new_idx = max(0, idx - 2)
@@ -465,19 +489,31 @@ class GenericViewer(Viewer):
 
 
         # watch FULLSCREEN hw key
-        if (msg == msgs.HWKEY_EV_FULLSCREEN):
-            if (self.__view_mode in \
-              (self._VIEWMODE_PLAYER_NORMAL, self._VIEWMODE_PLAYER_FULLSCREEN)):
-                self.__on_toggle_fullscreen()
+        if (msg == msgs.INPUT_EV_FULLSCREEN):
+            #if (self.__view_mode in \
+            #  (self._VIEWMODE_PLAYER_NORMAL, self._VIEWMODE_PLAYER_FULLSCREEN)):
+            self.__on_toggle_fullscreen()
                 
         # watch INCREMENT hw key
-        elif (msg == msgs.HWKEY_EV_INCREMENT):
+        elif (msg == msgs.INPUT_EV_VOLUME_UP):
             self.__media_widget.increment()
             
         # watch DECREMENT hw key
-        elif (msg == msgs.HWKEY_EV_DECREMENT):
+        elif (msg == msgs.INPUT_EV_VOLUME_DOWN):
             self.__media_widget.decrement()
 
+                
+        elif (msg == msgs.INPUT_EV_PLAY):
+            self.__media_widget.play_pause()
+
+        # go to previous
+        elif (msg == msgs.INPUT_EV_PREVIOUS):
+            self.__go_previous()
+            
+        # go to next
+        elif (msg == msgs.INPUT_EV_NEXT):
+            self.__go_next()
+   
 
     def __on_lib_item_button(self, item, idx, button):
     
@@ -494,13 +530,13 @@ class GenericViewer(Viewer):
     
         if (idx == -1): return
 
-        if (px < 208):
+        if (px < 196):
             uri = item.get_path()
             mtypes = item.get_media_types()
 
-            if (px < 82):    mtypes ^= 1
-            elif (px < 146): mtypes ^= 2
-            elif (px < 208): mtypes ^= 4
+            if (px < 68):    mtypes ^= 1
+            elif (px < 132): mtypes ^= 2
+            elif (px < 196): mtypes ^= 4
             item.set_media_types(mtypes)
             self.__lib_list.invalidate_buffer()
             self.__lib_list.render()
@@ -818,7 +854,7 @@ class GenericViewer(Viewer):
             item = SubItem(entry)
         buttons = []
         
-        if (entry.mimetype == "audio/x-music-folder"):
+        if (entry.mimetype == "application/x-music-folder"):
             buttons.append((item.BUTTON_OPEN, theme.mb_item_btn_play))
             
         elif (entry.mimetype.endswith("-folder")):
@@ -1115,7 +1151,7 @@ class GenericViewer(Viewer):
                                [""], path, items_to_thumbnail)
             else:
                 # create new thumbnail
-                self.call_service(msgs.MEDIASCANNER_SVC_SCAN_FILE, f,
+                self.call_service(msgs.MEDIASCANNER_SVC_CREATE_THUMBNAIL, f,
                                   on_created, item, tn)
 
             #end if
@@ -1146,6 +1182,8 @@ class GenericViewer(Viewer):
                 return True
     
         Viewer.show(self)
+        self.__update_input_context()
+        
         if (not self.__current_device):
             self.__list.clear_items()
             self.__subfolder_range = None

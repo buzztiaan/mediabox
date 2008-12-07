@@ -34,7 +34,7 @@ class AudioStorage(Device):
         self.__albums = []
         
         media, nil, nil = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
-                                            ["audio/x-music-folder"])
+                                            ["application/x-music-folder"])
         print "MEDIA", media
         for f in media:
             self.__albums.append(f)            

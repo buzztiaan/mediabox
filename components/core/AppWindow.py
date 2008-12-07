@@ -404,7 +404,7 @@ class AppWindow(Component, RootPane):
 
 
     def __show_tabs(self):
-    
+          
         w, h = self.get_size()
 
         self.set_enabled(False)
@@ -431,6 +431,8 @@ class AppWindow(Component, RootPane):
         self.__touch_back_area.set_visible(True)
         self.__touch_back_area.set_enabled(True)
         self.__touch_back_area.set_geometry(0, 0, w - cw, h - th)
+        
+        self.emit_event(msgs.INPUT_EV_CONTEXT_MENU)
 
 
 
@@ -491,6 +493,7 @@ class AppWindow(Component, RootPane):
             screen = Pixmap(self.__window.window)
             self.set_screen(screen)
             self.set_size(w, h)
+            self.__tab_panel.set_size(w, 0)
             self.render_buffered()
 
     def __on_expose(self, src, ev):
@@ -511,6 +514,7 @@ class AppWindow(Component, RootPane):
 
 
         #if (not self.is_enabled()): return
+        if (self.have_animation_lock()): return
     
         keyval = ev.keyval
         key = gtk.gdk.keyval_name(keyval)
@@ -520,15 +524,20 @@ class AppWindow(Component, RootPane):
         if (key == "space"): key = " "
         
         if (key == "Escape"):
-            if (self.__tab_panel.is_visible()):
-                self.__tab_panel.close()
-            else:
-                self.__show_tabs()
+            self.emit_event(msgs.HWKEY_EV_ESCAPE)
+        
         elif (key == "Return"):
-            if (self.__tab_panel.is_visible()):
-                self.__tab_panel.close()
-            else:
-                self.emit_event(msgs.HWKEY_EV_ENTER)
+            self.emit_event(msgs.HWKEY_EV_ENTER)
+        #if (key == "Escape"):
+        #    if (self.__tab_panel.is_visible()):
+        #        self.__tab_panel.close()
+        #    else:
+        #        self.__show_tabs()
+        #elif (key == "Return"):
+        #    if (self.__tab_panel.is_visible()):
+        #        self.__tab_panel.close()
+        #    else:
+        #        self.emit_event(msgs.HWKEY_EV_ENTER)
                 
         elif (key == "F6"):
             self.emit_event(msgs.HWKEY_EV_FULLSCREEN)
@@ -673,7 +682,7 @@ class AppWindow(Component, RootPane):
         if (cmd == src.OBS_TAB_SELECTED):
             idx = args[0]
             #self.__tab_panel.fx_lower()
-
+                      
             self.__window_ctrls.set_visible(False)
             self.__window_ctrls.fx_slide_out()
             self.__tab_panel.set_visible(False)
@@ -688,7 +697,8 @@ class AppWindow(Component, RootPane):
                 self.__tab_panel.fx_lower()
                 self.set_enabled(True)
                 self.set_frozen(False)
-                self.render_buffered()
+                #self.render_buffered()
+                self.__current_viewer.show()
         
         elif (cmd == src.OBS_REPEAT_MODE):
             mode = args[0]
@@ -856,6 +866,18 @@ class AppWindow(Component, RootPane):
             self.__tab_panel.set_currently_playing(idx)
 
 
+        elif (event == msgs.INPUT_EV_MENU):
+            if (self.__tab_panel.is_visible()):
+                self.__tab_panel.close()
+            else:
+                self.__show_tabs()
+
+        elif (event == msgs.INPUT_EV_ENTER):
+            if (self.__tab_panel.is_visible()):
+                self.__tab_panel.close()
+
+
+
     def __get_vstate(self, viewer = None):
     
         if (not viewer):
@@ -928,7 +950,7 @@ class AppWindow(Component, RootPane):
             self.__strip.set_offset(offset)
             if (item_idx >= 0):
                 self.__hilight_item(item_idx)
-
+            
             self.fx_slide_in() #render() #_buffered()
             self.set_frozen(False)
 

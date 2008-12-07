@@ -124,8 +124,8 @@ class LocalDevice(Device):
             #children = item.get_children()
             #for c in children:
             #    if (c.mimetype.startswith("audio/")
-            #        and c.mimetype != "audio/x-music-folder"):
-            #        item.mimetype = "audio/x-music-folder"
+            #        and c.mimetype != "application/x-music-folder"):
+            #        item.mimetype = "application/x-music-folder"
             #        break
             ##end for
             #item.child_count = len(children)

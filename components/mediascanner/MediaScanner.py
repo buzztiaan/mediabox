@@ -52,7 +52,7 @@ class MediaScanner(Component):
             mediaroots = args[0]
             self.__scan(mediaroots)
             
-        elif (ev == msgs.MEDIASCANNER_SVC_SCAN_FILE):
+        elif (ev == msgs.MEDIASCANNER_SVC_CREATE_THUMBNAIL):
             f, cb = args[:2]
             u_args = args[2:]
             
@@ -167,7 +167,6 @@ class MediaScanner(Component):
 
             logging.info("finished scanning [%s]", mediaroot)
         #end for
-        print "FINISHED"
 
         self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
         

@@ -25,6 +25,7 @@ WAV                            oms
 3GPP                           oms
 AVI                            mplayer
 ASF                            mplayer
+DVD-Image                      mplayer
 Flash-Video                    mplayer
 MP4-Video                      oms
 MPEG                           oms

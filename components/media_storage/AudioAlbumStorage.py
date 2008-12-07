@@ -76,13 +76,15 @@ class AudioAlbumStorage(AudioArtistStorage):
                     seen.append(album)
                     album_f = self.call_service(msgs.CORE_SVC_GET_FILE, fp)
                     f = File(self)
+                    f.is_local = True
                     f.path = path + urlquote.quote(artist + "/" + album)
                     f.can_skip = True
                     f.name = album
                     f.info = artist
                     #f.info = "%d items" % len(self.__albums[(artist, album)])
-                    f.mimetype = "audio/x-music-folder" #f.DIRECTORY
+                    f.mimetype = "application/x-music-folder" #f.DIRECTORY
                     if (album_f):
+                        f.resource = album_f.resource
                         f.thumbnail_md5 = album_f.md5
 
                     cb(f, *args)

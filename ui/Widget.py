@@ -3,6 +3,7 @@ Every widget is derived from this base class.
 """
 
 import time
+import threading
 
 
 class Widget(object):
@@ -15,8 +16,11 @@ class Widget(object):
     EVENT_MOTION = 2
     
     
-    # static flag for blocking event handling
-    __events_blocked = [False]
+    # static lock for blocking event handling
+    __events_lock = threading.Event()
+
+    # static lock for animations
+    __animation_lock = threading.Event()
 
     # widget instances
     __instances = []
@@ -63,7 +67,7 @@ class Widget(object):
                         event type)
         """
 
-        if (self.__events_blocked[0]): return
+        if (self.__events_lock.isSet() or self.__animation_lock.isSet()): return
         
         handlers = self.__event_handlers.get(ev, [])
         for cb, user_args in handlers:
@@ -84,15 +88,42 @@ class Widget(object):
         self.send_event(etype, px2, py2)
 
 
+    def set_animation_lock(self, value):
+        """
+        Sets the global lock for blocking animations.
+        
+        @param value: whether the lock is set.
+        """
+        
+        if (value):
+            self.__animation_lock.set()
+        else:
+            self.__animation_lock.clear()
+            
+            
+    def have_animation_lock(self):
+        """
+        Returns whether the animation lock is set.
+        
+        @return: whether the lock is set
+        """
+        
+        return self.__animation_lock.isSet()
+        
+
+
     def set_events_blocked(self, value):
         """
-        Sets the global flag for blocking events. While events are blocked,
+        Sets the global lock for blocking events. While events are blocked,
         no event handling takes place by the Widget class.
         
         @param value: whether events are blocked (True) or not (False)
         """
     
-        self.__events_blocked[0] = value
+        if (value):
+            self.__events_lock.set()
+        else:
+            self.__events_lock.clear()
     
     
     def get_children(self):

@@ -35,9 +35,7 @@ class TabPanel(HilightingWidget, Observable):
         self.__currently_playing = -1
         
         self.__lock = threading.Event()
-        
-        self.__pos = (0, 0)
-        
+
         # icon widgets
         self.__icons = []
         self.__viewers = []
@@ -46,6 +44,8 @@ class TabPanel(HilightingWidget, Observable):
         # whether the widget is prepared for rendering
         self.__is_prepared = False
 
+        self.__is_raised = False
+        
         
         HilightingWidget.__init__(self)        
         self.set_hilighting_box(
@@ -103,8 +103,6 @@ class TabPanel(HilightingWidget, Observable):
 
     def __on_tab_selected(self, px, py, idx):
 
-        if (self.__lock.isSet()): return
-
         self.select_viewer(idx)
 
 
@@ -121,8 +119,7 @@ class TabPanel(HilightingWidget, Observable):
 
 
     def __prepare(self):
-    
-    
+           
         # compute size and position icons
         pw, ph = self.get_parent().get_size()
         i_x = i_y = i_w = i_h = 20
@@ -148,9 +145,12 @@ class TabPanel(HilightingWidget, Observable):
 
         # prepare backing buffer
         self.__backing_buffer = Pixmap(None, w, h)
-        
+
+        csrx, csry = self.__get_cursor_position(self.__index)
+        x, y = self.__position_matrix[csry][csrx]
+        self.place_hilighting_box(x, y)
+
         self.__is_prepared = True
-        
 
 
     def render_this(self):
@@ -240,6 +240,7 @@ class TabPanel(HilightingWidget, Observable):
                               self.update_observer, self.OBS_TAB_SELECTED, idx)
 
         self.__index = idx
+        self.__is_raised = False
 
 
     def set_currently_playing(self, idx):
@@ -252,6 +253,7 @@ class TabPanel(HilightingWidget, Observable):
       
         self.__index = self.__get_index_from_cursor(*self.__cursor_position)
         self.update_observer(self.OBS_TAB_SELECTED, self.__index)
+        self.__is_raised = False
 
 
     def up(self):
@@ -262,14 +264,14 @@ class TabPanel(HilightingWidget, Observable):
 
 
     def down(self):
-    
+
         csr_x, csr_y = self.__cursor_position
         idx = self.__get_index_from_cursor(csr_x, csr_y + 1)
         self.__hilight_item(idx, None)
 
 
     def left(self):
-    
+
         csr_x, csr_y = self.__cursor_position
         idx = self.__get_index_from_cursor(csr_x - 1, csr_y)
         self.__hilight_item(idx, None)
@@ -282,6 +284,7 @@ class TabPanel(HilightingWidget, Observable):
         self.__hilight_item(idx, None)
 
 
+        """
     def fx_raise(self, wait = True):
     
         if (self.__lock.isSet()): return
@@ -320,8 +323,57 @@ class TabPanel(HilightingWidget, Observable):
         self.__cursor_position = self.__get_cursor_position(self.__index)
         gobject.timeout_add(0, self.__hilight_item, self.__index, None)
         gobject.timeout_add(250, self.set_events_blocked, False)
+        """
 
 
+    def fx_raise(self, wait = True):
+
+        if (self.have_animation_lock() or self.__is_raised): return
+        self.set_animation_lock(True)
+        self.__is_raised = True
+
+        if (not self.__is_prepared):
+            self.__prepare()
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        pw, ph = self.get_parent().get_size()
+        screen = self.get_screen()
+
+        buf = Pixmap(None, pw, h)
+        self.render_at(buf)
+        
+        self.__backing_buffer.copy_pixmap(screen, 0, 0, 0, 0, pw, h)
+        finished = threading.Event()
+
+
+        def fx(from_y, to_y):
+            dy = (to_y - from_y) / 10
+            if (dy > 0):
+                screen.move_area(0, dy, pw, ph - from_y - dy, 0, -dy)
+                screen.copy_pixmap(buf, 0, h - from_y - dy, 0, ph - from_y - dy,
+                                   pw, dy)
+                gobject.timeout_add(10, fx, from_y + dy, to_y)
+            else:
+                dy = to_y - from_y
+                screen.move_area(0, dy, pw, ph - from_y - dy, 0, -dy)
+                screen.copy_pixmap(buf, 0, h - from_y - dy, 0, ph - from_y - dy,
+                                   pw, dy)
+                finished.set()
+                self.__lock.clear()
+        
+
+        self.set_events_blocked(True)
+        fx(0, h)
+        while (wait and not finished.isSet()): gtk.main_iteration(False)
+        self.set_frozen(False)
+        self.set_animation_lock(False)
+        #self.set_events_blocked(False)
+        gobject.timeout_add(250, self.set_events_blocked, False)
+
+
+
+        """
     def fx_lower(self, wait = True):
 
         if (self.__lock.isSet()): return
@@ -348,5 +400,43 @@ class TabPanel(HilightingWidget, Observable):
         self.set_events_blocked(True)
         f(0)
         while (wait and not finished.isSet()): gtk.main_iteration(False)        
+        gobject.timeout_add(250, self.set_events_blocked, False)
+        """
+
+
+    def fx_lower(self, wait = True):
+
+        if (self.have_animation_lock() or not self.__is_raised): return
+        self.set_animation_lock(True)
+        self.__is_raised = False
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        pw, ph = self.get_parent().get_size()
+        screen = self.get_screen()
+
+        finished = threading.Event()
+        
+        def fx(from_y, to_y):
+            dy = (to_y - from_y) / 10
+            if (dy > 0):
+                screen.move_area(0, 0, pw, ph - h + from_y, 0, dy)
+                screen.copy_pixmap(self.__backing_buffer,
+                                   0, h - from_y - dy, 0, 0, pw, dy)
+                gobject.timeout_add(10, fx, from_y + dy, to_y)
+            else:
+                dy = to_y - from_y
+                screen.move_area(0, 0, pw, ph - h + from_y, 0, dy)
+                screen.copy_pixmap(self.__backing_buffer,
+                                   0, h - from_y - dy, 0, 0, pw, dy)
+                finished.set()
+                self.__lock.clear()
+        
+        self.set_events_blocked(True)
+        fx(0, h)
+        while (wait and not finished.isSet()): gtk.main_iteration(False)
+        self.set_frozen(False)
+        self.set_animation_lock(False)
+        #self.set_events_blocked(False)
         gobject.timeout_add(250, self.set_events_blocked, False)
 

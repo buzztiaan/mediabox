@@ -47,6 +47,14 @@ class MediaWidget(Widget):
         return self.__controls[:]
 
 
+    def play_pause(self):
+        """
+        Plays or pauses the current file.
+        """
+        
+        pass
+
+
     def stop(self):
         """
         Stops playing the current file.

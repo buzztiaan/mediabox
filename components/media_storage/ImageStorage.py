@@ -91,7 +91,7 @@ class ImageStorage(Device):
                 f.is_local = True
                 f.path = "/" + folder
                 f.can_skip = True
-                f.mimetype = "image/x-image-folder"
+                f.mimetype = "application/x-image-folder"
                 f.resource = ""
                 f.name = folder
                 f.info = "%d items" % len(self.__folders.get(folder, []))

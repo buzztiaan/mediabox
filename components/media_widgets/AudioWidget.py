@@ -390,6 +390,12 @@ class AudioWidget(MediaWidget):
         self.__load_handler = gobject.idle_add(f)
 
 
+    def play_pause(self):
+    
+        if (self.__player):
+            self.__on_play_pause()
+
+
     def stop(self):
     
         if (self.__player):
