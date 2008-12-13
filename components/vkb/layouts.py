@@ -34,8 +34,16 @@ def get_default_layout():
 #
 # layouts taken from N810 keyboards
 #
+# [x] US
+# [ ] FISENODA
+# [ ] PTES
+# [ ] FR
+# [x] DE
+# [x] RU
+# [ ] IT
+#
 
-EN = Layout(Block(0.8,
+US = Layout(Block(0.8,
                   Row(Key("q", "Q", "1"),
                       Key("w", "W", "2"),
                       Key("e", "E", "3"),
@@ -136,5 +144,54 @@ DE = Layout(Block(0.8,
      )
 
 
-C = EN
+RU = Layout(Block(0.8,
+                  Row(Key("й", "Й", "1"),
+                      Key("ц", "Ц", "2"),
+                      Key("у", "У", "3"),
+                      Key("к", "К", "4"),
+                      Key("е", "Е", "5"),
+                      Key("н", "Н", "6"),
+                      Key("г", "Г", "7"),
+                      Key("ш", "Ш", "8"),
+                      Key("щ", "Щ", "9"),
+                      Key("з", "З", "0"),
+                      Key("^", "°", "|")
+                  ),
+                  Row(Key("ф", "Ф", "!"),
+                      Key("ы", "Ы", "\""),
+                      Key("в", "В", "@"),
+                      Key("а", "А", "#"),
+                      Key("п", "П", "\\"),
+                      Key("р", "Р", "/"),
+                      Key("о", "О", "("),
+                      Key("л", "Л", ")"),
+                      Key("д", "Д", ":"),
+                      Key("ж", "Ж", ";"),
+                      Key(".", ",", ".")
+                  ),
+                  Row(Key("я", "Я", "_"),
+                      Key("ч", "Ч", "%"),
+                      Key("с", "С", ""),
+                      Key("м", "М", "="),
+                      Key("и", "И", "&"),
+                      Key("т", "Т", "*"),
+                      Key("ь", "ь", "'"),
+                      Key("б", "Б", "-"),
+                      Key("ю", "Ю", "?"),
+                      Key("х", "Х", "Ъ"),
+                      Key("э", "Э", "Ё")
+                  )
+            ),
+            Block(0.1,
+                  Row(Key(" ", " ", " "))
+            ),
+            Block(0.1,
+                  Row(BACKSPACE),
+                  Row(ALT),
+                  Row(SHIFT),
+                  Row(HIDE)
+            )
+     )
+
+C = RU
 
