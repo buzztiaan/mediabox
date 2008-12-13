@@ -32,8 +32,9 @@ class Config(object):
 
     INTEGER = 0
     STRING = 1
-    INTEGER_LIST = 2
-    STRING_LIST = 3
+    BOOL = 2
+    INTEGER_LIST = 3
+    STRING_LIST = 4
     
     
     def __init__(self, agent, schema):
@@ -95,6 +96,15 @@ class Config(object):
         elif (dtype == self.INTEGER_LIST):
             return _CLIENT.get_list(self.__prefix + key, gconf.VALUE_INT) \
                    or default
+        elif (dtype == self.BOOL):
+            try:
+                have_key = _CLIENT.get_without_default(self.__prefix + key)
+            except:
+                have_key = False
+
+            v = _CLIENT.get_bool(self.__prefix + key)
+            if (not have_key): v = default
+            return v
         else:
             return None    
         
@@ -111,4 +121,6 @@ class Config(object):
             _CLIENT.set_int(self.__prefix + key, value)
         elif (dtype == self.INTEGER_LIST):
             _CLIENT.set_list(self.__prefix + key, gconf.VALUE_INT, value)
+        elif (dtype == self.BOOL):
+            _CLIENT.set_bool(self.__prefix + key, value)
 

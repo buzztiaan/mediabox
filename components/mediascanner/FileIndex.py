@@ -8,7 +8,7 @@ _INDEX_FILE = os.path.join(values.USER_DIR, "files.idx")
 
 # when the index format becomes incompatible, raise the magic number to force
 # rejection of old index
-_MAGIC = 0xbeef0000
+_MAGIC = 0xbeef0001
 
 
 _NUMBER_OF_FIELDS = 4
@@ -174,4 +174,10 @@ class FileIndex(object):
             else:
                 self.set_field(self.STATUS, fp, self.STATUS_UNCHANGED)
         #end for
+
+
+    def clear(self):
+    
+        self.__is_dirty = True
+        self.__index.clear()
 

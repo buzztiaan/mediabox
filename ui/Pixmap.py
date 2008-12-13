@@ -377,6 +377,23 @@ class Pixmap(object):
             self.__buffer.draw_rectangle(self.__buffer_gc, False, x, y, w, h)
 
 
+    def draw_centered_text(self, text, font, x, y, w, h, color,
+                           use_markup = False):
+        """
+        Centers the given text string within the given area.
+
+        @param text: text string
+        @param font: font
+        @param x y w h: area
+        @param color: text color
+        @param use_markup: whether text contains Pango markup
+        """                        
+   
+        tw, th = text_extents(text, font)
+        tx = x + (w - tw) / 2
+        ty = y + (h - th) / 2
+        self.draw_text(text, font, tx, ty, color, use_markup)
+
                                     
 
     def draw_text(self, text, font, x, y, color, use_markup = False):

@@ -30,7 +30,7 @@ class WindowControls(Widget, Observable):
                                    theme.mb_window_close_2,
                                    self.OBS_CLOSE_WINDOW)]:
             btn = ImageButton(icon1, icon2)
-            btn.set_geometry(x, 0, 80, 80)
+            btn.set_geometry(x + 19, 19, 42, 42)
             self.add(btn)
             btn.connect_clicked(self.update_observer, cmd)
             x += 100

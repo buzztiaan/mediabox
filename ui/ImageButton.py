@@ -23,6 +23,7 @@ class ImageButton(Widget):
     
     def _reload(self):
     
+        #self.__bg = None
         self.set_images(self.__img1, self.__img2)
     
     
@@ -42,38 +43,56 @@ class ImageButton(Widget):
         screen = self.get_screen()
         
         # save background
+        #if (not self.__bg):
+        #    self.__bg = Pixmap(None, w, h)
         self.__bg.copy_buffer(screen, x, y, 0, 0, w, h)
 
-        self.__render_button(self.__state)            
+        self.__render_button()
                      
         
     def __on_click(self, px, py, clicked):
     
         if (clicked):
-            self.__render_button(1)
+            self.__state = 1
+            #self.__render_button(1)
         else:
-            self.__render_button(0)        
+            self.__state = 0
+            #self.__render_button(0)
+        self.__render_button()
+            
         
+        
+    def _render_content(self, cnv):
+        
+        pass
+    
 
 
-    def __render_button(self, state):
+    def __render_button(self):
 
-        self.__state = state
+        #self.__state = state
         if (not self.may_render()): return
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()    
         screen = self.get_screen()
 
-        if (state == 0):
+        if (self.__state == 0):
             img = self.__img1
         else:
             img = self.__img2
 
         self.__buffer.copy_pixmap(self.__bg, 0, 0, 0, 0, w, h)
-        self.__buffer.draw_pixbuf(img,
-                                  (w - img.get_width()) / 2,
-                                  (h - img.get_height()) / 2)
+        #self.__buffer.draw_pixbuf(img,
+        #                          (w - img.get_width()) / 2,
+        #                          (h - img.get_height()) / 2)
+        if ((w, h) != (img.get_width(), img.get_height())):
+            self.__buffer.draw_frame(img, 0, 0, w, h, True)
+        else:
+            self.__buffer.draw_pixbuf(img, 0, 0)
+        
+        self._render_content(self.__buffer)
+        
         screen.copy_pixmap(self.__buffer, 0, 0, x, y, w, h)
 
        
@@ -83,13 +102,17 @@ class ImageButton(Widget):
         self.__img1 = img1
         self.__img2 = img2
         
-        self.__render_button(self.__state)
+        #self.__render_button(self.__state)
+        self.__render_button()
 
 
     def set_active(self, active):
     
         if (active):
-            self.__render_button(1)
+            self.__state = 1
+            #self.__render_button(1)
         else:
-            self.__render_button(0)
+            self.__state = 0
+            #self.__render_button(0)
+        self.__render_button()
 

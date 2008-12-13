@@ -134,5 +134,10 @@ class SideTabs(HilightingWidget):
     
         tab_w, tab_h = self.__tab_size
         cb, args = self.__tab_callbacks[idx]
-        self.move_hilighting_box(0, idx * tab_h, cb, *args)
+        self.move_hilighting_box(0, idx * tab_h)
+        try:
+            cb(*args)
+        except:
+            pass
+
 

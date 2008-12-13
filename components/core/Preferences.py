@@ -1,5 +1,6 @@
 from com import Viewer, Configurator, msgs
 from PrefsThumbnail import PrefsThumbnail
+from mediabox import viewmodes
 import theme
 
 
@@ -29,7 +30,6 @@ class Preferences(Viewer):
         tn = PrefsThumbnail(comp.ICON, comp.TITLE)
         self.__thumbnails.append(tn)
         
-        self.set_collection(self.__thumbnails)
 
 
     def __show_configurator(self, configurator):
@@ -56,4 +56,12 @@ class Preferences(Viewer):
                 idx = args[0]
                 configurator = self.__configurators[idx]
                 self.__show_configurator(configurator)
+
+
+    def show(self):
+    
+        Viewer.show(self)
+        self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+        self.emit_event(msgs.INPUT_EV_CONTEXT_BROWSER)
+        self.set_collection(self.__thumbnails)
 

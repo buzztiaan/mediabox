@@ -49,8 +49,8 @@ class MediaScanner(Component):
     def handle_event(self, ev, *args):
     
         if (ev == msgs.MEDIASCANNER_ACT_SCAN):
-            mediaroots = args[0]
-            self.__scan(mediaroots)
+            mediaroots, rebuild_index = args
+            self.__scan(mediaroots, rebuild_index)
             
         elif (ev == msgs.MEDIASCANNER_SVC_CREATE_THUMBNAIL):
             f, cb = args[:2]
@@ -89,7 +89,7 @@ class MediaScanner(Component):
         
 
 
-    def __scan(self, mediaroots):
+    def __scan(self, paths, rebuild_index):
         """
         Scans the media folders recursively.
         """
@@ -99,7 +99,12 @@ class MediaScanner(Component):
         
         self.__file_index.clear_status()
         scanned_roots = self.__file_index.get_roots()
-        #print "SCANNED ROOTS", scanned_roots
+
+        mediaroots = []
+        for path, mtypes in paths:
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
+            if (f): mediaroots.append((f, mtypes))
+        #end for
         
         new_types = {}
         for m, t in mediaroots:
@@ -107,7 +112,8 @@ class MediaScanner(Component):
         
         # find out which media roots are new
         new_roots = [ m.full_path for m, t in mediaroots
-                      if not m.full_path in scanned_roots ]
+                      if not m.full_path in scanned_roots
+                         and self.__file_exists(m.full_path) ]
 
         # find out which media roots have been removed
         mediapaths = [ m.full_path for m, t in mediaroots ]
@@ -132,14 +138,20 @@ class MediaScanner(Component):
         #end for
         
         # scan new roots
-        for mediaroot in new_roots + unchanged_roots:           
+        if (rebuild_index):
+            to_scan = new_roots + unchanged_roots
+        else:
+            to_scan = new_roots
+
+        for mediaroot in to_scan:           
             f = self.call_service(msgs.CORE_SVC_GET_FILE, mediaroot)
             if (not f or not os.path.exists(f.resource)): continue
 
             mediatypes = new_types.get(mediaroot, 0)
 
             # skip those with all types unchanged (not for new_roots)
-            if (mediatypes == self.__mediaroot_types.get(mediaroot, 0)
+            if (not rebuild_index 
+                and mediatypes == self.__mediaroot_types.get(mediaroot, 0)
                 and not mediaroot in new_roots):
                 continue
             else:
@@ -309,8 +321,8 @@ class MediaScanner(Component):
             #end for
         #end for
                 
-        #print "CURRENT", media
-        #print "NEW", added
-        #print "REMOVED", removed
+        print "CURRENT", media
+        print "NEW", added
+        print "REMOVED", removed
         return (media, added, removed)
 

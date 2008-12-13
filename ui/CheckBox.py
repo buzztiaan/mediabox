@@ -6,8 +6,8 @@ from Widget import Widget
 import theme
 
 
-_CHECK_WIDTH = theme.mb_checked.get_width() + 8
-_CHECK_HEIGHT = theme.mb_checked.get_height()
+_CHECK_WIDTH = theme.mb_checkbox_1.get_width() + 8
+_CHECK_HEIGHT = theme.mb_checkbox_1.get_height()
 
 class CheckBox(Widget):
     """
@@ -50,11 +50,12 @@ class CheckBox(Widget):
         if (not children):
             return
         
+        offx = _CHECK_WIDTH
         if (self.__is_checked):
-            offx = _CHECK_WIDTH
+            pbuf = theme.mb_checkbox_2
         else:
-            offx = 0
-            
+            pbuf = theme.mb_checkbox_1
+           
         child = children[0]
         child.set_pos(offx, 0)
 
@@ -63,8 +64,7 @@ class CheckBox(Widget):
         screen = self.get_screen()
         
         screen.fill_area(x, y, w, h, theme.color_mb_background)
-        if (self.__is_checked):
-            screen.draw_pixbuf(theme.mb_checked, x, y)
+        screen.draw_pixbuf(pbuf, x, y)
         
         
     def lock_unchecking(self):

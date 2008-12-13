@@ -2,6 +2,7 @@ from Widget import Widget
 from Pixmap import Pixmap
 
 import gobject
+import gtk
 
 
 class HilightingWidget(Widget):
@@ -63,14 +64,12 @@ class HilightingWidget(Widget):
         self.__box_pos = (x, y)
 
 
-    def move_hilighting_box(self, new_x, new_y, cb, *user_args):
+    def move_hilighting_box(self, new_x, new_y):
         """
         Moves the hilighting box to the given position.
         
         @param new_x:      x coordinate
         @param new_y:      y coordinate
-        @param cb:         callback to invoke when finished
-        @param *user_args: user arguments for the callback
         """
     
         def move_box(from_x, from_y, to_x, to_y):
@@ -88,19 +87,25 @@ class HilightingWidget(Widget):
                 self.__motion_timer = None
                 self.set_animation_lock(False)
 
-                if (cb):
-                    cb(*user_args)
+
+        if (not self.may_render()):
+            self.place_hilighting_box(new_x, new_y)
     
+        elif (self.have_animation_lock()):
+            return
+            
+        else:
+            self.set_animation_lock(True)
 
-        if (self.have_animation_lock()): return
-        self.set_animation_lock(True)
+            prev_x, prev_y = self.__box_pos
+            
+            if (self.__motion_timer):
+                gobject.source_remove(self.__motion_timer)
 
-        prev_x, prev_y = self.__box_pos
-        if (self.__motion_timer):
-            gobject.source_remove(self.__motion_timer)
-
-        self.__motion_timer = gobject.timeout_add(10, move_box,
+            self.__motion_timer = gobject.timeout_add(10, move_box,
                                                   prev_x, prev_y, new_x, new_y)
+            while (self.__motion_timer): gtk.main_iteration(False)
+        #end if
 
 
     def __move_cursor(self, x1, y1, dx, dy):

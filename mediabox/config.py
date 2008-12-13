@@ -21,6 +21,7 @@ _cfg = Config("",
                ("mediaroot_types", Config.INTEGER_LIST, []),
                ("repeat_mode", Config.STRING, REPEAT_MODE_NONE),
                ("shuffle_mode", Config.STRING, SHUFFLE_MODE_NONE),
+               ("scan_at_startup", Config.BOOL, True),
                ("thumbnails_folder", Config.STRING, 
                               os.path.expanduser("~/.thumbnails/mediabox")),
                ("theme", Config.STRING, "default"),
@@ -87,6 +88,16 @@ def shuffle_mode():
 def set_shuffle_mode(m):
 
     _cfg["shuffle_mode"] = m
+
+
+def scan_at_startup():
+
+    return _cfg["scan_at_startup"]
+    
+    
+def set_scan_at_startup(v):
+
+    _cfg["scan_at_startup"] = v
 
 
 def thumbdir():

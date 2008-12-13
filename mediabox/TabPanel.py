@@ -68,6 +68,7 @@ class TabPanel(HilightingWidget, Observable):
         btn_repeat.connect_changed(
               lambda v:self.update_observer(self.OBS_REPEAT_MODE, v))
         #btn_repeat.set_pos(730, 30)
+        btn_repeat.set_size(48, 48)
         btn_repeat.set_value(repeat_mode)
         self.add(btn_repeat)
         
@@ -77,6 +78,7 @@ class TabPanel(HilightingWidget, Observable):
         btn_shuffle.connect_changed(
               lambda v:self.update_observer(self.OBS_SHUFFLE_MODE, v))
         #btn_shuffle.set_pos(730, 100)
+        btn_shuffle.set_size(48, 48)
         btn_shuffle.set_value(shuffle_mode)
         self.add(btn_shuffle)
         
@@ -104,6 +106,10 @@ class TabPanel(HilightingWidget, Observable):
     def __on_tab_selected(self, px, py, idx):
 
         self.select_viewer(idx)
+        if (self.may_render()):
+            self.__hilight_item(idx, self.update_observer,
+                                self.OBS_TAB_SELECTED, idx)
+        
 
 
     def add_viewer(self, v):
@@ -170,7 +176,7 @@ class TabPanel(HilightingWidget, Observable):
         b_y = 10
         for btn in self.__buttons:
             b_w, b_h = btn.get_size()
-            btn.set_pos(w - b_w - 10, b_y)
+            btn.set_pos(w - 80 + (80 - b_w) / 2, b_y)
             b_y += 70
         
         if (self.__currently_playing >= 0):
@@ -225,7 +231,11 @@ class TabPanel(HilightingWidget, Observable):
             return
         
         self.__cursor_position = (csr_x, csr_y)
-        self.move_hilighting_box(new_x, new_y, cb, *args)
+        self.move_hilighting_box(new_x, new_y)
+        try:
+            cb(*args)
+        except:
+            pass
 
 
     def select_viewer(self, idx):
@@ -235,12 +245,11 @@ class TabPanel(HilightingWidget, Observable):
         @param idx: index of the viewer
         """
 
-        if (self.may_render()):
-            self.__hilight_item(idx,
-                              self.update_observer, self.OBS_TAB_SELECTED, idx)
+        #if (self.may_render()):
+        #    self.__hilight_item(idx,
+        #                      self.update_observer, self.OBS_TAB_SELECTED, idx)
 
         self.__index = idx
-        self.__is_raised = False
 
 
     def set_currently_playing(self, idx):
@@ -251,8 +260,6 @@ class TabPanel(HilightingWidget, Observable):
         
     def close(self):
       
-        self.__index = self.__get_index_from_cursor(*self.__cursor_position)
-        self.update_observer(self.OBS_TAB_SELECTED, self.__index)
         self.__is_raised = False
 
 
@@ -282,48 +289,6 @@ class TabPanel(HilightingWidget, Observable):
         csr_x, csr_y = self.__cursor_position
         idx = self.__get_index_from_cursor(csr_x + 1, csr_y)
         self.__hilight_item(idx, None)
-
-
-        """
-    def fx_raise(self, wait = True):
-    
-        if (self.__lock.isSet()): return
-        self.__lock.set()
-
-        if (not self.__is_prepared):
-            self.__prepare()
-
-        STEP = 10
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        pw, ph = self.get_parent().get_size()
-        screen = self.get_screen()
-        
-        buf = Pixmap(None, w, h)
-        self.render_at(buf)
-        
-        self.__backing_buffer.copy_pixmap(screen, 0, 0, 0, 0, pw, h)
-        finished = threading.Event()
-        
-        
-        def f(i):
-            screen.move_area(0, STEP, pw, ph - i, 0, -STEP)
-            screen.copy_pixmap(buf, 0, h - i, 0, ph - i, w, STEP)
-            if (i < h):
-                gobject.timeout_add(2, f, i + STEP)
-            else:
-                finished.set()
-                self.__lock.clear()
-                
-        self.set_events_blocked(True)
-        while (gtk.events_pending()): gtk.main_iteration(False)
-        f(STEP)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)
-        
-        self.__cursor_position = self.__get_cursor_position(self.__index)
-        gobject.timeout_add(0, self.__hilight_item, self.__index, None)
-        gobject.timeout_add(250, self.set_events_blocked, False)
-        """
 
 
     def fx_raise(self, wait = True):
@@ -370,38 +335,6 @@ class TabPanel(HilightingWidget, Observable):
         self.set_animation_lock(False)
         #self.set_events_blocked(False)
         gobject.timeout_add(250, self.set_events_blocked, False)
-
-
-
-        """
-    def fx_lower(self, wait = True):
-
-        if (self.__lock.isSet()): return
-        self.__lock.set()
-    
-        STEP = 10
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        pw, ph = self.get_parent().get_size()
-        screen = self.get_screen()
-        
-        finished = threading.Event()
-        
-        def f(i):
-            screen.move_area(0, 0, pw, ph - h + i, 0, STEP)
-            screen.copy_pixmap(self.__backing_buffer, 0, h - i - STEP,
-                               0, 0, w, STEP)
-            if (i < h - STEP):
-                gobject.timeout_add(2, f, i + STEP)
-            else:
-                finished.set()
-                self.__lock.clear()
-                
-        self.set_events_blocked(True)
-        f(0)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)        
-        gobject.timeout_add(250, self.set_events_blocked, False)
-        """
 
 
     def fx_lower(self, wait = True):

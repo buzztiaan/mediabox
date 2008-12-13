@@ -341,18 +341,15 @@ class GenericViewer(Viewer):
                 self.render()
             
             self.emit_event(msgs.UI_ACT_FREEZE)
+            self.__update_toolbar()
+            if (self.__current_file):
+                self.set_title(self.__current_file.name)
 
-            if (not was_fullscreen):
-                self.__update_toolbar()
-                if (self.__current_file):
-                    self.set_title(self.__current_file.name)
-
-                # hilight current item
-                self.set_collection(self.__thumbnails)
-                if (self.__current_file in self.__non_folder_items):
-                    idx = self.__non_folder_items.index(self.__current_file)
-                    self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
-            #end if
+            # hilight current item
+            self.set_collection(self.__thumbnails)
+            if (self.__current_file in self.__non_folder_items):
+                idx = self.__non_folder_items.index(self.__current_file)
+                self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
 
             gobject.timeout_add(50, self.emit_event, msgs.UI_ACT_THAW)
             #self.emit_event(msgs.UI_ACT_THAW)
@@ -391,7 +388,8 @@ class GenericViewer(Viewer):
     def __on_toggle_fullscreen(self):
     
         if (self.__view_mode == self._VIEWMODE_PLAYER_FULLSCREEN):
-            self.__set_view_mode(self._VIEWMODE_PLAYER_NORMAL)
+            #self.__set_view_mode(self._VIEWMODE_PLAYER_NORMAL)
+            self.__side_tabs.select_tab(1)
         else:
             self.__set_view_mode(self._VIEWMODE_PLAYER_FULLSCREEN)
         

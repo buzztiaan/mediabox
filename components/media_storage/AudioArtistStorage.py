@@ -173,14 +173,14 @@ class AudioArtistStorage(Device):
             album = urlquote.unquote(parts[2])
 
             tracks = []
-            
             for f in self._list_files(artist, album):
                 tags = tagreader.get_tags(f)
                 f.name = tags.get("TITLE") or f.name
                 f.info = tags.get("ARTIST") or "unknown"
                 al = tags.get("ALBUM") or "unknown"
                 
-                if ((artist, album) != (f.info, al)): continue
+                print (artist, album), (f.info, al)
+                if (artist != f.info): continue
                 
                 try:
                     trackno = tags.get("TRACKNUMBER")

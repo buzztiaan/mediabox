@@ -461,7 +461,10 @@ class YouTube(Device):
                         "Requesting Video",
                         "- %s -" % f.name,
                         theme.youtube_device)
-        flv = self.__get_flv(f.resource)
+        try:
+            flv = self.__get_flv(f.resource)
+        except:
+            return ""
         self.emit_event(msgs.UI_ACT_HIDE_MESSAGE)
 
         if (self.__flv_downloader):

@@ -19,7 +19,6 @@ from ui import dialogs
 from mediabox import config
 from mediabox import values
 from utils import maemo
-from utils import hildon_input_method
 from mediabox import viewmodes
 import theme
 
@@ -144,7 +143,7 @@ class AppWindow(Component, RootPane):
 
         self.__touch_back_area = EventBox()
         self.__touch_back_area.connect_button_pressed(
-                                          lambda x,y:self.__tab_panel.close())
+                                          lambda x,y:self.__hide_tabs())
         self.__touch_back_area.set_visible(False)
         self.add(self.__touch_back_area)
 
@@ -166,7 +165,7 @@ class AppWindow(Component, RootPane):
                    (self.add, [self.__window_ctrls]),
                    (self.__add_panels, []),
                    #(time.sleep, [5]),
-                   (self.__scan_media, [True]),
+                   (self.__scan_at_startup, []),
                    (self.__select_initial_viewer, []),
                    (self.emit_event, [msgs.CORE_EV_APP_STARTED]),
                    ]
@@ -188,6 +187,19 @@ class AppWindow(Component, RootPane):
         gobject.idle_add(f)
 
 
+
+    def __scan_at_startup(self):
+        """
+        Scans the media at startup if the user wants it so.
+        """
+    
+        if (config.scan_at_startup()):
+            self.__scan_media(True)
+        else:
+            self.__scan_media(False)
+
+
+
     def __select_initial_viewer(self):
         """
         Selects the viewer that is initially shown. Shows the menu if no
@@ -200,8 +212,8 @@ class AppWindow(Component, RootPane):
         if (viewers):
             v = viewers[0]
             idx = self.__viewers.index(v)
-            self.__select_viewer(idx)
             self.__tab_panel.select_viewer(idx)
+            self.__select_viewer(idx)
         else:
             self.__show_tabs()
 
@@ -435,21 +447,34 @@ class AppWindow(Component, RootPane):
         self.emit_event(msgs.INPUT_EV_CONTEXT_MENU)
 
 
+    def __hide_tabs(self):
+    
+        self.__window_ctrls.set_visible(False)
+        self.__window_ctrls.fx_slide_out()
+        self.__tab_panel.set_visible(False)
+        self.__touch_back_area.set_visible(False)
 
-    def __scan_media(self, force_scan):
+        self.__tab_panel.fx_lower()
+        self.set_enabled(True)
+        self.set_frozen(False)        
+
+
+    def __scan_media(self, force_rebuild):
         """
         Scans the media root locations for media files.
+        
+        @param force_scan: scan even if mediaroots and types haven't changed
         """
         
-        if (force_scan):
-            self.__current_mediaroots = []
+        #if (force_scan):
+        #    self.__current_mediaroots = []
 
         mediaroots = config.mediaroot()        
     
-        if (`mediaroots` == `self.__current_mediaroots`):
-            return
-        else:
-            self.__current_mediaroots = mediaroots
+        #if (`mediaroots` == `self.__current_mediaroots`):
+        #    return
+        #else:
+        #    self.__current_mediaroots = mediaroots
 
         if (not mediaroots):
             dialogs.warning("No media library specified!",
@@ -462,12 +487,12 @@ class AppWindow(Component, RootPane):
         self.show_overlay("Scanning Media", "", theme.mb_viewer_audio)
         #self.call_service(msgs.NOTIFY_SVC_SHOW_INFO, "Scanning media")
 
-        paths = []
-        for path, mtypes in mediaroots:
-            f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
-            if (f): paths.append((f, mtypes))
+        #paths = []
+        #for path, mtypes in mediaroots:
+        #    f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
+        #    if (f): paths.append((f, mtypes))
         #end for
-        self.emit_event(msgs.MEDIASCANNER_ACT_SCAN, paths)
+        self.emit_event(msgs.MEDIASCANNER_ACT_SCAN, mediaroots, force_rebuild)
         
 
         for v in self.__viewers:
@@ -528,16 +553,6 @@ class AppWindow(Component, RootPane):
         
         elif (key == "Return"):
             self.emit_event(msgs.HWKEY_EV_ENTER)
-        #if (key == "Escape"):
-        #    if (self.__tab_panel.is_visible()):
-        #        self.__tab_panel.close()
-        #    else:
-        #        self.__show_tabs()
-        #elif (key == "Return"):
-        #    if (self.__tab_panel.is_visible()):
-        #        self.__tab_panel.close()
-        #    else:
-        #        self.emit_event(msgs.HWKEY_EV_ENTER)
                 
         elif (key == "F6"):
             self.emit_event(msgs.HWKEY_EV_FULLSCREEN)
@@ -573,22 +588,20 @@ class AppWindow(Component, RootPane):
             
         
         elif (key == "BackSpace"):
+            self.emit_event(msgs.HWKEY_EV_BACKSPACE)
             term = self.__get_search_term()
             if (term):
                 term = term[:-1]
                 self.__set_search_term(term)
-        
+       
         elif (len(key) == 1 and ord(key) > 31):
             print "KEY", key
-
+            self.emit_event(msgs.HWKEY_EV_KEY, key)
             term = self.__get_search_term()
             term += key.lower()
             self.__set_search_term(term)
+
         
-        else:
-            pass
-            
-        return True
 
 
     def __show_virtual_keyboard(self):
@@ -596,29 +609,34 @@ class AppWindow(Component, RootPane):
         Displays the virtual keyboard.
         """
 
-        def f(src, s):            
-            print src, s
-            if (not s):
-                self.__hildon_input_replace = False
-                return
-                
-            term = self.__get_search_term()
-            if (self.__hildon_input_replace):
-                term = ""
-            else:
-                term = self.__get_search_term()
-            self.__hildon_input_replace = True
+        #def f(src, cmd, *args):            
+        #    if (cmd == src.OBS_DELETE):
+        #        term = self.__get_search_term()
+        #        term = term[:-1]
+        #        self.__set_search_term(term)
+        #    
+        #    elif (cmd == src.OBS_KEY):
+        #        key = args[0]
+        #        
+        #        term = self.__get_search_term()
+        #        term += key.lower()
+        #        self.__set_search_term(term)
+
+
+        #w, h = self.get_size()
     
-            term += s.lower()
-            self.__set_search_term(term)
-
-
-        try:
-            hildon_input_method.show_im(self.__window, f)
-        except:
-            # only available on maemo
-            pass
-        self.__set_search_term("")
+        #osim = OnScreenInputMethod()
+        #osim.add_observer(f)
+        #osim.popup(self.__window)
+        
+        self.emit_event(msgs.VKB_ACT_SHOW, self.__window)
+        
+        #try:
+        #    hildon_input_method.show_im(self.__window, f)
+        #except:
+        #    # only available on maemo
+        #    pass
+        #self.__set_search_term("")
 
 
 
@@ -681,24 +699,18 @@ class AppWindow(Component, RootPane):
     
         if (cmd == src.OBS_TAB_SELECTED):
             idx = args[0]
-            #self.__tab_panel.fx_lower()
                       
-            self.__window_ctrls.set_visible(False)
-            self.__window_ctrls.fx_slide_out()
-            self.__tab_panel.set_visible(False)
-            self.__touch_back_area.set_visible(False)
-
             if (self.__viewers[idx] != self.__current_viewer):
-                #self.__root_pane.fx_fade_out()
+                self.__window_ctrls.set_visible(False)
+                self.__window_ctrls.fx_slide_out()
+                self.__tab_panel.set_visible(False)
+                self.__touch_back_area.set_visible(False)
+
                 self.set_enabled(True)
                 self.set_frozen(False)
                 self.__select_viewer(idx)
             else:
-                self.__tab_panel.fx_lower()
-                self.set_enabled(True)
-                self.set_frozen(False)
-                #self.render_buffered()
-                self.__current_viewer.show()
+                self.__hide_tabs()
         
         elif (cmd == src.OBS_REPEAT_MODE):
             mode = args[0]
@@ -740,8 +752,8 @@ class AppWindow(Component, RootPane):
                 self.__viewers.append(component)
     
         elif (event == msgs.CORE_ACT_SCAN_MEDIA):
-            force = args[0]
-            self.__scan_media(force)
+            force_rebuild = args[0]
+            self.__scan_media(force_rebuild)
    
         elif (event == msgs.MEDIASCANNER_EV_SCANNING_PROGRESS):
             name = args[0]
@@ -792,7 +804,7 @@ class AppWindow(Component, RootPane):
    
         elif (event == msgs.SYSTEM_EV_DRIVE_MOUNTED):
             def f():
-                self.__scan_media(True)
+                self.__scan_media(False)
                 self.__media_scan_scheduled = False
 
             if (not self.__media_scan_scheduled):
@@ -875,6 +887,18 @@ class AppWindow(Component, RootPane):
         elif (event == msgs.INPUT_EV_ENTER):
             if (self.__tab_panel.is_visible()):
                 self.__tab_panel.close()
+                
+        elif (event == msgs.HWKEY_EV_BACKSPACE):
+            term = self.__get_search_term()
+            if (term):
+                term = term[:-1]
+                self.__set_search_term(term)
+
+        elif (event == msgs.HWKEY_EV_KEY):
+            key = args[0]
+            term = self.__get_search_term()
+            term += key.lower()
+            self.__set_search_term(term)
 
 
 
@@ -945,6 +969,7 @@ class AppWindow(Component, RootPane):
         viewer.show()
         
         def f():
+            self.__current_viewer.show()
             offset = vstate.item_offset
             item_idx = vstate.selected_item
             self.__strip.set_offset(offset)
@@ -952,7 +977,9 @@ class AppWindow(Component, RootPane):
                 self.__hilight_item(item_idx)
             
             self.fx_slide_in() #render() #_buffered()
+            self.__tab_panel.close()
             self.set_frozen(False)
+            #self.render()
 
         gobject.idle_add(f)
 

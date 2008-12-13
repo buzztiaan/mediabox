@@ -1,6 +1,7 @@
 def get_classes():
 
     from AppWindow import AppWindow
+    from IdleDetector import IdleDetector
     from Preferences import Preferences
     #from ConfigPlayer import ConfigPlayer
     from ConfigTheme import ConfigTheme
@@ -8,7 +9,7 @@ def get_classes():
     from MediaWidgetRegistry import MediaWidgetRegistry
     from NotificationService import NotificationService
 
-    return [AppWindow, Preferences, ConfigTheme, DirectoryService,
+    return [AppWindow, IdleDetector, Preferences, ConfigTheme, DirectoryService,
             MediaWidgetRegistry, NotificationService]
     
     
@@ -27,6 +28,7 @@ messages = [
     "HWKEY_EV_FULLSCREEN",
     "HWKEY_EV_MENU",
     "HWKEY_EV_ESCAPE",
+    "HWKEY_EV_BACKSPACE",
     "HWKEY_EV_HEADSET",
     "HWKEY_EV_HEADSET_DOUBLE",
     "HWKEY_EV_HEADSET_TRIPLE",
@@ -34,9 +36,12 @@ messages = [
     "HWKEY_EV_DOWN",
     "HWKEY_EV_LEFT",
     "HWKEY_EV_RIGHT",
+    "HWKEY_EV_KEY",             # (key)
 
     "CORE_EV_APP_STARTED",
     "CORE_EV_APP_SHUTDOWN",
+    "CORE_EV_APP_IDLE_BEGIN",
+    "CORE_EV_APP_IDLE_END",
     
     # Notifications about adding or removing storage devices.
     #
