@@ -47,9 +47,9 @@ class Key(object):
 
     def __init__(self, char, shifted_char = "", alt_char = ""):
     
-        self.__char = unicode(char)
-        self.__shifted_char = unicode(shifted_char)
-        self.__alt_char = unicode(alt_char)
+        self.__char = unicode(char, "utf-8")
+        self.__shifted_char = unicode(shifted_char, "utf-8")
+        self.__alt_char = unicode(alt_char, "utf-8")
         
         
     def get_char(self):

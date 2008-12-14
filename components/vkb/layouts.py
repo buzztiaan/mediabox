@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 from vkblayout import *
+from utils import logging
 
 try:
     # GNOME
@@ -21,11 +22,9 @@ def get_default_layout():
     
     client = gconf.client_get_default()
     name = client.get_string("/apps/osso/inputmethod/int_kb_layout") or "C"
+    logging.debug("vkb layout is [%s]", name)
     
-    try:
-        layout = getattr(__module__, layout.upper())
-    except:
-        layout = C
+    layout = globals().get(name.upper(), C)
 
     return layout
 
