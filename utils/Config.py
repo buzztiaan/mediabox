@@ -90,10 +90,15 @@ class Config(object):
             return _CLIENT.get_list(self.__prefix + key, gconf.VALUE_STRING) \
                    or default
         elif (dtype == self.INTEGER):
+            try:
+                have_key = _CLIENT.get_without_default(self.__prefix + key)
+            except:
+                have_key = False
+
             v = _CLIENT.get_int(self.__prefix + key)
-            if (v == None): v = default
+            if (not have_key): v = default
             return v
-        elif (dtype == self.INTEGER_LIST):
+        elif (dtype == self.INTEGER_LIST):                
             return _CLIENT.get_list(self.__prefix + key, gconf.VALUE_INT) \
                    or default
         elif (dtype == self.BOOL):
