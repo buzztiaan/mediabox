@@ -5,6 +5,8 @@ def get_classes():
 
 
 messages = [
+    "INPUT_ACT_REPORT_CONTEXT",
+
     "INPUT_EV_CONTEXT_MENU",
     "INPUT_EV_CONTEXT_PLAYER",
     "INPUT_EV_CONTEXT_BROWSER",

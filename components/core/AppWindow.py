@@ -48,9 +48,6 @@ class AppWindow(Component, RootPane):
         # mapping: viewer -> state
         self.__viewer_states = {}
 
-        self.__saved_image = None
-        self.__saved_image_index = -1        
-        
         # flag for indicating whether media scanning has already been scheduled
         self.__media_scan_scheduled = False
     
@@ -230,8 +227,6 @@ class AppWindow(Component, RootPane):
             self.__tab_panel.add_viewer(viewer)
             self.add(viewer)
             viewer.set_visible(False)        
-            vstate = ViewerState()
-            self.__viewer_states[viewer] = vstate
 
 
     def __add_panels(self):
@@ -456,7 +451,27 @@ class AppWindow(Component, RootPane):
 
         self.__tab_panel.fx_lower()
         self.set_enabled(True)
-        self.set_frozen(False)        
+        self.set_frozen(False)
+        
+        self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
+
+
+    def __select_tab(self, idx):
+
+        if (self.__viewers[idx] != self.__current_viewer):
+            self.__window_ctrls.set_visible(False)
+            self.__window_ctrls.fx_slide_out()
+            self.__tab_panel.set_visible(False)
+            self.__touch_back_area.set_visible(False)
+
+            self.set_enabled(True)
+            self.set_frozen(False)
+            self.__select_viewer(idx)
+            
+        else:
+            self.__hide_tabs()
+
+        
 
 
     def __scan_media(self, force_rebuild):
@@ -496,8 +511,9 @@ class AppWindow(Component, RootPane):
         
 
         for v in self.__viewers:
-            self.__viewer_states[v].selected_item = -1
-            self.__viewer_states[v].item_offset = 0
+            vstate = self.__get_vstate(v)
+            vstate.selected_item = -1
+            vstate.item_offset = 0
 
 
         import gc; gc.collect()
@@ -699,18 +715,7 @@ class AppWindow(Component, RootPane):
     
         if (cmd == src.OBS_TAB_SELECTED):
             idx = args[0]
-                      
-            if (self.__viewers[idx] != self.__current_viewer):
-                self.__window_ctrls.set_visible(False)
-                self.__window_ctrls.fx_slide_out()
-                self.__tab_panel.set_visible(False)
-                self.__touch_back_area.set_visible(False)
-
-                self.set_enabled(True)
-                self.set_frozen(False)
-                self.__select_viewer(idx)
-            else:
-                self.__hide_tabs()
+            self.__select_tab(idx)
         
         elif (cmd == src.OBS_REPEAT_MODE):
             mode = args[0]
@@ -734,7 +739,9 @@ class AppWindow(Component, RootPane):
         elif (cmd == src.OBS_CLICKED):
             px, py = args
             if (30 <= py < h - 60 and px > 108):
-                idx = self.__strip.get_index_at(py)            
+                idx = self.__strip.get_index_at(py)
+                vstate = self.__get_vstate()
+                vstate.selected_item = idx
                 self.__select_item(idx)
                 handled = True
             elif (0 <= px <= 80 and py >= h - 60):
@@ -795,6 +802,35 @@ class AppWindow(Component, RootPane):
         elif (event == msgs.UI_ACT_HIDE_MESSAGE):
             self.hide_overlay()
             
+        
+        elif (event == msgs.UI_ACT_SET_STRIP):
+            viewer, items = args
+            vstate = self.__get_vstate(viewer)
+            vstate.items = items
+            vstate.selected_item = -1
+            vstate.item_offset = 0
+            if (viewer == self.__current_viewer):
+                self.__set_collection(items)
+               
+        elif (event == msgs.UI_ACT_HILIGHT_STRIP_ITEM):
+            viewer, idx = args
+            vstate = self.__get_vstate(viewer)
+            vstate.selected_item = idx
+            if (viewer == self.__current_viewer):
+                self.__select_item(idx, hilight_only = True)
+               
+        elif (event == msgs.UI_ACT_SELECT_STRIP_ITEM):
+            viewer, idx = args
+            vstate = self.__get_vstate(viewer)
+            vstate.selected_item = idx
+            if (viewer == self.__current_viewer):
+                self.__select_item(idx)
+
+        elif (event == msgs.UI_ACT_SHOW_STRIP_ITEM):
+            viewer, idx = args
+            if (viewer == self.__current_viewer):
+                self.__strip.scroll_to_item(idx)
+               
 
         elif (event == msgs.CORE_ACT_VIEW_MODE):
             mode = args[0]
@@ -825,26 +861,6 @@ class AppWindow(Component, RootPane):
             info = args[0]
             self.__title_panel.set_info(info)
 
-        elif (event == msgs.CORE_ACT_SET_COLLECTION):
-            items = args[0]
-            self.__current_collection = items
-            self.__set_collection(items)
-
-            self.__saved_image = None
-            self.__saved_image_index = -1
-           
-        elif (event == msgs.CORE_ACT_SELECT_ITEM):
-            idx = args[0]
-            self.__select_item(idx)
-            
-        elif (event == msgs.CORE_ACT_HILIGHT_ITEM):
-            idx = args[0]
-            self.__select_item(idx, hilight_only = True)
-            
-            
-        elif (event == msgs.CORE_ACT_SCROLL_TO_ITEM):
-            idx = args[0]
-            self.__strip.scroll_to_item(idx)
 
         elif (event == msgs.CORE_ACT_SCROLL_UP):
             w, h = self.__strip.get_size()
@@ -880,13 +896,13 @@ class AppWindow(Component, RootPane):
 
         elif (event == msgs.INPUT_EV_MENU):
             if (self.__tab_panel.is_visible()):
-                self.__tab_panel.close()
+                self.__tab_panel.select_current()
             else:
                 self.__show_tabs()
 
         elif (event == msgs.INPUT_EV_ENTER):
             if (self.__tab_panel.is_visible()):
-                self.__tab_panel.close()
+                self.__tab_panel.select_current()
                 
         elif (event == msgs.HWKEY_EV_BACKSPACE):
             term = self.__get_search_term()
@@ -906,6 +922,11 @@ class AppWindow(Component, RootPane):
     
         if (not viewer):
             viewer = self.__current_viewer
+            
+        elif (not viewer in self.__viewer_states):
+            vstate = ViewerState()
+            self.__viewer_states[viewer] = vstate
+        
         return self.__viewer_states[viewer]
                 
             
@@ -916,7 +937,7 @@ class AppWindow(Component, RootPane):
 
         if (not hilight_only):
             #item = self.__current_collection[idx]
-            self.__get_vstate().selected_item = idx
+            #self.__get_vstate().selected_item = idx
             #self.__current_viewer.load(item)
             self.emit_event(msgs.CORE_ACT_LOAD_ITEM, idx)
             
@@ -925,24 +946,8 @@ class AppWindow(Component, RootPane):
 
     def __hilight_item(self, idx):
     
-        # restore saved image
-        if (self.__saved_image_index >= 0 and
-              self.__saved_image_index < len(self.__strip.get_images())):
-            img = self.__strip.get_image(self.__saved_image_index)
-            img.set_hilighted(False)
-            #img.draw_pixmap(self.__saved_image, 0, 0)
-            #del self.__saved_image
-            self.__strip.invalidate_buffer()
-        
-        if (idx >= 0 and idx < len(self.__strip.get_images())):
-            img = self.__strip.get_image(idx)
-            img.set_hilighted(True)
-            #self.__saved_image = img.clone()
-            #img.draw_pixbuf(theme.selection_frame, 0, 0)
-            self.__strip.invalidate_buffer()
-        
-        self.__saved_image_index = idx
-        self.__strip.render()        
+        self.__strip.hilight(idx)
+ 
 
             
     def __select_viewer(self, idx):
@@ -970,16 +975,16 @@ class AppWindow(Component, RootPane):
         
         def f():
             self.__current_viewer.show()
-            offset = vstate.item_offset
-            item_idx = vstate.selected_item
-            self.__strip.set_offset(offset)
-            if (item_idx >= 0):
-                self.__hilight_item(item_idx)
+            self.__set_collection(vstate.items)
+            self.__strip.set_offset(vstate.item_offset)
+            if (vstate.selected_item >= 0):
+                self.__hilight_item(vstate.selected_item)
             
             self.fx_slide_in() #render() #_buffered()
             self.__tab_panel.close()
             self.set_frozen(False)
             #self.render()
+            self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
 
         gobject.idle_add(f)
 

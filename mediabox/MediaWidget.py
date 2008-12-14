@@ -61,6 +61,14 @@ class MediaWidget(Widget):
         """
         
         pass
+        
+        
+    def close(self):
+        """
+        Closes the player.
+        """
+        
+        pass
 
 
     def decrement(self):

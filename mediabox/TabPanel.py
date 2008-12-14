@@ -252,6 +252,13 @@ class TabPanel(HilightingWidget, Observable):
         self.__index = idx
 
 
+    def select_current(self):
+    
+        csr_x, csr_y = self.__cursor_position
+        idx = self.__get_index_from_cursor(csr_x, csr_y)
+        self.update_observer(self.OBS_TAB_SELECTED, idx)
+
+
     def set_currently_playing(self, idx):
     
         self.__currently_playing = idx

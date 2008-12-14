@@ -5,7 +5,7 @@ import time
 import gobject
 
 
-_IDLE_TIMEOUT = 10000
+_IDLE_TIMEOUT = 60000
 
 
 class IdleDetector(Component):

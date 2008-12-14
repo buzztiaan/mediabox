@@ -47,7 +47,6 @@ class Viewer(Component, Widget):
         self.__is_active = False
         
         self.__current_tbar_set = []
-        self.__collection = []
         self.__title = ""
         self.__info = ""
         
@@ -115,16 +114,46 @@ class Viewer(Component, Widget):
             self.emit_event(msgs.CORE_ACT_SET_INFO, info)
             
             
-    def set_collection(self, collection):
+    def set_strip(self, collection):
         """
         Sets the collection of media items that is shown in the side strip.
         
         @param collection: list of items (derived from L{ui.StripItem})
         """
     
-        self.__collection = collection
-        if (self.__is_active):
-            self.emit_event(msgs.CORE_ACT_SET_COLLECTION, collection)
+        #self.__collection = collection
+        self.emit_event(msgs.UI_ACT_SET_STRIP, self, collection)
+
+            
+    def hilight_strip_item(self, idx):
+        """
+        Hilights the given item in the side strip.
+        
+        @param idx: index of the item to hilight
+        """
+        
+        self.emit_event(msgs.UI_ACT_HILIGHT_STRIP_ITEM, self, idx)
+            
+            
+    def select_strip_item(self, idx):
+        """
+        Selects the given item in the side strip.
+        
+        @param idx: index of the item to select
+        """
+        
+        self.emit_event(msgs.UI_ACT_SELECT_STRIP_ITEM, self, idx)
+            
+            
+    def show_strip_item(self, idx):
+        """
+        Scrolls to the given item in the side strip.
+        
+        @param idx: index of the item to scroll to
+        """
+        
+        self.emit_event(msgs.UI_ACT_SHOW_STRIP_ITEM, self, idx)
+        
             
 
     def show(self):
@@ -138,7 +167,7 @@ class Viewer(Component, Widget):
         self.__is_active = True
         
         self.set_toolbar(self.__current_tbar_set)
-        self.set_collection(self.__collection)
+        #self.set_strip(self.__collection)
         self.set_title(self.__title)
         self.set_info(self.__info)
         
@@ -164,31 +193,3 @@ class Viewer(Component, Widget):
     
         return self.__is_active
 
-
-
-    def fx_slide_out(self, wait = True):
-    
-        import threading
-        import gobject
-        import gtk
-           
-        STEP = 20
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
-        
-        finished = threading.Event()
-        
-        def f(i):
-            screen.move_area(x, y, w - STEP, h, STEP, 0)
-            screen.fill_area(x, y, STEP, h, "#ffffff")
-            #screen.copy_pixmap(self.__buffer, 0, h - i - STEP, 0, 0, w, STEP)
-            if (i < w - STEP):
-                gobject.timeout_add(2, f, i + STEP)
-            else:
-                finished.set()
-                
-        self.set_events_blocked(True)
-        f(0)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)        
-        self.set_events_blocked(False)

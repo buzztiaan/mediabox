@@ -39,6 +39,9 @@ class ImageStrip(Widget):
         # index = -1 means that no item is currently floating
         self.__floating_index = -1
         self.__floating_position = 0
+
+        # the currently hilighted image    
+        self.__hilighted_image = -1
     
         # shared pixmap for storing the items
         self.__shared_pmap = None
@@ -270,6 +273,7 @@ class ImageStrip(Widget):
             img = self.__images.pop()
             del img  
         self.__images = []
+        self.__hilighted_image = -1
         
         import gc; gc.collect()
 
@@ -295,6 +299,7 @@ class ImageStrip(Widget):
         if (self.__scrollbar_pbuf):
             w -= self.__scrollbar_pbuf.get_width()
         img.set_size(w, img_h)
+        img.set_hilighted(False)
 
         self.invalidate_buffer()
         if (not self.__shared_pmap):
@@ -350,6 +355,9 @@ class ImageStrip(Widget):
        img = self.__images[idx]
        self.__images[idx] = image
        del img
+       
+       if (self.__hilighted_image == idx):
+            image.set_hilighted(True)       
        #self.render()
 
        
@@ -370,7 +378,34 @@ class ImageStrip(Widget):
             self.__offset = max(0, self.__offset - \
                                    (self.__itemsize + self.__gapsize))
 
+        if (idx == self.__hilighted_image):
+            self.__hilighted_image = -1
+        elif (idx < self.__hilighted_image):
+            self.__hilighted_image -= 1
+
         #self.render()
+
+
+
+    def hilight(self, idx):
+        """
+        Sets the given image as hilighted. Only one image is hilighted at
+        a time.
+        """
+
+        self.invalidate_buffer()
+        if (self.__hilighted_image >= 0):
+            try:
+                item = self.get_image(self.__hilighted_image)
+                item.set_hilighted(False)
+            except:
+                pass
+
+        if (idx >= 0 and idx < len(self.__images)):
+            item = self.get_image(idx)
+            item.set_hilighted(True)
+            self.__hilighted_image = idx
+            self.render()
 
 
         
@@ -452,6 +487,13 @@ class ImageStrip(Widget):
         temp = self.__images[idx1]
         self.__images[idx1] = self.__images[idx2]
         self.__images[idx2] = temp
+
+        if (self.__hilighted_image == idx1):
+            self.__hilighted_image = idx2
+        elif (self.__hilighted_image == idx2):
+            self.__hilighted_image = idx1
+
+
         #self.render()
 
 

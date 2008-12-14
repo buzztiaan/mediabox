@@ -87,7 +87,10 @@ class InputSchema(object):
     def set_context(self, context):
     
         self.__context = context
-        
+        if (logging.is_level(logging.DEBUG)):
+            logging.debug("input context changed: %s",
+                          msgs._id_to_name(context))
+
         
     def get_event(self):
     

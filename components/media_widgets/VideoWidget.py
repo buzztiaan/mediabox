@@ -370,6 +370,12 @@ class VideoWidget(MediaWidget):
             self.__player.stop()
 
 
+    def close(self):
+        
+        if (self.__player):
+            self.__player.close()
+            
+
     def increment(self):
 
         vol = mb_config.volume()

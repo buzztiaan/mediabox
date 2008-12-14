@@ -148,7 +148,22 @@ class PlaylistViewer(Viewer):
         pl = self.__lists[self.__current_list]
         pl_tn.set_thumbnails(self.__get_playlist_thumbnail_pieces(pl))
         if (self.__view_mode == _VIEWMODE_PLAYLIST):
-            self.set_collection(self.__pl_thumbnails)
+            self.set_strip(self.__pl_thumbnails)
+
+
+    def __update_input_context(self):
+        """
+        Updates the input context according to the current view mode.
+        """
+        
+        if (self.__view_mode == _VIEWMODE_PLAYLIST):
+            self.emit_event(msgs.INPUT_EV_CONTEXT_BROWSER)
+
+        elif (self.__view_mode == _VIEWMODE_PLAYER):
+            self.emit_event(msgs.INPUT_EV_CONTEXT_PLAYER)
+
+        elif (self.__view_mode == _VIEWMODE_PLAYER_FULLSCREEN):
+            self.emit_event(msgs.INPUT_EV_CONTEXT_FULLSCREEN)
 
         
     def __load_playlists(self):
@@ -202,7 +217,7 @@ class PlaylistViewer(Viewer):
             #self.__update_playlist_thumbnail()
         #end for
         
-        self.set_collection(self.__pl_thumbnails)
+        self.set_strip(self.__pl_thumbnails)
         if (self.__current_list >= len(self.__lists)):
             self.__current_list = 0
         self.__display_playlist(self.__lists[self.__current_list])
@@ -245,8 +260,8 @@ class PlaylistViewer(Viewer):
             pl_tn = PlaylistThumbnail(pl)
             self.__pl_thumbnails.append(pl_tn)
         
-            self.set_collection(self.__pl_thumbnails)
-            self.emit_event(msgs.CORE_ACT_SELECT_ITEM, len(self.__lists) - 1)
+            self.set_strip(self.__pl_thumbnails)
+            self.select_strip_item(len(self.__lists) - 1)
         #end if
         
         
@@ -264,7 +279,7 @@ class PlaylistViewer(Viewer):
             pl.delete_playlist()            
             self.__load_playlists()
             self.__update_playlist_thumbnail()
-            self.emit_event(msgs.CORE_ACT_SELECT_ITEM, 0)
+            self.select_strip_item(0)
 
 
     def __on_toggle_fullscreen(self):
@@ -279,6 +294,7 @@ class PlaylistViewer(Viewer):
 
         if (mode == self.__view_mode): return
         self.__view_mode = mode
+        self.__update_input_context()
         
         if (mode == _VIEWMODE_PLAYLIST):
             self.emit_event(msgs.UI_ACT_FREEZE)
@@ -288,8 +304,8 @@ class PlaylistViewer(Viewer):
             self.__side_tabs.set_visible(True)
             
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-            self.set_collection(self.__pl_thumbnails)
-            self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, self.__current_list)
+            self.set_strip(self.__pl_thumbnails)
+            self.hilight_strip_item(self.__current_list)
 
             self.emit_event(msgs.UI_ACT_THAW)
 
@@ -303,8 +319,8 @@ class PlaylistViewer(Viewer):
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
                                  
             pl = self.__lists[self.__current_list]
-            self.set_collection(pl.get_thumbnails())
-            self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, pl.get_position())
+            self.set_strip(pl.get_thumbnails())
+            self.hilight_strip_item(pl.get_position())
 
             self.emit_event(msgs.UI_ACT_THAW)
                 
@@ -363,7 +379,7 @@ class PlaylistViewer(Viewer):
             idx = pl.get_position()
             self.__remove_item(pl, idx)
             pl.set_position(idx - 1)
-            self.set_collection(pl.get_thumbnails())
+            self.set_strip(pl.get_thumbnails())
             
         self.emit_event(msgs.MEDIA_EV_EOF)        
         self.__go_next()
@@ -392,7 +408,7 @@ class PlaylistViewer(Viewer):
         if (pl.has_previous()):
             idx = pl.get_position()
             self.__load_item(pl, idx - 1)
-            self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx - 1)
+            self.hilight_strip_item(idx - 1)
                     
         
     def __go_next(self):
@@ -533,7 +549,7 @@ class PlaylistViewer(Viewer):
         self.emit_event(msgs.MEDIA_EV_LOADED, self, f)
 
         if (self.__view_mode == _VIEWMODE_PLAYER):
-            self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
+            self.hilight_strip_item(idx)
 
 
 
@@ -637,8 +653,12 @@ class PlaylistViewer(Viewer):
         if (not self.is_active()): return
 
 
+        if (msg == msgs.INPUT_ACT_REPORT_CONTEXT):
+            self.__update_input_context()
+
+
         # load selected file
-        if (msg == msgs.CORE_ACT_LOAD_ITEM):
+        elif (msg == msgs.CORE_ACT_LOAD_ITEM):
             idx = args[0]
             if (self.__view_mode == _VIEWMODE_PLAYLIST):
                 self.__current_list = idx
@@ -699,7 +719,6 @@ class PlaylistViewer(Viewer):
         Viewer.show(self)
         if (self.__view_mode == _VIEWMODE_PLAYLIST):
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-            self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, self.__current_list)
 
 
     def __search(self, key):
@@ -710,7 +729,7 @@ class PlaylistViewer(Viewer):
             if (key in item.name.lower()):
                 self.__playlist.scroll_to_item(idx)
                 if (self.__view_mode == _VIEWMODE_PLAYER):
-                    self.emit_event(msgs.CORE_ACT_SCROLL_TO_ITEM, idx)
+                    self.show_strip_item(idx)
                 logging.info("search: found '%s' for '%s'" % (item.name, key))
                 break
             idx += 1

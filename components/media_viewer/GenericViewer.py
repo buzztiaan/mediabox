@@ -217,10 +217,10 @@ class GenericViewer(Viewer):
             self.__device_items.append(dev)
         #end for
     
-        self.set_collection(items)
+        self.set_strip(items)
         if (self.__current_device in self.__device_items):
             idx = self.__device_items.index(self.__current_device)
-            self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)        
+            self.hilight_strip_item(idx)
 
 
     def __update_toolbar(self):
@@ -346,10 +346,10 @@ class GenericViewer(Viewer):
                 self.set_title(self.__current_file.name)
 
             # hilight current item
-            self.set_collection(self.__thumbnails)
+            self.set_strip(self.__thumbnails)
             if (self.__current_file in self.__non_folder_items):
                 idx = self.__non_folder_items.index(self.__current_file)
-                self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
+                self.hilight_strip_item(idx)
 
             gobject.timeout_add(50, self.emit_event, msgs.UI_ACT_THAW)
             #self.emit_event(msgs.UI_ACT_THAW)
@@ -382,8 +382,6 @@ class GenericViewer(Viewer):
             self.emit_event(msgs.UI_ACT_THAW)
        
         
-        
-          
 
     def __on_toggle_fullscreen(self):
     
@@ -392,12 +390,7 @@ class GenericViewer(Viewer):
             self.__side_tabs.select_tab(1)
         else:
             self.__set_view_mode(self._VIEWMODE_PLAYER_FULLSCREEN)
-        
-
-
-
-
-
+       
 
 
     def handle_event(self, msg, *args):
@@ -406,6 +399,10 @@ class GenericViewer(Viewer):
         """
     
         Viewer.handle_event(self, msg, *args)
+        
+        if (msg == msgs.CORE_EV_APP_SHUTDOWN):
+            if (self.__media_widget):
+                self.__media_widget.close()
         
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             if (self.__current_device):
@@ -437,7 +434,11 @@ class GenericViewer(Viewer):
         if (not self.is_active()): return
         
         
-        if (msg == msgs.INPUT_EV_DOWN):
+        if (msg == msgs.INPUT_ACT_REPORT_CONTEXT):
+            self.__update_input_context()
+        
+        
+        elif (msg == msgs.INPUT_EV_DOWN):
             w, h = self.__list.get_size()
             idx = self.__list.get_index_at(h)
             if (idx != -1):
@@ -691,7 +692,7 @@ class GenericViewer(Viewer):
             # hilight item
             if (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
                 idx = self.__non_folder_items.index(f)
-                self.emit_event(msgs.CORE_ACT_HILIGHT_ITEM, idx)
+                self.hilight_strip_item(idx)
             elif (self.__view_mode == self._VIEWMODE_BROWSER and self.is_active()):
                 idx = self.__items.index(f)
                 self.__list.hilight(idx + 1)
@@ -1163,7 +1164,7 @@ class GenericViewer(Viewer):
             if (key in item.name.lower()):
                 self.__list.scroll_to_item(idx + 1)
                 if (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
-                    self.emit_event(msgs.CORE_ACT_SCROLL_TO_ITEM, idx)                
+                    self.show_strip_item(idx)
                 logging.info("search: found '%s' for '%s'" % (item.name, key))
                 break
             idx += 1
@@ -1174,13 +1175,12 @@ class GenericViewer(Viewer):
     
         def f():
             if (self.may_render()):
-                self.emit_event(msgs.CORE_ACT_SELECT_ITEM, 0)
+                self.select_strip_item(0)
                 return False
             else:
                 return True
     
         Viewer.show(self)
-        self.__update_input_context()
         
         if (not self.__current_device):
             self.__list.clear_items()

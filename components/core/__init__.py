@@ -74,9 +74,6 @@ messages = [
     
     "CORE_ACT_SCAN_MEDIA",      # (force_rescan)
     "CORE_ACT_LOAD_ITEM",       # (item)
-    "CORE_ACT_SELECT_ITEM",     # (index)
-    "CORE_ACT_HILIGHT_ITEM",    # (index)
-    "CORE_ACT_SCROLL_TO_ITEM",  # (index)
     "CORE_ACT_SCROLL_UP",
     "CORE_ACT_SCROLL_DOWN",
     "CORE_ACT_RENDER_ITEMS",
@@ -85,7 +82,6 @@ messages = [
     
     "CORE_ACT_SET_TITLE",       # (title)
     "CORE_ACT_SET_INFO",        # (info)
-    "CORE_ACT_SET_COLLECTION",  # (collection)
     "CORE_ACT_SET_TOOLBAR",     # (toolbar_set)
     "CORE_ACT_SEARCH_ITEM",     # (key)
     
@@ -107,7 +103,10 @@ messages = [
     "UI_ACT_VIEW_MODE",         # (mode)
     "UI_ACT_SHOW_MESSAGE",          # (text, subtext, icon)
     "UI_ACT_HIDE_MESSAGE",
-    
-    "UI_EV_CONTEXT_CHANGED",    # (context)
+       
+    "UI_ACT_SET_STRIP",          # (viewer, items)
+    "UI_ACT_HILIGHT_STRIP_ITEM", # (viewer, index)
+    "UI_ACT_SELECT_STRIP_ITEM",  # (viewer, index)
+    "UI_ACT_SHOW_STRIP_ITEM",    # (viewer, index)
 ]    
 

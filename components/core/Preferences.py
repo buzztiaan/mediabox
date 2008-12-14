@@ -29,6 +29,7 @@ class Preferences(Viewer):
 
         tn = PrefsThumbnail(comp.ICON, comp.TITLE)
         self.__thumbnails.append(tn)
+        self.set_strip(self.__thumbnails)
         
 
 
@@ -52,7 +53,10 @@ class Preferences(Viewer):
                 self.__register_configurator(comp)
             
         if (self.is_active()):
-            if (event == msgs.CORE_ACT_LOAD_ITEM):
+            if (event == msgs.INPUT_ACT_REPORT_CONTEXT):
+                self.emit_event(msgs.INPUT_EV_CONTEXT_BROWSER)
+
+            elif (event == msgs.CORE_ACT_LOAD_ITEM):
                 idx = args[0]
                 configurator = self.__configurators[idx]
                 self.__show_configurator(configurator)
@@ -63,5 +67,7 @@ class Preferences(Viewer):
         Viewer.show(self)
         self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
         self.emit_event(msgs.INPUT_EV_CONTEXT_BROWSER)
-        self.set_collection(self.__thumbnails)
+
+        if (not self.__current_configurator):
+            self.select_strip_item(0)
 

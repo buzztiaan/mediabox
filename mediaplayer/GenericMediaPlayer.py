@@ -122,6 +122,11 @@ class GenericMediaPlayer(_Observable):
         raise NotImplementedError
         
         
+    def close(self):
+    
+        pass
+        
+        
     def set_volume(self, volume):
     
         raise NotImplementedError
