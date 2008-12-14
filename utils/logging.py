@@ -31,6 +31,11 @@ def set_level(level):
     global _level
     
     _level = level
+    
+
+def is_level(level):
+
+    return (_level >= level)
 
 
 def _log(ltype, s):
