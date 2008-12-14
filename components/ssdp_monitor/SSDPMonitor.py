@@ -70,6 +70,7 @@ class SSDPMonitor(Component):
         Timer for removing UPnP devices that expire.
         """
         
+        logging.debug("UPnP device [%s] has expired", uuid)
         del self.__expiration_handlers[uuid]
         self.__handle_ssdp_byebye(uuid)
             
@@ -138,12 +139,14 @@ class SSDPMonitor(Component):
             Downloader(location,
                         self.__on_receive_description_xml,
                         location, uuid, [""])
+        #end if
                         
-            # set up expiration handler
-            if (uuid in self.__expiration_handlers):
-                gobject.source_remove(self.__expiration_handlers[uuid])
-            self.__expiration_handlers[uuid] = gobject.timeout_add(
-                        max_age * 1000, self.__on_expire, uuid)
+        # set up expiration handler
+        if (uuid in self.__expiration_handlers):
+            logging.debug("UPnP device [%s] is still ALIVE", uuid)
+            gobject.source_remove(self.__expiration_handlers[uuid])
+        self.__expiration_handlers[uuid] = gobject.timeout_add(
+                    max_age * 1000, self.__on_expire, uuid)
 
 
     def __handle_ssdp_byebye(self, uuid):
