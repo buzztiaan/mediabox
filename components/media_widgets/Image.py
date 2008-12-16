@@ -97,6 +97,10 @@ class Image(Widget, Observable):
         # slide from right or left
         self.__slide_from_right = True
         
+        # progress percentage value
+        self.__progress = 0
+        
+        
         Widget.__init__(self)
 
         # create a client-side pixmap for rendering
@@ -108,11 +112,24 @@ class Image(Widget, Observable):
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
+        if (self.__progress): h -= 16
         screen = self.get_screen()
         if (self.__invalidated):
             self._render()
         else:
             screen.copy_pixmap(self.__offscreen, x, y, x, y, w, h)
+        
+        # render progress bar
+        if (self.__progress > 0):
+            p = self.__progress / 100.0
+            px = x
+            py = y + h
+            pw = int(w * p)
+            ph = 16
+            TEMPORARY_PIXMAP.copy_pixmap(self.__offscreen, px, py, px, py,
+                                         pw, ph)
+            TEMPORARY_PIXMAP.fill_area(px, py, pw, ph, "#ffffff60")
+            screen.copy_pixmap(TEMPORARY_PIXMAP, px, py, px, py, pw, ph)
         
 
     def set_size(self, w, h):
@@ -413,6 +430,8 @@ class Image(Widget, Observable):
             if (d):
                 size_read[0] += len(d)
                 self.__loader.write(d)
+                self.__progress = size_read[0] / float(total) * 100
+                self.render()
                 self.update_observer(self.OBS_PROGRESS, size_read[0], total)
             else:
                 try:
@@ -420,6 +439,8 @@ class Image(Widget, Observable):
                     self.__finish_loading()
                 except:
                     pass
+                self.__progress = 0
+                self.render()
                 self.update_observer(self.OBS_END_LOADING)
         
         try:
@@ -550,30 +571,47 @@ class Image(Widget, Observable):
     
         import threading
 
-        STEP = 40
+        if (self.have_animation_lock()): return
+        self.set_animation_lock(True)
+        self.set_frozen(True)
+
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
 
         finished = threading.Event()
         
-        def f(i):
-            dx = min(STEP, w - i)
+        def f(from_x, to_x):
+            dx = (to_x - from_x) / 5
+            done = False
+
+            if (dx > 0):
+                pass
+            else:
+                dx = to_x - from_x
+                done = True
 
             if (self.__slide_from_right):
-                screen.copy_buffer(screen, x + dx, y, x, y, w - dx, h)
-                screen.copy_pixmap(self.__offscreen, x + i, y, x + w - dx, y,
+                screen.move_area(x + dx, y, w - dx, h, -dx, 0)
+                screen.copy_pixmap(self.__offscreen,
+                                   x + from_x, y,
+                                   x + w - dx, y,
                                    dx, h)
-            else:
-                screen.copy_buffer(screen, x, y, x + dx, y, w - dx, h)
-                screen.copy_pixmap(self.__offscreen, x + w - dx - i, y, x, y,
-                                   dx, h)
+                #screen.copy_buffer(screen, x + dx, y, x, y, w - dx, h)
+                #screen.copy_pixmap(self.__offscreen, x + dx, y, x + w - dx, y,
+                #                    dx, h)
+            #else:
+                #screen.copy_buffer(screen, x, y, x + dx, y, w - dx, h)
+                #screen.copy_pixmap(self.__offscreen, x + w - dx, y, x, y,
+                #                    dx, h)
             
-            if (i < w - STEP):
-                gobject.timeout_add(5, f, i + STEP)
+            if (not done):
+                gobject.timeout_add(10, f, from_x + dx, to_x)
             else:
                 finished.set()
 
-        f(0)
+
+        f(0, w)
         while (wait and not finished.isSet()): gtk.main_iteration(False)
-        
+        self.set_animation_lock(False)
+        self.set_frozen(False)
