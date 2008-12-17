@@ -34,7 +34,7 @@ class AudioAlbumStorage(AudioArtistStorage):
         
     def get_name(self):
     
-        return "Albums"
+        return "By Album"
 
 
     def get_icon(self):

@@ -101,7 +101,7 @@ class AudioArtistStorage(Device):
         
     def get_name(self):
     
-        return "Artists"
+        return "By Artists"
 
 
     def get_icon(self):

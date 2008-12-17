@@ -34,21 +34,21 @@ class AudioStorage(Device):
         self.__albums = []
         
         media, nil, nil = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
-                                            ["application/x-music-folder"])
-        print "MEDIA", media
+                                            [File.DIRECTORY])
         for f in media:
-            self.__albums.append(f)            
+            self.__albums.append(f)
         #end for
+        self.__albums.sort()
           
         
     def get_prefix(self):
     
-        return "library://audio"
+        return "library://audio-folders"
         
         
     def get_name(self):
     
-        return "Folders"
+        return "By Folder"
 
 
     def get_icon(self):
@@ -83,7 +83,7 @@ class AudioStorage(Device):
                 f.can_skip = True
                 f.name = album.name
                 f.info = album.info
-                f.mimetype = album.mimetype
+                f.mimetype = "application/x-music-folder"
                 f.thumbnail_md5 = album.md5
                 f.path = album.path
                 f.resource = album.resource
@@ -128,35 +128,7 @@ class AudioStorage(Device):
                 cb(trk, *args)
             cb(None, *args)
 
-            """
-            for trk in album.get_children():
-                if (trk.mimetype.startswith("audio")):
-                    tags = tagreader.get_tags(trk)
-                    title = tags.get("TITLE", trk.name)
-                    artist = tags.get("ARTIST", "")
-                    album_name = tags.get("ALBUM", "")
-                    try:
-                        trackno = tags.get("TRACKNUMBER")
-                        trackno = trackno.split("/")[0]
-                        trackno = int(trackno)
-                    except:
-                        trackno = 0
 
-                    f = File(self)
-                    f.is_local = True
-                    f.name = title
-                    f.info = artist
-                    f.mimetype = trk.mimetype
-                    f.thumbnail_md5 = album.thumbnail_md5
-                    f.path = trk.path                   
-                    f.resource = trk.resource
-                    
-                    cb(f, *args)
-                #end if
-            #end for
-            
-            cb(None, *args)
-            """
         #end if        
 
 
