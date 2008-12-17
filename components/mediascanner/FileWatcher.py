@@ -93,12 +93,15 @@ class FileWatcher(Component, ProcessEvent):
         return True
            
             
-    def __report_change(self):
+    def __report_change(self, path):
         """
         Reports a change in the filesystem.
         """
         
-        self.__requires_rescan = True
+        basename = os.path.basename(path)
+        if (not basename.startswith(".")
+            and not basename.endswith(".partial")):
+            self.__requires_rescan = True
 
 
 
@@ -106,29 +109,29 @@ class FileWatcher(Component, ProcessEvent):
 
         if (ev.is_dir):
             logging.debug("IN_CREATE: %s", os.path.join(ev.path, ev.name))
-            self.__report_change()
+            self.__report_change(ev.path)
 
 
     def process_IN_CLOSE_WRITE(self, ev):
 
         logging.debug("IN_CLOSE_WRITE: %s", os.path.join(ev.path, ev.name))
-        self.__report_change()
+        self.__report_change(ev.path)
 
 
     def process_IN_DELETE(self, ev):
 
         logging.debug("IN_DELETE: %s", os.path.join(ev.path, ev.name))
-        self.__report_change()
+        self.__report_change(ev.path)
 
 
     def process_IN_MOVED_FROM(self, ev):
 
         logging.debug("IN_MOVED_FROM: %s", os.path.join(ev.path, ev.name))
-        self.__report_change()
+        self.__report_change(ev.path)
 
 
     def process_IN_MOVED_TO(self, ev):
 
         logging.debug("IN_MOVED_TO: %s", os.path.join(ev.path, ev.name))
-        self.__report_change()
+        self.__report_change(ev.path)
 
