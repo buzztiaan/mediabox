@@ -8,6 +8,7 @@ automatically.
 
 from Color import Color
 from mediabox import values
+from utils import logging
 
 import gtk
 import pango
@@ -152,8 +153,8 @@ def _set_theme(name):
         path = os.path.join(theme_dir, i)
         try:
             pbuf = gtk.gdk.pixbuf_new_from_file(path)
-            #globals()[name] = gtk.gdk.pixbuf_new_from_file(path)
         except:
+            logging.error("could not load theme file: %s", path)
             continue
         else:
             if (name in globals()):

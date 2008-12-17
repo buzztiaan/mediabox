@@ -1,5 +1,6 @@
 from Widget import Widget
 from Pixmap import Pixmap, TEMPORARY_PIXMAP
+from utils import logging
 
 
 class ImageButton(Widget):
@@ -86,6 +87,8 @@ class ImageButton(Widget):
         #self.__buffer.draw_pixbuf(img,
         #                          (w - img.get_width()) / 2,
         #                          (h - img.get_height()) / 2)
+        logging.debug("size of button image: %d x %d",
+                      img.get_width(), img.get_height())
         if ((w, h) != (img.get_width(), img.get_height())):
             self.__buffer.draw_frame(img, 0, 0, w, h, True)
         else:
