@@ -61,10 +61,6 @@ class PlaylistViewer(Viewer):
 
         self.__side_tabs = SideTabs()
         self.__side_tabs.set_size(60 - 8, 370 - 8)
-        self.__side_tabs.add_tab(None, "Playlist",
-                                 self.__set_view_mode, _VIEWMODE_PLAYLIST)
-        self.__side_tabs.add_tab(None, "Player",
-                                 self.__set_view_mode, _VIEWMODE_PLAYER)
         self.add(self.__side_tabs)
 
         # box for media widgets
@@ -94,7 +90,12 @@ class PlaylistViewer(Viewer):
         ]
         self.set_toolbar(self.__playlist_tbset)
 
-        self.__set_view_mode(_VIEWMODE_PLAYLIST)
+        #self.__set_view_mode(_VIEWMODE_PLAYLIST)
+
+        self.__side_tabs.add_tab(None, "Playlist",
+                                 self.__set_view_mode, _VIEWMODE_PLAYLIST)
+        self.__side_tabs.add_tab(None, "Player",
+                                 self.__set_view_mode, _VIEWMODE_PLAYER)
         gobject.idle_add(self.__load_playlists)
 
 
@@ -508,17 +509,20 @@ class PlaylistViewer(Viewer):
         except ValueError:
             pass
 
-        if (self.__media_widget):
-            self.__media_widget.stop()
-            self.__media_box.remove(self.__media_widget)
-
         # get media widget
-        self.__media_widget = self.call_service(
+        media_widget = self.call_service(
                                       msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
                                       self, f.mimetype)
 
-        if (not self.__media_widget):
+        if (not media_widget):
             return
+            
+        # remove old media widget
+        if (media_widget != self.__media_widget):
+            if (self.__media_widget):
+                self.__media_widget.stop()
+                self.__media_box.remove(self.__media_widget)
+            self.__media_widget = media_widget           
             
         self.__media_widget.connect_media_eof(self.__on_media_eof)
         self.__media_widget.connect_media_volume(self.__on_media_volume)
