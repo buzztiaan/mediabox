@@ -48,9 +48,6 @@ class AppWindow(Component, RootPane):
         # mapping: viewer -> state
         self.__viewer_states = {}
 
-        # flag for indicating whether media scanning has already been scheduled
-        self.__media_scan_scheduled = False
-    
         # search string for finding items with the keyboard
         self.__keyboard_search_string = ""
         # timer for clearing the search term
@@ -837,15 +834,6 @@ class AppWindow(Component, RootPane):
             self.__set_view_mode(mode)
             self.drop_event()
 
-   
-        elif (event == msgs.SYSTEM_EV_DRIVE_MOUNTED):
-            def f():
-                self.__scan_media(False)
-                self.__media_scan_scheduled = False
-
-            if (not self.__media_scan_scheduled):
-                self.__media_scan_scheduled = True
-                gobject.timeout_add(500, f)
                 
         elif (event == msgs.SYSTEM_EV_BATTERY_REMAINING):
             percent = args[0]

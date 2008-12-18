@@ -28,7 +28,7 @@ class FileWatcher(Component, ProcessEvent):
         
         self.__watch_manager = WatchManager()
         self.__notifier = Notifier(self.__watch_manager, self)
-        self.__setup_watches()
+        #self.__setup_watches()
 
         self.__scanner = gobject.timeout_add(1000, self.__scanning_handler)
 
@@ -47,6 +47,10 @@ class FileWatcher(Component, ProcessEvent):
 
         elif (ev == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             self.__currently_scanning = False
+
+        elif (ev == msgs.SYSTEM_EV_DRIVE_MOUNTED):
+            logging.info("scanning because device was mounted or unmounted")
+            self.__requires_rescan = True
 
            
     def __setup_watches(self):
@@ -97,41 +101,58 @@ class FileWatcher(Component, ProcessEvent):
         """
         Reports a change in the filesystem.
         """
+
+        if (path.endswith(".partial")):
+            return
+                    
+        path_parts = path.split("/")
+        for p in path_parts:
+            if (p.startswith(".")):
+                return
+        #end for
         
-        basename = os.path.basename(path)
-        if (not basename.startswith(".")
-            and not basename.endswith(".partial")):
-            self.__requires_rescan = True
+        if (os.path.isdir(path)):
+            return
+        
+        logging.info("scanning because of %s", path)
+        self.__requires_rescan = True
 
 
 
     def process_IN_CREATE(self, ev):
 
-        if (ev.is_dir):
-            logging.debug("IN_CREATE: %s", os.path.join(ev.path, ev.name))
-            self.__report_change(ev.path)
+        if (not ev.is_dir):
+            path = os.path.join(ev.path, ev.name)
+            #logging.debug("IN_CREATE: %s", path)
+            self.__report_change(path)
 
 
     def process_IN_CLOSE_WRITE(self, ev):
 
-        logging.debug("IN_CLOSE_WRITE: %s", os.path.join(ev.path, ev.name))
-        self.__report_change(ev.path)
+        if (not ev.is_dir):
+            path = os.path.join(ev.path, ev.name)
+            #logging.debug("IN_CLOSE_WRITE: %s", path)
+            self.__report_change(path)
 
 
     def process_IN_DELETE(self, ev):
 
-        logging.debug("IN_DELETE: %s", os.path.join(ev.path, ev.name))
-        self.__report_change(ev.path)
+        if (not ev.is_dir):
+            path = os.path.join(ev.path, ev.name)
+            #logging.debug("IN_DELETE: %s", path)
+            self.__report_change(path)
 
 
     def process_IN_MOVED_FROM(self, ev):
 
-        logging.debug("IN_MOVED_FROM: %s", os.path.join(ev.path, ev.name))
-        self.__report_change(ev.path)
+        path = os.path.join(ev.path, ev.name)
+        #logging.debug("IN_MOVED_FROM: %s", path)
+        self.__report_change(path)
 
 
     def process_IN_MOVED_TO(self, ev):
 
-        logging.debug("IN_MOVED_TO: %s", os.path.join(ev.path, ev.name))
-        self.__report_change(ev.path)
+        path = os.path.join(ev.path, ev.name)
+        #logging.debug("IN_MOVED_TO: %s", path)
+        self.__report_change(path)
 

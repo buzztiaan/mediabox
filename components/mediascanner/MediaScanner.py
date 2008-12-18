@@ -321,8 +321,8 @@ class MediaScanner(Component):
             #end for
         #end for
                 
-        print "CURRENT", media
-        print "NEW", added
-        print "REMOVED", removed
+        #print "CURRENT", media
+        #print "NEW", added
+        #print "REMOVED", removed
         return (media, added, removed)
 
