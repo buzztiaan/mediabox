@@ -866,8 +866,8 @@ class ImageStrip(Widget):
 
         if (not self.may_render()): return
 
-        if (self.__arrows[0]):
-            self.__unrender_arrows()
+        #if (self.__arrows[0]):
+        #    self.__unrender_arrows()
             
         if (delta > 0):
             self.__buffer.move_area(x, y + delta, w, h - delta,
@@ -879,10 +879,11 @@ class ImageStrip(Widget):
                                     0, abs(delta))
             self.__render(0, abs(delta))
             
-        if (self.__arrows[0]):
-            self.__render_arrows()
+        #if (self.__arrows[0]):
+        #    self.__render_arrows()
 
-        self.__render_buffered(screen, 0, h)
+        if (self.may_render()):
+            self.__render_buffered(screen, 0, h)
 
 
     def scroll_to_item(self, idx, force_on_top = False):
