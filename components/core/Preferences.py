@@ -1,7 +1,7 @@
 from com import Viewer, Configurator, msgs
 from PrefsThumbnail import PrefsThumbnail
 from mediabox import viewmodes
-import theme
+from theme import theme
 
 
 class Preferences(Viewer):

@@ -1,6 +1,6 @@
 from ui.Thumbnail import Thumbnail
 from ui.Pixmap import Pixmap
-import theme
+from theme import theme
 
 import os
 import gtk

@@ -1,7 +1,7 @@
 from com import msgs
 from GenericViewer import GenericViewer
 from storage import Device
-import theme
+from theme import theme
 
 
 class FolderViewer(GenericViewer):

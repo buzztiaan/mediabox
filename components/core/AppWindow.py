@@ -20,7 +20,7 @@ from mediabox import config
 from mediabox import values
 from utils import maemo
 from mediabox import viewmodes
-import theme
+from theme import theme
 
 import gtk
 import gobject
@@ -152,9 +152,10 @@ class AppWindow(Component, RootPane):
         actions = [#(self.render_buffered, []),
                    #(gtk.main_quit, []),
                    (self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
-                                        "- Loading Components -",
+                                        "",
                                         theme.mb_viewer_audio]),
                    (self.__register_viewers, []),
+                   (self.hide_overlay, []),
                    (self.add, [self.__tab_panel]),
                    (self.add, [self.__window_ctrls]),
                    (self.__add_panels, []),
@@ -754,6 +755,13 @@ class AppWindow(Component, RootPane):
             component = args[0]
             if (isinstance(component, Viewer)):
                 self.__viewers.append(component)
+    
+        elif (event == msgs.COM_EV_LOADING_MODULE):
+            name = args[0]
+            self.show_overlay("%s %s" % (values.NAME, values.VERSION),
+                              "- loading %s -" % name,
+                              theme.mb_viewer_audio)
+            
     
         elif (event == msgs.CORE_ACT_SCAN_MEDIA):
             force_rebuild = args[0]

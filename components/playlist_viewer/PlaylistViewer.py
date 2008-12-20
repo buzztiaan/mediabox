@@ -16,7 +16,7 @@ from ui import dialogs
 from utils import urlquote
 from utils import mimetypes
 from utils import logging
-import theme
+from theme import theme
 
 import os
 import gobject

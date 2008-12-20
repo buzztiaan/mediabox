@@ -4,7 +4,7 @@ from ui.VBox import VBox
 from ui.Label import Label
 from ui.CheckBox import CheckBox
 from ui.Button import Button
-import theme
+from theme import theme
 from mediabox import config as mb_config
 
 

@@ -15,7 +15,7 @@ class Viewer(Component, Widget):
     Example::
 
       from com import Viewer, msgs
-      import theme
+      from theme import theme
       
       class MyViewer(Viewer):
       

@@ -17,7 +17,7 @@ from utils import logging
 from io import Downloader
 from mediabox import viewmodes
 from mediabox import config as mb_config
-import theme
+from theme import theme
 
 import os
 import time

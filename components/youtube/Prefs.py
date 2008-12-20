@@ -4,7 +4,7 @@ from ui.ChoiceBox import ChoiceBox
 from ui.VBox import VBox
 from utils import mmc
 import config
-import theme
+from theme import theme
 
 import os
 

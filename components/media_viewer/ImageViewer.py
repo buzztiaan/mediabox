@@ -1,6 +1,6 @@
 from GenericViewer import GenericViewer
 from storage import Device
-import theme
+from theme import theme
 
 
 class ImageViewer(GenericViewer):

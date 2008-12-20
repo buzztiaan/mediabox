@@ -3,7 +3,7 @@ from utils import mimetypes
 from utils import maemo
 from utils import mmc
 from utils import logging
-import theme
+from theme import theme
 
 import os
 import commands

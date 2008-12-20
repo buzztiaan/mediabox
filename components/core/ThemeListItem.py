@@ -1,5 +1,5 @@
 from ui.ButtonListItem import ButtonListItem
-import theme
+from theme import theme
 
 
 class ThemeListItem(ButtonListItem):

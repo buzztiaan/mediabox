@@ -3,7 +3,7 @@ from ui.ItemList import ItemList
 from ThemeListItem import ThemeListItem
 from mediabox.TrackList import TrackList
 from mediabox import config
-import theme
+from theme import theme
 
 import gtk
 import gobject

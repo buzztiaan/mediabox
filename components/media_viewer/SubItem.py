@@ -1,5 +1,5 @@
 from ListItem import ListItem
-import theme
+from theme import theme
 
 
 class SubItem(ListItem):

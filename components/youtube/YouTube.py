@@ -9,7 +9,7 @@ from io import FileDownloader
 from io import FileServer
 from mediabox import values
 import config
-import theme
+from theme import theme
 
 import gobject
 import gtk

@@ -68,6 +68,7 @@ messages = [
     "MEDIA_EV_VOLUME_CHANGED",   # (volume)
 
     "COM_EV_COMPONENT_LOADED",  # (component)
+    "COM_EV_LOADING_MODULE", # (name)
     
     "CORE_ACT_RENDER_ALL",
     "CORE_ACT_VIEW_MODE",       # (mode)    
