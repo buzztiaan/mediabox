@@ -6,7 +6,7 @@ from upnp.SOAPProxy import SOAPProxy
 from upnp import didl_lite
 from utils import mimetypes
 from utils import logging
-import theme
+from theme import theme
 
 import urllib
 import urlparse

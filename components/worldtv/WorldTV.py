@@ -1,7 +1,7 @@
 from storage import Device, File
 from utils.MiniXML import MiniXML
 from ui import dialogs
-import theme
+from theme import theme
 
 import os
 
