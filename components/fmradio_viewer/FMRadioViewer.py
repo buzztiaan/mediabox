@@ -13,7 +13,7 @@ from ui import dialogs
 from mediabox import viewmodes
 from mediabox import config as mb_config
 from utils import logging
-import theme
+from theme import theme
 
 import gtk
 

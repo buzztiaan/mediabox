@@ -2,7 +2,7 @@ from com import Viewer, msgs
 from ui.KineticScroller import KineticScroller
 from SunClock import SunClock
 from mediabox import viewmodes
-import theme
+from theme import theme
 
 import gtk
 import gobject

@@ -2,7 +2,7 @@ from com import Component, msgs
 import vkblayout
 import layouts
 from ui.Pixmap import Pixmap, text_extents
-import theme
+from theme import theme
 from utils.Observable import Observable
 
 import gtk
@@ -45,6 +45,7 @@ class VirtualKeyboard(gtk.Window, Component):
                         gtk.gdk.BUTTON_RELEASE_MASK |
                         gtk.gdk.POINTER_MOTION_MASK |
                         gtk.gdk.POINTER_MOTION_HINT_MASK)
+        self.move(0, 1000)
         self.show()
         self.__screen = Pixmap(self.window)
         w, h = self.__size

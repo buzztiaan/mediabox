@@ -1,6 +1,6 @@
 from ImageButton import ImageButton
 from Pixmap import text_extents
-import theme
+from theme import theme
 
 
 class Button(ImageButton):

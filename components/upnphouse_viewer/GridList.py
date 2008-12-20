@@ -4,7 +4,7 @@ from ui.ItemList import ItemList
 #from ui.KineticScroller import KineticScroller
 #from ui.DragSorter import DragSorter
 from RowItem import RowItem
-import theme
+from theme import theme
 
 import time
 

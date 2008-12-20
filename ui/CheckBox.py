@@ -3,7 +3,7 @@ A checkbox widget.
 """
 
 from Widget import Widget
-import theme
+from theme import theme
 
 
 _CHECK_WIDTH = theme.mb_checkbox_1.get_width() + 8

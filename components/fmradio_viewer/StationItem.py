@@ -1,6 +1,6 @@
 from ui.ButtonListItem import ButtonListItem
 from mediabox import thumbnail
-import theme
+from theme import theme
 
 
 class StationItem(ButtonListItem):

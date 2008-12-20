@@ -2,7 +2,7 @@ from ui.Widget import Widget
 from ui.Label import Label
 from ui.Pixmap import Pixmap
 import values
-import theme
+from theme import theme
 
 import gtk
 

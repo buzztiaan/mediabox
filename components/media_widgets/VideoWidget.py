@@ -9,7 +9,7 @@ import mediaplayer
 from ui import dialogs
 from utils import maemo
 from utils import logging
-import theme
+from theme import theme
 
 import gtk
 import gobject
@@ -340,7 +340,7 @@ class VideoWidget(MediaWidget):
                     self.__player.set_options("-vo xv")
                     
                 try:
-                    self.__context_id = self.__player.load_video(uri)
+                    self.__context_id = self.__player.load(uri)
                 except:
                     logging.error("could not load video '%s'\n%s" \
                                   % (uri, logging.stacktrace()))

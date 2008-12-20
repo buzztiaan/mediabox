@@ -4,7 +4,7 @@ from ui.ImageButton import ImageButton
 from ui.Label import Label
 from ui.ProgressBar import ProgressBar
 
-import theme
+from theme import theme
 import gtk
 import os
 

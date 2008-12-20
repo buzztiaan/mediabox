@@ -1,6 +1,6 @@
 from ListItem import ListItem
 from Pixmap import Pixmap, TEMPORARY_PIXMAP
-import theme
+from theme import theme
 
 
 

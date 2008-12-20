@@ -1,7 +1,7 @@
 from HilightingWidget import HilightingWidget
 from Pixmap import Pixmap, text_extents
 import pixbuftools
-import theme
+from theme import theme
 
 
 class SideTabs(HilightingWidget):

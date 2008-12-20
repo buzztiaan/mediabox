@@ -12,7 +12,7 @@ from GridList import GridList
 from buttons.BinaryLight_Button import BinaryLight_Button
 from buttons.DimmableLight_Button import DimmableLight_Button
 
-import theme
+from theme import theme
 
 import gtk
 import gobject

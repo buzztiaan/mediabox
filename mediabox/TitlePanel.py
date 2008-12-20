@@ -3,7 +3,7 @@ from ui.Image import Image
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from ui.Label import Label
 from ui import pixbuftools
-import theme
+from theme import theme
 
 import gobject
 

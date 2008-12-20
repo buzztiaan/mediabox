@@ -1,6 +1,6 @@
 from ui.ButtonListItem import ButtonListItem
 import thumbnail
-import theme
+from theme import theme
 
 import os
 

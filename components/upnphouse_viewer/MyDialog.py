@@ -5,7 +5,7 @@ from ui.VBox import VBox
 
 import gtk
 import time
-import theme
+from theme import theme
 
 
 _WIDTH = 280

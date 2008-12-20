@@ -5,7 +5,7 @@ from utils import urlquote
 from utils import logging
 from mediabox import tagreader
 from mediabox import values
-import theme
+from theme import theme
 
 import os
 import gtk
@@ -101,7 +101,7 @@ class AudioArtistStorage(Device):
         
     def get_name(self):
     
-        return "By Artists"
+        return "By Artist"
 
 
     def get_icon(self):

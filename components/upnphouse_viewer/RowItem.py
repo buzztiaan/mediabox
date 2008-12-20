@@ -1,5 +1,5 @@
 from ui.ListItem import ListItem
-import theme
+from theme import theme
             
 
 class RowItem(ListItem):

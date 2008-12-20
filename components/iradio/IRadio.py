@@ -2,7 +2,7 @@ from storage import Device, File
 import inetstations
 from ShoutcastDirectory import ShoutcastDirectory
 from ui.Dialog import Dialog
-import theme
+from theme import theme
 
 
 class IRadio(Device):

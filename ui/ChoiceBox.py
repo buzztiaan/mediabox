@@ -1,6 +1,6 @@
 from Widget import Widget
 from Pixmap import Pixmap, TEMPORARY_PIXMAP, pixmap_for_text
-import theme
+from theme import theme
 
 import threading
 import gobject

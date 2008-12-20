@@ -1,6 +1,6 @@
 from ui.Widget import Widget
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP, text_extents
-import theme
+from theme import theme
 
 import threading
 import gtk
@@ -79,9 +79,9 @@ class RootPane(Widget):
         screen.draw_pixmap(TEMPORARY_PIXMAP, 0, 0)
             
         cnt = 0
-        while (gtk.events_pending() and cnt < 10):
-            gtk.main_iteration(False)
-            cnt += 1
+        #while (gtk.events_pending() and cnt < 10):
+        gtk.main_iteration(False)
+        #    cnt += 1
 
         self.__has_overlay = True
 

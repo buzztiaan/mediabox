@@ -1,5 +1,5 @@
 from utils import mimetypes
-import theme
+from theme import theme
 from ui import pixbuftools
 
 import gtk

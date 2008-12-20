@@ -11,12 +11,25 @@ _PANGO_CTX = gtk.HBox().get_pango_context()
 _PANGO_LAYOUT = pango.Layout(_PANGO_CTX)
 
 
+def _reload(*items):
+    """
+    Attempts reloading the given items.
+    """
+
+    for item in items:
+        try:
+            item.reload()
+        except:
+            pass
+
+
 def text_extents(text, font):
     """
     Returns the width and height required for the given text with the given
     font.
     """
 
+    _reload(font)
     _PANGO_LAYOUT.set_font_description(font)
     _PANGO_LAYOUT.set_text(text)
         
@@ -34,6 +47,7 @@ def pixmap_for_text(text, font):
     given font. The text is not rendered on the Pixmap.
     """
 
+    _reload(font)
     w, h = text_extents(text, font)
     return Pixmap(None, w, h)
     
@@ -305,6 +319,7 @@ class Pixmap(object):
         @param color: fill color
         """
 
+        _reload(color)
         if (len(str(color)) == 9):
             # RGBA
             pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
@@ -349,6 +364,7 @@ class Pixmap(object):
         @param color: color
         """
     
+        _reload(color)
         col = self.__cmap.alloc_color(str(color))
         self.__gc.set_foreground(col)
         self.__pixmap.draw_line(self.__gc, x1, y1, x2, y2)
@@ -366,6 +382,7 @@ class Pixmap(object):
         @param color: border color
         """
     
+        _reload(color)
         w -= 1
         h -= 1
         col = self.__cmap.alloc_color(str(color))
@@ -389,6 +406,7 @@ class Pixmap(object):
         @param use_markup: whether text contains Pango markup
         """                        
    
+        _reload(font, color)
         tw, th = text_extents(text, font)
         tx = x + (w - tw) / 2
         ty = y + (h - th) / 2
@@ -407,6 +425,7 @@ class Pixmap(object):
         @param use_markup: whether text contains Pango markup
         """
 
+        _reload(font, color)
         _PANGO_LAYOUT.set_font_description(font)
         _PANGO_LAYOUT.set_text("")
         _PANGO_LAYOUT.set_markup("")
@@ -441,6 +460,7 @@ class Pixmap(object):
         @param scale: scale to given size or simply crop to size
         """
     
+        _reload(pbuf)
         if (scale):
             pbuf = pbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
     
@@ -468,6 +488,7 @@ class Pixmap(object):
         @param w h: size of subpixbuf
         """
 
+        _reload(pbuf)
         if (srcx < 0 or srcy < 0 or dstx < 0 or dsty < 0):
             return
 
@@ -487,6 +508,7 @@ class Pixmap(object):
         @param x y w h: constraining area to fit pixbuf into
         """
 
+        _reload(pbuf)
         pbuf_width = pbuf.get_width()
         pbuf_height = pbuf.get_height()
 
@@ -553,6 +575,7 @@ class Pixmap(object):
         @param parts: bit composition of parts to draw (C{Pixbuf.TOP | Pixbuf.BOTTOM | Pixbuf.LEFT | Pixbuf.RIGHT})
         """
 
+        _reload(framepbuf)
         tl, t, tr, r, br, b, bl, l, c = self.__split_frame(framepbuf)
         w1, h1 = tl.get_width(), tl.get_height()
         w1 = min(w1, w / 3)

@@ -6,7 +6,7 @@ from utils import urlquote
 from utils import logging
 from mediabox import tagreader
 from mediabox import values
-import theme
+from theme import theme
 
 import os
 import gtk

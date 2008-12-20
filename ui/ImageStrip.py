@@ -76,18 +76,15 @@ class ImageStrip(Widget):
         """
 
         self.invalidate_buffer()
-        self.set_bg_color(self.__bg_color)
-        if (self.__shared_pmap):
-            self.__shared_pmap.clear_cache()
+
         if (self.__scrollbar_pbuf):
             self.set_scrollbar(self.__scrollbar_pbuf)
-        if (self.__images):
-            w, h = self.__images[0].get_size()
-            self.__images[0].set_size(w, h)
+
+        if (self.__shared_pmap):
+            self.__shared_pmap.clear_cache()
+
         for image in self.__images:
             image.invalidate()
-
-        self.render()
 
 
     def invalidate_buffer(self):
@@ -679,7 +676,7 @@ class ImageStrip(Widget):
 
         
     def render_this(self):
-          
+
         w, h = self.get_size()
         screen = self.get_screen()
 
@@ -882,7 +879,7 @@ class ImageStrip(Widget):
         #if (self.__arrows[0]):
         #    self.__render_arrows()
 
-        if (self.may_render()):
+        if (self.may_render() and not self.have_animation_lock()):
             self.__render_buffered(screen, 0, h)
 
 
@@ -1074,7 +1071,7 @@ class ImageStrip(Widget):
         finished = threading.Event()
 
         def f(i):
-            import theme
+            from theme import theme
             screen.copy_pixmap(screen, x + STEP, y, x, y, w - i, h)
             screen.fill_area(x + w - i, y, STEP, h, self.__bg_color)
             #screen.draw_subpixbuf(theme.background, x + w - i, y, x + w - i, y,

@@ -8,7 +8,7 @@ from ui import pixbuftools
 from utils.Observable import Observable
 import config as mb_config
 import values
-import theme
+from theme import theme
 
 import threading
 import gtk

@@ -2,7 +2,7 @@ from utils.Observable import Observable
 from ui.Pixmap import Pixmap
 from ui.Widget import Widget
 from ui.ImageButton import ImageButton
-import theme
+from theme import theme
 
 
 class WindowControls(Widget, Observable):

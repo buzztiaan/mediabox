@@ -2,7 +2,7 @@ from ui.Widget import Widget
 from ui.HBox import HBox
 from ui import pixbuftools
 from utils.Observable import Observable
-import theme
+from theme import theme
 
 import gtk
 import pango

@@ -1,6 +1,6 @@
 from ui.Widget import Widget
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
-import theme
+from theme import theme
 
 
 class RadioScale(Widget):

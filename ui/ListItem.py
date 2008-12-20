@@ -3,7 +3,7 @@ Base class for list items.
 """
 
 from StripItem import StripItem
-import theme
+from theme import theme
 
 
 class ListItem(StripItem):

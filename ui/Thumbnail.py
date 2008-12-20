@@ -1,6 +1,6 @@
 from StripItem import StripItem
 from mediabox import thumbnail
-import theme
+from theme import theme
 
 
 class Thumbnail(StripItem):

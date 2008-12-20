@@ -3,7 +3,7 @@ from ui.Label import Label
 from ui.ChoiceBox import ChoiceBox
 from ui.VBox import VBox
 import config
-import theme
+from theme import theme
 
 import os
 

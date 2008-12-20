@@ -4,7 +4,7 @@ from ui.Label import Label
 from ui.ImageButton import ImageButton
 from mediabox import viewmodes
 from Image import Image
-import theme
+from theme import theme
 
 import gtk
 import gobject

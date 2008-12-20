@@ -11,6 +11,17 @@ LEFT = 4
 RIGHT = 8
 
 
+def _reload(*items):
+    """
+    Attempts reloading the given items.
+    """
+
+    for item in items:
+        try:
+            item.reload()
+        except:
+            pass
+
 
 def _split_frame(img):
 
@@ -44,6 +55,7 @@ def _split_frame(img):
 
 def draw_pbuf(pbuf1, pbuf2, x, y, w = -1, h = -1):
 
+    _reload(pbuf1, pbuf2)
     if (w > 0 and h > 0):
         pbuf2 = pbuf2.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
     else:
@@ -57,11 +69,11 @@ def draw_pbuf(pbuf1, pbuf2, x, y, w = -1, h = -1):
     
 
 def make_frame(pbuf, w, h, filled, parts = 0xf):
-
     """
     Draws a frame by stretching and tiling the given pixbuf.
     """
 
+    _reload(pbuf)
     tl, t, tr, r, br, b, bl, l, c = _split_frame(pbuf)
     w1, h1 = tl.get_width(), tl.get_height()
     w1 = min(w1, w / 3)

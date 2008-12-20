@@ -3,7 +3,7 @@ from com import msgs
 from storage import Device, File
 from utils import logging
 from mediabox import tagreader
-import theme
+from theme import theme
 
 import os
 import commands

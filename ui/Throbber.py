@@ -4,7 +4,7 @@ from Label import Label
 
 import gtk
 import time
-import theme
+from theme import theme
 
 
 class Throbber(Widget):
@@ -39,7 +39,7 @@ class Throbber(Widget):
 
         w, h = self.get_size()
 
-        import theme
+        from theme import theme
         self.__bg.draw_frame(theme.mb_frame_image, 0, 0, w, h, True)
         self.__bg.draw_text("Loading...", theme.font_mb_plain,
                             10, self.__throbber_height + 20,

@@ -12,7 +12,7 @@ from ui import pixbuftools
 from ui import dialogs
 import mediaplayer
 from utils import maemo
-import theme
+from theme import theme
 
 import gtk
 import gobject

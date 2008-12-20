@@ -4,7 +4,7 @@ A basic list derived from L{ImageStrip}.
 
 
 from ImageStrip import ImageStrip
-import theme
+from theme import theme
 
 
 class ItemList(ImageStrip):

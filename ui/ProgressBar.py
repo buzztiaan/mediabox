@@ -1,6 +1,6 @@
 from Widget import Widget
 from Pixmap import Pixmap, TEMPORARY_PIXMAP, text_extents
-import theme
+from theme import theme
 
 import gtk
 

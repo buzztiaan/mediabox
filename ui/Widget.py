@@ -665,7 +665,7 @@ class Widget(object):
             
     def _reload(self):
         """
-        Widgets which have to reload graphics when the theme changes have to
+        Widgets which have to clear caches when the theme changes have to
         override this method so that they can get notified about a theme
         change.
         """
