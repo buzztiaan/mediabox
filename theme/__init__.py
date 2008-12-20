@@ -7,6 +7,8 @@ automatically.
 """
 
 from Color import Color
+from Font import Font
+from Pixbuf import Pixbuf
 from mediabox import values
 from utils import logging
 
@@ -21,81 +23,10 @@ _DEFAULT_THEME_DIR = os.path.join(_THEMES_DIR, "default")
 os.system("mkdir -p " + _USER_THEMES_DIR)
 
 
+_TYPE_PBUF = 0
+_TYPE_COLOR = 1
+_TYPE_FONT = 2
 
-def list_themes():
-    """
-    Lists the available themes.
-    
-    @return: list of (theme_path, preview_icon_path, name, description, author)
-             tuples
-    """
-
-    themes = []
-    for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
-        try:        
-            files = os.listdir(themes_dir)
-        except:
-            continue
-        #files.sort()
-        
-        for d in files:
-            path = os.path.join(themes_dir, d)
-            if (os.path.isdir(path) and not d.startswith(".")):
-                preview = os.path.join(path, "PREVIEW.png")
-                name, description, author = _get_info(path)
-                themes.append((d, preview, name, description, author))
-        #end for
-    #end for
-        
-    themes.sort(lambda a,b:cmp(a[2],b[2]))
-    return themes
-
-
-
-def _read_definitions(themepath):
-
-    def_files = [ f for f in os.listdir(themepath) if f.endswith(".def") ]
-    for f in def_files:
-        try:
-            _read_def_file(os.path.join(themepath, f))
-        except:
-            pass
-            
-
-def _read_def_file(f):
-
-    lines = open(f).readlines()
-        
-    for line in lines:
-        line = line.strip()
-        if (not line or line.startswith("#")):
-            continue
-
-        idx = line.find(":")
-        name = line[:idx].strip()
-        
-        if (name.startswith("color_")):
-            colorname = line[idx + 1:].strip()
-
-            if (name in globals()):
-                globals()[name].set_color(colorname)
-            else:
-                globals()[name] = Color(colorname)
-                
-        elif (name.startswith("font_")):
-            fontname = line[idx + 1:].strip()
-            try:
-                font = pango.FontDescription(fontname)
-            except:
-                pass
-            else:
-                if (name in globals()):
-                    globals()[name].merge(font, True)
-                else:
-                    globals()[name] = font
-    #end for            
-            
-    
 
 def _get_info(themepath):
 
@@ -123,52 +54,164 @@ def _get_info(themepath):
     #end for
     
     return (name, description, author)
-        
 
-def set_theme(name):
-    """
-    Changes the current theme.
+
+
+
+class _Theme(object):
+
+    def __init__(self):
+
+        # table: name -> (type, definition, obj)
+        self.__objects = {}
+
+
+    def __getattr__(self, name):
     
-    @param name: name of new theme
-    """
+        if (name in self.__objects):
+            objtype, objdef, obj = self.__objects[name]
+            if (not obj):
+                obj = self.__load_object(objtype, objdef)
+                self.__objects[name] = (objtype, objdef, obj)
+            #end if
+            return obj
 
-    _set_theme("default")
-    _set_theme(name)
-
-
-def _set_theme(name):
-
-    theme_dir = _DEFAULT_THEME_DIR
-    for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
-        theme_dir = os.path.join(themes_dir, name)
-        name, description, author = _get_info(theme_dir)
-        if (os.path.exists(theme_dir)):
-            break
-    #end for
-
-    items = [ f for f in os.listdir(theme_dir)
-              if f.endswith(".png") or f.endswith(".jpg") ]
-    for i in items:
-        name = os.path.splitext(i)[0]
-        path = os.path.join(theme_dir, i)
-        try:
-            pbuf = gtk.gdk.pixbuf_new_from_file(path)
-        except:
-            logging.error("could not load theme file: %s", path)
-            continue
         else:
-            if (name in globals()):
-                globals()[name].fill(0x00000000)
-                pbuf.scale(globals()[name], 0, 0,
-                           pbuf.get_width(), pbuf.get_height(), 0, 0, 1, 1,
-                           gtk.gdk.INTERP_NEAREST)
+            logging.error("theme item not found: %s", name)
+            raise AttributeError(name)
+
+
+    def list_themes(self):
+        """
+        Lists the available themes.
+        
+        @return: list of (theme_path, preview_icon_path, name, description, author)
+                 tuples
+        """
+
+        themes = []
+        for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
+            try:        
+                files = os.listdir(themes_dir)
+            except:
+                continue
+            #files.sort()
+            
+            for d in files:
+                path = os.path.join(themes_dir, d)
+                if (os.path.isdir(path) and not d.startswith(".")):
+                    preview = os.path.join(path, "PREVIEW.png")
+                    name, description, author = _get_info(path)
+                    themes.append((d, preview, name, description, author))
+            #end for
+        #end for
+            
+        themes.sort(lambda a,b:cmp(a[2],b[2]))
+        return themes
+
+
+
+    def set_theme(self, name):
+        """
+        Changes the current theme.
+        
+        @param name: name of new theme
+        """
+
+        self.__set_theme("default")
+        if (name != "default"):
+            self.__set_theme(name)
+
+
+
+    def __set_theme(self, name):
+
+        theme_dir = _DEFAULT_THEME_DIR
+        for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
+            theme_dir = os.path.join(themes_dir, name)
+            name, description, author = _get_info(theme_dir)
+            if (os.path.exists(theme_dir)):
+                break
+        #end for
+
+        items = [ f for f in os.listdir(theme_dir)
+                  if f.endswith(".png") or f.endswith(".jpg") ]
+        for i in items:
+            name = os.path.splitext(i)[0]
+            path = os.path.join(theme_dir, i)
+
+            if (name in self.__objects):
+                nil, nil, obj = self.__objects[name]
             else:
-                globals()[name] = pbuf
-            del pbuf
-    #end for
+                obj = None
 
-    # read fonts and colors
-    _read_definitions(theme_dir)
+            self.__objects[name] = (_TYPE_PBUF, path, obj)
+            if (obj): obj.set_objdef(path)
+        #end for
+        
+        self.__read_definitions(theme_dir)
 
 
-_set_theme("default")
+    def __read_definitions(self, themepath):
+
+        def_files = [ f for f in os.listdir(themepath) if f.endswith(".def") ]
+        for f in def_files:
+            try:
+                self.__read_def_file(os.path.join(themepath, f))
+            except:
+                pass
+        #end for
+
+
+
+    def __read_def_file(self, f):
+
+        lines = open(f).readlines()
+            
+        for line in lines:
+            line = line.strip()
+            if (not line or line.startswith("#")):
+                continue
+
+            idx = line.find(":")
+            name = line[:idx].strip()
+
+            if (name in self.__objects):
+                nil, nil, obj = self.__objects[name]
+            else:
+                obj = None
+            
+            if (name.startswith("color_")):
+                colorname = line[idx + 1:].strip()
+                self.__objects[name] = (_TYPE_COLOR, colorname, obj)
+                if (obj): obj.set_objdef(colorname)
+
+            elif (name.startswith("font_")):
+                fontname = line[idx + 1:].strip()
+                self.__objects[name] = (_TYPE_FONT, fontname, obj)        
+                if (obj): obj.set_objdef(fontname)
+            
+
+    def __load_object(self, objtype, objdef):
+    
+        logging.debug("loading theme item: %s", objdef)
+        
+        if (objtype == _TYPE_PBUF):
+            obj = Pixbuf(objdef)
+                           
+        elif (objtype == _TYPE_COLOR):
+            obj = Color(objdef)
+
+        elif (objtype == _TYPE_FONT):
+            obj = Font(objdef)
+            
+        else:
+            obj = None
+        
+        return obj
+
+
+
+theme = _Theme()
+theme.set_theme("default")
+
