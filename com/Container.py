@@ -152,6 +152,7 @@ class Container(Component):
         for mod in mods:
             self.__register_messages(mod)
         for mod in mods:
+            self.emit_event(msgs.COM_EV_LOADING_MODULE, mod.__name__)
             self.__load_components(mod)
 
         for c in self.__components:
