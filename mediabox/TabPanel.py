@@ -6,6 +6,7 @@ from ui.Label import Label
 from ui.Pixmap import Pixmap
 from ui import pixbuftools
 from utils.Observable import Observable
+from utils import threads
 import config as mb_config
 import values
 from theme import theme
@@ -152,9 +153,10 @@ class TabPanel(HilightingWidget, Observable):
         # prepare backing buffer
         self.__backing_buffer = Pixmap(None, w, h)
 
-        csrx, csry = self.__get_cursor_position(self.__index)
-        x, y = self.__position_matrix[csry][csrx]
-        self.place_hilighting_box(x, y)
+        if (self.__icons):
+            csrx, csry = self.__get_cursor_position(self.__index)
+            x, y = self.__position_matrix[csry][csrx]
+            self.place_hilighting_box(x, y)
 
         self.__is_prepared = True
 
@@ -300,8 +302,8 @@ class TabPanel(HilightingWidget, Observable):
 
     def fx_raise(self, wait = True):
 
-        if (self.have_animation_lock() or self.__is_raised): return
-        self.set_animation_lock(True)
+        #if (self.have_animation_lock() or self.__is_raised): return
+        #self.set_animation_lock(True)
         self.__is_raised = True
 
         if (not self.__is_prepared):
@@ -316,38 +318,41 @@ class TabPanel(HilightingWidget, Observable):
         self.render_at(buf)
         
         self.__backing_buffer.copy_pixmap(screen, 0, 0, 0, 0, pw, h)
-        finished = threading.Event()
+        #finished = threading.Event()
 
 
-        def fx(from_y, to_y):
-            dy = (to_y - from_y) / 10
+        def fx(params): #from_y, to_y):
+            from_y, to_y = params
+            dy = (to_y - from_y) / 5
             if (dy > 0):
                 screen.move_area(0, dy, pw, ph - from_y - dy, 0, -dy)
                 screen.copy_pixmap(buf, 0, h - from_y - dy, 0, ph - from_y - dy,
                                    pw, dy)
-                gobject.timeout_add(10, fx, from_y + dy, to_y)
+                params[0] = from_y + dy
+                params[1] = to_y
+                return True
+                #gobject.timeout_add(10, fx, from_y + dy, to_y)
             else:
                 dy = to_y - from_y
                 screen.move_area(0, dy, pw, ph - from_y - dy, 0, -dy)
                 screen.copy_pixmap(buf, 0, h - from_y - dy, 0, ph - from_y - dy,
                                    pw, dy)
-                finished.set()
-                self.__lock.clear()
+                #finished.set()
+                #self.__lock.clear()
+                return False
         
 
-        self.set_events_blocked(True)
-        fx(0, h)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)
-        self.set_frozen(False)
-        self.set_animation_lock(False)
+        self.animate(50, fx, [0, h])
+        #self.set_frozen(False)
+        #self.set_animation_lock(False)
         #self.set_events_blocked(False)
-        gobject.timeout_add(250, self.set_events_blocked, False)
+        #gobject.timeout_add(250, self.set_events_blocked, False)
 
 
     def fx_lower(self, wait = True):
 
-        if (self.have_animation_lock() or not self.__is_raised): return
-        self.set_animation_lock(True)
+        #if (self.have_animation_lock() or not self.__is_raised): return
+        #self.set_animation_lock(True)
         self.__is_raised = False
 
         x, y = self.get_screen_pos()
@@ -355,28 +360,34 @@ class TabPanel(HilightingWidget, Observable):
         pw, ph = self.get_parent().get_size()
         screen = self.get_screen()
 
-        finished = threading.Event()
+        #finished = threading.Event()
         
-        def fx(from_y, to_y):
-            dy = (to_y - from_y) / 10
+        def fx(params): #from_y, to_y):
+            from_y, to_y = params
+            dy = (to_y - from_y) / 5
             if (dy > 0):
                 screen.move_area(0, 0, pw, ph - h + from_y, 0, dy)
                 screen.copy_pixmap(self.__backing_buffer,
                                    0, h - from_y - dy, 0, 0, pw, dy)
-                gobject.timeout_add(10, fx, from_y + dy, to_y)
+                #gobject.timeout_add(10, fx, from_y + dy, to_y)
+                params[0] = from_y + dy
+                params[1] = to_y
+                return True
             else:
                 dy = to_y - from_y
                 screen.move_area(0, 0, pw, ph - h + from_y, 0, dy)
                 screen.copy_pixmap(self.__backing_buffer,
                                    0, h - from_y - dy, 0, 0, pw, dy)
-                finished.set()
-                self.__lock.clear()
+                #finished.set()
+                #self.__lock.clear()
+                return False
         
-        self.set_events_blocked(True)
-        fx(0, h)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)
-        self.set_frozen(False)
-        self.set_animation_lock(False)
+        #self.set_events_blocked(True)
+        #fx(0, h)
+        #if (wait): threads.wait_for(lambda :finished.isSet(), "lowering menu")
+        self.animate(50, fx, [0, h])
+        #self.set_frozen(False)
+        #self.set_animation_lock(False)
         #self.set_events_blocked(False)
-        gobject.timeout_add(250, self.set_events_blocked, False)
+        #gobject.timeout_add(250, self.set_events_blocked, False)
 

@@ -3,6 +3,7 @@ from MusicIndex import MusicIndex
 from storage import Device, File
 from utils import urlquote
 from utils import logging
+from utils import threads
 from mediabox import tagreader
 from mediabox import values
 from theme import theme
@@ -59,16 +60,17 @@ class AudioArtistStorage(Device):
             #end for
 
             self.emit_event(msgs.UI_ACT_HIDE_MESSAGE)
-            finished.set()
+            #finished.set()
           
 
         media, added, removed = \
                 self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                  [File.DIRECTORY])
 
-        finished = threading.Event()
-        gobject.idle_add(f)        
-        while (not finished.isSet()): gtk.main_iteration(False)
+        #finished = threading.Event()
+        #gobject.idle_add(f)        
+        #threads.wait_for(lambda :finished.isSet())
+        f()
         
         
     def _list_artists(self):

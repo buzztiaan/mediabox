@@ -2,6 +2,7 @@ from ui.Widget import Widget
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from io.Downloader import Downloader
 from utils.Observable import Observable
+from utils import threads
 
 import gtk
 import pango
@@ -569,19 +570,19 @@ class Image(Widget, Observable):
         
     def fx_slide_in(self, wait = True):
     
-        import threading
-
-        if (self.have_animation_lock()): return
-        self.set_animation_lock(True)
-        self.set_frozen(True)
+        #import threading
+        #if (self.have_animation_lock()): return
+        #self.set_animation_lock(True)
+        #self.set_frozen(True)
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
 
-        finished = threading.Event()
+        #finished = threading.Event()
         
-        def f(from_x, to_x):
+        def f(params): #from_x, to_x):
+            from_x, to_x = params
             dx = (to_x - from_x) / 5
             done = False
 
@@ -597,21 +598,18 @@ class Image(Widget, Observable):
                                    x + from_x, y,
                                    x + w - dx, y,
                                    dx, h)
-                #screen.copy_buffer(screen, x + dx, y, x, y, w - dx, h)
-                #screen.copy_pixmap(self.__offscreen, x + dx, y, x + w - dx, y,
-                #                    dx, h)
-            #else:
-                #screen.copy_buffer(screen, x, y, x + dx, y, w - dx, h)
-                #screen.copy_pixmap(self.__offscreen, x + w - dx, y, x, y,
-                #                    dx, h)
             
             if (not done):
-                gobject.timeout_add(10, f, from_x + dx, to_x)
+                params[0] = from_x + dx
+                params[1] = to_x
+                return True
+                #gobject.timeout_add(10, f, from_x + dx, to_x)
             else:
-                finished.set()
+                #finished.set()
+                return False
 
-
-        f(0, w)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)
-        self.set_animation_lock(False)
-        self.set_frozen(False)
+        #f(0, w)
+        #if (wait): threads.wait_for(finished.isSet())
+        self.animate(50, f, [0, w])
+        #self.set_animation_lock(False)
+        #self.set_frozen(False)

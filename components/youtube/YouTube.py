@@ -2,6 +2,7 @@ from com import msgs
 from storage import Device, File
 from utils.MiniXML import MiniXML
 from utils import logging
+from utils import threads
 from utils import urlquote
 from ui.Dialog import Dialog
 from io import Downloader

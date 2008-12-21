@@ -1,10 +1,12 @@
 from ui.Widget import Widget
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP, text_extents
+from utils import threads
 from theme import theme
 
 import threading
 import gtk
 import gobject
+import time
 
 
 class RootPane(Widget):
@@ -78,56 +80,60 @@ class RootPane(Widget):
 
         screen.draw_pixmap(TEMPORARY_PIXMAP, 0, 0)
             
-        cnt = 0
-        #while (gtk.events_pending() and cnt < 10):
-        gtk.main_iteration(False)
-        #    cnt += 1
+        gtk.gdk.window_process_all_updates()
 
         self.__has_overlay = True
 
 
     def hide_overlay(self):
     
-        self.__has_overlay = False
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
+        if (self.__has_overlay):
+            self.__has_overlay = False
+            x, y = self.get_screen_pos()
+            w, h = self.get_size()
+            screen = self.get_screen()
         
-        screen.draw_pixmap(self.__buffer, x, y)
-        self.set_frozen(False)
+            screen.draw_pixmap(self.__buffer, x, y)
+            self.set_frozen(False)
 
 
     def fx_slide_in(self, wait = True):
     
-        if (self.have_animation_lock()): return
-        self.set_animation_lock(True)
+        #if (self.have_animation_lock()): return
+        #self.set_animation_lock(True)
     
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
 
         buf = Pixmap(None, w, h)
-        self.set_frozen(False)
+        #self.set_frozen(False)
         self.render_at(buf)
-        self.set_frozen(True)
-        finished = threading.Event()
+        #self.set_frozen(True)
+        #finished = threading.Event()
         
-        def fx(from_y, to_y):
-            dy = (to_y - from_y) / 10
+        def fx(params): #from_y, to_y):
+            from_y, to_y = params
+            dy = (to_y - from_y) / 5
             if (dy > 0):
                 screen.move_area(x, y, w, from_y, 0, dy)
                 screen.copy_pixmap(buf, x, y + h - from_y - dy, 0, 0, w, dy)
-                gobject.timeout_add(10, fx, from_y + dy, to_y)
+                #gobject.timeout_add(10, fx, from_y + dy, to_y)
+                params[0] = from_y + dy
+                params[1] = to_y
+                return True
             else:
                 dy = to_y - from_y
                 screen.move_area(x, y, w, from_y, 0, dy)
                 screen.copy_pixmap(buf, x, y + h - from_y - dy, 0, 0, w, dy)
-                finished.set()
+                #finished.set()
+                return False
         
-        self.set_events_blocked(True)
-        fx(0, h)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)
-        self.set_events_blocked(False)
-        self.set_frozen(False)
-        self.set_animation_lock(False)
+        #self.set_events_blocked(True)
+        #fx(0, h)
+        #if (wait): threads.wait_for(lambda :finished.isSet(), "sliding rootpane")
+        self.animate(50, fx, [0, h])
+        #self.set_events_blocked(False)
+        #self.set_frozen(False)
+        #self.set_animation_lock(False)
 

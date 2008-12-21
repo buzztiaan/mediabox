@@ -303,9 +303,9 @@ class VideoWidget(MediaWidget):
         #print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
         cnt = 0
-        while (gtk.events_pending() and cnt < 10):
-            gtk.main_iteration(False)
-            cnt += 1
+        #while (gtk.events_pending() and cnt < 10):
+        #    gtk.main_iteration(False)
+        #    cnt += 1
         #self.__show_video_screen()
 
 

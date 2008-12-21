@@ -6,6 +6,7 @@ from HTTPResponse import HTTPResponse
 from utils import threads
 from utils import logging
 from utils import maemo
+from utils import threads
 
 import gobject
 import socket
@@ -135,9 +136,7 @@ class HTTPConnection(object):
         Returns C{False} in case of a connection timeout.
         """
         
-        import gtk
-        while (not self.__finished):
-            if (gtk.events_pending()): gtk.main_iteration(False)
+        threads.wait_for(lambda :self.__finished)
             
         return self.__is_aborted
 

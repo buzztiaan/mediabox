@@ -151,16 +151,16 @@ class AppWindow(Component, RootPane):
 
         actions = [#(self.render_buffered, []),
                    #(gtk.main_quit, []),
+                   #(time.sleep, [5]),
                    (self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
                                         "",
                                         theme.mb_viewer_audio]),
                    (self.__register_viewers, []),
-                   (self.hide_overlay, []),
                    (self.add, [self.__tab_panel]),
                    (self.add, [self.__window_ctrls]),
                    (self.__add_panels, []),
-                   #(time.sleep, [5]),
                    (self.__scan_at_startup, []),
+                   (self.hide_overlay, []),
                    (self.__select_initial_viewer, []),
                    (self.emit_event, [msgs.CORE_EV_APP_STARTED]),
                    ]
@@ -553,7 +553,7 @@ class AppWindow(Component, RootPane):
 
 
         #if (not self.is_enabled()): return
-        if (self.have_animation_lock()): return
+        #if (self.have_animation_lock()): return
     
         keyval = ev.keyval
         key = gtk.gdk.keyval_name(keyval)
@@ -700,7 +700,7 @@ class AppWindow(Component, RootPane):
             self.__window.iconify()
 
         elif (cmd == src.OBS_MAXIMIZE_WINDOW):
-            self.set_frozen(False)
+            #self.set_frozen(False)
             self.__is_fullscreen = not self.__is_fullscreen
             if (self.__is_fullscreen): self.__window.fullscreen()
             else: self.__window.unfullscreen()
@@ -783,7 +783,7 @@ class AppWindow(Component, RootPane):
         elif (event == msgs.CORE_EV_THEME_CHANGED):
             from mediabox import thumbnail
             thumbnail.clear_cache()
-            self.set_frozen(True)
+            #self.set_frozen(True)
             self.propagate_theme_change()
             self.__prepare_collection_caps()
             #self.__root_pane.render_buffered()            
@@ -969,20 +969,17 @@ class AppWindow(Component, RootPane):
         self.set_frozen(True)
         viewer.show()
         
-        def f():
-            self.__current_viewer.show()
-            self.__set_collection(vstate.items)
-            self.__strip.set_offset(vstate.item_offset)
-            if (vstate.selected_item >= 0):
-                self.__hilight_item(vstate.selected_item)
-            
-            self.fx_slide_in() #render() #_buffered()
-            self.__tab_panel.close()
-            self.set_frozen(False)
-            #self.render()
-            self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
-
-        gobject.idle_add(f)
+        self.__current_viewer.show()
+        self.__set_collection(vstate.items)
+        self.__strip.set_offset(vstate.item_offset)
+        if (vstate.selected_item >= 0):
+            self.__hilight_item(vstate.selected_item)
+        
+        self.set_frozen(False)
+        self.fx_slide_in() #render() #_buffered()
+        self.__tab_panel.close()
+        #self.render()
+        self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
 
 
 
@@ -992,11 +989,9 @@ class AppWindow(Component, RootPane):
         """
 
         self.__hilight_item(-1)
-        thumbnails = collection #[ item.thumbnail_pmap for item in collection ]
-        
+        thumbnails = collection        
         self.__strip.set_images(thumbnails)
-        #self.__strip.invalidate_buffer()
-        #self.__strip.render()
+        self.__strip.render()
 
         # if the collection is empty, tell the user that she can add items
         #if (not collection and self.__view_mode == viewmodes.NORMAL):
