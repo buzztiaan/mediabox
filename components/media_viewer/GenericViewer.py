@@ -434,15 +434,15 @@ class GenericViewer(Viewer):
 
 
         elif (mode == self._VIEWMODE_PLAYER_NORMAL):
-            self.emit_event(msgs.UI_ACT_FREEZE)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
             self.__media_box.set_visible(True)
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
-
+            
             if (was_fullscreen):
-                self.render()
+                self.render()          
+            self.emit_event(msgs.UI_ACT_FREEZE)
             
             self.__update_side_strip()
             self.__hilight_current_file()
@@ -450,8 +450,8 @@ class GenericViewer(Viewer):
             if (self.__current_file):
                 self.set_title(self.__current_file.name)
 
-            gobject.timeout_add(50, self.emit_event, msgs.UI_ACT_THAW)
-            #self.emit_event(msgs.UI_ACT_THAW)
+            #gobject.timeout_add(50, self.emit_event, msgs.UI_ACT_THAW)
+            self.emit_event(msgs.UI_ACT_THAW)
 
 
         elif (mode == self._VIEWMODE_PLAYER_FULLSCREEN):
