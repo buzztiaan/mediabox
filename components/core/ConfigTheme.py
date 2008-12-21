@@ -59,6 +59,7 @@ class ConfigTheme(Configurator):
 
         self.emit_event(msgs.UI_ACT_SHOW_MESSAGE, "Loading Theme",
                         "- %s -" % t, preview)
+        import time; time.sleep(0.5)
                         
         config.set_theme(t)
         theme.set_theme(t)
