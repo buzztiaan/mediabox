@@ -879,7 +879,7 @@ class ImageStrip(Widget):
         #if (self.__arrows[0]):
         #    self.__render_arrows()
 
-        if (self.may_render() and not self.have_animation_lock()):
+        if (self.may_render()):
             self.__render_buffered(screen, 0, h)
 
 
@@ -969,11 +969,10 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         self.__scroll_to_item_index = idx
         if (not self.__scroll_to_item_handler):
-            self.__scroll_to_item_handler = gobject.timeout_add(5, f)
-            self.set_events_blocked(True)
-            while (self.__scroll_to_item_handler):
-                gtk.main_iteration(False)
-            self.set_events_blocked(False)
+            #self.__scroll_to_item_handler = gobject.timeout_add(5, f)
+            self.animate_with_events(50, f)
+            #self.set_events_blocked(True)
+            #self.set_events_blocked(False)
 
 
     """

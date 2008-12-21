@@ -2,7 +2,6 @@ from Widget import Widget
 from Pixmap import Pixmap, TEMPORARY_PIXMAP, pixmap_for_text
 from theme import theme
 
-import threading
 import gobject
 import gtk
 
@@ -123,21 +122,25 @@ class ChoiceBox(Widget):
         buf = TEMPORARY_PIXMAP
         buf.fill_area(0, 0, w, h, "#ffffff")
         buf.draw_pixmap(self.__label_pmap, max(0, (w - l_w) / 2), (h - l_h) / 2)
-        finished = threading.Event()
+        #finished = threading.Event()
         
-        def fx(i):
+        def fx(params):
+            i = params[0]
             if (i + STEP > w): i = w - STEP
             self.use_clipping(True)
             screen.move_area(x + STEP, y, w - STEP, h, -STEP, 0)
             screen.copy_pixmap(buf, i, 0, x + w - STEP, y, STEP, h)
             self.use_clipping(False)
             if (i + STEP < w):
-                gobject.timeout_add(7, fx, i + STEP)
+                params[0] = i + STEP
+                #gobject.timeout_add(7, fx, i + STEP)
+                return True
             else:
-                finished.set()
+                #finished.set()
+                return False
 
-        self.set_events_blocked(True)
-        fx(0)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)
-        self.set_events_blocked(False)
+        #self.set_events_blocked(True)
+        self.animate(50, fx, [0])
+        #if (wait): threads.wait_for(lambda :finished.isSet())
+        #self.set_events_blocked(False)
 

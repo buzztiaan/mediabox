@@ -1,3 +1,5 @@
+from utils import threads
+
 import gtk
 import hildon
 
@@ -23,7 +25,7 @@ class ProgressBanner(object):
         self.__amount = min(self.__total, amount)
         fraction = self.__amount / float(self.__total)
         self.__progress.set_fraction(fraction)
-        while (gtk.events_pending()): gtk.main_iteration(False)
+        threads.wait_for(lambda :not gtk.events_pending())
 
 
     def get(self):

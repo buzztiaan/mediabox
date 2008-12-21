@@ -4,6 +4,7 @@ Every widget is derived from this base class.
 
 import time
 import threading
+import gtk
 
 
 class Widget(object):
@@ -67,7 +68,7 @@ class Widget(object):
                         event type)
         """
 
-        if (self.__events_lock.isSet() or self.__animation_lock.isSet()): return
+        if (self.__events_lock.isSet()): return
         
         handlers = self.__event_handlers.get(ev, [])
         for cb, user_args in handlers:
@@ -703,4 +704,55 @@ class Widget(object):
         """
         
         Widget._esens = esens
+
+
+    def animate(self, fps, cb, *args):
+        """
+        Runs an animation with the given number of frames per second.
+        Invokes the given callback for each frame.
+        Events occuring during the animation get discarded.
+        
+        @param fps:   frames per second
+        @param cb:    frame callback
+        @param *args: variable list of arguments for callback
+        """
+    
+        delta = 1.0 / float(fps)
+        next = time.time()
+        while (True):
+            #print next
+            while (time.time() < next): time.sleep(0.00001)
+            ret = cb(*args)
+            gtk.gdk.window_process_all_updates()
+            next += delta
+            if (not ret): break
+        #end for
+        
+        # kill queued events
+        while (True):
+            e = gtk.gdk.event_get()
+            if (not e): break
+
+
+    def animate_with_events(self, fps, cb, *args):
+        """
+        Runs an animation with the given number of frames per second.
+        Invokes the given callback for each frame.
+        Events are detected during animation.
+        
+        @param fps:   frames per second
+        @param cb:    frame callback
+        @param *args: variable list of arguments for callback
+        """
+    
+        delta = 1.0 / float(fps)
+        next = time.time()
+        while (True):
+            #print next
+            while (time.time() < next): gtk.main_iteration(False)
+            ret = cb(*args)
+            gtk.gdk.window_process_all_updates()
+            next += delta
+            if (not ret): break
+        #end for
 

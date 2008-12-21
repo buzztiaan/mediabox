@@ -72,39 +72,46 @@ class HilightingWidget(Widget):
         @param new_y:      y coordinate
         """
     
-        def move_box(from_x, from_y, to_x, to_y):
+        #def move_box(from_x, from_y, to_x, to_y):
+        def move_box(params):
+            from_x, from_y, to_x, to_y = params
             dx = (to_x - from_x) / 5
             dy = (to_y - from_y) / 5
             if (abs(dx) > 0 or abs(dy) > 0):
                 self.__move_cursor(from_x, from_y, dx, dy)
                 self.__box_pos = (from_x + dx, from_y + dy)
-                self.__motion_timer = gobject.timeout_add(10, move_box,
-                                                       from_x + dx, from_y + dy,
-                                                       to_x, to_y)
+                params[0] = from_x + dx
+                params[1] = from_y + dy
+                params[2] = to_x
+                params[3] = to_y
+                #self.__motion_timer = gobject.timeout_add(10, move_box,
+                #                                       from_x + dx, from_y + dy,
+                #                                       to_x, to_y)
+                return True
             else:
                 self.__move_cursor(from_x, from_y, to_x - from_x, to_y - from_y)
                 self.__box_pos = (to_x, to_y)
                 self.__motion_timer = None
-                self.set_animation_lock(False)
+                #self.set_animation_lock(False)
+                return False
 
 
         if (not self.may_render()):
             self.place_hilighting_box(new_x, new_y)
     
-        elif (self.have_animation_lock()):
-            return
-            
         else:
-            self.set_animation_lock(True)
+            #self.set_animation_lock(True)
 
             prev_x, prev_y = self.__box_pos
             
             if (self.__motion_timer):
                 gobject.source_remove(self.__motion_timer)
 
-            self.__motion_timer = gobject.timeout_add(10, move_box,
-                                                  prev_x, prev_y, new_x, new_y)
-            while (self.__motion_timer): gtk.main_iteration(False)
+            params = [prev_x, prev_y, new_x, new_y]
+            self.animate(50, move_box, params)
+            #self.__motion_timer = gobject.timeout_add(10, move_box,
+            #                                      prev_x, prev_y, new_x, new_y)
+            #threads.wait_for(lambda :not self.__motion_timer, "moving hilighting box")
         #end if
 
 

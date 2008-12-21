@@ -1,3 +1,4 @@
+from utils import threads
 from theme import theme
 
 import gtk
@@ -51,7 +52,7 @@ class Dialog(gtk.Dialog):
     
         while (self.__response == None):
             time.sleep(0.01)
-            while (gtk.events_pending()): gtk.main_iteration(False)
+            threads.wait_for(lambda :not gtk.events_pending())
             
         return self.__response
         
@@ -107,7 +108,7 @@ class Dialog(gtk.Dialog):
         else:
             values = []            
         self.destroy()
-        while (gtk.events_pending()): gtk.main_iteration(False)
+        threads.wait_for(lambda :not gtk.events_pending())
         
         return values
 
