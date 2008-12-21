@@ -15,12 +15,14 @@ not in use.
 Threads must invoke keep_alive() regularly.
 """
 
+import logging
 import threading
 import gobject
 
 
 _timer = None
 _counter = 0
+_waiting_lock = threading.Lock()
 
 
 def _keep_alive():
@@ -53,4 +55,29 @@ def keep_alive():
     _counter = 0
     if (not _timer):
         _timer = gobject.idle_add(_keep_alive)
+
+
+
+def wait_for(tester, why = None):
+    """
+    Waits until the given tester returns True.
+    
+    @param tester: boolean function
+    """
+
+    #if (not why): raise IOError
+    if (why): print "BEGIN", why
+    import gtk
+    cnt = 0
+    while (not tester()):
+        #if (not _waiting_lock.locked()):
+        #    _waiting_lock.acquire()
+        #print "TICK"
+        #print "DEPTH", gobject.main_depth()
+        gtk.main_iteration(False)
+        #_waiting_lock.release()
+        cnt += 1
+        #end if
+    #end while
+    if (why): print "END", why
 
