@@ -20,11 +20,16 @@ class ConfigTheme(Configurator):
         Configurator.__init__(self)
         
         self.__list = TrackList()
-        self.__list.set_geometry(0, 0, 610, 370)
         self.__list.connect_button_clicked(self.__on_item_button)
         self.add(self.__list)
                   
         self.__update_list()
+        
+        
+    def render_this(self):
+    
+        w, h = self.get_size()
+        self.__list.set_geometry(0, 0, w, h)
         
         
     def __on_item_button(self, item, idx, btn):

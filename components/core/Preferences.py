@@ -19,6 +19,13 @@ class Preferences(Viewer):
         Viewer.__init__(self)
         
         
+    def render_this(self):
+    
+        w, h = self.get_size()
+        for c in self.__configurators:
+            c.set_size(w, h)
+        
+        
     def __register_configurator(self, comp):
     
         self.add(comp)    

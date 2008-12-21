@@ -1,6 +1,7 @@
 from com import Configurator, msgs
 from ui.Label import Label
 from ui.ChoiceBox import ChoiceBox
+from ui.CheckBox import CheckBox
 from ui.VBox import VBox
 from utils import mmc
 import config
@@ -14,17 +15,18 @@ class Prefs(Configurator):
     ICON = theme.youtube_device
     TITLE = "YouTube"
 
+
     def __init__(self):
     
         Configurator.__init__(self)
         
-        vbox = VBox()
-        vbox.set_geometry(0, 0, 620, 370)
-        self.add(vbox)
+        self.__vbox = VBox()
+        self.__vbox.set_spacing(12)
+        self.add(self.__vbox)
         
-        lbl = Label("Save YouTube videos to:\n",
+        lbl = Label("Save YouTube videos to:",
                     theme.font_mb_plain, theme.color_mb_listitem_text)
-        vbox.add(lbl)
+        self.__vbox.add(lbl)
 
         current_cache = config.get_cache_folder()
         chbox = ChoiceBox("device", os.path.expanduser("~"),
@@ -32,7 +34,15 @@ class Prefs(Configurator):
                           mmc.get_label("/media/mmc1"), "/media/mmc1")
         chbox.select_by_value(current_cache)
         chbox.connect_changed(self.__on_select_cache_location)
-        vbox.add(chbox)
+        self.__vbox.add(chbox)
+
+        chk = CheckBox(False)
+        #chk.connect_checked()
+        self.__vbox.add(chk)
+        lbl = Label("Load high-quality version of video if available\n"
+                    "(this feature is not yet available)",
+                    theme.font_mb_plain, theme.color_mb_listitem_text)        
+        chk.add(lbl)
         
 
 
@@ -43,6 +53,7 @@ class Prefs(Configurator):
         w, h = self.get_size()
         screen = self.get_screen()
         
+        self.__vbox.set_geometry(32, 32, w - 64, h - 64)
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         
         

@@ -19,13 +19,25 @@ class Prefs(Configurator):
         Configurator.__init__(self)
 
         self.__vbox = VBox()
-        self.__vbox.set_geometry(0, 0, 620, 370)
+        self.__vbox.set_halign(VBox.HALIGN_LEFT)
+        self.__vbox.set_valign(VBox.VALIGN_TOP)
+        self.__vbox.set_spacing(12)
+        #self.__vbox.set_geometry(0, 0, 620, 370)
         self.add(self.__vbox)
 
         chk = CheckBox(mb_config.scan_at_startup())
-        chk.connect_checked(self.__on_check)
+        chk.connect_checked(self.__on_check_startup)
         self.__vbox.add(chk)
-        lbl = Label("Always update index at startup",
+        lbl = Label("Always update index at startup\n"
+                    "(delays startup time)",
+                    theme.font_mb_plain, theme.color_mb_listitem_text)        
+        chk.add(lbl)
+
+        chk = CheckBox(mb_config.scan_with_inotify())
+        chk.connect_checked(self.__on_check_inotify)
+        self.__vbox.add(chk)
+        lbl = Label("Watch folders for changes via inotify\n"
+                    "(detects new files automatically)",
                     theme.font_mb_plain, theme.color_mb_listitem_text)        
         chk.add(lbl)
 
@@ -42,15 +54,20 @@ class Prefs(Configurator):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        self.__vbox.set_geometry(0, 0, w, h)
-        self.__btn_reindex.set_size(w, 64)
+        self.__vbox.set_geometry(32, 32, w - 64, h - 64)
+        self.__btn_reindex.set_size(w - 64, 64)
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         
         
         
-    def __on_check(self, value):
+    def __on_check_startup(self, value):
     
         mb_config.set_scan_at_startup(value)
+
+
+    def __on_check_inotify(self, value):
+    
+        mb_config.set_scan_with_inotify(value)
 
 
     def __on_click_rebuild(self):

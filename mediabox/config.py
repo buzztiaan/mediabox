@@ -22,6 +22,7 @@ _cfg = Config("",
                ("repeat_mode", Config.STRING, REPEAT_MODE_NONE),
                ("shuffle_mode", Config.STRING, SHUFFLE_MODE_NONE),
                ("scan_at_startup", Config.BOOL, True),
+               ("scan_with_inotify", Config.BOOL, True),
                ("thumbnails_folder", Config.STRING, 
                               os.path.expanduser("~/.thumbnails/mediabox")),
                ("theme", Config.STRING, "default"),
@@ -98,6 +99,16 @@ def scan_at_startup():
 def set_scan_at_startup(v):
 
     _cfg["scan_at_startup"] = v
+
+
+def scan_with_inotify():
+
+    return _cfg["scan_with_inotify"]
+    
+    
+def set_scan_with_inotify(v):
+
+    _cfg["scan_with_inotify"] = v
 
 
 def thumbdir():

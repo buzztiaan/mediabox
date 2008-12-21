@@ -102,6 +102,9 @@ class FileWatcher(Component, ProcessEvent):
         Reports a change in the filesystem.
         """
 
+        if (not config_mb.scan_with_inotify()):
+            return
+
         if (path.endswith(".partial")):
             return
                     
