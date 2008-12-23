@@ -30,6 +30,8 @@ class ImageStrip(Widget):
         self.__arrows_save_under = None
         self.__scrollbar_pmap = None
         self.__scrollbar_pbuf = None
+
+        self.__caps = (None, None)
         self.__cap_top = None
         self.__cap_top_size = (0, 0)
         self.__cap_bottom = None
@@ -79,6 +81,7 @@ class ImageStrip(Widget):
 
         if (self.__scrollbar_pbuf):
             self.set_scrollbar(self.__scrollbar_pbuf)
+        self.set_caps(*self.__caps)
 
         if (self.__shared_pmap):
             self.__shared_pmap.clear_cache()
@@ -106,6 +109,7 @@ class ImageStrip(Widget):
         if (w > 0 and h > 0):
             self.__buffer = Pixmap(None, w, h)
         self.set_scrollbar(self.__scrollbar_pbuf)
+        self.set_caps(*self.__caps)
 
         self.__shared_pmap = None
         for img in self.__images:
@@ -143,14 +147,34 @@ class ImageStrip(Widget):
         @param bottom: pixbuf for the bottom cap
         """
     
+        w, h = self.get_size()
         self.invalidate_buffer()
-        self.__cap_top = top
+        self.__caps = (top, bottom)
+
         if (top):
-            self.__cap_top_size = (top.get_width(), top.get_height())            
-        self.__cap_bottom = bottom
+            try:
+                top.reload()
+            except:
+                pass
+            self.__cap_top = top.scale_simple(w, top.get_height(),
+                                              gtk.gdk.INTERP_BILINEAR)
+            self.__cap_top_size = (w, top.get_height())
+        else:
+            self.__cap_top = None
+            self.__cap_top_size = (0, 0)
+
         if (bottom):
-            self.__cap_bottom_size = (bottom.get_width(), bottom.get_height())
-        
+            try:
+                bottom.reload()
+            except:
+                pass
+            self.__cap_bottom = bottom.scale_simple(w, bottom.get_height(),
+                                                    gtk.gdk.INTERP_BILINEAR)
+            self.__cap_bottom_size = (w, bottom.get_height())
+        else:
+            self.__cap_bottom = None
+            self.__cap_bottom_size = (0, 0)
+
         
     def set_arrows(self, arrows, arrows_off):
         """
@@ -663,13 +687,12 @@ class ImageStrip(Widget):
             self.__render_floating_item()
 
         if (self.__cap_top):
-            cw, ch = self.__cap_top_size
-            self.__buffer.draw_pixbuf(self.__cap_top, 0, 0, w, ch)
+            self.__buffer.draw_pixbuf(self.__cap_top, 0, 0)
             
         if (self.__cap_bottom):
             cw, ch = self.__cap_bottom_size
-            self.__buffer.draw_pixbuf(self.__cap_bottom, 0, h - ch, w, ch)
-            
+            self.__buffer.draw_pixbuf(self.__cap_bottom, 0, h - ch)
+
         screen.copy_pixmap(self.__buffer, 0, offset, x, y + offset, w, height)
         self.__buffer.copy_pixmap(TEMPORARY_PIXMAP, 0, 0, 0, 0, w, h)
         self.__buffer_dirty = False
