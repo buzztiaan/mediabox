@@ -29,6 +29,30 @@ def get_default_layout():
     return layout
 
 
+def get_selector_layout():
+    """
+    Returns the keyboard layout for selecting other layouts.
+    """
+    
+    layouts = [ name for name in globals().keys()
+                if (len(name) == 2) and name == name.upper() ]
+    layouts.sort()
+    blocks = []
+    block_width = 1.0 / len(layouts)
+
+    for l in layouts:
+        key = globals().get(l + "_KEY")
+        if (key):
+            key.set_layout(globals().get(l))
+            block = Block(block_width, Row(key))
+            blocks.append(block)
+        #end if
+    #end for
+    
+    return Layout(*blocks)
+
+
+
 
 #
 # layouts taken from N810 keyboards
@@ -42,7 +66,11 @@ def get_default_layout():
 # [ ] IT
 #
 
-US = Layout(Block(0.8,
+US_KEY = Key("US\n(QWERTY)")
+US = Layout(Block(0.05,
+                  Row(LAYOUT)
+            ),
+            Block(0.75,
                   Row(Key("q", "Q", "1"),
                       Key("w", "W", "2"),
                       Key("e", "E", "3"),
@@ -92,8 +120,11 @@ US = Layout(Block(0.8,
      )
 
 
-
-DE = Layout(Block(0.8,
+DE_KEY = Key("Deutsch\n(QWERTZ)")
+DE = Layout(Block(0.05,
+                  Row(LAYOUT)
+            ),
+            Block(0.75,
                   Row(Key("q", "Q", "1"),
                       Key("w", "W", "2"),
                       Key("e", "E", "3"),
@@ -104,7 +135,7 @@ DE = Layout(Block(0.8,
                       Key("i", "I", "8"),
                       Key("o", "O", "9"),
                       Key("p", "P", "0"),
-                      Key("^", "°", "|")
+                      Key("ß", "°", "|")
                   ),
                   Row(Key("a", "A", "!"),
                       Key("s", "S", "\""),
@@ -127,7 +158,7 @@ DE = Layout(Block(0.8,
                       Key("m", "M", ">"),
                       Key("ö", "Ö", "="),
                       Key("ä", "Ä", "'"),
-                      Key("-", "_", "ß"),
+                      Key("-", "_", "^"),
                       Key(".", ":", ".")
                   )
             ),
@@ -143,7 +174,11 @@ DE = Layout(Block(0.8,
      )
 
 
-RU = Layout(Block(0.8,
+RU_KEY = Key("Русский\n(ЙЦУКЕН)")
+RU = Layout(Block(0.05,
+                  Row(LAYOUT)
+            ),
+            Block(0.75,
                   Row(Key("й", "Й", "1"),
                       Key("ц", "Ц", "2"),
                       Key("у", "У", "3"),

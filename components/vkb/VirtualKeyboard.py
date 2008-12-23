@@ -21,6 +21,11 @@ class VirtualKeyboard(gtk.Window, Component):
 
     def __init__(self):
     
+        self.__is_showing = False
+    
+        # current keyboard layout
+        self.__current_layout = layouts.get_default_layout()
+    
         self.__keys = []
         
         # cache for key pixmaps: (w, h): (pixmap1, pixmap2)
@@ -33,12 +38,12 @@ class VirtualKeyboard(gtk.Window, Component):
 
         self.__modifier = _MOD_NONE
         
-        self.__size = (800, 160)
+        self.__size = (800, 150)
         self.__parent = None
     
         gtk.Window.__init__(self, gtk.WINDOW_POPUP)
         Component.__init__(self)
-        self.set_size_request(800, 160)
+        self.set_size_request(800, 150)
         self.connect("expose-event", self.__on_expose)
         self.set_app_paintable(True)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK |
@@ -48,19 +53,25 @@ class VirtualKeyboard(gtk.Window, Component):
         self.move(0, 1000)
         self.show()
         self.__screen = Pixmap(self.window)
-        w, h = self.__size
-        self.__screen.fill_area(0, 0, w, h, theme.color_mb_vkb_background)
-        self.__screen.draw_line(0, 0, w, 0, "#000000")
+        self.__clear_keyboard()
 
         self.hide()
-        self.__render_keyboard()
+        self.__render_keyboard(self.__current_layout)
         
         self.connect("button-press-event", self.__on_press)
         self.connect("button-release-event", self.__on_release)
         #self.connect("motion-notify-event", self.__on_motion)
 
 
-    def __render_keyboard(self):
+    def __clear_keyboard(self):
+    
+        w, h = self.__size
+        self.__screen.fill_area(0, 0, w, h, theme.color_mb_vkb_background)
+        self.__screen.draw_line(0, 0, w, 0, "#000000")
+
+
+
+    def __render_keyboard(self, layout):
     
         w, h = self.__size
         offx = 3
@@ -68,7 +79,9 @@ class VirtualKeyboard(gtk.Window, Component):
         w -= 6
         h -= 6
         cnt = 0
-        for block in layouts.get_default_layout().get_blocks():
+        self.__keys = []
+
+        for block in layout.get_blocks():
             if (block.get_rows()):
                 row_height = h / len(block.get_rows())
             else:
@@ -102,8 +115,10 @@ class VirtualKeyboard(gtk.Window, Component):
     
         if (msg == msgs.VKB_ACT_SHOW):
             parent = args[0]
-            self.__key_cache.clear()
-            self.__popup(parent)
+            if (not self.__is_showing):
+                self.__is_showing = True
+                self.__key_cache.clear()
+                self.__popup(parent)
         
         
     def __popup(self, parent):
@@ -112,9 +127,6 @@ class VirtualKeyboard(gtk.Window, Component):
         w, h = self.__size
         px, py = parent.window.get_position()
         pw, ph = parent.get_size()
-        #self.set_size_request(w, h)
-        #self.__screen = Pixmap(self.window)
-        #self.__render_keyboard()
         self.move(px, py + ph)
         self.show()
         self.fx_slide(px, py + ph, py + ph - h)
@@ -145,7 +157,10 @@ class VirtualKeyboard(gtk.Window, Component):
         else:
             self.__screen.draw_pixmap(key_pmap1, x, y)
 
-        if (k == vkblayout.BACKSPACE):
+        if (k == vkblayout.LAYOUT):
+            self.__screen.draw_pixbuf(theme.mb_vkb_layout,
+                                      x + (w - 32) / 2, y + (h - 32) / 2)
+        elif (k == vkblayout.BACKSPACE):
             self.__screen.draw_pixbuf(theme.mb_vkb_backspace,
                                       x + (w - 32) / 2, y + (h - 32) / 2)
         elif (k == vkblayout.SHIFT):
@@ -189,14 +204,27 @@ class VirtualKeyboard(gtk.Window, Component):
     
         kx, ky, kw, kh, k = self.__keys[key]
         keychar = self.__get_key_char(k)
-        if (k == vkblayout.HIDE):
+        new_layout = k.get_layout()
+        
+        if (new_layout):
+            self.__current_layout = new_layout
+            self.__clear_keyboard()
+            self.__render_keyboard(new_layout)
+        
+        elif (k == vkblayout.HIDE):
             w, h = self.__size
             px, py = self.__parent.window.get_position()
             pw, ph = self.__parent.get_size()
         
             self.fx_slide(px, py + ph - h, py + ph)
             self.__parent = None
+            self.__is_showing = False
             self.hide()
+            
+        elif (k == vkblayout.LAYOUT):
+            selector_layout = layouts.get_selector_layout()
+            self.__clear_keyboard()
+            self.__render_keyboard(selector_layout)
             
         elif (k == vkblayout.BACKSPACE):
             self.emit_event(msgs.HWKEY_EV_BACKSPACE)
@@ -206,14 +234,14 @@ class VirtualKeyboard(gtk.Window, Component):
                 self.__modifier = _MOD_NONE
             else:
                 self.__modifier = _MOD_SHIFT
-            self.__render_keyboard()
+            self.__render_keyboard(self.__current_layout)
             
         elif (k == vkblayout.ALT):
             if (self.__modifier == _MOD_ALT):
                 self.__modifier = _MOD_NONE
             else:
                 self.__modifier = _MOD_ALT
-            self.__render_keyboard()
+            self.__render_keyboard(self.__current_layout)
 
         else:
             self.emit_event(msgs.HWKEY_EV_KEY, keychar)
@@ -302,5 +330,6 @@ class VirtualKeyboard(gtk.Window, Component):
             
         finished = threading.Event()
         fx(from_y, to_y)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)
+        while (wait and not finished.isSet()):
+            while (gtk.events_pending()): gtk.main_iteration(False)
 
