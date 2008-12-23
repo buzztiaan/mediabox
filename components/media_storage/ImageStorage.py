@@ -112,6 +112,7 @@ class ImageStorage(Device):
     def __find_image_in_folder(self, folder):
     
         imgs = self.__folders.get(folder)
+        imgs.sort()
         if (imgs):
             return imgs[0].resource
         else:

@@ -162,7 +162,7 @@ class AudioArtistStorage(Device):
                 f.mimetype = "application/x-music-folder" #f.DIRECTORY
                 if (album_f):
                     f.resource = album_f.resource
-                    f.thumbnail_md5 = album_f.md5
+                    #f.thumbnail_md5 = album_f.md5
 
                 cb(f, *args)
             #end for
