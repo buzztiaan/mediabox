@@ -10,14 +10,17 @@ SERVICE_FILE=maemo-data/de.pycage.mediabox.service
 LIBDIR=/usr/lib/${NAME}
 
 # files to copy into destination
-COPY_FILES=idtags   \
+COPY_FILES=com      \
+	   components \
+	   idtags   \
+	   io       \
 	   mediabox \
 	   mediaplayer \
-	   mediascanner \
+	   storage  \
 	   theme    \
  	   ui       \
+	   upnp     \
 	   utils    \
-	   viewers  \
 	   MediaBox.py
 	  
 EXEC_FILE=MediaBox.py
