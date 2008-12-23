@@ -25,6 +25,11 @@ class _Client(object):
         pass
         
         
+    def get_without_default(self, key):
+    
+        return self.get_string(key)
+        
+        
     def get_list(self, key, ktype):
     
         fail, out = commands.getstatusoutput("%s --get %s" \
