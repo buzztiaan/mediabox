@@ -118,7 +118,7 @@ class PlaylistViewer(Viewer):
 
         elif (self.__view_mode == _VIEWMODE_PLAYER_FULLSCREEN):
             mbox.set_geometry(0, 0, w, h)
-
+        
 
     def __is_queue(self):
         """
@@ -133,7 +133,8 @@ class PlaylistViewer(Viewer):
         pieces = []
         for f in pl.get_files():
             if (not f): continue
-            thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+            thumb, uptodate = self.call_service(
+                                        msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
             if (not (thumb, f.mimetype) in pieces and os.path.exists(thumb)):
                 pieces.append((thumb, f.mimetype))
             if (len(pieces) == 4):
@@ -222,7 +223,7 @@ class PlaylistViewer(Viewer):
         if (self.__current_list >= len(self.__lists)):
             self.__current_list = 0
         self.__display_playlist(self.__lists[self.__current_list])
-       
+
         
     def __save_playlists(self):
         """
@@ -299,12 +300,12 @@ class PlaylistViewer(Viewer):
         
         if (mode == _VIEWMODE_PLAYLIST):
             self.emit_event(msgs.UI_ACT_FREEZE)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
         
             self.__playlist.set_visible(True)
             self.__media_box.set_visible(False)
             self.__side_tabs.set_visible(True)
             
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
             self.set_strip(self.__pl_thumbnails)
             self.hilight_strip_item(self.__current_list)
 
@@ -312,26 +313,26 @@ class PlaylistViewer(Viewer):
 
         elif (mode == _VIEWMODE_PLAYER):
             self.emit_event(msgs.UI_ACT_FREEZE)
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
             
             self.__playlist.set_visible(False)
             self.__media_box.set_visible(True)
             self.__side_tabs.set_visible(True)
 
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-                                 
             pl = self.__lists[self.__current_list]
             self.set_strip(pl.get_thumbnails())
             self.hilight_strip_item(pl.get_position())
 
             self.emit_event(msgs.UI_ACT_THAW)
+            self.emit_event(msgs.UI_ACT_RENDER)
                 
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):
+            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
             self.__playlist.set_visible(False)
             self.__side_tabs.set_visible(False)
             self.__media_box.set_visible(True)
                 
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
             self.render()
        
 
@@ -571,7 +572,8 @@ class PlaylistViewer(Viewer):
                 return
             #end if
             
-            thumb = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+            thumb, uptodate = self.call_service(
+                                        msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
         else:
             thumb = None
 
@@ -716,13 +718,6 @@ class PlaylistViewer(Viewer):
         # watch DECREMENT hw key
         elif (msg == msgs.HWKEY_EV_DECREMENT):
             self.__media_widget.decrement()
-
-
-    def show(self):
-    
-        Viewer.show(self)
-        if (self.__view_mode == _VIEWMODE_PLAYLIST):
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
 
 
     def __search(self, key):
