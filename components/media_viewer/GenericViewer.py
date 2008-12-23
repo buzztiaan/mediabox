@@ -230,9 +230,9 @@ class GenericViewer(Viewer):
         """
         Updates the side strip depending on the current view mode.
         """
-
-        strip_items = []        
-        strip_index = 0
+        
+        strip_items = []
+        strip_index = -1
     
         # show devices
         if (self.__view_mode == self._VIEWMODE_BROWSER):
@@ -245,8 +245,8 @@ class GenericViewer(Viewer):
         elif (self.__view_mode == self._VIEWMODE_SPLIT_BROWSER):
             if (len(self.__path_stack) > 1):
                 for entry in self.__sibling_folders:
-                    icon = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL,
-                                             entry)
+                    icon, uptodate = self.call_service(
+                                    msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
     
                     tn = FileThumbnail(icon, entry)
                     strip_items.append(tn)
@@ -265,8 +265,8 @@ class GenericViewer(Viewer):
         # show playable items
         elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
             for entry in self.__playable_items:
-                icon = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL,
-                                         entry)
+                icon, uptodate = self.call_service(
+                                    msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
 
                 tn = FileThumbnail(icon, entry)
                 strip_items.append(tn)
@@ -275,9 +275,9 @@ class GenericViewer(Viewer):
             if (self.__current_file in self.__playable_items):
                 strip_index = self.__playable_items.index(self.__current_file)           
 
-
         self.set_strip(strip_items)
-        self.hilight_strip_item(strip_index)
+        if (strip_index >= 0):
+            self.hilight_strip_item(strip_index)
 
 
     def __update_toolbar(self):
@@ -393,9 +393,9 @@ class GenericViewer(Viewer):
         if (mode == self._VIEWMODE_BROWSER):
             self.emit_event(msgs.UI_ACT_FREEZE)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-            if (self.__path_stack):
-                self.__load_folder(self.__path_stack[-1][0], None)
-            #self.__update_side_strip()
+            
+            #if (self.__path_stack):
+            #    self.__load_folder(self.__path_stack[-1][0], None)
             
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(True)
@@ -414,10 +414,9 @@ class GenericViewer(Viewer):
         elif (mode == self._VIEWMODE_SPLIT_BROWSER):
             self.emit_event(msgs.UI_ACT_FREEZE)
             self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
-            #self.set_strip(self.__thumbnails)
 
-            if (self.__path_stack):
-                self.__load_folder(self.__path_stack[-1][0], None)
+            #if (self.__path_stack):
+            #    self.__load_folder(self.__path_stack[-1][0], None)
             
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(True)
@@ -475,7 +474,7 @@ class GenericViewer(Viewer):
             self.__lib_list.set_visible(True)
             self.__media_box.set_visible(False)
             
-            #self.__update_toolbar()
+            self.__update_toolbar()
             self.set_title("Media Library")
             
             self.emit_event(msgs.UI_ACT_THAW)
@@ -889,14 +888,15 @@ class GenericViewer(Viewer):
         self.__list.render()
         #self.emit_event(msgs.UI_ACT_RENDER)
         
-        if (len(self.__path_stack) > 1):
-            parent_path = self.__path_stack[-2][0]
-            gobject.timeout_add(0, parent_path.get_children_async, on_sibling,
-                                parent_path, [])
-        else:
-            self.__sibling_folders = []
-            self.__update_side_strip()
-        
+        if (self.__view_mode == self._VIEWMODE_SPLIT_BROWSER):
+            if (len(self.__path_stack) > 1):
+                parent_path = self.__path_stack[-2][0]
+                gobject.timeout_add(0, parent_path.get_children_async,
+                                    on_sibling, parent_path, [])
+            else:
+                self.__sibling_folders = []
+                self.__update_side_strip()
+
         gobject.timeout_add(0, path.get_children_async, on_child, path, [], [])
 
 
@@ -968,7 +968,8 @@ class GenericViewer(Viewer):
         """
 
         # lookup thumbnail        
-        icon = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
+        icon, uptodate = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL,
+                                           entry)
 
         #tn = FileThumbnail(icon, entry)
         #if (entry.mimetype != entry.DIRECTORY):
@@ -996,7 +997,7 @@ class GenericViewer(Viewer):
         item.set_buttons(*buttons)
 
         # remember if thumbnail does not yet exist
-        if (insert_at == -1 and not os.path.exists(icon)):
+        if (insert_at == -1 and (not os.path.exists(icon) or not uptodate)):
             if (entry.is_local or entry.thumbnail):
                 items_to_thumbnail.append((item, None, entry))
         #end if
@@ -1269,9 +1270,12 @@ class GenericViewer(Viewer):
                 self.__items_downloading_thumbnails[f] = (item, tn)
                 print "GET FROM URI", f.thumbnail
                 if (f.thumbnail.startswith("/")):
-                    self.__on_download_thumbnail("", 0, 0, f,
-                                                 [open(f.thumbnail).read()],
-                                                 path, items_to_thumbnail)
+                    try:
+                        self.__on_download_thumbnail("", 0, 0, f,
+                                                     [open(f.thumbnail).read()],
+                                                     path, items_to_thumbnail)
+                    except:
+                        pass
                 else:
                     Downloader(f.thumbnail, self.__on_download_thumbnail, f,
                                [""], path, items_to_thumbnail)
