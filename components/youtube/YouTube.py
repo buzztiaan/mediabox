@@ -520,10 +520,10 @@ class YouTube(Device):
 
     def __copy_thumbnail(self, f, path):
     
-        tn = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+        tn, uptodate = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
         f2 = File(self)
         f2.path = "/local" + path
-        tn2 = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f2)
+        tn2, uptodate = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f2)
 
         if (os.path.exists(tn)):
             try:
