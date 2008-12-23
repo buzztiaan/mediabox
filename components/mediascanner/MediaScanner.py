@@ -69,7 +69,9 @@ class MediaScanner(Component):
             
         elif (ev == msgs.MEDIASCANNER_SVC_GET_THUMBNAIL):
             f = args[0]
-            return self.__thumbnailer.get_thumbnail_path(f)
+            path = self.__thumbnailer.get_thumbnail_path(f)
+            uptodate = self.__thumbnailer.is_thumbnail_up_to_date(f)
+            return (path, uptodate)
 
         elif (ev == msgs.MEDIASCANNER_SVC_SET_THUMBNAIL):
             f, pbuf = args
