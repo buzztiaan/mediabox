@@ -69,6 +69,7 @@ class ProgressBar(Widget):
             return
     
         w, h = self.get_size()
+        theme.mb_progress.reload()
         pbuf1 = theme.mb_progress.subpixbuf(0, 0, 5, 64)
         pbuf2 = theme.mb_progress.subpixbuf(5, 0, 5, 64)
     
