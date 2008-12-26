@@ -491,12 +491,12 @@ class GenericViewer(Viewer):
        
 
 
-    def handle_event(self, msg, *args):
+    def handle_message(self, msg, *args):
         """
         Handles incoming messages.
         """
     
-        Viewer.handle_event(self, msg, *args)
+        Viewer.handle_message(self, msg, *args)
         
         if (msg == msgs.CORE_EV_APP_SHUTDOWN):
             if (self.__media_widget):

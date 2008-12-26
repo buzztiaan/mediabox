@@ -33,7 +33,7 @@ class SSDPMonitor(Component):
         Component.__init__(self)
 
 
-    def handle_event(self, event, *args):
+    def handle_message(self, event, *args):
 
         if (event == msgs.SSDP_ACT_SEARCH_DEVICES or
             event == msgs.CORE_EV_APP_STARTED):

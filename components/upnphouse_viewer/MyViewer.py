@@ -69,7 +69,7 @@ class MyViewer(Viewer):
         screen.fill_area(x, y, w, h, "#FFFFFF")
 
 
-    def handle_event(self, event, *args):
+    def handle_message(self, event, *args):
     
         #if (event == events.CORE_EV_APP_SHUTDOWN):
             #TODO unsubscribe from all devices

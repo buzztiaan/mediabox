@@ -42,6 +42,6 @@ class ListItem(ButtonListItem):
     def render_icon(self, cnv, x, y, w, h):
 
         if (self.__icon):
-            icon = thumbnail.render_on_canvas(cnv, x, y, w - 8, h - 8,
+            icon = thumbnail.render_on_canvas(cnv, x, y, w, h,
                                               self.__icon, self.__mimetype)
 

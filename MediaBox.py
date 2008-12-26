@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 from com import Container
+from mediabox import values
 from utils import logging
 import os
 import sys
@@ -24,7 +25,7 @@ else:
 
 
 logging.debug("initializing application")
-container = Container(os.path.join(os.path.dirname(__file__), "components"))
+container = Container(os.path.join(values.MEDIABOX_DIR, "components"))
 
 logging.debug("running application")
 import gtk

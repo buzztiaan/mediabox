@@ -369,7 +369,7 @@ class AudioWidget(MediaWidget):
             #end if
             
             try:
-                self.__context_id = self.__player.load(uri)
+                self.__context_id = self.__player.load_audio(uri)
             except:
                 import traceback; traceback.print_exc()
                 return

@@ -24,7 +24,7 @@ class Input(Component):
         Component.__init__(self)
 
         
-    def handle_event(self, msg, *args):
+    def handle_message(self, msg, *args):
     
         if (msg in _HW_KEYS):
             self.__schema.send_key(msg)

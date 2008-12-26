@@ -33,7 +33,7 @@ class FileWatcher(Component, ProcessEvent):
         self.__scanner = gobject.timeout_add(1000, self.__scanning_handler)
 
 
-    def handle_event(self, ev, *args):
+    def handle_message(self, ev, *args):
 
         if (ev == msgs.CORE_EV_APP_IDLE_BEGIN):
             gobject.source_remove(self.__scanner)

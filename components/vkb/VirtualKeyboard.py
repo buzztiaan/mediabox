@@ -111,14 +111,18 @@ class VirtualKeyboard(gtk.Window, Component):
         self.__screen.restore(x, y, w, h)
         
         
-    def handle_event(self, msg, *args):
+    def handle_message(self, msg, *args):
     
         if (msg == msgs.VKB_ACT_SHOW):
             parent = args[0]
-            if (not self.__is_showing):
-                self.__is_showing = True
-                self.__key_cache.clear()
-                self.__popup(parent)
+            self.__is_showing = True
+            self.__key_cache.clear()
+            self.__popup(parent)
+            
+        elif (msg == msgs.CORE_EV_THEME_CHANGED):
+            self.__key_cache.clear()
+            self.__clear_keyboard()
+            self.__render_keyboard(self.__current_layout)
         
         
     def __popup(self, parent):

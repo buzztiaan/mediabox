@@ -172,7 +172,7 @@ class TabPanel(HilightingWidget, Observable):
        
         screen.fill_area(x, y, w - 80, h, theme.color_mb_menu)
         screen.fill_area(w - 80, y, 80, h, theme.color_mb_menu_side)
-        screen.fill_area(0, 0, w, 2, "#333333")
+        screen.fill_area(0, 0, w, 2, "#000000")
         self.__label.set_geometry(8, h - 16, w - 16, 0)
         
         b_y = 10
@@ -184,7 +184,10 @@ class TabPanel(HilightingWidget, Observable):
         if (self.__currently_playing >= 0):
             icon = self.__icons[self.__currently_playing]
             i_x, i_y = icon.get_screen_pos()
-            screen.draw_pixbuf(theme.mb_btn_load, i_x + 120 - 32, i_y)
+            i_w, i_h = icon.get_size()
+            screen.draw_frame(theme.mb_active_frame,
+                              i_x, i_y, i_w, i_h, True)
+        #    screen.draw_pixbuf(theme.mb_btn_load, i_x + 120 - 32, i_y)
 
 
     def __get_cursor_position(self, index):

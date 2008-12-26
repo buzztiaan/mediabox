@@ -49,7 +49,7 @@ class Mediator(object):
         return self.__pass_type
         
         
-    def handle_event(self, event, *args):
+    def handle_message(self, event, *args):
     
         self.pass_on_event()
         

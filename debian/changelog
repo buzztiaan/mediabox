@@ -1,3 +1,29 @@
+mediabox (0.96) unstable; urgency=low
+
+  Instant theme switching without the need to restart
+  
+  New plugin architecture for extending MediaBox
+  
+  Folder-based browsing
+  
+  UPnP framework and UPnP AV support
+ 
+  Media bookmarking per file
+  
+  Shuffle & repeat
+  
+  Playlist editor and playqueue
+  
+  Search-as-you-type with finger-friendly on-screen keyboard
+  
+  File indexing with inotify kernel support and tag-based browsing
+  
+  Car-mode for easy controlling while driving (play/pause, previous, next)
+  
+  Bugfixes
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Fri, 26 Dec 2008 13:00:00 +0100
+
 mediabox (0.95) unstable; urgency=low
 
   Playlist editor with support for drag-sorting

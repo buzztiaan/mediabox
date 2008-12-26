@@ -19,7 +19,7 @@ class DirectoryService(Component):
         
         
         
-    def handle_event(self, ev, *args):
+    def handle_message(self, ev, *args):
     
         if (ev == msgs.CORE_SVC_LIST_PATH):
             path = args[0]

@@ -54,15 +54,15 @@ class PlaylistItem(ButtonListItem):
         x += 24
 
         if (self.__icon_path):
-            x += 4
-            icon = thumbnail.render_on_canvas(cnv, x, 4, w - 8, h - 8,
+            x += 8
+            icon = thumbnail.render_on_canvas(cnv, x, 4, 120, h - 8,
                                               self.__icon_path, self.__mimetype)
             x += w - 8
         
         x += 8
         if (self.__source_icon):
             cnv.fit_pixbuf(self.__source_icon, x, 4, 32, 32)
-        self.render_label(cnv, x , "\t" + self.__label, self.__sublabel)
+        self.render_label(cnv, x , "\n" + self.__label, self.__sublabel)
 
         self.render_selection_frame(cnv)
         self.render_buttons(cnv)

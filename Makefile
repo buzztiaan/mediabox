@@ -21,6 +21,7 @@ COPY_FILES=com      \
  	   ui       \
 	   upnp     \
 	   utils    \
+	   mimetypes.mapping \
 	   MediaBox.py
 	  
 EXEC_FILE=MediaBox.py

@@ -18,7 +18,7 @@ class ControlPanel(Widget, Observable):
         Widget.__init__(self)
         self.__box = HBox()
         self.__box.set_spacing(0)
-        self.__box.set_alignment(self.__box.ALIGN_RIGHT)
+        self.__box.set_halign(self.__box.HALIGN_RIGHT)
         self.add(self.__box)        
 
 

@@ -46,7 +46,7 @@ class MediaScanner(Component):
         
         
         
-    def handle_event(self, ev, *args):
+    def handle_message(self, ev, *args):
     
         if (ev == msgs.MEDIASCANNER_ACT_SCAN):
             mediaroots, rebuild_index = args

@@ -23,7 +23,7 @@ class AudioStorage(Device):
         Device.__init__(self)
         
         
-    def handle_event(self, msg, *args):
+    def handle_message(self, msg, *args):
     
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             self.__update_media()
@@ -32,7 +32,7 @@ class AudioStorage(Device):
     def __update_media(self):
     
         self.__albums = []
-        
+
         media, nil, nil = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                             [File.DIRECTORY])
         for f in media:
@@ -53,7 +53,7 @@ class AudioStorage(Device):
 
     def get_icon(self):
     
-        return theme.mb_device_audio
+        return theme.mb_device_folders
 
 
     def get_root(self):

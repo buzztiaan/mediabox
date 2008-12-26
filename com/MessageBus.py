@@ -35,7 +35,7 @@ class _MessageBus(object):
         
             mediator.set_pass_type(mediator.PASS_TYPE_PASS_ON)
             try:
-                mediator.handle_event(event, *args)
+                mediator.handle_message(event, *args)
             except:
                 import traceback; traceback.print_exc()
                 continue
@@ -58,7 +58,7 @@ class _MessageBus(object):
         except:
             for mediator in self.__mediators:
                 try:
-                    ret = mediator.handle_event(svc, *args)
+                    ret = mediator.handle_message(svc, *args)
                 except:
                     import traceback; traceback.print_exc()
                     pass
@@ -69,7 +69,7 @@ class _MessageBus(object):
             import msgs
             raise ServiceNotAvailableError(msgs._id_to_name(svc))
         else:
-            return handler.handle_event(svc, *args)
+            return handler.handle_message(svc, *args)
             
         
 _singleton = _MessageBus()

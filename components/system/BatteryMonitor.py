@@ -67,7 +67,7 @@ class BatteryMonitor(Component):
         self.__is_charging = False
        
         
-    #def handle_event(self, msg, *args):
+    #def handle_message(self, msg, *args):
     #
     #    # no matter what event
     #    now = time.time()

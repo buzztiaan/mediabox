@@ -36,10 +36,10 @@ class ConfigTheme(Configurator):
     
         self.__list.hilight(idx)
         self.render()
-        theme = self.__themes[idx]
+        theme, title = self.__themes[idx]
         #self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
         #                  "Loading theme %s..." % theme)
-        gobject.idle_add(self.__change_theme, theme, item.get_preview())
+        gobject.idle_add(self.__change_theme, theme, title, item.get_preview())
 
 
 
@@ -54,16 +54,16 @@ class ConfigTheme(Configurator):
                 continue
             item = ThemeListItem(img, title, description, author)
             idx = self.__list.append_item(item)
-            self.__themes.append(name)
+            self.__themes.append((name, title))
             
             if (name == config.theme()):
                 self.__list.hilight(idx)
 
 
-    def __change_theme(self, t, preview):
+    def __change_theme(self, t, title, preview):
 
         self.emit_event(msgs.UI_ACT_SHOW_MESSAGE, "Loading Theme",
-                        "- %s -" % t, preview)
+                        "- %s -" % title, preview)
         import time; time.sleep(0.5)
                         
         config.set_theme(t)

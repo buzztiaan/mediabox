@@ -616,9 +616,9 @@ class PlaylistViewer(Viewer):
         self.__playlist.render()
         
         
-    def handle_event(self, msg, *args):
+    def handle_message(self, msg, *args):
               
-        Viewer.handle_event(self, msg, *args)
+        Viewer.handle_message(self, msg, *args)
 
         if (msg == msgs.PLAYLIST_ACT_APPEND):
             files = args

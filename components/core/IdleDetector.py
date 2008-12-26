@@ -33,7 +33,7 @@ class IdleDetector(Component):
         
         
         
-    def handle_event(self, ev, *args):
+    def handle_message(self, ev, *args):
     
         if (self.__is_idle):
             self.__is_idle = False

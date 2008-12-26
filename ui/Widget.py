@@ -749,7 +749,12 @@ class Widget(object):
         next = time.time()
         while (True):
             #print next
-            while (time.time() < next): gtk.main_iteration(False)
+            while (time.time() < next):
+                cnt = 0
+                while (gtk.events_pending() and cnt < 10):
+                    gtk.main_iteration(False)
+                    cnt += 1
+                    
             ret = cb(*args)
             gtk.gdk.window_process_all_updates()
             next += delta

@@ -68,5 +68,7 @@ class Thumbnail(StripItem):
                           theme.color_mb_thumbnail_caption)
 
         if (not self.is_hilighted()):
-            cnv.draw_pixbuf(theme.mb_btn_load, 138, 78)
+            cnv.draw_pixbuf(theme.mb_btn_load,
+                            w - theme.mb_btn_load.get_width(),
+                            (h - theme.mb_btn_load.get_height()) / 2)
 

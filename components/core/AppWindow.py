@@ -204,13 +204,15 @@ class AppWindow(Component, RootPane):
         self.__is_initialized = True
         current_viewer = config.current_viewer()
         viewers = [ v for v in self.__viewers if repr(v) == current_viewer ]
+
         if (viewers):
             v = viewers[0]
             idx = self.__viewers.index(v)
-            self.__tab_panel.select_viewer(idx)
-            self.__select_viewer(idx)
         else:
-            self.__show_tabs()
+            idx = 0
+
+        self.__tab_panel.select_viewer(idx)
+        self.__select_viewer(idx)
 
 
     def __register_viewers(self):
@@ -749,7 +751,7 @@ class AppWindow(Component, RootPane):
         return handled        
 
 
-    def handle_event(self, event, *args):
+    def handle_message(self, event, *args):
 
         if (event == msgs.COM_EV_COMPONENT_LOADED):
             component = args[0]

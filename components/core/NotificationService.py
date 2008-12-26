@@ -17,7 +17,7 @@ class NotificationService(Component):
         Component.__init__(self)
         
         
-    def handle_event(self, msg, *args):
+    def handle_message(self, msg, *args):
     
         if (msg == msgs.NOTIFY_SVC_SHOW_INFO):
             text = args[0]
@@ -30,10 +30,10 @@ class NotificationService(Component):
 
             return 0
 
-        elif (msg == msgs.NOTIFY_SVC_SHOW_PROGRESS):
-            amount, total, text = args
-            self.__show_progress(amount, total, text)
-            return 0
+        #elif (msg == msgs.NOTIFY_SVC_SHOW_PROGRESS):
+        #    amount, total, text = args
+        #    self.__show_progress(amount, total, text)
+        #    return 0
             
             
     def __show_banner(self, icon, text):

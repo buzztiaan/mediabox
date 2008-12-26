@@ -38,11 +38,12 @@ class VideoWidget(MediaWidget):
       
         # video screen
         self.__screen = gtk.DrawingArea()
+        self.__screen.hide()
         self.__screen.set_double_buffered(False)
         self.__screen.connect("expose-event", self.__on_expose)
         self.__screen.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                                  gtk.gdk.KEY_PRESS_MASK)
-        self.__layout.put(self.__screen, 0, 0)
+        self.__layout.put(self.__screen, -1000, 0)
         
         self.__ebox = EventBox()
         self.add(self.__ebox)
@@ -104,6 +105,7 @@ class VideoWidget(MediaWidget):
     
     def __hide_video_screen(self):
     
+        self.__screen.show()
         self.__screen.hide()
 
 
@@ -125,6 +127,7 @@ class VideoWidget(MediaWidget):
             screen.fill_area(x, y, w, h, "#000000")
 
         gobject.idle_add(self.__show_video_screen)
+
         
     def __on_expose(self, src, ev):
 
@@ -160,6 +163,10 @@ class VideoWidget(MediaWidget):
 
                 self.send_event(self.EVENT_MEDIA_POSITION, info)
                 self.__progress.set_position(pos, total)
+
+            # bad mplayer shows its screen even when not asked for...
+            #if (not self.may_render()):
+            #    self.__hide_video_screen()
 
         elif (cmd == src.OBS_STARTED):
             print "Started Player"
@@ -325,7 +332,6 @@ class VideoWidget(MediaWidget):
             if (self.__screen.window.xid):
                 #if (uri == self.__uri): return
                 
-                # TODO: get player for MIME type
                 self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
                 
                 self.__player.set_window(self.__screen.window.xid)
@@ -340,7 +346,7 @@ class VideoWidget(MediaWidget):
                     self.__player.set_options("-vo xv")
                     
                 try:
-                    self.__context_id = self.__player.load(uri)
+                    self.__context_id = self.__player.load_video(uri)
                 except:
                     logging.error("could not load video '%s'\n%s" \
                                   % (uri, logging.stacktrace()))

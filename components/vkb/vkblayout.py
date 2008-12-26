@@ -49,8 +49,8 @@ class Key(object):
     
         self.__layout = None
         self.__char = unicode(char, "utf-8")
-        self.__shifted_char = unicode(shifted_char, "utf-8")
-        self.__alt_char = unicode(alt_char, "utf-8")
+        self.__shifted_char = unicode(shifted_char, "utf-8") or self.__char
+        self.__alt_char = unicode(alt_char, "utf-8") or self.__char
 
 
     def set_layout(self, layout):

@@ -25,6 +25,11 @@ class RadioScale(Widget):
         
         
         
+    def _reload(self):
+    
+        self.__prepare_scala()
+        
+        
     def render_this(self):
     
         x, y = self.get_screen_pos()

@@ -5,9 +5,13 @@
 #
 # Media types are the names of the media types defined in the mimetypes.mapping
 # table.
-# Player specifies which player backend to use. Available values are
-# 'mplayer' (MPlayer), 'oms' (OSSO-Media-Server), 'dummy' (DUMMY-Backend which
-# does nothing).
+#
+# Player specifies which player backend to use. Available values are:
+#
+#  - mplayer: MPlayer backend
+#  - oms:     OSSO-Media-Server backend
+#  - dummy:   Dummy backend which does nothing
+#
 
 
 # media type                   player

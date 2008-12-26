@@ -26,7 +26,7 @@ class Viewer(Component, Widget):
           
               Viewer.__init__(self)
               
-          def handle_event(self, msg, *args):
+          def handle_message(self, msg, *args):
           
               ...
     """
@@ -57,7 +57,7 @@ class Viewer(Component, Widget):
         Widget.__init__(self)
 
 
-    def handle_event(self, msg, *args):
+    def handle_message(self, msg, *args):
 
         if (msg == msgs.MEDIA_EV_LOADED):
             self.__may_go_next = False

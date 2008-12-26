@@ -58,8 +58,8 @@ class FMRadioViewer(Viewer):
         btn_add = ImageButton(theme.mb_btn_add_1, theme.mb_btn_add_2)
         btn_add.connect_clicked(self.__add_current_station)
                 
-        btn_speaker = ToggleButton(theme.fmradio_btn_speaker_off,
-                                   theme.fmradio_btn_speaker_on)
+        btn_speaker = ToggleButton(theme.mb_btn_speaker_off,
+                                   theme.mb_btn_speaker_on)
         btn_speaker.connect_toggled(self.__toggle_speaker)
 
         self.__toolbar = [
@@ -82,7 +82,7 @@ class FMRadioViewer(Viewer):
             self.__load_stations()
         
         
-    def handle_event(self, msg, *args):
+    def handle_message(self, msg, *args):
     
         if (msg == msgs.MEDIA_ACT_STOP):
             self.__radio_off()

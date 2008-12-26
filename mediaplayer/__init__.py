@@ -3,6 +3,7 @@ This package contains the media player backends.
 """
 
 from DummyPlayer import DummyPlayer
+#from GstPlayer import GstPlayer
 from MPlayer import MPlayer
 from OSSOPlayer import OSSOPlayer
 from utils import maemo
@@ -13,15 +14,17 @@ from utils import logging
 import os
 
 
+#_GST = GstPlayer()
 _MPLAYER = MPlayer()
 _OMS = OSSOPlayer()
 _DUMMY = DummyPlayer()
 
 _PLAYERS = [_MPLAYER, _OMS, _DUMMY]
-if (maemo.get_product_code() == "SU-18"):
-    _PLAYER_NAMES = {"mplayer": _MPLAYER, "oms": _MPLAYER, "dummy": _DUMMY}
-else:
-    _PLAYER_NAMES = {"mplayer": _MPLAYER, "oms": _OMS, "dummy": _DUMMY}
+_PLAYER_NAMES = {#"gst": _GST,
+                 "mplayer": _MPLAYER,
+                 "oms": _OMS,
+                 #"xine": _XINE,
+                 "dummy": _DUMMY}
 
 _current_player = _DUMMY
 
@@ -118,4 +121,11 @@ def _switch_player(new_player):
 _read_mapping_table(_PLAYERS_MAPPING_FILE1)
 if (os.path.exists(_PLAYERS_MAPPING_FILE2)):
     _read_mapping_table(_PLAYERS_MAPPING_FILE2)
+else:
+    try:
+        open(_PLAYERS_MAPPING_FILE2, "w").write(
+            "# put your mapping overrides here"
+        )
+    except:
+        pass
 

@@ -11,7 +11,7 @@ class UPnPAVFactory(Component):
        
         
 
-    def handle_event(self, ev, *args):
+    def handle_message(self, ev, *args):
     
         if (ev == msgs.SSDP_EV_DEVICE_DISCOVERED):
             uuid, descr = args

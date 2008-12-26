@@ -52,7 +52,7 @@ class Preferences(Viewer):
         self.__current_configurator = configurator
 
 
-    def handle_event(self, event, *args):
+    def handle_message(self, event, *args):
     
         if (event == msgs.COM_EV_COMPONENT_LOADED):
             comp = args[0]

@@ -12,6 +12,7 @@ try:
 except:
     IS_MAEMO = False
 
+import os
 
 
 def set_osso_context(ctx):
@@ -57,7 +58,7 @@ def get_session_bus():
 
 def get_product_code():
     """
-    Returns the product code of the system.
+    Returns the product code of the device.
 
      - Nokia 770:    SU-18
      - Nokia N800:   RX-34
@@ -68,20 +69,26 @@ def get_product_code():
     @return: product code
     """
     
-    try:
-        lines = open("/proc/component_version", "r").readlines()
-    except:
-        lines = []
-        
-    product = "?"
-    for line in lines:
-        line = line.strip()
-        if (line.startswith("product")):
-            parts = line.split()
-            product = parts[1].strip()
-            break
-    #end for
+    # you can override the product code by setting the environment variable
+    # MEDIABOX_MAEMO_DEVICE
+    product = os.environ.get("MEDIABOX_MAEMO_DEVICE")
     
+    if (not product):
+        try:
+            lines = open("/proc/component_version", "r").readlines()
+        except:
+            lines = []
+            
+        product = "?"
+        for line in lines:
+            line = line.strip()
+            if (line.startswith("product")):
+                parts = line.split()
+                product = parts[1].strip()
+                break
+        #end for
+    #end if
+
     return product
 
 
@@ -91,6 +98,9 @@ def request_connection():
     If the device is not connected, tries to establish the default connection
     or pop up the connection dialog.
     """
+    
+    # dbus-send --type=method_call --system --dest=com.nokia.icd/com/nokia/icd com.nokia.icd.connect
+    # dbus-send --system --dest=com.nokia.icd /com/nokia/icd_ui com.nokia.icd_ui.disconnect boolean:true
     
     try:
         import conic
