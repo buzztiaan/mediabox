@@ -11,8 +11,8 @@ import gobject
 import os
 
 
-_BACKGROUND_COLOR = "#ffffff"
-_BACKGROUND_COLOR_FS = "#101010"
+_BACKGROUND_COLOR = theme.color_mb_image_background
+_BACKGROUND_COLOR_FS = theme.color_mb_image_background_fullscreen
 
 
 class ImageWidget(MediaWidget):

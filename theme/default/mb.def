@@ -11,6 +11,7 @@ font_mb_micro:    Nokia Sans Cn 10
 # Background
 #
 color_mb_background: #eef0ff
+
 color_mb_text: #000000
 
 
@@ -65,4 +66,11 @@ font_mb_vkb: Nokia Sans Cn 16
 color_mb_menu: #eef0ff
 color_mb_menu_side: #aaaaaf
 color_mb_menu_text: #333333
+
+
+#
+# Image Viewer
+#
+color_mb_image_background: #ffffff
+color_mb_image_background_fullscreen: #101010
 
