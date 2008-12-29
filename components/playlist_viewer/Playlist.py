@@ -91,6 +91,8 @@ class Playlist(object):
         elif (self.__current_pos == idx2):
             self.__current_pos = idx1
 
+        self.__is_modified = True
+
 
     def get_position(self):
     
