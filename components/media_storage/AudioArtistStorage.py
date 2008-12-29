@@ -33,7 +33,8 @@ class AudioArtistStorage(Device):
     def handle_message(self, msg, *args):
     
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
-            self.__index.schedule_scanner(self.__update_media)
+            #self.__index.schedule_scanner(self.__update_media)
+            self.__update_media()
 
 
     def __update_media(self):
@@ -66,7 +67,8 @@ class AudioArtistStorage(Device):
         media, added, removed = \
                 self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                  [File.DIRECTORY])
-
+        print "ADDED", added
+        print "REMOVED", removed
         #finished = threading.Event()
         #gobject.idle_add(f)        
         #threads.wait_for(lambda :finished.isSet())

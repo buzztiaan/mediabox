@@ -143,7 +143,7 @@ class MediaScanner(Component):
         if (rebuild_index):
             to_scan = new_roots + unchanged_roots
         else:
-            to_scan = new_roots
+            to_scan = new_roots + unchanged_roots
 
         for mediaroot in to_scan:           
             f = self.call_service(msgs.CORE_SVC_GET_FILE, mediaroot)

@@ -8,7 +8,7 @@ _INDEX_FILE = os.path.join(values.USER_DIR, "files.idx")
 
 # when the index format becomes incompatible, raise the magic number to force
 # rejection of old index
-_MAGIC = 0xbeef0001
+_MAGIC = 0xbeef0002
 
 
 _NUMBER_OF_FIELDS = 4

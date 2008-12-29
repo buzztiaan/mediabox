@@ -26,6 +26,10 @@ class AudioAlbumStorage(AudioArtistStorage):
         AudioArtistStorage.__init__(self)
 
 
+    def handle_message(self, msg, *args):
+    
+        pass
+
         
     def get_prefix(self):
     
