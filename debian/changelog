@@ -1,4 +1,15 @@
-mediabox (0.96) unstable; urgency=low
+mediabox (0.96.1) unstable; urgency=low
+
+  Playlist gets saved after reordering
+
+  Fixed bug where after removing items a list gets stuck and cannot be scrolled
+  anymore
+  
+  Made indexing behavior less optimistic to avoid dead entries
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 30 Dec 2008 12:00:00 +0100
+
+mediabox (0.96-2) unstable; urgency=low
 
   Instant theme switching without the need to restart
   
@@ -22,7 +33,7 @@ mediabox (0.96) unstable; urgency=low
   
   Bugfixes
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Fri, 26 Dec 2008 13:00:00 +0100
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 28 Dec 2008 12:00:00 +0100
 
 mediabox (0.95) unstable; urgency=low
 
