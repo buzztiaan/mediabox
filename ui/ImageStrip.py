@@ -404,6 +404,9 @@ class ImageStrip(Widget):
         elif (idx < self.__hilighted_image):
             self.__hilighted_image -= 1
 
+        if (self.__totalsize < h):
+            self.__offset = 0
+
         #self.render()
 
 
