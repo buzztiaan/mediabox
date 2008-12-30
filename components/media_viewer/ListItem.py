@@ -13,6 +13,7 @@ class ListItem(ButtonListItem):
     BUTTON_ADD_TO_LIBRARY = "add-to-library"
     BUTTON_REMOVE = "remove"
     BUTTON_OPEN = "open"
+    BUTTON_CLOSE = "close"
 
 
     def __init__(self, f, thumbnail):

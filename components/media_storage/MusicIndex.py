@@ -89,6 +89,11 @@ class _MusicIndex(object):
     
         self.__scheduled_scanner = scanner
 
+
+    def save(self):
+        
+        self.__save_index()
+        
   
     def list_artists(self):
     

@@ -35,6 +35,7 @@ class AudioArtistStorage(Device):
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             #self.__index.schedule_scanner(self.__update_media)
             self.__update_media()
+            self.__index.save()
 
 
     def __update_media(self):

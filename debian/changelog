@@ -6,6 +6,10 @@ mediabox (0.96.1) unstable; urgency=low
   anymore
   
   Made indexing behavior less optimistic to avoid dead entries
+  
+  Albums can be closed in the folder view
+  
+  Adding an image folder to a playlist adds its contents
 
  -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 30 Dec 2008 12:00:00 +0100
 

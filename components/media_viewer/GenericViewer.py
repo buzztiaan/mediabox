@@ -690,6 +690,9 @@ class GenericViewer(Viewer):
                 gobject.timeout_add(50, self.__insert_folder, entry)
             else:
                 gobject.timeout_add(50, self.__load_folder, entry, None)
+                
+        elif (button == item.BUTTON_CLOSE):
+            self.__close_subfolder()
                         
             
     def __init_library(self):
@@ -939,7 +942,8 @@ class GenericViewer(Viewer):
 
         # change item button
         item = self.__list.get_item(idx + 1)
-        item.set_buttons((item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
+        item.set_buttons((item.BUTTON_CLOSE, theme.mb_item_btn_close),
+                         (item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
 
         gobject.timeout_add(0, path.get_children_async, on_child,
                             self.__path_stack[-1][0], [], [], idx + 1)
@@ -957,7 +961,7 @@ class GenericViewer(Viewer):
         #end for
         
         item = self.__list.get_item(idx1)
-        item.set_buttons((item.BUTTON_OPEN, theme.mb_item_btn_play))
+        item.set_buttons((item.BUTTON_OPEN, theme.mb_item_btn_open))
         
         self.__subfolder_range = None
 
@@ -983,7 +987,7 @@ class GenericViewer(Viewer):
         buttons = []
         
         if (entry.mimetype == "application/x-music-folder"):
-            buttons.append((item.BUTTON_OPEN, theme.mb_item_btn_play))
+            buttons.append((item.BUTTON_OPEN, theme.mb_item_btn_open))
             
         elif (entry.mimetype.endswith("-folder")):
             buttons.append((item.BUTTON_PLAY, theme.mb_item_btn_play))
