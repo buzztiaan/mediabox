@@ -35,7 +35,8 @@ def _get_info(themepath):
     try:
         lines = open(os.path.join(themepath, "info")).readlines()
     except:
-        return (name, description)
+        import traceback; traceback.print_exc()
+        return (name, description, author)
         
     for line in lines:
         line = line.strip()
@@ -128,9 +129,9 @@ class _Theme(object):
 
         theme_dir = _DEFAULT_THEME_DIR
         for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
-            theme_dir = os.path.join(themes_dir, name)
-            name, description, author = _get_info(theme_dir)
+            theme_dir = os.path.join(themes_dir, name)            
             if (os.path.exists(theme_dir)):
+                name, description, author = _get_info(theme_dir)
                 break
         #end for
 

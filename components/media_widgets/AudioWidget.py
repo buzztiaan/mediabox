@@ -352,7 +352,7 @@ class AudioWidget(MediaWidget):
 
 
 
-    def load(self, item):
+    def load(self, item, direction = MediaWidget.DIRECTION_NEXT):
 
         def f():
             self.__load_handler = None

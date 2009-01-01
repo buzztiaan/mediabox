@@ -110,11 +110,14 @@ class ImageWidget(MediaWidget):
             self.__next_image()
 
 
-    def load(self, item):
+    def load(self, item, direction = MediaWidget.DIRECTION_NEXT):
 
         #uri = item.get_resource()
         
-        self.__image.slide_from_right()
+        if (direction == self.DIRECTION_PREVIOUS):
+            self.__image.slide_from_left()
+        else:
+            self.__image.slide_from_right()
         self.__image.load(item)
         #self.__label.set_text(self.__get_name(uri))
         #self.__current_item = self.__items.index(item)
@@ -123,6 +126,10 @@ class ImageWidget(MediaWidget):
 
         #gobject.timeout_add(3000, self.send_event, self.EVENT_MEDIA_EOF)
 
+
+    def preload(self, item):
+    
+        self.__image.preload(item)
 
 
     def increment(self):

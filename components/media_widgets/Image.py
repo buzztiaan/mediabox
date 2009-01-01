@@ -1,8 +1,8 @@
-from ui.Widget import Widget
+from ui.MultiTouchWidget import MultiTouchWidget
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from io.Downloader import Downloader
 from utils.Observable import Observable
-from utils import threads
+from utils import logging
 
 import gtk
 import pango
@@ -14,8 +14,7 @@ import gc
 
 
 # predefined zoom levels
-_ZOOM_LEVELS = [18, 25, 33, 50, 75, 100, 150, 200,
-                300, 400, 600, 800, 1200, 1600, 2400, 3200]
+_ZOOM_LEVELS = [12, 25, 50, 100, 200, 400, 800, 1600, 3200]
 
 # read this many bytes at once
 _CHUNK_SIZE = 50000
@@ -25,7 +24,7 @@ _FONT = "Nokia Sans Cn 22"
 
 
 
-class Image(Widget, Observable):
+class Image(MultiTouchWidget, Observable):
     """
     Class for rendering images.
     """    
@@ -86,15 +85,30 @@ class Image(Widget, Observable):
         self.__zoom_fit = 0
         self.__zoom_100 = 0
 
+        # distance between fingers in multitouch mode
+        self.__multitouch_distance = 0
+        self.__multitouch_zoom_value = 0
+        self.__is_multitouch = False
+
         self.__timer_tstamp = 0
         self.__current_file = ""
         self.__banner = None
 
         # the loader contains the complete image
         self.__loader = None
-        self.__loading_cancelled = False
+        self.__is_loading = False
+        self.__is_preloading = False
+        self.__currently_loading = None
         self.__pixbuf = None
-
+        
+        # preloaded pixbuf
+        self.__preloaded_pixbuf = None
+        # preloaded file
+        self.__preloaded_file = None
+        
+        # handler for scheduling the preloader
+        self.__scheduled_preloader = None
+        
         # slide from right or left
         self.__slide_from_right = True
         
@@ -102,7 +116,12 @@ class Image(Widget, Observable):
         self.__progress = 0
         
         
-        Widget.__init__(self)
+        MultiTouchWidget.__init__(self)
+        
+        # multitouch detection doesn't work too well yet...
+        #self.connect_multitouch_started(self.__on_begin_multitouch)
+        #self.connect_multitouch_stopped(self.__on_end_multitouch)
+        #self.connect_multitouch_moved(self.__on_move_multitouch)
 
         # create a client-side pixmap for rendering
         self.__buffer = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
@@ -131,11 +150,24 @@ class Image(Widget, Observable):
                                          pw, ph)
             TEMPORARY_PIXMAP.fill_area(px, py, pw, ph, "#ffffff60")
             screen.copy_pixmap(TEMPORARY_PIXMAP, px, py, px, py, pw, ph)
-        
+
+        # render multitouch fingers
+        if (self.__is_multitouch):
+            f1, f2 = self.get_fingers()
+            fx1, fy1 = f1
+            fx2, fy2 = f2
+            fx = min(fx1, fx2)
+            fy = min(fy1, fy2)
+            fw = abs(fx1 - fx2)
+            fh = abs(fy1 - fy2)            
+            #screen.draw_line(x + fx1, y + fy1, x + fx2, y + fy2, "#ff0000")
+            if (fw > 1 and fh > 1):
+                screen.fill_area(x + fx, y + fy, fw, fh, "#ff000044")
+
 
     def set_size(self, w, h):
     
-        Widget.set_size(self, w, h)
+        MultiTouchWidget.set_size(self, w, h)
 
         if ((w, h) != self.__visible_size):
             self.__visible_size = (w, h)
@@ -155,6 +187,37 @@ class Image(Widget, Observable):
         self.__invalidated = True
         #self.__offscreen.fill_area(0, 0, 800, 480, self.__bg_color)
         
+        
+    def __on_begin_multitouch(self):
+    
+        self.__is_multitouch = True
+        self.__multitouch_zoom_value = self.__zoom_value
+        self.__multitouch_distance = 0
+
+
+    def __on_end_multitouch(self):
+    
+        self.__is_multitouch = False
+        
+        
+    def __on_move_multitouch(self, fx1, fy1, fx2, fy2):
+    
+        x = min(fx1, fx2)
+        y = min(fy1, fy2)
+        w = abs(fx1 - fx2)
+        h = abs(fy1 - fy2)
+
+        import math
+        distance = math.sqrt(w * w + h * h)        
+
+        if (self.__multitouch_distance > 1):
+            factor = distance / self.__multitouch_distance
+            zoom_value = self.__multitouch_zoom_value * factor
+            print zoom_value
+            self.zoom(0, zoom_value)
+        else:
+            self.__multitouch_distance = distance
+
 
     def __hi_quality_render(self):
 
@@ -202,27 +265,39 @@ class Image(Widget, Observable):
         return (int(offx), int(offy))
 
 
-    def zoom_fit(self):
+    def zoom_fit(self, animated = True):
 
-        self.zoom(self.__zoom_fit)
-
-
-    def zoom_100(self):
-
-        self.zoom(self.__zoom_100)
+        if (animated):
+            self.__zoom_animated(self.__zoom_fit)
+        else:
+            self.zoom(self.__zoom_fit)
 
 
-    def zoom_in(self):
+    def zoom_100(self, animated = True):
 
-        self.zoom(self.__zoom_level + 1)
+        if (animated):
+            self.__zoom_animated(self.__zoom_100)
+        else:
+            self.zoom(self.__zoom_100)
 
 
-    def zoom_out(self):
+    def zoom_in(self, animated = True):
+
+        if (animated):
+            self.__zoom_animated(self.__zoom_level + 1)
+        else:
+            self.zoom(self.__zoom_level + 1)
+
+
+    def zoom_out(self, animated = True):
+
+        if (animated):        
+            self.__zoom_animated(self.__zoom_level - 1)
+        else:
+            self.zoom(self.__zoom_level - 1)
         
-        self.zoom(self.__zoom_level - 1)
 
-
-    def zoom(self, level):
+    def zoom(self, level, zoom_value = 0):
 
         if (not self.__zoom_levels): return
 
@@ -230,8 +305,17 @@ class Image(Widget, Observable):
         cx /= self.__zoom_value
         cy /= self.__zoom_value
         
-        self.__zoom_level = max(0, min(len(self.__zoom_levels) - 1, level))
-        self.__zoom_value = self.__zoom_levels[self.__zoom_level] / 100.0
+        if (not zoom_value):
+            self.__zoom_level = max(0, min(len(self.__zoom_levels) - 1, level))
+            self.__zoom_value = self.__zoom_levels[self.__zoom_level] / 100.0
+        else:
+            for i in range(len(self.__zoom_levels)):
+                zl = self.__zoom_levels[i]
+                if (zl > zoom_value):
+                    self.__zoom_level = i
+                    break
+            #end for
+            self.__zoom_value = zoom_value
         
         bufwidth, bufheight = self.__original_size
         self.__virtual_size = (int(bufwidth * self.__zoom_value),
@@ -245,6 +329,29 @@ class Image(Widget, Observable):
         self.scroll_to(cx * self.__zoom_value, cy * self.__zoom_value)
         #gobject.timeout_add(0, self.scroll_to, cx * self.__zoom_value,
         #                                       cy * self.__zoom_value)
+      
+      
+    def __zoom_animated(self, level):
+    
+        def f(params):
+            from_value, to_value = params
+            dv = (to_value - from_value) / 3
+
+            if (abs(dv) > 0.01):
+                self.zoom(0, from_value + dv)
+                params[0] = from_value + dv                
+                return True
+            else:
+                self.zoom(0, to_value)
+                return False
+    
+        level = max(0, min(len(self.__zoom_levels) - 1, level))
+        from_value = self.__zoom_value
+        to_value = self.__zoom_levels[level] / 100.0
+        
+        self.animate(50, f, [from_value, to_value])
+        self.__zoom_level = level
+        
       
 
     def _render(self, high_quality = False):
@@ -408,59 +515,139 @@ class Image(Widget, Observable):
 
     def load(self, f):
         """
-        Loads the given image file. If we're currently loading another
-        image, cancel the loading first.
+        Loads the given image file.
         """
 
         if (f != self.__current_file):        
-            self.__loading_cancelled = True
-            
             if (self.__hi_quality_timer):
                 gobject.source_remove(self.__hi_quality_timer)
             
-            self.__load_img(f)
+            if (self.__scheduled_preloader):
+                gobject.source_remove(self.__scheduled_preloader)
+                self.__scheduled_preloader = None
+            
+            self.__current_file = f
+            
+            # case 1: image is not preloaded
+            #         simply load image, cancelling any running load operation
+            if (self.__preloaded_file != f):
+                logging.debug("preloading image %s", f)
+                self.__is_preloading = False
+                self.__load_img(f, self.__use_pixbuf)
+                
+            # case 2: image is currently being preloaded
+            #         make the remaining preloading process visible
+            elif (not self.__preloaded_pixbuf):
+                logging.debug("using preloading image %s", f)
+                self.update_observer(self.OBS_BEGIN_LOADING)
+                self.__is_preloading = False
+                
+            # case 3: image is already preloaded and can be used
+            #         use image
+            elif (self.__preloaded_pixbuf):
+                logging.debug("using preloaded image %s", f)
+                self.update_observer(self.OBS_BEGIN_LOADING)
+                self.__use_pixbuf(self.__preloaded_pixbuf)
+                self.update_observer(self.OBS_END_LOADING)
+
+            # TODO: there's still one bug:
+            #       when cancelling loading of a file and reloading the same
+            #       file again before the cancelled loader didn't terminate,
+            #       the cancelled loader becomes active again and closes the
+            #       pixbuf loader before the new loader finished writing to it
+            #
+            #       this does not apply to normal use-cases, though
+
+            # disable preloaded stuff
+            self.__preloaded_pixbuf = None
+            self.__preloaded_file = None
 
 
 
-    def __load_img(self, f):
+    def preload(self, f):
+        """
+        Preloads the given image file.
+        """
+
+        def on_load(pixbuf):
+            if (self.__is_preloading):
+                self.__preloaded_pixbuf = pixbuf
+            else:
+                self.__use_pixbuf(pixbuf)
+
+
+        if (f != self.__current_file):
+            # case 1: nothing is loading at the moment
+            #         simply load
+            if (not self.__is_loading):
+                logging.debug("preloading image %s", f)
+                self.__preloaded_file = f
+                self.__is_preloading = True
+                self.__scheduled_preloader = None
+                self.__load_img(f, on_load)
+                
+            # case 2: something is loading
+            #         schedule preloader for later
+            else:
+                logging.debug("preloading image %s later", f)
+                self.__scheduled_preloader = gobject.timeout_add(500,
+                                                               self.preload, f)
+
+
+    def __load_img(self, f, cb, *args):
         """
         Loads the image.
         """
 
-        def on_data(d, amount, total, size_read):
+        def on_data(d, amount, total, size_read, f):
+            if (f != self.__currently_loading): return
             if (d):
                 size_read[0] += len(d)
-                self.__loader.write(d)
-                self.__progress = size_read[0] / float(total) * 100
-                self.render()
-                self.update_observer(self.OBS_PROGRESS, size_read[0], total)
+                try:
+                    self.__loader.write(d)
+                except:
+                    pass
+                    
+                if (not self.__is_preloading):
+                    self.__progress = size_read[0] / float(total) * 100
+                    self.render()
+                    self.update_observer(self.OBS_PROGRESS, size_read[0], total)
             else:
                 try:
                     self.__loader.close()
-                    self.__finish_loading()
+                    pixbuf = self.__finish_loading()
+                    cb(pixbuf, *args)
                 except:
                     pass
+                    
                 self.__progress = 0
-                self.render()
-                self.update_observer(self.OBS_END_LOADING)
-        
+                if (not self.__is_preloading):
+                    self.render()
+                    self.update_observer(self.OBS_END_LOADING)
+
+                self.__is_loading = False
+
+
+        self.__currently_loading = f
+        self.__is_loading = True
         try:
             self.__loader.close()
         except:
             pass
         self.__loader = gtk.gdk.PixbufLoader()
         self.__loader.connect("size-prepared", self.__on_check_size)
-        self.__current_file = f
 
-        self.update_observer(self.OBS_BEGIN_LOADING, f)
+        if (not self.__is_preloading):
+            self.update_observer(self.OBS_BEGIN_LOADING, f)
+
         try:
-            f.load(0, on_data, [0])
+            f.load(0, on_data, [0], f)
         except:
-            #self.__loader.close()
-            self.update_observer(self.OBS_END_LOADING)
+            if (not self.__is_preloading):
+                self.update_observer(self.OBS_END_LOADING)
 
-
-            
+            self.__is_loading = False
+                           
         
     def __finish_loading(self):
         """
@@ -487,23 +674,32 @@ class Image(Widget, Observable):
         if (pbuf.get_width() < pbuf.get_height()):
             try:
                 # rotating is only supported by pygtk >= 2.10
-                self.__pixbuf = pbuf.rotate_simple(
+                pixbuf = pbuf.rotate_simple(
                     gtk.gdk.PIXBUF_ROTATE_CLOCKWISE)
             except:
-                self.__pixbuf = pbuf
+                pixbuf = pbuf
         else:
-            self.__pixbuf = pbuf
+            pixbuf = pbuf
 
-        del pbuf
+        del pbuf        
 
-        w, h = self.__pixbuf.get_width(), self.__pixbuf.get_height()
-        self.__original_size = (w, h)
+        return pixbuf
         
-        self.__is_new_image = True
-        self.__scale_to_fit()
 
         # collect three generations of garbage
         #for i in range(3): gc.collect()
+
+
+    def __use_pixbuf(self, pbuf):
+        
+        self.__pixbuf = pbuf
+        w, h = self.__pixbuf.get_width(), self.__pixbuf.get_height()
+        self.__original_size = (w, h)
+    
+        self.__is_new_image = True
+        self.__scale_to_fit()
+                
+        del pbuf
 
 
     def __scale_to_fit(self):
@@ -536,7 +732,7 @@ class Image(Widget, Observable):
         self.update_observer(self.OBS_SCALE_RANGE, len(self.__zoom_levels))
         self.__zoom_fit = self.__zoom_levels.index(fitting)
         self.__zoom_100 = self.__zoom_levels.index(100)
-        self.zoom_fit()
+        self.zoom_fit(animated = False)
 
 
     def __on_check_size(self, loader, width, height):
@@ -570,18 +766,11 @@ class Image(Widget, Observable):
         
     def fx_slide_in(self, wait = True):
     
-        #import threading
-        #if (self.have_animation_lock()): return
-        #self.set_animation_lock(True)
-        #self.set_frozen(True)
-
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-
-        #finished = threading.Event()
         
-        def f(params): #from_x, to_x):
+        def f(params):
             from_x, to_x = params
             dx = (to_x - from_x) / 5
             done = False
@@ -598,18 +787,20 @@ class Image(Widget, Observable):
                                    x + from_x, y,
                                    x + w - dx, y,
                                    dx, h)
-            
+            else:
+                screen.move_area(x, y, w - dx, h, dx, 0)
+                screen.copy_pixmap(self.__offscreen,
+                                   x + w - from_x - dx, y,
+                                   x, y,
+                                   dx, h)
+
             if (not done):
                 params[0] = from_x + dx
                 params[1] = to_x
                 return True
-                #gobject.timeout_add(10, f, from_x + dx, to_x)
+
             else:
-                #finished.set()
                 return False
 
-        #f(0, w)
-        #if (wait): threads.wait_for(finished.isSet())
         self.animate(50, f, [0, w])
-        #self.set_animation_lock(False)
-        #self.set_frozen(False)
+

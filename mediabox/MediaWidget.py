@@ -13,6 +13,11 @@ class MediaWidget(Widget):
     EVENT_MEDIA_PREVIOUS = "media-previous"
     EVENT_MEDIA_NEXT = "media-next"
     
+    
+    DIRECTION_PREVIOUS = 0
+    DIRECTION_NEXT = 1
+    DIRECTION_NONE = 2
+    
 
     def __init__(self):
     
@@ -22,13 +27,21 @@ class MediaWidget(Widget):
         
 
         
-    def load(self, uri):
+    def load(self, uri, direction = DIRECTION_NEXT):
         """
-        Loads media from the given URI. This is either a local file system+
+        Loads media from the given URI. This is either a local file system
         path or an URL.
         """
     
         raise NotImplementedError
+        
+        
+    def preload(self, uri):
+        """
+        Preloads the given URI, if the media widget supports this.
+        """
+        
+        pass
         
         
     def _set_controls(self, *widgets):

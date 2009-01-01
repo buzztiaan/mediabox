@@ -1,3 +1,13 @@
+mediabox (0.96.2) unstable; urgency=low
+
+  Loading themes from ~/.mediabox/themes doesn't raise an exception anymore
+  
+  Smoothly animated zooming in the image viewer
+  
+  Preloading the next image in the background in the image viewer
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 01 Jan 2009 20:00:00 +0100
+
 mediabox (0.96.1) unstable; urgency=low
 
   Playlist gets saved after reordering

@@ -7,6 +7,7 @@ from MediaItem import MediaItem
 from SubItem import SubItem
 from LibItem import LibItem
 from mediabox.TrackList import TrackList
+from mediabox.MediaWidget import MediaWidget
 from ui.BoxLayout import BoxLayout
 from ui.ImageButton import ImageButton
 from ui.Image import Image
@@ -574,7 +575,7 @@ class GenericViewer(Viewer):
             elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
                 item = self.__playable_items[idx]
                 if (item != self.__current_file):
-                    self.__load_file(item)
+                    self.__load_file(item, MediaWidget.DIRECTION_NONE)
 
         # provide search-as-you-type
         elif (msg == msgs.CORE_ACT_SEARCH_ITEM):
@@ -660,7 +661,8 @@ class GenericViewer(Viewer):
             entry = self.__items[idx - 1]
             self.__list.hilight(idx)
             self.__list.render()
-            gobject.timeout_add(50, self.__load_file, entry)
+            gobject.timeout_add(50, self.__load_file, entry,
+                                MediaWidget.DIRECTION_NONE)
 
         elif (button == item.BUTTON_ENQUEUE):
             if (idx == 0):
@@ -682,7 +684,7 @@ class GenericViewer(Viewer):
             entry = self.__items[idx - 1]
             entry.delete()
             f, nil = self.__path_stack.pop()
-            self.__load_file(f)
+            self.__load_file(f, MediaWidget.DIRECTION_NONE)
             
         elif (button == item.BUTTON_OPEN):
             entry = self.__items[idx - 1]
@@ -748,7 +750,7 @@ class GenericViewer(Viewer):
 
 
 
-    def __load_file(self, f):
+    def __load_file(self, f, direction):
         """
         Loads the given file.
         """
@@ -803,8 +805,16 @@ class GenericViewer(Viewer):
             self.__hilight_current_file()
 
             self.emit_event(msgs.UI_ACT_RENDER)
-            self.__media_widget.load(f)
+            self.__media_widget.load(f, direction)
             self.emit_event(msgs.MEDIA_EV_LOADED, self, f)
+
+            try:
+                idx = self.__playable_items.index(f)
+            except:
+                pass
+            else:
+                if (idx + 1 < len(self.__playable_items)):
+                    self.__media_widget.preload(self.__playable_items[idx + 1])
 
 
 
@@ -1060,7 +1070,7 @@ class GenericViewer(Viewer):
             
         if (idx > 0):
             next_item = self.__playable_items[idx - 1]
-            self.__load_file(next_item)
+            self.__load_file(next_item, MediaWidget.DIRECTION_PREVIOUS)
             
             
     def __go_next(self):
@@ -1094,7 +1104,7 @@ class GenericViewer(Viewer):
 
     def __play_same(self):
     
-        self.__load_file(self.__current_file)
+        self.__load_file(self.__current_file, MediaWidget.DIRECTION_NONE)
 
         return True
         
@@ -1109,12 +1119,12 @@ class GenericViewer(Viewer):
             
         if (idx + 1 < len(self.__playable_items)):
             next_item = self.__playable_items[idx + 1]
-            self.__load_file(next_item)
+            self.__load_file(next_item, MediaWidget.DIRECTION_NEXT)
             return True
 
         elif (wraparound):
             next_item = self.__playable_items[0]
-            self.__load_file(next_item)
+            self.__load_file(next_item, MediaWidget.DIRECTION_NEXT)
             return True
             
         else:
@@ -1131,7 +1141,7 @@ class GenericViewer(Viewer):
             self.__random_items = self.__playable_items[:]
         idx = random.randint(0, len(self.__random_items) - 1)
         next_item = self.__random_items.pop(idx)
-        self.__load_file(next_item)
+        self.__load_file(next_item, MediaWidget.DIRECTION_NEXT)
         
         return True
 

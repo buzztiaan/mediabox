@@ -316,7 +316,7 @@ class VideoWidget(MediaWidget):
         #self.__show_video_screen()
 
 
-    def load(self, item):
+    def load(self, item, direction = MediaWidget.DIRECTION_NEXT):
     
         self.__show_video_screen()
     

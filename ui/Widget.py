@@ -12,9 +12,9 @@ class Widget(object):
     Base class for GDK based lightweight widgets.
     """
 
-    EVENT_BUTTON_PRESS = 0
-    EVENT_BUTTON_RELEASE = 1
-    EVENT_MOTION = 2
+    EVENT_BUTTON_PRESS = "button-pressed"
+    EVENT_BUTTON_RELEASE = "button-released"
+    EVENT_MOTION = "motion"
     
     
     # static lock for blocking event handling
