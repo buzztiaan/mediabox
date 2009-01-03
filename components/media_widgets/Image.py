@@ -101,6 +101,9 @@ class Image(MultiTouchWidget, Observable):
         self.__currently_loading = None
         self.__pixbuf = None
         
+        # flag for aborting the load process if it would cause trouble
+        self.__loading_aborted = False
+        
         # preloaded pixbuf
         self.__preloaded_pixbuf = None
         # preloaded file
@@ -114,7 +117,7 @@ class Image(MultiTouchWidget, Observable):
         
         # progress percentage value
         self.__progress = 0
-        
+                
         
         MultiTouchWidget.__init__(self)
         
@@ -604,7 +607,8 @@ class Image(MultiTouchWidget, Observable):
             if (d):
                 size_read[0] += len(d)
                 try:
-                    self.__loader.write(d)
+                    if (not self.__loading_aborted):
+                        self.__loader.write(d)
                 except:
                     pass
                     
@@ -630,6 +634,7 @@ class Image(MultiTouchWidget, Observable):
 
         self.__currently_loading = f
         self.__is_loading = True
+        self.__loading_aborted = False
         try:
             self.__loader.close()
         except:
@@ -749,6 +754,13 @@ class Image(MultiTouchWidget, Observable):
             factor1 = 1000 / float(width)
             factor2 = 1000 / float(height)
             factor = min(factor1, factor2)
+
+        if (width * height > 8000000):
+            logging.info("aborted loading image because resolution is"
+                         " too high: %dx%d, %0.2f megapixels",
+                         width, height, width * height / 1000000.0)
+            self.__loading_aborted = True
+
 
         if (factor != 1):
             loader.set_size(int(width * factor), int(height * factor))

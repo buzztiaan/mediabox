@@ -2,11 +2,13 @@ from utils import maemo
 
 def get_classes():
     from VolumeMount import VolumeMount
-    from Headset import Headset
-    #from BatteryMonitor import BatteryMonitor
+    from Prefs import Prefs
 
-    classes = [VolumeMount, Headset]
-    #if (maemo.IS_MAEMO): classes.append(BatteryMonitor)
+    classes = [VolumeMount, Prefs]
+    if (maemo.IS_MAEMO):
+        from Headset import Headset
+        from DisplayLight import DisplayLight
+        classes += [Headset, DisplayLight]
 
     return classes
 

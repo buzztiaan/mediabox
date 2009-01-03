@@ -89,7 +89,8 @@ class SOAPProxy(object):
             out += "</u:%s>" % name
 
             data = _SOAP_ENVELOPE % out
-            logging.debug("=== SOAP Request ===\n%s\n===" % data)
+            if (logging.is_level(logging.DEBUG)):
+                logging.debug("=== SOAP Request ===\n%s\n===" % data)
 
             if (cb):
                 self.__post_soap_async(name, data, cb)
@@ -154,8 +155,9 @@ class SOAPProxy(object):
            
     def __parse_soap_response(self, body, name):
 
-        out = []    
-        logging.debug("=== SOAP Response ===\n%s\n===" % body)
+        out = []
+        if (logging.is_level(logging.DEBUG)):
+            logging.debug("=== SOAP Response ===\n%s\n===" % body)
         
         envelope = MiniXML(body).get_dom()
         resp = envelope.get_child().get_child()

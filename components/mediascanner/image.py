@@ -17,18 +17,26 @@ def make_thumbnail_async(f, dest, cb):
     def finish_loading(loader):
         try:
             loader.close()
-            pbuf = loader.get_pixbuf()
-            del loader
-            if (pbuf):
-                pbuf.save(dest, "jpeg")
-            del pbuf
+            if (not aborted[0]):
+                pbuf = loader.get_pixbuf()
+                del loader
+                if (pbuf):
+                    pbuf.save(dest, "jpeg")
+                del pbuf
+            #end if
         except:
             import traceback; traceback.print_exc()
-        cb()
+        try:
+            cb()
+        except:
+            logging.error("error\n%s", logging.stacktrace())
+
 
     def on_data(d, amount, total, loader):
+
         if (d):
-            loader.write(d)
+            if (not aborted[0]):
+                loader.write(d)
         else:
             finish_loading(loader)
 
@@ -38,8 +46,16 @@ def make_thumbnail_async(f, dest, cb):
         factor2 = 120 / float(height)
         factor = min(factor1, factor2)
         loader.set_size(int(width * factor), int(height * factor))
-        
 
+        if (width * height > 8000000):
+            logging.info("aborted thumbnailing image %s because resolution is"
+                         " too high: %dx%d, %0.2f megapixels",
+                         f, width, height, width * height / 1000000.0)
+            aborted[0] = True
+
+
+        
+    aborted = [False]
     uri = f.resource
     uri = thief.steal_image(uri) or uri
 

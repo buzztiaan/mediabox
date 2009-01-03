@@ -6,17 +6,23 @@ from upnp.SOAPProxy import SOAPProxy
 from upnp import didl_lite
 from utils import mimetypes
 from utils import logging
+from utils import urlquote
+from mediabox import values
 from theme import theme
 
 import urllib
 import urlparse
 import os
 import gtk
+import gzip
 
 
 _NS_DESCR = "urn:schemas-upnp-org:device-1-0"
 _SERVICE_CONTENT_DIRECTORY_1 = "urn:schemas-upnp-org:service:ContentDirectory:1"
 _SERVICE_CONTENT_DIRECTORY_2 = "urn:schemas-upnp-org:service:ContentDirectory:2"
+
+_CACHE_DIR = os.path.join(values.USER_DIR, "upnpcache")
+
 
 
 class AVDevice(Device):
@@ -41,9 +47,6 @@ class AVDevice(Device):
         self.__description = descr
         self.__icon = None
     
-        # cache for DIDL responses
-        self.__didl_cache = {}
-
         dtype = descr.get_device_type()
         if (dtype == "urn:schemas-upnp-org:device:MediaServer:1"):
             svc = _SERVICE_CONTENT_DIRECTORY_1
@@ -60,6 +63,25 @@ class AVDevice(Device):
 
         Device.__init__(self)
 
+        # create cache if it does not exist yet
+        if (not os.path.exists(_CACHE_DIR)):        
+            try:
+                os.makedirs(_CACHE_DIR)
+            except:
+                pass
+
+        # clear cache of old files from previous sessions
+        else:
+            old_files = [ os.path.join(_CACHE_DIR, f)
+                          for f in os.listdir(_CACHE_DIR)
+                          if os.path.getmtime(os.path.join(_CACHE_DIR, f)) <
+                             values.START_TIME ]
+            for f in old_files:
+                try:
+                    os.unlink(f)
+                except:
+                    pass
+        #end if
 
 
     def get_prefix(self):
@@ -140,17 +162,20 @@ class AVDevice(Device):
             f.path = "/" + ident
         else:
             f.path = "/" + ident
-                        
-        if (f.mimetype in ["application/octet-stream"]):
-            ext = os.path.splitext(f.name)[-1]
-            f.mimetype = mimetypes.lookup_ext(ext)
-            
+
         f.child_count = child_count    
         
         # MythTV thinks Ogg-Vorbis was text/plain...
         if (clss.startswith("object.item.audioItem") and
             f.mimetype == "text/plain"):
             f.mimetype = "audio/x-unknown"
+
+        # no useful MIME type reported? let's look at the file extension
+        if (not f.mimetype in mimetypes.get_audio_types() + 
+                              mimetypes.get_video_types() +
+                              mimetypes.get_image_types() + [f.DIRECTORY]):
+            ext = os.path.splitext(f.name)[-1]
+            f.mimetype = mimetypes.lookup_ext(ext)
             
         logging.debug("'%s' has MIME type '%s'" % (f.name, f.mimetype))
         
@@ -158,15 +183,29 @@ class AVDevice(Device):
 
 
     def __get_didl(self, path):
-
+       
         if (path.startswith("/")): path = path[1:]
-        try:
-            didl = self.__didl_cache[path]
-        except KeyError:
+        
+        cache_key = urlquote.quote(self.get_prefix() + "/" + path, safe = "")
+        cache_file = os.path.join(_CACHE_DIR, cache_key + ".didl.gz")
+
+        didl = None
+        if (os.path.exists(cache_file)):
+            try:
+                didl = gzip.open(cache_file, "r").read()
+            except:
+                pass
+        #end if        
+
+        if (not didl):
             didl, nil, nil, nil = self.__cds_proxy.Browse(None, path,
                                                 "BrowseDirectChildren",
                                                 "*", "0", "0", "")
-            #self.__didl_cache[path] = didl
+
+            try:
+                gzip.open(cache_file, "w").write(didl)
+            except:
+                pass
             
         return didl
     

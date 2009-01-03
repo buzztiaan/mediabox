@@ -440,6 +440,7 @@ class AppWindow(Component, RootPane):
         self.__touch_back_area.set_geometry(0, 0, w - cw, h - th)
         
         self.emit_event(msgs.INPUT_EV_CONTEXT_MENU)
+        self.emit_event(msgs.UI_EV_VIEWER_CHANGED, -1)
 
 
     def __hide_tabs(self):
@@ -454,6 +455,11 @@ class AppWindow(Component, RootPane):
         self.set_frozen(False)
         
         self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
+        try:
+            viewer_idx = self.__viewers.index(self.__current_viewer)
+        except:
+            viewer_idx = 0
+        self.emit_event(msgs.UI_EV_VIEWER_CHANGED, viewer_idx)
 
 
     def __select_tab(self, idx):
@@ -982,6 +988,7 @@ class AppWindow(Component, RootPane):
         self.__tab_panel.close()
         #self.render()
         self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
+        self.emit_event(msgs.UI_EV_VIEWER_CHANGED, idx)
 
 
 

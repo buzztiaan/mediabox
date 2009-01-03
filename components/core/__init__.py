@@ -42,6 +42,7 @@ messages = [
     "CORE_EV_APP_SHUTDOWN",
     "CORE_EV_APP_IDLE_BEGIN",
     "CORE_EV_APP_IDLE_END",
+    "CORE_EV_MAY_BLANK_DISPLAY",  # (value)
     
     # Notifications about adding or removing storage devices.
     #
@@ -102,6 +103,8 @@ messages = [
     "UI_ACT_VIEW_MODE",         # (mode)
     "UI_ACT_SHOW_MESSAGE",          # (text, subtext, icon)
     "UI_ACT_HIDE_MESSAGE",
+    
+    "UI_EV_VIEWER_CHANGED",     # (index)
        
     "UI_ACT_SET_STRIP",          # (viewer, items)
     "UI_ACT_HILIGHT_STRIP_ITEM", # (viewer, index)

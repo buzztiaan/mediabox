@@ -5,8 +5,14 @@ mediabox (0.96.2) unstable; urgency=low
   Smoothly animated zooming in the image viewer
   
   Preloading the next image in the background in the image viewer
+  
+  Configuration option for keeping the display light on
+  
+  Refuse thumbnailing or loading of images with more than 8 megapixels
+  
+  Caching of UPnP directory server listings
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 01 Jan 2009 20:00:00 +0100
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 03 Jan 2009 18:30:00 +0100
 
 mediabox (0.96.1) unstable; urgency=low
 

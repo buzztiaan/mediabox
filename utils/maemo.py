@@ -34,6 +34,18 @@ def get_osso_context():
     """
 
     return _osso_context
+    
+    
+def get_device_state():
+    """
+    Returns the OSSO device state object.
+    
+    @return: OSSO device state
+    """
+    
+    import osso
+    return osso.DeviceState(get_osso_context())
+
 
 
 def get_system_bus():
