@@ -83,20 +83,26 @@ class AudioArtistStorage(Device):
 
     def _list_albums(self, artist):
     
-        return self.__index.list_albums(artist)  
+        return self.__index.list_albums(artist)
         
 
     def _list_files(self, artist, album):
 
-        album_fp = self.__index.get_album(artist, album)
-        f = self.call_service(msgs.CORE_SVC_GET_FILE, album_fp)
-
-        if (f):
-            files = [ c for c in f.get_children()
-                      if c.mimetype.startswith("audio/") ]
-            return files
+        if (album == "All Tracks"):
+            albums = self._list_albums(artist)
         else:
-            return []
+            album_fp = self.__index.get_album(artist, album)
+            albums = [(album, album_fp)]
+            
+        files = []
+        for name, album_fp in albums:
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, album_fp)
+            if (f):
+                files += [ c for c in f.get_children()
+                           if c.mimetype.startswith("audio/") ]
+        #end for        
+
+        return files
 
         
     def get_prefix(self):
@@ -151,6 +157,16 @@ class AudioArtistStorage(Device):
 
         elif (num_of_slash == 2):
             artist = urlquote.unquote(path.replace("/", ""))
+
+            f = File(self)
+            f.is_local = True
+            f.path = path + urlquote.quote("All Tracks")
+            f.can_skip = True
+            f.name = "All Tracks"
+            f.info = artist
+            f.mimetype = "application/x-music-folder" #f.DIRECTORY           
+            cb(f, *args)
+
             albums = self._list_albums(artist)
             albums.sort()
             for album, fp in albums:
@@ -164,8 +180,8 @@ class AudioArtistStorage(Device):
                 #f.info = "%d items" % len(self.__albums[(artist, album)])
                 f.mimetype = "application/x-music-folder" #f.DIRECTORY
                 if (album_f):
-                    f.resource = album_f.resource
-                    #f.thumbnail_md5 = album_f.md5
+                    f.resource = album_f.resource                    
+                    f.thumbnail_md5 = album_f.md5
 
                 cb(f, *args)
             #end for
@@ -193,7 +209,10 @@ class AudioArtistStorage(Device):
                     trackno = int(trackno)
                 except:
                     trackno = 0
-                f.index = trackno
+                    
+                # no sorting by track number in the "All Tracks" folder
+                if (album != "All Tracks"):
+                    f.index = trackno
 
                 tracks.append(f)
             #end for
