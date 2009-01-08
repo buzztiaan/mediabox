@@ -261,7 +261,7 @@ class MediaScanner(Component):
                                       self.__thumbnailer.get_thumbnail_path(f),
                                       on_generated)
                     except:
-                        pass
+                        on_generated()
                         
                 else:
                     logging.debug("thumbnail up to date for %s" % f.resource)

@@ -54,7 +54,6 @@ def make_thumbnail_async(f, dest, cb):
             aborted[0] = True
 
 
-        
     aborted = [False]
     uri = f.resource
     uri = thief.steal_image(uri) or uri

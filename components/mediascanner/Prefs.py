@@ -25,6 +25,14 @@ class Prefs(Configurator):
         #self.__vbox.set_geometry(0, 0, 620, 370)
         self.add(self.__vbox)
 
+        chk = CheckBox(mb_config.store_thumbnails_on_medium())
+        chk.connect_checked(self.__on_check_store_thumbs)
+        self.__vbox.add(chk)
+        lbl = Label("Store thumbnails on the same medium as the\n"
+                    "associated files (restart MediaBox for this)",
+                    theme.font_mb_plain, theme.color_mb_listitem_text)        
+        chk.add(lbl)
+        
         chk = CheckBox(mb_config.scan_at_startup())
         chk.connect_checked(self.__on_check_startup)
         self.__vbox.add(chk)
@@ -45,7 +53,7 @@ class Prefs(Configurator):
         self.__btn_reindex.connect_clicked(self.__on_click_rebuild)
         self.__vbox.add(self.__btn_reindex)
 
-        
+
 
 
     def render_this(self):
@@ -68,6 +76,11 @@ class Prefs(Configurator):
     def __on_check_inotify(self, value):
     
         mb_config.set_scan_with_inotify(value)
+
+
+    def __on_check_store_thumbs(self, value):
+    
+        mb_config.set_store_thumbnails_on_medium(value)
 
 
     def __on_click_rebuild(self):
