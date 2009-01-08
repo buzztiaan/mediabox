@@ -176,6 +176,9 @@ class AVDevice(Device):
                               mimetypes.get_image_types() + [f.DIRECTORY]):
             ext = os.path.splitext(f.name)[-1]
             f.mimetype = mimetypes.lookup_ext(ext)
+
+        if (f.mimetype.startswith("image/")):
+            f.thumbnail = f.resource
             
         logging.debug("'%s' has MIME type '%s'" % (f.name, f.mimetype))
         
@@ -198,9 +201,12 @@ class AVDevice(Device):
         #end if        
 
         if (not didl):
+            # hello ORB, you'd misinterpret the RequestedCount parameter,
+            # so I'm feeding you an insanely high number instead of '0',
+            # which was originally intended to mean "return _all_ entries"  >:(
             didl, nil, nil, nil = self.__cds_proxy.Browse(None, path,
                                                 "BrowseDirectChildren",
-                                                "*", "0", "0", "")
+                                                "*", "0", "50000", "")
 
             try:
                 gzip.open(cache_file, "w").write(didl)
@@ -254,6 +260,5 @@ class AVDevice(Device):
                     pass
                 dloader.cancel()
         
-        
-        dloader = Downloader(resource, f)
+        dloader = Downloader(resource.resource, f)
 

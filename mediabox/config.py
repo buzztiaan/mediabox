@@ -23,6 +23,7 @@ _cfg = Config("",
                ("shuffle_mode", Config.STRING, SHUFFLE_MODE_NONE),
                ("scan_at_startup", Config.BOOL, True),
                ("scan_with_inotify", Config.BOOL, True),
+               ("store_thumbnails_on_medium", Config.BOOL, True),
                ("thumbnails_folder", Config.STRING, 
                               os.path.expanduser("~/.thumbnails/mediabox")),
                ("theme", Config.STRING, "default"),
@@ -109,6 +110,16 @@ def scan_with_inotify():
 def set_scan_with_inotify(v):
 
     _cfg["scan_with_inotify"] = v
+
+
+def store_thumbnails_on_medium():
+
+    return _cfg["store_thumbnails_on_medium"]
+    
+    
+def set_store_thumbnails_on_medium(v):
+
+    _cfg["store_thumbnails_on_medium"] = v
 
 
 def thumbdir():
