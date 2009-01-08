@@ -183,7 +183,7 @@ class SOAPProxy(object):
 
         host, port, path = parse_addr(self.__endpoint)
         
-        
+
         if (port):
             conn = httplib.HTTPConnection(host, port)
         else:
