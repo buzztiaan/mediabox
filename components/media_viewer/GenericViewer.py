@@ -952,7 +952,7 @@ class GenericViewer(Viewer):
 
         # change item button
         item = self.__list.get_item(idx + 1)
-        item.set_buttons((item.BUTTON_CLOSE, theme.mb_item_btn_close),
+        item.set_buttons(#(item.BUTTON_CLOSE, theme.mb_item_btn_close),
                          (item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
 
         gobject.timeout_add(0, path.get_children_async, on_child,
@@ -974,6 +974,7 @@ class GenericViewer(Viewer):
         item.set_buttons((item.BUTTON_OPEN, theme.mb_item_btn_open))
         
         self.__subfolder_range = None
+        self.__list.render()
 
 
     def __add_file(self, entry, items_to_thumbnail, insert_at):
@@ -1151,8 +1152,11 @@ class GenericViewer(Viewer):
         """
         Reacts on pressing the [Back] button.
         """
-    
-        if (len(self.__path_stack) > 1):
+
+        if (self.__subfolder_range):
+            self.__close_subfolder()
+        
+        elif (len(self.__path_stack) > 1):
             self.__path_stack.pop()
             path, list_offset = self.__path_stack.pop()
             self.__load_folder(path, self.__GO_PARENT)
@@ -1299,6 +1303,7 @@ class GenericViewer(Viewer):
                                   on_created, item, tn)
 
             #end if
+    
         #end if
 
 
