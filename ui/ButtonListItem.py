@@ -31,6 +31,7 @@ class ButtonListItem(ListItem):
     def set_buttons(self, *buttons):
     
         self.__buttons = buttons
+        self.invalidate()
 
 
     def open_menu(self):

@@ -41,6 +41,10 @@ class ImageStrip(Widget):
         # index = -1 means that no item is currently floating
         self.__floating_index = -1
         self.__floating_position = 0
+        
+        # index and offset of a cycling item
+        self.__cycling_index = -1
+        self.__cycling_offset = 0
 
         # the currently hilighted image    
         self.__hilighted_image = -1
@@ -670,6 +674,7 @@ class ImageStrip(Widget):
         self.__buffer.draw_pixmap(self.__shared_pmap, fx, fy)
 
 
+
     def __render_buffered(self, screen, offset, height):
         """
         Composes the widget onto the buffer.
@@ -677,6 +682,9 @@ class ImageStrip(Widget):
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
+        
+        offset = max(0, offset)        
+        height = min(h - offset, height)
 
         TEMPORARY_PIXMAP.copy_pixmap(self.__buffer, 0, 0, 0, 0, w, h)
 
@@ -779,15 +787,16 @@ class ImageStrip(Widget):
                 else:
                     offx = 0
 
-                if (self.__floating_index != idx):
-                    # render item
-                    screen.copy_pixmap(self.__shared_pmap, 0, img_offset,
-                                       x + offx, y + render_offset,
-                                       pw, remain)
-                else:
+                if (idx == self.__floating_index):
                     # leave a gap where the floating item would have been
                     screen.fill_area(x + offx, y + render_offset, pw, remain,
                                      self.__bg_color)
+
+                else:
+                    # render item normally
+                    screen.copy_pixmap(self.__shared_pmap, 0, img_offset,
+                                       x + offx, y + render_offset,
+                                       pw, remain)
 
                 # fill the empty space at the sides if the item was centered
                 if (offx > 0 and self.__bg_color):
@@ -999,6 +1008,38 @@ class ImageStrip(Widget):
             #self.animate_with_events(50, f)
             #self.set_events_blocked(True)
             #self.set_events_blocked(False)
+
+
+    def fx_cycle_item(self, idx):
+    
+        def fx(params):
+            from_x, to_x = params
+            dx = (to_x - from_x) / 5
+            if (dx > 0):
+                self.__buffer.move_area(dx, item_y, item_w - dx, item_h, -dx, 0)
+                self.__buffer.copy_pixmap(self.__shared_pmap, from_x, 0,
+                                   item_w - dx, item_y, dx, item_h)
+                self.__render_buffered(screen, item_y, item_h)
+                params[0] = from_x + dx
+                params[1] = to_x
+                return True
+                
+            else:
+                self.__buffer.copy_pixmap(self.__shared_pmap, 0, 0,
+                                   0, item_y, item_w, item_h)                
+                self.__render_buffered(screen, item_y, item_h)
+                return False
+
+        screen = self.get_screen()
+        item = self.__images[idx]        
+        item.invalidate()
+        #self.__shared_pmap.invalidate()
+        self.__shared_pmap.prepare(item)
+        item_w, item_h = item.get_size()
+            
+        w, h = self.get_size()
+        item_y = (self.__itemsize + self.__gapsize) * idx - self.__offset
+        self.animate(50, fx, [0, item_w])
 
 
     """
