@@ -190,7 +190,7 @@ class SOAPProxy(object):
             conn = httplib.HTTPConnection(host)
 
         conn.putrequest("POST", path)
-        conn.putheader("Host", port and "%s:%d" % (host, port) or host)
+        #conn.putheader("Host", port and "%s:%d" % (host, port) or host)
         conn.putheader("User-Agent", "MediaBox")
         conn.putheader("Content-Type", "text/xml; charset=\"utf-8\"")
         conn.putheader("Content-Length", `length`)
