@@ -98,8 +98,7 @@ class VideoWidget(MediaWidget):
     
         if (not self.get_screen().is_offscreen() and
             self.may_render() and
-            self.__player and
-            self.__player.has_video()):
+            self.__player):
             self.__screen.show()
             
     
@@ -131,7 +130,7 @@ class VideoWidget(MediaWidget):
         
     def __on_expose(self, src, ev):
 
-        if (self.__player and self.__player.has_video()):
+        if (self.__player):
             win = self.__screen.window
             gc = win.new_gc()
             cmap = win.get_colormap()
@@ -143,7 +142,13 @@ class VideoWidget(MediaWidget):
             
     def __on_click(self, px, py):
             
-        self.send_event(self.EVENT_FULLSCREEN_TOGGLED)
+        if (self.__player):
+            handled = self.__player.send_key(self.__player.KEY_SELECT)
+            
+        if (not handled):
+            self.send_event(self.EVENT_FULLSCREEN_TOGGLED)
+
+        
 
 
 
@@ -169,13 +174,13 @@ class VideoWidget(MediaWidget):
             #    self.__hide_video_screen()
 
         elif (cmd == src.OBS_STARTED):
-            print "Started Player"
+            #print "Started Player"
             self.__progress.set_message("")
             #self.__btn_play.set_images(theme.btn_play_1,
             #                           theme.btn_play_2)
             
         elif (cmd == src.OBS_KILLED):
-            print "Killed Player"
+            #print "Killed Player"
             self.__uri = ""
             self.__progress.set_message("")
             self.__hide_video_screen()
@@ -195,7 +200,7 @@ class VideoWidget(MediaWidget):
         elif (cmd == src.OBS_PLAYING):
             ctx = args[0]
             if (ctx == self.__context_id):
-                print "Playing"
+                #print "Playing"
                 self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)
@@ -204,7 +209,7 @@ class VideoWidget(MediaWidget):
         elif (cmd == src.OBS_STOPPED):
             ctx = args[0]
             if (ctx == self.__context_id):
-                print "Stopped"
+                #print "Stopped"
                 self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
@@ -335,16 +340,6 @@ class VideoWidget(MediaWidget):
                 self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
                 
                 self.__player.set_window(self.__screen.window.xid)
-                product = maemo.get_product_code()
-                if (product == "?"):
-                    self.__player.set_options("-vo xv")
-                elif (product == "SU-18"):
-                    self.__player.set_options("-vo nokia770:" \
-                                              "fb_overlay_only:" \
-                                              "x=174:y=60:w=600:h=360")
-                else:
-                    self.__player.set_options("-vo xv")
-                    
                 try:
                     self.__context_id = self.__player.load_video(uri)
                 except:

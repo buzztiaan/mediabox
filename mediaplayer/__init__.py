@@ -2,10 +2,11 @@
 This package contains the media player backends.
 """
 
-from DummyPlayer import DummyPlayer
-#from GstPlayer import GstPlayer
-from MPlayer import MPlayer
-from OSSOPlayer import OSSOPlayer
+from DummyBackend import DummyBackend
+from GstBackend import GstBackend
+from MPlayerBackend import MPlayerBackend
+from OSSOBackend import OSSOBackend
+from XineBackend import XineBackend
 from utils import maemo
 from mediabox import values
 from utils import mimetypes
@@ -14,20 +15,26 @@ from utils import logging
 import os
 
 
-#_GST = GstPlayer()
-_MPLAYER = MPlayer()
-_OMS = OSSOPlayer()
-_DUMMY = DummyPlayer()
+_GST = GstBackend()
+_MPLAYER = MPlayerBackend()
+_OMS = OSSOBackend()
+_XINE = XineBackend()
+_DUMMY = DummyBackend()
 
-_PLAYERS = [_MPLAYER, _OMS, _DUMMY]
-_PLAYER_NAMES = {#"gst": _GST,
-                 "mplayer": _MPLAYER,
-                 "oms": _OMS,
-                 #"xine": _XINE,
-                 "dummy": _DUMMY}
+if (maemo.IS_MAEMO):
+    _PLAYERS = {"gst": _GST,
+                "mplayer": _MPLAYER,
+                "oms": _OMS}
+else:
+    _PLAYERS = {"gst": _GST,
+                "mplayer": _MPLAYER,
+                "oms": _OMS,
+                "xine": _XINE}
+
 
 _current_player = _DUMMY
 
+# table: mediatype -> backend name
 _MAPPING_TABLE = {}
 
 _PLAYERS_MAPPING_FILE1 = os.path.join(os.path.dirname(__file__), "players.mapping")
@@ -66,10 +73,24 @@ def _read_mapping_table(mappingfile):
                           % (cnt, line.strip()))
             continue
 
-        player = _PLAYER_NAMES.get(playername, _DUMMY)
-        _MAPPING_TABLE[mediatype] = player
+        player = _PLAYERS.get(playername, _DUMMY)
+        _MAPPING_TABLE[mediatype] = playername
     #end for
    
+   
+def write_user_mapping():
+
+    try:
+        fd = open(_PLAYERS_MAPPING_FILE2, "w")
+    except:
+        logging.error("could not write players.mapping:\n%s",
+                      logging.stacktrace())
+        return
+
+    for mt, backend in _MAPPING_TABLE.items():
+        fd.write("%s %s\n" % (mt, backend))
+
+    fd.close()    
 
 
 def get_player_for_mimetype(mimetype):
@@ -80,20 +101,45 @@ def get_player_for_mimetype(mimetype):
 
     mediatype = mimetypes.mimetype_to_name(mimetype)
     
-    player = _MAPPING_TABLE.get(mediatype, _DUMMY)
+    backend = get_backend_for(mediatype)
+    player = _PLAYERS.get(backend, _DUMMY)
     logging.info("'%s' handled by %s", mediatype, `player`)
     _switch_player(player)
     
     return player
+
+
+
+def get_backends():
+
+    return _PLAYERS.keys()
+    
+    
+def get_media_types():
+
+    return _MAPPING_TABLE.keys()
+
+
+def get_backend_for(mediatype):
+
+    return _MAPPING_TABLE.get(mediatype, "dummy")
+
+
+def get_backend_icon(backend):
+
+    return _PLAYERS.get(backend, _DUMMY).get_icon()
     
 
+def set_backend_for(mediatype, backend):
+
+    _MAPPING_TABLE[mediatype] = backend
 
 
 
 
 def add_observer(observer):
 
-    for player in _PLAYERS:
+    for player in _PLAYERS.values():
         logging.debug("loading player backend %s", `player`)
         player.add_observer(observer)
         
@@ -103,7 +149,10 @@ def close():
     Closes the current media player.
     """
     
-    _current_player.close()
+    try:
+        _current_player.close()
+    except:
+        pass
         
         
 def _switch_player(new_player):
@@ -113,7 +162,10 @@ def _switch_player(new_player):
     global _current_player
     
     if (new_player != _current_player):
-        _current_player.close()
+        try:
+            _current_player.close()
+        except:
+            pass
         _current_player = new_player
 
 
@@ -121,11 +173,4 @@ def _switch_player(new_player):
 _read_mapping_table(_PLAYERS_MAPPING_FILE1)
 if (os.path.exists(_PLAYERS_MAPPING_FILE2)):
     _read_mapping_table(_PLAYERS_MAPPING_FILE2)
-else:
-    try:
-        open(_PLAYERS_MAPPING_FILE2, "w").write(
-            "# put your mapping overrides here"
-        )
-    except:
-        pass
 

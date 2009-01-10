@@ -1,3 +1,29 @@
+mediabox (0.96.3) unstable; urgency=low
+
+  Back button closes embedded album listing.
+  
+  "All Tracks" option in artists view for listing all tracks belonging to an
+  artist at once
+  
+  Configuration option for changing the player backend per media format
+   
+  Revised mediaplayer backend implementation making creation of new backends
+  easier
+  
+  New experimental player backend for GStreamer
+  
+  Thumbnails are stored on the medium where the associated files are located
+  
+  Fixed bug that stopped thumbnailing after an error
+  
+  Use insanely high number for parameter RequestedCount when browsing UPnP
+  server in order to retrieve all items even from UPnP servers misinterpreting
+  the RequestedCount part in the ContentDirectory specification (fixes ORB)
+
+  Fixed bug that broke compatibility with Microsoft's UPnP media servers
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 03 Jan 2009 18:30:00 +0100
+
 mediabox (0.96.2) unstable; urgency=low
 
   Loading themes from ~/.mediabox/themes doesn't raise an exception anymore

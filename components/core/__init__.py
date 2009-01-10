@@ -3,14 +3,14 @@ def get_classes():
     from AppWindow import AppWindow
     from IdleDetector import IdleDetector
     from Preferences import Preferences
-    #from ConfigPlayer import ConfigPlayer
+    from ConfigBackend import ConfigBackend
     from ConfigTheme import ConfigTheme
     from DirectoryService import DirectoryService
     from MediaWidgetRegistry import MediaWidgetRegistry
     from NotificationService import NotificationService
 
-    return [AppWindow, IdleDetector, Preferences, ConfigTheme, DirectoryService,
-            MediaWidgetRegistry, NotificationService]
+    return [AppWindow, IdleDetector, Preferences, ConfigTheme, ConfigBackend,
+            DirectoryService, MediaWidgetRegistry, NotificationService]
     
     
 def get_devices():

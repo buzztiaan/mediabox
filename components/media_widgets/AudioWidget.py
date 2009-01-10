@@ -291,9 +291,9 @@ class AudioWidget(MediaWidget):
                 self.__cover.set_active(True)
                 self.send_event(self.EVENT_MEDIA_EOF)
 
-        elif (cmd == src.OBS_NEW_STREAM_TRACK):
-            ctx, title = args
-            self.__title.set_text(title)
+        elif (cmd == src.OBS_TAG_INFO):
+            ctx, tags = args
+            #self.__title.set_text(title)
             
 
 
@@ -359,7 +359,6 @@ class AudioWidget(MediaWidget):
             #if (item == self.__current_file): return
 
             self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
-            self.__player.set_options("-novideo")
             
             uri = item.get_resource()
             if (not uri.startswith("/") and
