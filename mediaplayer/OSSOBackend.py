@@ -85,7 +85,7 @@ class OSSOBackend(AbstractBackend):
         elif (state == "stopped"):
             pass
         elif (state == "connecting"):
-            self._report_buffering()
+            self._report_connecting()
     
     
     def __on_eos(self, uri):
@@ -100,8 +100,9 @@ class OSSOBackend(AbstractBackend):
 
     def __on_buffering(self, value):
     
+        print "buffering", value
         if (value < 99.9):
-            self._report_buffering()
+            self._report_buffering(int(value))
         
 
     def __on_details(self, details):
@@ -123,7 +124,7 @@ class OSSOBackend(AbstractBackend):
             elif (key == "album"):
                 self._report_tag("ALBUM", value)
         #end for
-        
+
         if (self.__width > 0 and self.__height > 0):
             self._report_aspect_ratio(self.__width / float(self.__height))
         
@@ -136,6 +137,7 @@ class OSSOBackend(AbstractBackend):
 
     def _set_window(self, xid):
     
+        self._ensure_backend()
         if (xid > 0):
             self.__vplayer.set_video_window(dbus.UInt32(xid))
         
@@ -186,7 +188,7 @@ class OSSOBackend(AbstractBackend):
     def _seek(self, pos):
     
         if (self.__is_seekable):
-            self.__current_player.seek(1, dbus.Int32(pos * 10))
+            self.__current_player.seek(1, dbus.Int32(pos * 1000))
             self._play()
 
 

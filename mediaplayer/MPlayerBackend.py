@@ -86,7 +86,7 @@ class MPlayerBackend(AbstractBackend):
         time.sleep(0.25)
         if (p.poll()):
             print "Startup failed"
-            self._report_error("Could not start mplayer")
+            self._report_error(self.ERR_INVALID, "Could not start mplayer")
             return
         else:
             print "running"
@@ -158,7 +158,9 @@ class MPlayerBackend(AbstractBackend):
             
         else:
             buf[0] += self.__read()
+            buf[0] = buf[0].replace("\r", "\n")
             idx = buf[0].find("\n")
+
             while (idx >= 0):
                 line = buf[0][:idx]
                 buf[0] = buf[0][idx + 1:]
@@ -184,12 +186,12 @@ class MPlayerBackend(AbstractBackend):
     
         elif (self.__maybe_eof == 1):
             # provoke an answer from mplayer; if it fails, we have reached EOF
-            self.__send_cmd("get_file_name")
-            self.__maybe_eof = 2
-            return False
-            
-        elif (self.__maybe_eof == 2):
+            #self.__send_cmd("get_time_pos")
+            #self.__maybe_eof = 2
             return True
+            
+        #elif (self.__maybe_eof == 2):
+        #    return True
         
         
     def _load(self, uri):
@@ -199,6 +201,7 @@ class MPlayerBackend(AbstractBackend):
         self.__video_width = 0
         self.__video_height = 0
         self.__maybe_eof = 0
+        self.__filename = uri
         
         uri = uri.replace("\"", "\\\"")
         self.__send_cmd("loadfile \"%s\"" % uri)
@@ -287,7 +290,7 @@ class MPlayerBackend(AbstractBackend):
 
         if (not data):
             # an empty line may indicate EOF, but not every empty line is an EOF
-            self.__maybe_eof += 1
+            self.__maybe_eof = 1
         else:
             self.__maybe_eof = 0
             
@@ -312,10 +315,12 @@ class MPlayerBackend(AbstractBackend):
             print "VOLUME", self.__read_ans(data)
 
         elif (data.startswith("AUDIO: ")):
-            print "HAS AUDIO"
+            #print "HAS AUDIO"
+            pass
             
         elif (data.startswith("VIDEO: ")):
-            print "HAS VIDEO"
+            #print "HAS VIDEO"
+            pass
 
         elif (data.startswith("ID_VIDEO_WIDTH")):
             self.__video_width = float(self.__read_ans(data))
@@ -344,19 +349,20 @@ class MPlayerBackend(AbstractBackend):
        
         elif (data.startswith("ICY Info: ")):
             title = self.__parse_icy_info(self.__read_info(data))
+            print "ICY INFO", title
             self._report_tag("TITLE", title)
             
         elif (data.startswith("Demuxer info Name changed to ")):
             idx = data.find("changed to ")
             name = data[idx + 11:].strip()
             print "NAME CHANGED", name
-            self._report_tag("TITLE", name)
+            #self._report_tag("TITLE", name)
 
         elif (data.startswith("Demuxer info Artist changed to ")):
             idx = data.find("changed to ")
             artist = data[idx + 11:].strip()
             print "ARTIST CHANGED", artist
-            self._report_tag("ARTIST", artist)
+            #self._report_tag("ARTIST", artist)
         
         elif (data.startswith("Starting playback...")):
             #print "STARTING PLAYBACK"
@@ -364,7 +370,7 @@ class MPlayerBackend(AbstractBackend):
             
         elif (data.startswith("GNOME screensaver enabled")):
             #print "DETECTED EOF"
-            self.__maybe_eof += 1
+            self.__maybe_eof = 1
             
         elif (data.startswith("File not found: ")):
             #print "FILE NOT FOUND"
@@ -374,9 +380,18 @@ class MPlayerBackend(AbstractBackend):
             #print "NO FILENAME"
             self._report_error(self.ERR_NOT_FOUND, "")
 
+        elif (data.startswith("Connecting to server")):
+            self._report_connecting()
+
         elif (data.startswith("Cache size set to ")):
             #print "CACHE SIZE SET TO"
-            self._report_buffering()
+            self._report_buffering(0)
+
+        elif (data.startswith("Cache fill:")):
+            idx1 = data.find(":")
+            idx2 = data.find("%")
+            value = int(float(data[idx1 + 1:idx2].strip()))
+            self._report_buffering(value)
 
         elif (data.endswith("No stream found.\n")):
             #print "NO STREAM FOUND"
@@ -389,7 +404,12 @@ class MPlayerBackend(AbstractBackend):
         elif (data.startswith("Server returned 400:Server Full")):
             #print "ERROR 400:Server Full"
             self._report_error(self.ERR_SERVER_FULL, "")
-            
+
+        elif (data.startswith("Server returned 404")):
+            self._report_error(self.ERR_NOT_FOUND, "")
+
+        elif (data.startswith("Server returned 503")):
+            self._report_error(self.ERR_NOT_FOUND, "")
 
 
     def __parse_icy_info(self, data):

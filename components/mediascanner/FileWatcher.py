@@ -49,7 +49,11 @@ class FileWatcher(Component, ProcessEvent):
             self.__currently_scanning = False
 
         elif (ev == msgs.SYSTEM_EV_DRIVE_MOUNTED):
-            logging.info("scanning because device was mounted or unmounted")
+            logging.info("scanning because device was mounted")
+            self.__requires_rescan = True
+
+        elif (ev == msgs.SYSTEM_EV_DRIVE_UNMOUNTED):
+            logging.info("scanning because device was unmounted")
             self.__requires_rescan = True
 
            

@@ -72,7 +72,6 @@ messages = [
     "COM_EV_LOADING_MODULE",    # (name)
     
     "CORE_ACT_RENDER_ALL",
-    "CORE_ACT_VIEW_MODE",       # (mode)    
     
     "CORE_ACT_SCAN_MEDIA",      # (force_rescan)
     "CORE_ACT_LOAD_ITEM",       # (item)
@@ -94,21 +93,25 @@ messages = [
     
     # The notification service lets you show notifications to the user.
     #
-    "NOTIFY_SVC_SHOW_INFO",     # (text)
+    "NOTIFY_SVC_SHOW_INFO",      # (text)
     
     "UI_ACT_FREEZE",
     "UI_ACT_THAW",
     "UI_ACT_RENDER",
 
-    "UI_ACT_VIEW_MODE",         # (mode)
-    "UI_ACT_SHOW_MESSAGE",          # (text, subtext, icon)
+    "UI_ACT_VIEW_MODE",          # (mode)
+    "UI_ACT_SHOW_MESSAGE",       # (text, subtext, icon)
     "UI_ACT_HIDE_MESSAGE",
     
-    "UI_EV_VIEWER_CHANGED",     # (index)
+    "UI_EV_VIEWER_CHANGED",      # (index)
+    "UI_EV_DEVICE_SELECTED",     # (device_id)
        
     "UI_ACT_SET_STRIP",          # (viewer, items)
     "UI_ACT_HILIGHT_STRIP_ITEM", # (viewer, index)
     "UI_ACT_SELECT_STRIP_ITEM",  # (viewer, index)
     "UI_ACT_SHOW_STRIP_ITEM",    # (viewer, index)
+    
+    "UI_ACT_SELECT_VIEWER",      # (name)
+    "UI_ACT_SELECT_DEVICE",      # (device_id)
 ]    
 

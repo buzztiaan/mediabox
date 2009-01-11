@@ -91,7 +91,10 @@ class IRadio(Device):
             item.resource = location
             item.name = name
             item.info = location
-            item.mimetype = "audio/x-unknown"
+            if (location.endswith(".ram") or location.endswith(".rm")):
+                item.mimetype = "application/vnd.rn-realmedia"
+            else:
+                item.mimetype = "audio/x-unknown"
             items.append(item)
         #end for
         items.append(None)

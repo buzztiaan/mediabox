@@ -13,7 +13,8 @@ SHUFFLE_MODE_ALL = "all"
 
 
 _cfg = Config("",
-              [("current_viewer", Config.STRING, ""),
+              [("current_device", Config.STRING, ""),
+               ("current_viewer", Config.STRING, ""),
                ("mediaroot", Config.STRING_LIST,
                              ["/home/user/MyDocs/.videos",
                               "/home/user/MyDocs/.sounds",
@@ -29,6 +30,16 @@ _cfg = Config("",
                ("theme", Config.STRING, "default"),
                ("volume", Config.INTEGER, 50)]
              )
+
+
+def current_device():
+
+    return _cfg["current_device"]
+    
+
+def set_current_device(v):
+
+    _cfg["current_device"] = v
 
 
 def current_viewer():

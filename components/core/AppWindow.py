@@ -38,6 +38,7 @@ class AppWindow(Component, RootPane):
 
         self.__viewers = []
         self.__current_viewer = None
+        self.__current_device_id = ""
         self.__current_collection = []
         self.__current_mediaroots = []
         self.__view_mode = viewmodes.TITLE_ONLY
@@ -203,16 +204,9 @@ class AppWindow(Component, RootPane):
         
         self.__is_initialized = True
         current_viewer = config.current_viewer()
-        viewers = [ v for v in self.__viewers if repr(v) == current_viewer ]
-
-        if (viewers):
-            v = viewers[0]
-            idx = self.__viewers.index(v)
-        else:
-            idx = 0
-
-        self.__tab_panel.select_viewer(idx)
-        self.__select_viewer(idx)
+        current_device_id = config.current_device()
+        self.__select_viewer_by_name(current_viewer)
+        self.emit_event(msgs.UI_ACT_SELECT_DEVICE, current_device_id)
 
 
     def __register_viewers(self):
@@ -453,6 +447,7 @@ class AppWindow(Component, RootPane):
         self.__tab_panel.fx_lower()
         self.set_enabled(True)
         self.set_frozen(False)
+        self.render_buffered()
         
         self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
         try:
@@ -797,6 +792,10 @@ class AppWindow(Component, RootPane):
             #self.__root_pane.render_buffered()            
             self.fx_slide_in()
     
+        elif (event == msgs.UI_EV_DEVICE_SELECTED):
+            dev_id = args[0]
+            self.__current_device_id = dev_id
+    
     
         elif (event == msgs.UI_ACT_FREEZE):
             self.set_frozen(True)
@@ -844,8 +843,11 @@ class AppWindow(Component, RootPane):
             if (viewer == self.__current_viewer):
                 self.__strip.scroll_to_item(idx)
                
+        elif (event == msgs.UI_ACT_SELECT_VIEWER):
+            name = args[0]
+            self.__select_viewer_by_name(name)
 
-        elif (event == msgs.CORE_ACT_VIEW_MODE):
+        elif (event == msgs.UI_ACT_VIEW_MODE):
             mode = args[0]
             self.__set_view_mode(mode)
             self.drop_event()
@@ -952,6 +954,21 @@ class AppWindow(Component, RootPane):
     
         self.__strip.hilight(idx)
  
+ 
+    def __select_viewer_by_name(self, name):
+        """
+        Selects the current viewer by name.
+        """
+        
+        viewers = [ v for v in self.__viewers if repr(v) == name ]
+        if (viewers):
+            idx = self.__viewers.index(viewers[0])
+            self.__tab_panel.select_viewer(idx)
+            self.__select_viewer(idx)
+        else:
+            self.__tab_panel.select_viewer(0)
+            self.__select_viewer(0)
+            
 
             
     def __select_viewer(self, idx):
@@ -1017,6 +1034,7 @@ class AppWindow(Component, RootPane):
         result = dialogs.question("Exit", "Really quit?")
         if (result == 0):
             config.set_current_viewer(self.__current_viewer)
+            config.set_current_device(self.__current_device_id)
             self.emit_event(msgs.MEDIA_ACT_STOP)
             self.emit_event(msgs.CORE_EV_APP_SHUTDOWN)
             gtk.main_quit()

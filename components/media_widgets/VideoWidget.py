@@ -187,6 +187,16 @@ class VideoWidget(MediaWidget):
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
 
+        elif (cmd == src.OBS_CONNECTING):
+            ctx = args[0]
+            if (ctx == self.__context_id):
+                self.__progress.set_message("... connecting ...")
+
+        elif (cmd == src.OBS_BUFFERING):
+            ctx, value = args
+            if (ctx == self.__context_id):
+                self.__progress.set_message("... buffering (%d%%)..." % value)
+
         elif (cmd == src.OBS_ERROR):
             ctx, err = args
             if (ctx == self.__context_id):

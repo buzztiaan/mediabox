@@ -246,10 +246,15 @@ class AudioWidget(MediaWidget):
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
 
-        elif (cmd == src.OBS_BUFFERING):
+        elif (cmd == src.OBS_CONNECTING):
             ctx = args[0]
             if (ctx == self.__context_id):
-                self.__progress.set_message("... buffering ...")
+                self.__progress.set_message("... connecting ...")
+
+        elif (cmd == src.OBS_BUFFERING):
+            ctx, value = args
+            if (ctx == self.__context_id):
+                self.__progress.set_message("... buffering (%d%%)..." % value)
 
         elif (cmd == src.OBS_ERROR):
             ctx, err = args
@@ -293,7 +298,8 @@ class AudioWidget(MediaWidget):
 
         elif (cmd == src.OBS_TAG_INFO):
             ctx, tags = args
-            #self.__title.set_text(title)
+            title = tags.get("TITLE", "-")
+            self.__title.set_text(title)
             
 
 

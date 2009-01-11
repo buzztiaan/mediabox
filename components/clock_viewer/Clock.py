@@ -49,7 +49,7 @@ class Clock(Viewer):
     def show(self):
     
         Viewer.show(self)
-        self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NO_STRIP)        
+        self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)        
                    
         self.__tick()
         if (not self.__is_ticking):

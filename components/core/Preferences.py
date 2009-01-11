@@ -72,7 +72,7 @@ class Preferences(Viewer):
     def show(self):
     
         Viewer.show(self)
-        self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+        self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
         self.emit_event(msgs.INPUT_EV_CONTEXT_BROWSER)
 
         if (not self.__current_configurator):

@@ -46,6 +46,7 @@ class ShoutcastDirectory(object):
     def __parse_stations(self, data, cb):
 
         pos = 0
+        stations = []
         while (True):
             pos = data.find("dirTuneMoreDiv", pos)
             print pos
@@ -89,8 +90,13 @@ class ShoutcastDirectory(object):
             station.resource = pls_url
             station.bitrate = bitrate
             
-            cb(True, station)
+            stations.append(station)
+            #cb(True, station)
         #end while
+    
+        stations.sort()
+        for s in stations:
+            cb(True, s)
 
         cb(False, None)
         
@@ -110,7 +116,6 @@ class ShoutcastDirectory(object):
     
         if (path and path[0] == "/"): path = path[1:]
 
-        print "GET PATH", path
         if (not path and not self.__genres):
             #on_load("", 0, 0, [open("/tmp/shoutcast-genres.html").read()])
             dl = Downloader(_SHOUTCAST_BASE + "/", on_load, [""])            
@@ -147,7 +152,7 @@ class ShoutcastDirectory(object):
             #return
             name = self.__genres[path]
             dl = Downloader(_SHOUTCAST_BASE + \
-                "/directory/genreSearchResult.jsp?startIndex=1&" \
+                "/directory/genreSearchResult.jsp?startIndex=1&numresult=100&" \
                 "mode=listeners&maxbitrate=all&sgenre=%s" % name,
                 #"/genre/%s?numresult=25&startat=0" % name,
                 on_load, [""])

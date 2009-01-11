@@ -31,7 +31,7 @@ class Thumbnailer(object):
         # create directory for thumbnails if it doesn't exist yet
         try:
             if (not os.path.exists(path)):
-                os.mkdir(path)
+                os.makedirs(path)
         except:
             pass          
 

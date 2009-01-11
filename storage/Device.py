@@ -35,6 +35,14 @@ class Device(Component):
         Component.__init__(self)
         
         
+    def get_device_id(self):
+        """
+        Returns the unique device identifier.
+        """
+        
+        return self.get_prefix()
+        
+        
     def get_prefix(self):
         """
         Returns the device prefix for addressing this storage device.

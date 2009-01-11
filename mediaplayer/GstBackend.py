@@ -89,7 +89,7 @@ class GstBackend(AbstractBackend):
 
     def _set_volume(self, volume):
 
-        self.__player.set_property("volume", volume / 100.0)
+        self.__player.set_property("volume", volume / 10.0)
 
     
     def _is_eof(self):
@@ -110,7 +110,7 @@ class GstBackend(AbstractBackend):
 
     def _close(self):
     
-        self._stop()        
+        self._stop()
 
 
     def _seek(self, pos):

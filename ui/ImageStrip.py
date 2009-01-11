@@ -307,7 +307,7 @@ class ImageStrip(Widget):
             self.append_image(img)
         #endfor
 
-        self.invalidate_buffer()
+        #self.invalidate_buffer()
         self.__offset = 0
         
         
@@ -981,6 +981,11 @@ class ImageStrip(Widget):
                 self.__offset += distance - 500
             elif (distance < -1000):
                 self.__offset += distance + 500
+
+            if (not self.may_render()):
+                self.__offset += distance
+                self.__scroll_to_item_handler = None
+                return False
 
             delta = distance / 10
 

@@ -5,8 +5,25 @@ from theme import theme
 
 import os
 
+try:
+    # GNOME
+    import gconf
+except:
+    try:
+        # Maemo    
+        import gnome.gconf as gconf
+    except:
+        # last resort...
+        from utils import gconftool as gconf
 
-_STATIONS_FILE = "/usr/share/applications/worldtv99/WorldTV99.xml"
+
+
+
+_GCONF_KEY = "/apps/maemo/kmplayer/lists/WorldTV99"
+
+# these don't work with MediaBox yet
+_BLACKLISTED = ["USA-VCURLs72"]
+
 
 
 class WorldTV(Device):
@@ -21,9 +38,11 @@ class WorldTV(Device):
     
         Device.__init__(self)
 
-        if (os.path.exists(_STATIONS_FILE)):
+        xmlfile = gconf.client_get_default().get_string(_GCONF_KEY)
+
+        if (os.path.exists(xmlfile)):
             try:
-                data = open(_STATIONS_FILE).read()
+                data = open(xmlfile).read()
                 self.__tv_dom = MiniXML(data).get_dom()
             except:
                 pass
@@ -109,7 +128,10 @@ class WorldTV(Device):
             return None
         f.path = path
         f.mimetype = f.DIRECTORY
-        
+
+        if (f.name in _BLACKLISTED):
+            return None
+
         return f
         
         
@@ -121,14 +143,20 @@ class WorldTV(Device):
         except:
             return None
     
-        if (not url.strip()):
+        if (name in _BLACKLISTED):
             return None
     
+        if (not url.strip()):
+            return None
+        elif (url.endswith(".xml")):
+            return None
+      
         f = File(self)
         f.name = name
         f.resource = url
         f.path = path
         f.mimetype = "video/x-unknown"
+        f.thumbnail = theme.worldtv_device.get_path()
         
         return f
 

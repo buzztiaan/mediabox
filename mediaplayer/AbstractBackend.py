@@ -34,7 +34,8 @@ class AbstractBackend(Observable):
     OBS_ASPECT = 8
     OBS_TAG_INFO = 9
     
-    OBS_BUFFERING = 10
+    OBS_CONNECTING = 10
+    OBS_BUFFERING = 11
     
     # error codes
     ERR_INVALID = 0
@@ -225,15 +226,16 @@ class AbstractBackend(Observable):
                 pos = beginpos + (time.time() - timestamp)
                 
             self.__position = (pos, total)
-            self.update_observer(self.OBS_POSITION, self.__context_id,
-                                 pos, total)
+            if (pos != 0 or total != 0):
+                self.update_observer(self.OBS_POSITION, self.__context_id,
+                                     pos, total)
 
             self.__position_handler = \
                   gobject.timeout_add(300, self.__update_position,
                                       beginpos, timestamp)
 
             # detect EOF
-            if (self._is_eof()):
+            if (pos > 1 and self._is_eof()):
                 self.__on_eof()
                 
 
@@ -290,6 +292,7 @@ class AbstractBackend(Observable):
         self.__uri = uri
         self.__playing = False
         self.__eof_reached = False
+        self.__suspension_point = None
        
         self.stop()
 
@@ -330,14 +333,22 @@ class AbstractBackend(Observable):
         
         self.__tags[tag] = value
         self.update_observer(self.OBS_TAG_INFO, self.__context_id, self.__tags)
+    
+    
+    def _report_connecting(self):
+        """
+        The subclass calls this to report connecting to a server.
+        """
+        
+        self.update_observer(self.OBS_CONNECTING, self.__context_id)
         
     
-    def _report_buffering(self):
+    def _report_buffering(self, value):
         """
         The subclass calls this to report stream buffering.
         """
         
-        self.update_observer(self.OBS_BUFFERING, self.__context_id)
+        self.update_observer(self.OBS_BUFFERING, self.__context_id, value)
         
         
     def _report_error(self, err, message):
@@ -347,6 +358,7 @@ class AbstractBackend(Observable):
         @param err: error code
         """
         
+        self.stop()
         self.update_observer(self.OBS_ERROR, self.__context_id, err)
        
         
@@ -402,6 +414,7 @@ class AbstractBackend(Observable):
     
         self._close()
         self.__context_id = 0
+        logging.info("%s stopped", `self`)
         
         
     def set_volume(self, volume):

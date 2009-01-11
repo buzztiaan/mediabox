@@ -300,7 +300,7 @@ class PlaylistViewer(Viewer):
         
         if (mode == _VIEWMODE_PLAYLIST):
             self.emit_event(msgs.UI_ACT_FREEZE)
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+            self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
         
             self.__playlist.set_visible(True)
             self.__media_box.set_visible(False)
@@ -313,7 +313,7 @@ class PlaylistViewer(Viewer):
 
         elif (mode == _VIEWMODE_PLAYER):
             self.emit_event(msgs.UI_ACT_FREEZE)
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.NORMAL)
+            self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
             
             self.__playlist.set_visible(False)
             self.__media_box.set_visible(True)
@@ -328,7 +328,7 @@ class PlaylistViewer(Viewer):
                 
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):
-            self.emit_event(msgs.CORE_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
+            self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
             self.__playlist.set_visible(False)
             self.__side_tabs.set_visible(False)
             self.__media_box.set_visible(True)

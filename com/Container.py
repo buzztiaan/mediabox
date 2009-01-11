@@ -159,5 +159,5 @@ class Container(Component):
             self.emit_event(msgs.COM_EV_COMPONENT_LOADED, c)
 
         for dev in self.__devices:
-            self.emit_event(msgs.CORE_EV_DEVICE_ADDED, dev.get_prefix(), dev)
+            self.emit_event(msgs.CORE_EV_DEVICE_ADDED, dev.get_device_id(), dev)
 

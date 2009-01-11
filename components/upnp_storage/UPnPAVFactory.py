@@ -7,6 +7,7 @@ class UPnPAVFactory(Component):
 
     def __init__(self):
     
+        self.__dev_ids = {}
         Component.__init__(self)
        
         
@@ -20,6 +21,8 @@ class UPnPAVFactory(Component):
 
             if (device_type in AVDevice.DEVICE_TYPES):
                 device = AVDevice(descr)
+                dev_id = device.get_device_id()
+                self.__dev_ids[uuid] = dev_id
                 self.emit_event(msgs.CORE_EV_DEVICE_ADDED, uuid, device)
                 
                 self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
@@ -29,6 +32,8 @@ class UPnPAVFactory(Component):
 
         elif (ev == msgs.SSDP_EV_DEVICE_GONE):
             uuid = args[0]
-            # TODO: don't emit this event when the device isn't a AV device
-            self.emit_event(msgs.CORE_EV_DEVICE_REMOVED, uuid)
+            dev_id = self.__dev_ids.get(uuid)
+            if (dev_id):
+                self.emit_event(msgs.CORE_EV_DEVICE_REMOVED, dev_id)
+                del self.__dev_ids[uuid]
 

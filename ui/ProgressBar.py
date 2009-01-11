@@ -270,6 +270,7 @@ class ProgressBar(Widget):
 
     def set_position(self, pos, total):
 
+        self.set_message("")
         if (self.__is_dragging and self.__dragged_bookmark == -1): return
         if (not self.may_render()): return
         if (total == 0): return

@@ -26,6 +26,11 @@ class Pixbuf(gtk.gdk.Pixbuf):
         self.__needs_reload = True
 
 
+    def get_path(self):
+    
+        return self.__path
+
+
     def reload(self):
     
         if (self.__needs_reload):
