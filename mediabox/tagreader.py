@@ -3,6 +3,7 @@ This module reads ID tags of media files. The tags are cached automatically
 so that the files don't need to be parsed when reading the tags again.
 """
 
+import config
 import values
 import idtags
 
@@ -11,16 +12,8 @@ import os
 
 
 _TAG_DIR = os.path.join(values.USER_DIR, "idtags")
+_STORE_ON_MEDIUM = config.store_thumbnails_on_medium()
 
-
-def _ensure_tag_dir():
-    
-    if (not os.path.exists(_TAG_DIR)):
-        try:
-            os.makedirs(_TAG_DIR)
-        except:
-            pass
-    #end if
 
 
 def _have_tags(f, tagfile):
@@ -38,7 +31,7 @@ def _have_tags(f, tagfile):
 
 def _scan_tags(f, tagfile):
 
-    _ensure_tag_dir()
+    #_ensure_tag_dir()
 
     res = f.resource
     if (res.startswith("/")):
@@ -85,8 +78,27 @@ def get_tags(f):
     
     @param f: the file to scan
     """
+       
+    if (not _STORE_ON_MEDIUM):
+        prefix = _TAG_DIR
+
+    else:    
+        medium = f.medium
+        if (not medium or medium == "/"):
+            prefix = _TAG_DIR
+        else:
+            prefix = os.path.join(medium, ".mediabox", "idtags")
+
+    if (not os.path.exists(prefix)):
+        try:
+            os.makedirs(prefix)
+        except:
+            pass
+    #end if
+
+
+    tagfile = os.path.join(prefix, f.md5 + ".tags")
     
-    tagfile = os.path.join(_TAG_DIR, f.md5 + ".tags")
     if (_have_tags(f, tagfile)):
         return _read_cached_tags(tagfile)
     else:

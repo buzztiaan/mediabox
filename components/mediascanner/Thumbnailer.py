@@ -116,13 +116,11 @@ class Thumbnailer(object):
 
         thumb_fallback = os.path.join(self.__thumb_folder,
                                       f.thumbnail_md5 + ".jpg")
-        if (not self.__store_thumbnails_on_medium
-            or os.path.exists(thumb_fallback)
-            or os.path.exists(thumb_fallback + ".broken")):
+        if (not self.__store_thumbnails_on_medium):
             return thumb_fallback
 
         else:
-            medium = self.__find_medium(f)
+            medium = f.medium
             if (not medium or medium == "/"):
                 prefix = self.__thumb_folder
             else:
@@ -136,37 +134,3 @@ class Thumbnailer(object):
             thumb = os.path.join(prefix, f.thumbnail_md5 + ".jpg")
             return thumb
 
-
-    def __find_medium(self, f):
-        """
-        Returns the medium where the given file is stored on, or None if
-        there's no medium.
-        """
-        
-        uri = f.resource
-        
-        if (not f.is_local):
-            return None
-        
-        elif (not uri.startswith("/")):
-            return None
-            
-        else:
-            try:
-                mounts = open("/proc/mounts", "r").readlines()
-            except:
-                return None
-            
-            longest = ""
-            for line in mounts:
-                parts = line.split()
-                mountpoint = parts[1]
-                if (uri.startswith(mountpoint)):
-                    if (len(mountpoint) > len(longest)):
-                        longest = mountpoint
-            #end for
-            return longest or None
-        #end if
-        
-        return None
-            

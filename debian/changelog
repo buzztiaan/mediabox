@@ -12,7 +12,8 @@ mediabox (0.96.3) unstable; urgency=low
   
   New experimental player backend for GStreamer
   
-  Thumbnails are stored on the medium where the associated files are located
+  Thumbnails and the ID tag cache are stored on the medium where the associated
+  files are located
   
   Fixed bug that stopped thumbnailing after an error
   
