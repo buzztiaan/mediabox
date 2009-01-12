@@ -74,6 +74,8 @@ class File(object):
         """URI for accessing the file"""
 
         
+        self.__medium = None
+        
         self.child_count = 0
         self.emblem = None
         
@@ -136,6 +138,41 @@ class File(object):
     thumbnail_md5 = property(__get_thumbnail_md5, __set_thumbnail_md5)
     """read-write: MD5 sum for uniquely identifying the file's thumbnail preview"""
 
+
+    def __get_medium(self):
+    
+        if (self.__medium): return self.__medium
+        
+        uri = self.resource
+        
+        if (not self.is_local):
+            return None
+        
+        elif (not uri.startswith("/")):
+            return None
+            
+        else:
+            try:
+                mounts = open("/proc/mounts", "r").readlines()
+            except:
+                return None
+            
+            longest = ""
+            for line in mounts:
+                parts = line.split()
+                mountpoint = parts[1]
+                if (uri.startswith(mountpoint)):
+                    if (len(mountpoint) > len(longest)):
+                        longest = mountpoint
+            #end for
+            self.__medium = longest
+            return longest or None
+        #end if
+        
+        return None
+
+    medium = property(__get_medium)
+    """read-only: path of the medium where the file is on (local files only)"""
        
         
     def new_file(self):
