@@ -227,8 +227,9 @@ class AbstractBackend(Observable):
                 
             self.__position = (pos, total)
             if (pos != 0 or total != 0):
-                self.update_observer(self.OBS_POSITION, self.__context_id,
-                                     pos, total)
+                if (pos >= 0):
+                    self.update_observer(self.OBS_POSITION, self.__context_id,
+                                         pos, total)
 
             self.__position_handler = \
                   gobject.timeout_add(300, self.__update_position,

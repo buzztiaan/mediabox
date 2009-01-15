@@ -4,6 +4,7 @@ from utils.MiniXML import MiniXML
 from utils import logging
 from utils import threads
 from utils import urlquote
+from ui import dialogs
 from ui.Dialog import Dialog
 from io import Downloader
 from io import FileDownloader
@@ -399,6 +400,7 @@ class YouTube(Device):
         videos.sort()
         for video in videos:
             f = File(self)
+            f.can_delete = True
             f.path = "/local" + video
             f.mimetype = "video/x-flash-video"
             f.resource = video
@@ -487,6 +489,20 @@ class YouTube(Device):
         self.__fileserver.allow(flv_path, "/" + f.resource + ".flv")
         
         return self.__fileserver.get_location() + "/" + f.resource + ".flv"
+
+
+    def delete(self, f):
+        """
+        Deletes the given file.
+        """
+
+        response = dialogs.question("Remove",
+                                    u"Remove video\n\xbb%s\xab?" % f.name)
+        if (response == 0):
+            try:
+                os.unlink(f.resource)
+            except:
+                pass
 
 
     def keep(self, f):

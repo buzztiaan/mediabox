@@ -84,7 +84,7 @@ class AudioStorage(Device):
                 f.name = album.name
                 f.info = album.info
                 f.mimetype = "application/x-music-folder"
-                #f.thumbnail_md5 = album.md5
+                f.thumbnail_md5 = album.md5
                 f.path = album.path
                 f.resource = album.resource
 

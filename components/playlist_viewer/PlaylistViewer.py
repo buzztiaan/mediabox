@@ -615,6 +615,7 @@ class PlaylistViewer(Viewer):
             self.__playlist.append_item(item)
         for f in pl.get_files():            
             self.__random_items.append(f)
+        self.__playlist.invalidate_buffer()
         self.__playlist.render()
         
         

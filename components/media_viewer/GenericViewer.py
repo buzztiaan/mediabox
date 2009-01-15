@@ -97,6 +97,9 @@ class GenericViewer(Viewer):
         # whether the library has been changed
         self.__lib_is_dirty = False
         
+        # whether we may advance to the next track
+        self.__may_go_next = True
+        
     
         Viewer.__init__(self)
         
@@ -528,6 +531,7 @@ class GenericViewer(Viewer):
         elif (msg == msgs.MEDIA_EV_LOADED):
             self.__list.hilight(-1)
             self.__current_file = None
+            self.__may_go_next = False
         
         
         
@@ -1063,8 +1067,11 @@ class GenericViewer(Viewer):
         """
         
         logging.debug("reached EOF")
+        self.__may_go_next = True
+        
         self.emit_event(msgs.MEDIA_EV_EOF)
-        if (self.may_go_next()):
+
+        if (self.__may_go_next):
             logging.debug("going to next item")
             self.__go_next()
 
