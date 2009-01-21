@@ -128,13 +128,18 @@ class _GenaSocket(object):
             signal_name = "changed::"
             signal_name += entry.get_name().lower()
             for cb in self.__handlers[uuid]:
+                try :
+                    signal_value = entry.get_child().get_value()
+                except IndexError :
+                    signal_value = ''
+
                 try:
-                    cb(signal_name, entry.get_child().get_value())
+                    cb(signal_name, signal_value)
                 except:
                     logging.error(logging.stacktrace())
             #end for
 
-            print 'signal emited', signal_name, entry.get_child().get_value()
+            print 'signal emited', signal_name, signal_value
 
         event_instance.send_answer ( "HTTP/1.1 200 OK" )
 
