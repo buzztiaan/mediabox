@@ -7,15 +7,15 @@ import traceback
 
 
 OFF = 0
-"""log nothing"""
+"""log level: log nothing"""
 ERROR = 1
-"""log errors"""
+"""log level: log errors"""
 WARNING = 2
-"""log errors and warnings"""
+"""log level: log errors and warnings"""
 INFO = 3
-"""log errors, warnings, and info"""
+"""log level: log errors, warnings, and info"""
 DEBUG = 4
-"""log errors, warnings, info, and debugging"""
+"""log level: log errors, warnings, info, and debugging"""
 
 
 _level = ERROR
@@ -34,6 +34,12 @@ def set_level(level):
     
 
 def is_level(level):
+    """
+    Returns whether messages of the given level are logged.
+    
+    @param level: log level
+    @return: whether messages are logged
+    """
 
     return (_level >= level)
 

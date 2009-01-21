@@ -1,7 +1,14 @@
+"""
+B{Used internally}
+"""
+
 import pango
 
 
 class Font(pango.FontDescription):
+    """
+    Class for font theme elements.
+    """
 
     def __init__(self, desc):
     

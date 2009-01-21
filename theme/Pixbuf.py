@@ -1,7 +1,14 @@
+"""
+B{Used internally}
+"""
+
 import gtk
 
 
 class Pixbuf(gtk.gdk.Pixbuf):
+    """
+    Class for pixbuf theme elements.
+    """
 
     def __init__(self, path):
     

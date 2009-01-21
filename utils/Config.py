@@ -45,7 +45,7 @@ class Config(object):
         usually be the name of your plugin.
         
         Schema is a list of tuples of the form
-          C{(key_name, datatype, default_value)}
+        C{(key_name, datatype, default_value)}
         describing the valid keys that can be stored.
         
         @param agent: name of agent

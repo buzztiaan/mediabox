@@ -25,7 +25,8 @@ else:
 
 
 logging.debug("initializing application")
-container = Container(os.path.join(values.MEDIABOX_DIR, "components"))
+container = Container(os.path.join(values.MEDIABOX_DIR, "components"),
+                      os.path.join(values.MEDIABOX_DIR, "components_extra"))
 
 logging.debug("running application")
 import gtk

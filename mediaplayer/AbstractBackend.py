@@ -58,7 +58,7 @@ class AbstractBackend(Observable):
     MODE_AUDIO = 0
     MODE_VIDEO = 1
 
-    __context_id = 0
+    __context_id_cnt = [0]
     
     
     def __init__(self):
@@ -91,6 +91,8 @@ class AbstractBackend(Observable):
         # current volume level (0..100)
         self.__volume = 50
         
+        self.__context_id = 0
+        
         
         self.__position_handler = None
         self.__idle_handler = None
@@ -111,8 +113,8 @@ class AbstractBackend(Observable):
         @return: a new context ID
         """
     
-        self.__context_id += 1
-        ctx_id = self.__context_id
+        self.__context_id_cnt[0] += 1
+        ctx_id = self.__context_id_cnt[0]
         return ctx_id
 
 
@@ -175,6 +177,7 @@ class AbstractBackend(Observable):
 
     def __resume_if_necessary(self):
     
+        print "TRY RESUME"
         if (self.__suspension_point):        
             uri, pos = self.__suspension_point
             self.__suspension_point = None
@@ -310,11 +313,6 @@ class AbstractBackend(Observable):
 
         return self.__context_id
 
-       
-       
-    def resume(self, uri, pos):
-    
-        raise NotImplementedError
 
 
     def _report_aspect_ratio(self, ratio):
@@ -371,12 +369,14 @@ class AbstractBackend(Observable):
         
         self.__resume_if_necessary()
 
+        print "PLAY"
         if (not self.__playing):
             self.__position = (0, 0)
             self._play()
-            self.__playing = True
-            self.update_observer(self.OBS_PLAYING, self.__context_id)
-            self.__watch_progress()
+
+        self.__playing = True
+        self.update_observer(self.OBS_PLAYING, self.__context_id)
+        self.__watch_progress()
         
         
     def pause(self):
@@ -402,6 +402,7 @@ class AbstractBackend(Observable):
         Stops playback.
         """
 
+        print "STOP"
         if (self.__playing):
             self._stop()
             self.update_observer(self.OBS_STOPPED, self.__context_id)

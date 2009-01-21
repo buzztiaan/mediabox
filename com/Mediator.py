@@ -1,5 +1,5 @@
 """
-Internally used base class for all components.
+B{Used internally.}
 """
 
 from MessageBus import MessageBus
@@ -7,10 +7,11 @@ from MessageBus import MessageBus
 
 class Mediator(object):
     """
-    Base class for mediator objects, i.e. object which receive messages and
-    emit messages.
+    Base class for mediator objects. These are objects receiving and emitting
+    messages.
     
-    Do not derive from this class directly. Derive from L{Component} instead.
+    Do not derive from this class directly. Derive from L{Component} or one of
+    its subclasses instead.
     """
 
     PASS_TYPE_INVALID = 0
@@ -35,6 +36,12 @@ class Mediator(object):
 
 
     def __repr__(self):
+        """
+        Returns a string representation of this component. This is the class
+        name.
+        
+        @return: string representation
+        """
     
         return self.__class__.__name__
 
@@ -49,7 +56,14 @@ class Mediator(object):
         return self.__pass_type
         
         
-    def handle_message(self, event, *args):
+    def handle_message(self, msg, *args):
+        """
+        Gets invoked when a message arrives on the message bus.
+        Override this method in subclasses to listen for messages.
+        
+        @param msg: message
+        @param args: variable list of arguments
+        """
     
         self.pass_on_event()
         
@@ -65,11 +79,39 @@ class Mediator(object):
         
         
     def emit_event(self, event, *args):
+        """
+        Emits the given message.
+        @deprecated: use L{emit_message} instead
+
+        @param event: message
+        @param args: variable list of arguments
+        """
     
-        self.__event_bus.send_event(self, event, *args)
+        self.emit_message(event, *args)
+        
+        
+    def emit_message(self, msg, *args):
+        """
+        Emits the given message.
+
+        @param msg: message
+        @param args: variable list of arguments
+        """
+    
+        self.__event_bus.send_event(self, msg, *args)
+    
+        
 
 
     def call_service(self, svc, *args):
+        """
+        Calls the given service and returns the return value of the service.
+        Returns C{None} if the service was not found.
+        
+        @param svc: service message
+        @param args: variable list of arguments
+        @return: return value of service
+        """
     
         return self.__event_bus.call_service(svc, *args)
         

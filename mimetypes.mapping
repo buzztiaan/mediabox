@@ -39,7 +39,8 @@ video/ogg                             .ogv                Ogg-Theora     V
 video/quicktime                       .mov,.qt            Quicktime      V
 video/x-flash-video                   .flv                Flash-Video    V      # used by MediaTomb
 video/flv                             -                   Flash-Video    V      # used by YouTube
-video/x-dvd-image                     .dvd,.iso           DVD-Image      V      # non-tablet stuff, nice for HTPC
+video/x-dvd-image                     .dvd                DVD-Image      V      # non-tablet stuff, nice for HTPC
+video/x-vcd-image                     .vcd,.iso           VCD-Image      V      # non-tablet stuff, nice for HTPC
 video/x-flv                           -                   Flash-Video    V
 video/x-ms-asf                        .asf                ASF            V
 video/x-msvideo                       .avi                AVI            V

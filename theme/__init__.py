@@ -2,8 +2,17 @@
 Theming
 =======
 
-This package contains the built-in graphics themes. Valid themes are detected
-automatically.
+Package for theming.
+Themes are subdirectories in this package and are detected automatically.
+
+Import the C{theme} object from this package for accessing the elements of
+the current theme by name::
+
+  from theme import theme
+  
+  ...
+  
+  icon = theme.foo_icon
 """
 
 from Color import Color
@@ -60,6 +69,9 @@ def _get_info(themepath):
 
 
 class _Theme(object):
+    """
+    Singleton class for loading themes.
+    """
 
     def __init__(self):
 
@@ -214,5 +226,6 @@ class _Theme(object):
 
 
 theme = _Theme()
+"""the theme singleton object"""
 theme.set_theme("default")
 

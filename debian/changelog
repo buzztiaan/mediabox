@@ -1,4 +1,4 @@
-mediabox (0.96.3) unstable; urgency=low
+mediabox (0.96.3-2) unstable; urgency=low
 
   Back button closes embedded album listing.
   
@@ -23,7 +23,7 @@ mediabox (0.96.3) unstable; urgency=low
 
   Fixed bug that broke compatibility with Microsoft's UPnP media servers
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 03 Jan 2009 18:30:00 +0100
+ -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 21 Jan 2009 20:30:00 +0100
 
 mediabox (0.96.2) unstable; urgency=low
 

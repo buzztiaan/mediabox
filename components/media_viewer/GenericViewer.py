@@ -509,7 +509,7 @@ class GenericViewer(Viewer):
                 self.__media_widget.close()
         
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
-            if (self.__current_device):
+            if (self.__current_device and self.__path_stack):
                 #self.__load_device(self.__current_device)
                 path = self.__path_stack[-1][0]
                 self.__load_folder(path, None)

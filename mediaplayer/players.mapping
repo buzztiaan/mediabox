@@ -10,6 +10,7 @@
 #
 #  - mplayer: MPlayer backend
 #  - oms:     OSSO-Media-Server backend
+#  - gst:     GStreamer backend
 #  - dummy:   Dummy backend which does nothing
 #
 
@@ -29,7 +30,8 @@ WAV                            oms
 3GPP                           oms
 AVI                            mplayer
 ASF                            mplayer
-DVD-Image                      mplayer
+DVD-Image                      dummy
+VCD-Image                      dummy
 Flash-Video                    mplayer
 MP4-Video                      oms
 MPEG                           oms

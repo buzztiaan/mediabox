@@ -1,16 +1,26 @@
-from com import Component
-
-
 """
 Base class of all storage devices.
 """
 
+from com import Component
+
 
 class Device(Component):
     """
-    Base class for browsable storage devices.
+    Base class of all storage devices.
     Storage devices provide virtual file systems for use by MediaBox.
     New virtual file systems can be added by subclassing the Device base class.
+    
+    Storage devices belong to one of the categories L{CATEGORY_CORE},
+    L{CATEGORY_LOCAL}, L{CATEGORY_LAN}, L{CATEGORY_WAN}, or L{CATEGORY_OTHER}.
+    The category determines the position where the device will appear in the
+    user interface. The list of devices is sorted first by category, then
+    alphabetically.
+    
+    Storage devices are of type L{TYPE_GENERIC}, L{TYPE_AUDIO}, L{TYPE_VIDEO},
+    or L{TYPE_IMAGE}. Viewers list devices of certain types. The video viewer
+    e.g. only lists devices of type L{TYPE_VIDEO}, while the devices of type
+    L{TYPE_GENERIC} are listed by the folder viewer.
     """
 
 
@@ -27,7 +37,9 @@ class Device(Component):
 
 
     CATEGORY = CATEGORY_OTHER
+    """category of this device"""
     TYPE = TYPE_GENERIC
+    """type of this device"""
 
 
     def __init__(self):
@@ -38,6 +50,8 @@ class Device(Component):
     def get_device_id(self):
         """
         Returns the unique device identifier.
+        
+        @return: device identifier
         """
         
         return self.get_prefix()
@@ -51,13 +65,15 @@ class Device(Component):
         particular path.
         
         E.g. in case of UPnP AV content directories, this would be the
-        protocol together with the UDN:
+        protocol together with the UDN::
         
           upnp://uuid:898f9738-d930-4db4-a3cf-0015af8f11f6
           
         Every prefix MUST contain '://' to separate the protocol name from the
         device identifier. The protocol name must not be empty. The device
         identifier may be empty where appropriate.
+        
+        @return: prefix
         """
     
         raise NotImplementedError("Device.get_prefix() must be implemented")
@@ -66,6 +82,8 @@ class Device(Component):
     def get_name(self):
         """
         Returns the human readable name of this storage device.
+        
+        @return: name
         """
     
         raise NotImplementedError
@@ -74,7 +92,9 @@ class Device(Component):
     def get_icon(self):
         """
         Returns the icon for representing this storage device in a user
-        interface. Returns None if no icon is available. 
+        interface. Returns None if no icon is available.
+        
+        @return: icon pixbuf
         """
     
         return None
@@ -84,6 +104,8 @@ class Device(Component):
         """
         Returns the File object representing the root path of the device.
         The returned path does not contain the device prefix.
+        
+        @return: root file object
         """
     
         raise NotImplementedError
@@ -93,17 +115,30 @@ class Device(Component):
         """
         Returns the File object representing the given path.
         The specified path does not contain the device prefix.
+        
+        @param path: path string
+        @return: file object
         """
     
         raise NotImplementedError
         
         
     def new_file(self, path):
+        """
+        Can be implemented by devices to support creating new files.
+        
+        @param path: file object of the parent folder
+        """
     
         raise NotImplementedError
         
         
     def delete(self, f):
+        """
+        Can be implemented by devices to support deleting files.
+        
+        @param f: file object to delete
+        """
     
         raise NotImplementedError
 
@@ -112,6 +147,8 @@ class Device(Component):
         """
         Keeps the given file. Storage device can implement this method to
         let the user keep remote stuff locally.
+        
+        @param f: file object to keep
         """
         
         raise NotImplementedError
@@ -121,6 +158,10 @@ class Device(Component):
         """
         Returns a list of File objects representing the contents of the
         given path.
+        @deprecated: L{ls_async} should be used instead
+        
+        @param path: file object to list
+        @return: list of file objects
         """
     
         def cb(f, items, finished):
@@ -142,6 +183,10 @@ class Device(Component):
         Lists the given path asynchronously by calling the given callback
         on each item. After processing every item, the implementation is
         expected to return None to signalize the end.
+        
+        @param path: file object to list
+        @param cb:   callback handler
+        @param args: variable list of arguments to the callback handler
         """
 
         def do_async(files):
@@ -170,7 +215,7 @@ class Device(Component):
         @param maxlen: number of bytes to retrieve or -1 for retrieving the
                        whole file
         @param cb:     callback handler for accepting the data chunks
-        @param *args:  variable list of arguments to the callback handler
+        @param args:   variable list of arguments to the callback handler
         """
         
         raise IOError("retrieval not supported")

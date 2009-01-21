@@ -63,5 +63,7 @@ install: install-lib install-maemo
 
 doc:
 	epydoc -n ${NAME} --parse-only -o ../www/apidoc -v \
-	       com idtags io mediabox storage theme ui upnp utils
+	       --no-sourcecode --show-private --inheritance=included \
+	       --parse-only \
+	       com storage theme # idtags io mediabox storage theme ui upnp utils
 

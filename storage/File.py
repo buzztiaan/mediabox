@@ -1,11 +1,15 @@
 """
-The File object represents a file or folder on a storage device.
+Class for representing a file or folder on a storage device.
 """
 
 import md5
 
 
 class File(object):
+    """
+    Class for representing a file or folder on a storage device.
+    Do not subclass this class.
+    """
 
     FILE = "application/x-other"
     """MIME type for unknown file types"""
@@ -91,6 +95,11 @@ class File(object):
 
 
     def __repr__(self):
+        """
+        Returns a readable representation of this File for debugging purposes.
+        
+        @return: readable representation
+        """
     
         return "<" + self.full_path + ">"
 
@@ -124,16 +133,17 @@ class File(object):
 
     
 
+    def __set_thumbnail_md5(self, v):
+    
+        self.__thumbnail_md5 = v
+        
+
     def __get_thumbnail_md5(self):
     
         try:
             return self.__thumbnail_md5
         except:
             return self.md5
-            
-    def __set_thumbnail_md5(self, v):
-    
-        self.__thumbnail_md5 = v
 
     thumbnail_md5 = property(__get_thumbnail_md5, __set_thumbnail_md5)
     """read-write: MD5 sum for uniquely identifying the file's thumbnail preview"""
@@ -198,6 +208,7 @@ class File(object):
     def get_children(self):
         """
         Returns a list of children of this folder.
+        @deprecated: L{get_children_async} should be used instead
         
         @return: list of File objects
         """
@@ -211,7 +222,7 @@ class File(object):
         given callback handler on every file. Terminates with a None object.
         
         @param cb: callback handler
-        @param *args: variable list of arguments to the callback handler
+        @param args: variable list of arguments to the callback handler
         """
         
         self.__device.ls_async(self.path, cb, *args)
@@ -226,7 +237,7 @@ class File(object):
         @param maxlen: number of bytes to retrieve or -1 for retrieving the
                        whole file
         @param cb:     callback handler for accepting the data chunks
-        @param *args:  variable list of arguments to the callback handler
+        @param args:  variable list of arguments to the callback handler
         """
         
         self.__device.load(self, maxlen, cb, *args)

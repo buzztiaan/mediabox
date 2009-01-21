@@ -12,11 +12,14 @@ import sys
 
 class Container(Component):
     """
-    Class for running components. The Container loads and instantiates
-    components.
+    Runtime container for running components.
+    The Container loads and instantiates components.
     """
     
     def __init__(self, *paths):
+        """
+        @param paths: paths where to look for components
+        """
     
         self.__components = []
         self.__devices = []
@@ -24,7 +27,8 @@ class Container(Component):
         Component.__init__(self)
         
         for p in paths:
-            self.load_path(p)
+            if (os.path.exists(p)):
+                self.load_path(p)
 
         
     def __find_modules(self, path):
@@ -143,10 +147,13 @@ class Container(Component):
 
     def load_path(self, path):
         """
-        Loads the components from the given path.
+        Loads all components from the given path.
         
         @param path: path of components directory
         """
+        
+        self.__components = []
+        self.__devices = []
         
         mods = self.__find_modules(path)
         for mod in mods:

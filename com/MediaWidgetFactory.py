@@ -8,6 +8,7 @@ from ui.Widget import Widget
 
 class MediaWidgetFactory(Component):
     """
+    Base class for media widget factory components.
     This component type is used by the MediaWidgetRegistry to create instances
     of media rendering widgets for handling MIME types.
     

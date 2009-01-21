@@ -1,4 +1,11 @@
+"""
+B{Used internally}
+"""
+
 class Color(object):
+    """
+    Class for color theme elements.
+    """
     
     def __init__(self, value):
         

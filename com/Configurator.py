@@ -8,7 +8,8 @@ from ui.Widget import Widget
 
 class Configurator(Component, Widget):
     """
-    Components derived from this class are presented as pages in the
+    Base class for configurator components.
+    Components derived from this class are shown as pages in the
     preferences viewer.
     """
 

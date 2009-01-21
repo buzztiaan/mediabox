@@ -164,7 +164,12 @@ class MPlayerBackend(AbstractBackend):
             while (idx >= 0):
                 line = buf[0][:idx]
                 buf[0] = buf[0][idx + 1:]
-                self.__parse_value(line)
+                try:
+                    self.__parse_value(line)
+                except:
+                    logging.error("error parsing mplayer output: %s\n%s",
+                                  line, logging.stacktrace())
+
                 idx = buf[0].find("\n")
             #end while
             

@@ -45,6 +45,7 @@ messages = [
     "INPUT_EV_PLAY",
     "INPUT_EV_MENU",
     "INPUT_EV_FULLSCREEN",
+    "INPUT_EV_EJECT",
 
     "INPUT_EV_UP",
     "INPUT_EV_DOWN",

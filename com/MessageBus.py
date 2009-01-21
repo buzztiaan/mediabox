@@ -1,5 +1,5 @@
 """
-Application message bus singleton.
+B{Used internally.}
 """
 
 from exc import *
@@ -9,7 +9,7 @@ from utils import logging
 
 class _MessageBus(object):
     """
-    Singleton class for a message bus. This class is intented to be used by
+    Application message bus singleton. This class is intented to be used by
     the Mediator class only.
     """
 

@@ -78,8 +78,9 @@ class ConfigBackend(Configurator):
         mediatypes.sort()
         for mt in mediatypes:
             backend = mediaplayer.get_backend_for(mt)
-            item = BackendListItem(mt, backend)
-            item.set_backend_icon(mediaplayer.get_backend_icon(backend))
-            self.__list.append_item(item)
+            if (backend != "dummy"):
+                item = BackendListItem(mt, backend)
+                item.set_backend_icon(mediaplayer.get_backend_icon(backend))
+                self.__list.append_item(item)
         #end for
 

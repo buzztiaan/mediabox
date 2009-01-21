@@ -1,7 +1,24 @@
 """
 Application message types. These are dynamically populated by plugins.
 
-Import this module to get access to all known message types.
+Import this module to get access to all known message types::
+
+  from com import Component, msgs
+  
+  class MyComponent(Component):
+  
+      def __init__(self):
+      
+          Component.__init__(self)
+          
+      
+      def handle_message(self, msg, *args):
+      
+          if (msg == msgs.CORE_EV_APP_STARTED):
+              self.call_service(msgs.NOTIFY_SVC_SHOW_MESSAGE,
+                                "Application started")
+
+  
 """
 
 _cnt = 0

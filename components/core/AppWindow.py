@@ -577,6 +577,8 @@ class AppWindow(Component, RootPane):
             self.emit_event(msgs.HWKEY_EV_INCREMENT)
         elif (key == "F8"):
             self.emit_event(msgs.HWKEY_EV_DECREMENT)
+        elif (key == "F12"):
+            self.emit_event(msgs.HWKEY_EV_EJECT)
             
         elif (key == "Up"):
             if (self.__tab_panel.is_visible()):

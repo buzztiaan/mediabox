@@ -9,6 +9,7 @@ from ui.Widget import Widget
 
 class Viewer(Component, Widget):
     """
+    Base class for viewer components.
     Components derived from this class appear with an icon in the viewer menu
     and can be selected by the user.
     

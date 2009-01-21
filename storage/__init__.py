@@ -2,8 +2,7 @@
 Storage Device
 ==============
 
-This package provides classes for implementing storage devices for accessing
-virtual file systems.
+Classes for implementing storage devices for accessing virtual file systems.
 """
 
 from Device import Device

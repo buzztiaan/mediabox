@@ -1,3 +1,8 @@
+"""
+Module for dealing with MIME types. MIME type definitions are read from the
+C{mimetypes.mapping} file.
+"""
+
 import os
 
 
@@ -48,27 +53,54 @@ def _load_mimetypes(path):
 
 
 def lookup_ext(ext):
+    """
+    Looks up the MIME type for the given file extension.
+    
+    @param ext: file extension (including leading '.')
+    @return: MIME type
+    """
 
     return _EXT_TO_MIMETYPE.get(ext, "application/x-unknown")
 
 
 def mimetype_to_name(mimetype):
+    """
+    Returns the name of the filetype for the given MIME type.
+    
+    @param mimetype: MIME type
+    @return: name of filetype
+    """
 
     return _MIMETYPE_TO_NAME.get(mimetype, "Unknown")
 
 
 def get_audio_types():
+    """
+    Returns a list of all audio MIME types.
+    
+    @return: list of audio MIME types
+    """
     
     return _AUDIO_TYPES
 
 
 def get_image_types():
+    """
+    Returns a list of all image MIME types.
+    
+    @return: list of image MIME types
+    """
     
     return _IMAGE_TYPES
 
 
 def get_video_types():
+    """
+    Returns a list of all video MIME types.
     
+    @return: list of video MIME types
+    """
+
     return _VIDEO_TYPES
 
     

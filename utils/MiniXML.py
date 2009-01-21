@@ -421,7 +421,7 @@ class _Node(object):
 
 if (__name__ == "__main__"):
     import sys
-    xml = open(sys.argv[1]).read()
-    m = MiniXML(xml)
-    print m.get_dom()
+    _xml = open(sys.argv[1]).read()
+    _m = MiniXML(_xml)
+    print _m.get_dom()
     

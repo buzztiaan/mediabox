@@ -5,6 +5,8 @@ Module for maemo-specific stuff.
 
 _osso_context = None
 
+IS_MAEMO = False
+"""this constant is C{True} when running on a maemo system"""
 
 try:
     import hildon
@@ -106,9 +108,9 @@ def get_product_code():
 
 def request_connection():
     """
-    Does nothing if the device does already have a network connection.
     If the device is not connected, tries to establish the default connection
     or pop up the connection dialog.
+    Does nothing if the device does already have a network connection.
     """
     
     # dbus-send --type=method_call --system --dest=com.nokia.icd/com/nokia/icd com.nokia.icd.connect
@@ -127,9 +129,9 @@ if (get_product_code() == "SU-18"):
     # bad hack!
     # work around broken D-Bus bindings on OS 2006; this breaks urllib2 for us,
     # but we don't use it anyway
-    def f(*args): raise RuntimeError("Ignore me...")
+    def _f(*args): raise RuntimeError("Ignore me...")
     import urllib2
-    urllib2.AbstractHTTPHandler.do_open = f
+    urllib2.AbstractHTTPHandler.do_open = _f
 #end if
 
 import dbus, dbus.glib

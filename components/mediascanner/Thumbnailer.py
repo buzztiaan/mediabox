@@ -1,4 +1,5 @@
 from mediabox import config
+from utils import logging
 import os
 
 
@@ -69,6 +70,7 @@ class Thumbnailer(object):
         
         # simply touch it
         thumb = self.get_thumbnail_path(f) + ".broken"
+        logging.debug("marking thumbnail for %s as broken: %s", f, thumb)
         try:
             open(thumb, "w")
         except:
@@ -81,6 +83,7 @@ class Thumbnailer(object):
         """
         
         thumb = self.get_thumbnail_path(f) + ".broken"
+        logging.debug("unmarking thumbnail for %s as broken: %s", f, thumb)
         try:
             os.unlink(thumb)
         except:
@@ -129,6 +132,8 @@ class Thumbnailer(object):
                     try:
                         os.makedirs(prefix)
                     except:
+                        logging.error("could not create thumbnails directory:"
+                                      "%s\n%s", prefix, logging.stacktrace())
                         prefix = self.__thumb_folder
             #end if
             thumb = os.path.join(prefix, f.thumbnail_md5 + ".jpg")

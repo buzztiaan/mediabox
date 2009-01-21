@@ -1,9 +1,12 @@
+"""
+GObject wrapping code adapted from
+U{http://faq.pygtk.org/index.py?req=show&file=faq23.041.htp}
+"""
+
+
 import ctypes
 import gobject
 
-
-# GObject wrapping code adapted from
-# http://faq.pygtk.org/index.py?req=show&file=faq23.041.htp
 
 class _PyGObject_Functions(ctypes.Structure):
 

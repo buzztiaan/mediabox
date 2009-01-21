@@ -3,6 +3,7 @@
 
     INCREMENT       VOLUME_UP       -
     DECREMENT       VOLUME_DOWN     -
+    EJECT           EJECT           -
 
 
 [MENU]
