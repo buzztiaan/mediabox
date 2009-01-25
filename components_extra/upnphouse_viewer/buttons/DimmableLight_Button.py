@@ -1,5 +1,5 @@
 from GridButton import GridButton
-from components.upnphouse_viewer.MyDialog import DeviceDialog
+from upnphouse_viewer.MyDialog import DeviceDialog
 from ui.ImageButton import ImageButton
 from ui.Label import Label
 from ui.ProgressBar import ProgressBar

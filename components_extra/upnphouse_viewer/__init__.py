@@ -1,7 +1,5 @@
-#from MyViewer import MyViewer
-
-
 def get_classes():
 
-    return []#MyViewer]
+    from MyViewer import MyViewer
+    return [MyViewer]
 
