@@ -177,7 +177,6 @@ class AbstractBackend(Observable):
 
     def __resume_if_necessary(self):
     
-        print "TRY RESUME"
         if (self.__suspension_point):        
             uri, pos = self.__suspension_point
             self.__suspension_point = None
@@ -369,7 +368,6 @@ class AbstractBackend(Observable):
         
         self.__resume_if_necessary()
 
-        print "PLAY"
         if (not self.__playing):
             self.__position = (0, 0)
             self._play()
@@ -402,7 +400,6 @@ class AbstractBackend(Observable):
         Stops playback.
         """
 
-        print "STOP"
         if (self.__playing):
             self._stop()
             self.update_observer(self.OBS_STOPPED, self.__context_id)
