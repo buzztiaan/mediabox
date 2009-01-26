@@ -14,6 +14,16 @@ import threading
 _BPP = gtk.gdk.get_default_root_window().get_depth()
 
 
+class _ImageSet(object):
+    
+    def __init__(self):
+        
+        self.images = []
+        self.totalsize = 0
+        self.offset = 0
+        self.hilighted = -1
+
+
 class ImageStrip(Widget):
     """
     Class for rendering a scrollable strip of images.
@@ -52,6 +62,10 @@ class ImageStrip(Widget):
         # shared pixmap for storing the items
         self.__shared_pmap = None
     
+        # sets of images; table: owner -> set
+        self.__image_sets = {}
+        self.__current_image_set = None
+    
         Widget.__init__(self)
 
         self.__images = []
@@ -78,7 +92,7 @@ class ImageStrip(Widget):
  
     def _reload(self):
         """
-        Reload graphics when theme has changed.
+        Reloads graphics when theme has changed.
         """
 
         self.invalidate_buffer()
@@ -265,6 +279,33 @@ class ImageStrip(Widget):
         self.__floating_position = pos
 
 
+    def change_image_set(self, owner):
+        """
+        Changes the current image set.
+        
+        @param owner: owner of the set to select
+        """
+        
+        if (self.__current_image_set):
+            self.__current_image_set.images = self.__images
+            self.__current_image_set.offset = self.__offset
+            self.__current_image_set.totalsize = self.__totalsize
+            self.__current_image_set.hilighted = self.__hilighted_image
+        
+        imgset = self.__image_sets.get(owner, _ImageSet())
+        self.__image_sets[owner] = imgset
+        
+        self.__images = imgset.images
+        self.__offset = imgset.offset
+        self.__totalsize = imgset.totalsize
+        self.__hilighted_image = imgset.hilighted
+        self.__current_image_set = imgset
+
+        for image in self.__images:
+            image.invalidate()
+        self.invalidate_buffer()
+
+
     def get_image(self, idx):
         """
         Returns the item with the given index.
@@ -297,10 +338,12 @@ class ImageStrip(Widget):
         while (self.__images):
             img = self.__images.pop()
             del img  
-        self.__images = []
+
         self.__hilighted_image = -1
         
         import gc; gc.collect()
+        
+        self.invalidate_buffer()
 
         # append new images
         for img in images:

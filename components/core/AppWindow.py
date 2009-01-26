@@ -39,8 +39,6 @@ class AppWindow(Component, RootPane):
         self.__viewers = []
         self.__current_viewer = None
         self.__current_device_id = ""
-        self.__current_collection = []
-        self.__current_mediaroots = []
         self.__view_mode = viewmodes.TITLE_ONLY
         self.__battery_remaining = 100.0
         
@@ -70,7 +68,7 @@ class AppWindow(Component, RootPane):
         try:
             theme.set_theme(config.theme())
         except:
-            # theme could not be loaded
+            # theme could not be loaded; using default theme
             pass
 
 
@@ -482,32 +480,18 @@ class AppWindow(Component, RootPane):
         @param force_scan: scan even if mediaroots and types haven't changed
         """
         
-        #if (force_scan):
-        #    self.__current_mediaroots = []
-
         mediaroots = config.mediaroot()        
     
-        #if (`mediaroots` == `self.__current_mediaroots`):
-        #    return
-        #else:
-        #    self.__current_mediaroots = mediaroots
-
         if (not mediaroots):
-            dialogs.warning("No media library specified!",
-                            "Please specify the contents of your\n"
-                            "media library in the folder viewer.")
+        #    dialogs.warning("No media library specified!",
+        #                    "Please specify the contents of your\n"
+        #                    "media library in the folder viewer.")
             return
         #end if
 
 
-        self.show_overlay("Scanning Media", "", theme.mb_viewer_audio)
-        #self.call_service(msgs.NOTIFY_SVC_SHOW_INFO, "Scanning media")
+        #self.show_overlay("Scanning Media", "", theme.mb_viewer_audio)
 
-        #paths = []
-        #for path, mtypes in mediaroots:
-        #    f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
-        #    if (f): paths.append((f, mtypes))
-        #end for
         self.emit_event(msgs.MEDIASCANNER_ACT_SCAN, mediaroots, force_rebuild)
         
 
@@ -518,7 +502,7 @@ class AppWindow(Component, RootPane):
 
 
         import gc; gc.collect()
-        self.hide_overlay()
+        #self.hide_overlay()
 
                         
     def __on_close_window(self, src, ev):
@@ -570,15 +554,35 @@ class AppWindow(Component, RootPane):
         
         elif (key == "Return"):
             self.emit_event(msgs.HWKEY_EV_ENTER)
-                
+
+        elif (key == "F1"):
+            self.emit_event(msgs.HWKEY_EV_F1)
+        elif (key == "F2"):
+            self.emit_event(msgs.HWKEY_EV_F2)
+        elif (key == "F3"):
+            self.emit_event(msgs.HWKEY_EV_F3)
+        elif (key == "F4"):
+            self.emit_event(msgs.HWKEY_EV_F4)
+        elif (key == "F5"):
+            self.emit_event(msgs.HWKEY_EV_F5)
         elif (key == "F6"):
-            self.emit_event(msgs.HWKEY_EV_FULLSCREEN)
+            self.emit_event(msgs.HWKEY_EV_F6)
+            self.emit_event(msgs.HWKEY_EV_FULLSCREEN)  # deprecated
         elif (key == "F7"):
-            self.emit_event(msgs.HWKEY_EV_INCREMENT)
+            self.emit_event(msgs.HWKEY_EV_F7)
+            self.emit_event(msgs.HWKEY_EV_INCREMENT)  # deprecated
         elif (key == "F8"):
-            self.emit_event(msgs.HWKEY_EV_DECREMENT)
+            self.emit_event(msgs.HWKEY_EV_F8)
+            self.emit_event(msgs.HWKEY_EV_DECREMENT)  # deprecated
+        elif (key == "F9"):
+            self.emit_event(msgs.HWKEY_EV_F9)
+        elif (key == "F10"):
+            self.emit_event(msgs.HWKEY_EV_F10)
+        elif (key == "F11"):
+            self.emit_event(msgs.HWKEY_EV_F11)
         elif (key == "F12"):
-            self.emit_event(msgs.HWKEY_EV_EJECT)
+            self.emit_event(msgs.HWKEY_EV_F12)
+            self.emit_event(msgs.HWKEY_EV_EJECT)  # deprecated
             
         elif (key == "Up"):
             if (self.__tab_panel.is_visible()):
@@ -772,10 +776,18 @@ class AppWindow(Component, RootPane):
             force_rebuild = args[0]
             self.__scan_media(force_rebuild)
    
+        elif (event == msgs.MEDIASCANNER_EV_SCANNING_STARTED):
+            self.show_overlay("Scanning Media", "", theme.mb_viewer_audio)
+
         elif (event == msgs.MEDIASCANNER_EV_SCANNING_PROGRESS):
             name = args[0]
             self.show_overlay("Scanning Media", "- %s -" % name,
                               theme.mb_viewer_audio)
+
+        elif (event == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
+            self.hide_overlay()
+            
+
    
         #elif (event == msgs.CORE_EV_DEVICE_ADDED):
         #    ident, dev = args
@@ -825,6 +837,10 @@ class AppWindow(Component, RootPane):
             vstate.item_offset = 0
             if (viewer == self.__current_viewer):
                 self.__set_collection(items)
+                
+        elif (event == msgs.UI_ACT_CHANGE_STRIP):
+            owner = args[0]
+            self.__strip.change_image_set(owner)
                
         elif (event == msgs.UI_ACT_HILIGHT_STRIP_ITEM):
             viewer, idx = args
@@ -944,9 +960,6 @@ class AppWindow(Component, RootPane):
         self.__hilight_item(idx)
 
         if (not hilight_only):
-            #item = self.__current_collection[idx]
-            #self.__get_vstate().selected_item = idx
-            #self.__current_viewer.load(item)
             self.emit_event(msgs.CORE_ACT_LOAD_ITEM, idx)
             
         self.__strip.scroll_to_item(idx)
@@ -996,8 +1009,7 @@ class AppWindow(Component, RootPane):
         self.set_frozen(True)
         viewer.show()
         
-        self.__current_viewer.show()
-        self.__set_collection(vstate.items)
+        #self.__set_collection(vstate.items)
         self.__strip.set_offset(vstate.item_offset)
         if (vstate.selected_item >= 0):
             self.__hilight_item(vstate.selected_item)

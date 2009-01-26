@@ -736,3 +736,10 @@ class PlaylistViewer(Viewer):
                 break
             idx += 1
         #end for
+        
+        
+    def show(self):
+    
+        Viewer.show(self)
+        
+        self.change_strip((self, self.__view_mode))

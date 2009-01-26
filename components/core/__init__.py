@@ -37,6 +37,18 @@ messages = [
     "HWKEY_EV_DOWN",
     "HWKEY_EV_LEFT",
     "HWKEY_EV_RIGHT",
+    "HWKEY_EV_F1",
+    "HWKEY_EV_F2",
+    "HWKEY_EV_F3",
+    "HWKEY_EV_F4",
+    "HWKEY_EV_F5",
+    "HWKEY_EV_F6",
+    "HWKEY_EV_F7",
+    "HWKEY_EV_F8",
+    "HWKEY_EV_F9",
+    "HWKEY_EV_F10",
+    "HWKEY_EV_F11",
+    "HWKEY_EV_F12",
     "HWKEY_EV_KEY",             # (key)
 
     "CORE_EV_APP_STARTED",
@@ -108,6 +120,7 @@ messages = [
     "UI_EV_DEVICE_SELECTED",     # (device_id)
        
     "UI_ACT_SET_STRIP",          # (viewer, items)
+    "UI_ACT_CHANGE_STRIP",       # (owner)
     "UI_ACT_HILIGHT_STRIP_ITEM", # (viewer, index)
     "UI_ACT_SELECT_STRIP_ITEM",  # (viewer, index)
     "UI_ACT_SHOW_STRIP_ITEM",    # (viewer, index)

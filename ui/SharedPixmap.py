@@ -5,7 +5,9 @@ A shared pixmap for low memory consumption.
 from Pixmap import Pixmap
 
 
-_CACHE_SIZE = 24
+# increasing the cache size makes scrolling through items more fluent by
+# sacrificing memory. decreasing the cache size makes scrolling more choppy.
+_CACHE_SIZE = 8
 
 
 class SharedPixmap(Pixmap):

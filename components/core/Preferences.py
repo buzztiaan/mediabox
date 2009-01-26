@@ -36,7 +36,7 @@ class Preferences(Viewer):
 
         tn = PrefsThumbnail(comp.ICON, comp.TITLE)
         self.__thumbnails.append(tn)
-        self.set_strip(self.__thumbnails)
+        #self.set_strip(self.__thumbnails)
         
 
 
@@ -74,6 +74,9 @@ class Preferences(Viewer):
         Viewer.show(self)
         self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
         self.emit_event(msgs.INPUT_EV_CONTEXT_BROWSER)
+
+        self.change_strip(self)
+        self.set_strip(self.__thumbnails)
 
         if (not self.__current_configurator):
             self.select_strip_item(0)

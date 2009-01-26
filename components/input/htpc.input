@@ -3,6 +3,7 @@
 
     F7              VOLUME_UP       -
     F8              VOLUME_DOWN     -
+    F12             EJECT           -
 
 
 [MENU]
@@ -49,4 +50,5 @@
     F6              FULLSCREEN      -
     ESCAPE          FULLSCREEN      -
     ENTER           ENTER           -
+    F11             MENU            -
 

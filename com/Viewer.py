@@ -103,6 +103,18 @@ class Viewer(Component, Widget):
         #self.__collection = collection
         self.emit_event(msgs.UI_ACT_SET_STRIP, self, collection)
 
+
+    def change_strip(self, owner):
+        """
+        Switches the contents of the side strip to the items of the given
+        owner.
+        
+        @param owner: owner object
+        """
+        
+        self.emit_event(msgs.UI_ACT_CHANGE_STRIP, owner)
+    
+
             
     def hilight_strip_item(self, idx):
         """

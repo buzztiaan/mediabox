@@ -1,3 +1,4 @@
+from com import msgs
 from mediabox.MediaWidget import MediaWidget
 from mediabox import media_bookmarks
 from mediabox import config as mb_config
@@ -70,6 +71,28 @@ class VideoWidget(MediaWidget):
                            Image(theme.mb_toolbar_space_2),
                            btn_bookmark,
                            Image(theme.mb_toolbar_space_1))        
+
+
+
+    def handle_message(self, msg, *args):
+    
+        if (msg == msgs.INPUT_EV_UP):
+            handled = self.__player.send_key(self.__player.KEY_UP)
+            
+        elif (msg == msgs.INPUT_EV_DOWN):
+            handled = self.__player.send_key(self.__player.KEY_DOWN)
+
+        elif (msg == msgs.INPUT_EV_LEFT):
+            handled = self.__player.send_key(self.__player.KEY_LEFT)
+
+        elif (msg == msgs.INPUT_EV_RIGHT):
+            handled = self.__player.send_key(self.__player.KEY_RIGHT)
+
+        elif (msg == msgs.INPUT_EV_ENTER):
+            handled = self.__player.send_key(self.__player.KEY_SELECT)
+
+        elif (msg == msgs.INPUT_EV_MENU):
+            handled = self.__player.send_key(self.__player.KEY_MENU1)
 
 
     def _visibility_changed(self):

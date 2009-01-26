@@ -4,7 +4,7 @@ from utils import logging
 
 class InputSchema(object):
     """
-    Class for parsing and representing a input schemas. The input schema is
+    Class for parsing and representing an input schema. The input schema is
     a state machine.
     """
     

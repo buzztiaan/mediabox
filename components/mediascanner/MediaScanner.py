@@ -50,7 +50,8 @@ class MediaScanner(Component):
     
         if (ev == msgs.MEDIASCANNER_ACT_SCAN):
             mediaroots, rebuild_index = args
-            self.__scan(mediaroots, rebuild_index)
+            #self.__scan(mediaroots, rebuild_index)
+            self.__scan_roots(mediaroots, rebuild_index)
             
         elif (ev == msgs.MEDIASCANNER_SVC_CREATE_THUMBNAIL):
             f, cb = args[:2]
@@ -89,12 +90,122 @@ class MediaScanner(Component):
         else:
             return len(f.get_children()) > 0
         
+        
+        
+    def __find_new_roots(self, roots, mediatypes):
+        """
+        Returns the media roots that are new or have changed media types.
+        """
+        
+        scanned_roots = self.__file_index.get_roots()
+        
+        new_roots = []
+        for root in roots:
+            if (not self.__file_exists(root)):
+                #print "doesn't exist:", root
+                continue
+            
+            if (not root in scanned_roots):
+                #print "is new:", root
+                new_roots.append(root)
+            elif (mediatypes[root] != self.__mediaroot_types.get(root, 0)):
+                #print "type changed:", root
+                new_roots.append(root)
+        #end for
+
+        return new_roots
+        
+        
+    def __find_removed_roots(self, roots):
+        """
+        Returns the media roots that have been removed.
+        """
+    
+        scanned_roots = self.__file_index.get_roots()
+        
+        removed_roots = [ root for root in scanned_roots
+                          if not root in roots
+                             or not self.__file_exists(root) ]
+        
+        return removed_roots
+        
+        
+    def __scan_roots(self, mediaroots, rebuild_index):
+        """
+        Scans the given roots.
+        """
+
+        self.__scantime = int(time.time())
+
+        mediatypes = {}
+        roots = []
+        for path, mtypes in mediaroots:
+            mediatypes[path] = mtypes
+            roots.append(path)
+        #end for
+        
+        new_roots = self.__find_new_roots(roots, mediatypes)
+        removed_roots = self.__find_removed_roots(roots)
+        self.__mediaroot_types.update(mediatypes)
+        
+        if (rebuild_index):
+            # scan all when rebuilding index
+            to_scan = [ root for root in roots if not root in removed_roots ]
+        else:
+            # only scan new roots otherwise
+            to_scan = [ root for root in new_roots if not root in removed_roots ]
+        logging.debug("media roots to scan:\n%s", to_scan)
+
+        # don't do anything if there's nothing to scan or remove
+        if (not to_scan and not removed_roots):
+            self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
+            return
+        
+        self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_STARTED)
+        self.__file_index.clear_status()
+
+        # remove from index
+        for root in removed_roots:
+            # remove all files belonging to that root from index
+            for fp in self.__file_index.get_files_of_root(root):
+                logging.debug("removing from file index [%s]", fp)
+                self.__file_index.set_field(FileIndex.STATUS, fp,
+                                            FileIndex.STATUS_REMOVED)
+            #end for
+        #end for
+        
+        # scan present roots
+        for root in to_scan:
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, root)
+            if (not f or not os.path.exists(f.resource)): continue
+        
+            self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_PROGRESS,
+                            root)
+            logging.info("scanning [%s] for media", root)
+
+            try:
+                self.__process_media(root, mediatypes.get(root, 0), f, {})
+            except:
+                logging.error(logging.stacktrace())
 
 
+            # get rid of items in this mediaroot which haven't been found now
+            for fp in self.__file_index.get_files_of_root(root):
+                scantime = self.__file_index.get_field(FileIndex.SCANTIME, fp)
+                if (scantime < self.__scantime):
+                    logging.debug("removing from file index [%s]", fp)
+                    self.__file_index.set_field(FileIndex.STATUS, fp,
+                                                FileIndex.STATUS_REMOVED)
+            #end for
+
+            logging.info("finished scanning [%s]", root)
+        #end for            
+        
+        self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
+
+
+    """
     def __scan(self, paths, rebuild_index):
-        """
-        Scans the media folders recursively.
-        """
 
         self.__scantime = int(time.time())
         self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_STARTED)
@@ -183,7 +294,8 @@ class MediaScanner(Component):
         #end for
 
         self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
-        
+    """
+    
         
     def __process_media(self, mediaroot, mediatypes, f, seen):
         """

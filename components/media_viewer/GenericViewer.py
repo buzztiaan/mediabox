@@ -100,6 +100,9 @@ class GenericViewer(Viewer):
         # whether we may advance to the next track
         self.__may_go_next = True
         
+        # table: owner -> needs_reload
+        self.__needs_reload = {}
+        
     
         Viewer.__init__(self)
         
@@ -193,6 +196,7 @@ class GenericViewer(Viewer):
 
         if (self.__is_device_accepted(device)):
             self.__devices[ident] = device
+            self.__strip_needs_reload(self._VIEWMODE_BROWSER)
             self.__update_side_strip()
         
         
@@ -203,6 +207,7 @@ class GenericViewer(Viewer):
     
         try:
             del self.__devices[ident]
+            self.__strip_needs_reload(self._VIEWMODE_BROWSER)
             self.__update_side_strip()
         except:
             pass
@@ -230,6 +235,15 @@ class GenericViewer(Viewer):
         return thumbnails        
 
 
+    def __strip_needs_reload(self, view_mode):
+        """
+        Marks the current side strip to need a reload.
+        """
+        
+        strip_owner = (self, view_mode)
+        self.__needs_reload[strip_owner] = True
+
+
     def __update_side_strip(self):
         """
         Updates the side strip depending on the current view mode.
@@ -237,7 +251,19 @@ class GenericViewer(Viewer):
         
         strip_items = []
         strip_index = -1
-    
+        
+        if (not self.is_active()): return
+        
+        strip_owner = (self, self.__view_mode)
+        needs_reload = self.__needs_reload.get(strip_owner, True)
+        
+        if (not needs_reload):            
+            print "NOT RELOAD"
+            return
+        else:
+            self.__needs_reload[strip_owner] = False
+        
+
         # show devices
         if (self.__view_mode == self._VIEWMODE_BROWSER):
             strip_items = self.__get_device_thumbnails()
@@ -396,6 +422,10 @@ class GenericViewer(Viewer):
         self.__view_mode = mode
         self.__update_input_context()
         w, h = self.get_size()
+        
+        strip_owner = (self, mode)
+        if (mode != self._VIEWMODE_PLAYER_FULLSCREEN and not was_fullscreen):
+            self.change_strip(strip_owner)
 
         if (mode == self._VIEWMODE_BROWSER):
             self.emit_event(msgs.UI_ACT_FREEZE)
@@ -409,9 +439,10 @@ class GenericViewer(Viewer):
             self.__media_box.set_visible(False)
             self.__lib_list.set_visible(False)
 
-            self.__update_side_strip()
-            self.__hilight_current_file()
-            self.__update_toolbar()
+            if (not was_fullscreen):
+                self.__update_side_strip()
+                self.__hilight_current_file()
+                self.__update_toolbar()
             if (self.__current_device):
                 self.set_title(self.__current_device.get_name())
             
@@ -430,9 +461,10 @@ class GenericViewer(Viewer):
             self.__media_box.set_visible(False)
             self.__lib_list.set_visible(False)
 
-            self.__update_side_strip()
-            self.__hilight_current_file()
-            self.__update_toolbar()
+            if (not was_fullscreen):
+                self.__update_side_strip()
+                self.__hilight_current_file()
+                self.__update_toolbar()
             if (self.__current_device):
                 self.set_title(self.__current_device.get_name())
                         
@@ -593,7 +625,8 @@ class GenericViewer(Viewer):
             dev_id = args[0]
             if (dev_id in self.__devices):
                 self.__load_device(self.__devices[dev_id])
-                self.__update_side_strip()
+                #self.__strip_needs_reload()
+                #self.__update_side_strip()
 
 
         # go to previous
@@ -857,6 +890,7 @@ class GenericViewer(Viewer):
                 self.__random_items = self.__playable_items[:]
                 # finished loading items; now create thumbnails
                 self.__create_thumbnails(path, items_to_thumbnail)
+                self.__strip_needs_reload(self._VIEWMODE_PLAYER_NORMAL)
 
             now = time.time()
             if (not f or len(entries) == 4 or \
@@ -1353,6 +1387,8 @@ class GenericViewer(Viewer):
                 return True
     
         Viewer.show(self)
+        self.change_strip((self, self.__view_mode))
+        self.__update_side_strip()
         
         if (not self.__current_device):
             self.__list.clear_items()

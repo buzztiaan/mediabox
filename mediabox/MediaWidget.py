@@ -1,7 +1,8 @@
+from com import Component
 from ui.Widget import Widget
 
 
-class MediaWidget(Widget):
+class MediaWidget(Widget, Component):
     """
     Base class for media widgets.
     """
@@ -23,6 +24,7 @@ class MediaWidget(Widget):
     
         self.__controls = None
         
+        Component.__init__(self)
         Widget.__init__(self)
         
 

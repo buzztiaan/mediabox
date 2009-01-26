@@ -94,7 +94,7 @@ class FileWatcher(Component, ProcessEvent):
             self.__notifier.read_events()
 
         if (self.__requires_rescan and not self.__currently_scanning):
-            self.emit_event(msgs.CORE_ACT_SCAN_MEDIA, True)
+            self.emit_event(msgs.CORE_ACT_SCAN_MEDIA, False)
         
         self.__requires_rescan = False
         

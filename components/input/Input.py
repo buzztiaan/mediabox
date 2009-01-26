@@ -1,10 +1,13 @@
 from com import Component, msgs
 from InputSchema import InputSchema
+from utils import maemo
 
 import os
 
-
-_SCHEMA_FILE = os.path.join(os.path.dirname(__file__), "maemo.input")
+if (maemo.get_product_code() != "?"):
+    _SCHEMA_FILE = os.path.join(os.path.dirname(__file__), "maemo.input")
+else:
+    _SCHEMA_FILE = os.path.join(os.path.dirname(__file__), "htpc.input")
 
 _HW_KEYS = [ getattr(msgs, key) for key in dir(msgs)
              if key.startswith("HWKEY_EV_") ]
