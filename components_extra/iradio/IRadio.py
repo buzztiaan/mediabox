@@ -2,6 +2,7 @@ from storage import Device, File
 import inetstations
 from ShoutcastDirectory import ShoutcastDirectory
 from ui.Dialog import Dialog
+from utils import urlquote
 from theme import theme
 
 
@@ -87,7 +88,7 @@ class IRadio(Device):
         for location, name in inetstations.get_stations():
             item = File(self)
             item.can_delete = True
-            item.path = "/" + location
+            item.path = "/" + urlquote.quote(location, "")
             item.resource = location
             item.name = name
             item.info = location
@@ -155,7 +156,7 @@ class IRadio(Device):
         
             item = File(self)
             item.can_delete = True
-            item.path = "/" + location
+            item.path = "/" + urlquote.quote(location, "")
             item.resource = location
             item.name = name
             item.info = location
@@ -173,7 +174,8 @@ class IRadio(Device):
         idx = 0
         found = False
         for location, name in stations:
-            if ((location, name) == (f.path, f.name)):
+            print location, name, f.path, f.name
+            if ((location, name) == (f.resource, f.name)):
                 found = True
                 break
             idx += 1

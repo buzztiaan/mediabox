@@ -70,7 +70,9 @@ class XineBackend(AbstractBackend):
         self.__current_pos = 0
     
         if (self._get_mode() == self.MODE_VIDEO):
-            self.__player.set_window(self.__window_id)
+            if (self.__window_id != 0):
+                self.__player.set_window(self.__window_id)
+                self.__window_id = 0
 
         self.__player.open(uri)
 
@@ -80,16 +82,38 @@ class XineBackend(AbstractBackend):
 
     def __get_aspect_ratio(self):
 
-        width, height = self.__player.get_video_size()
-        if (height > 0):
-            self._report_aspect_ratio(width / float(height))
+        a = self.__player.get_aspect()
+        if (a == 0):
+            ratio = 4/3.0      # auto
+        elif (a == 1):
+            ratio = 1.0        # square
+        elif (a == 2):
+            ratio = 4/3.0      # 4:3
+        elif (a == 3):
+            ratio = 16/9.0     # 16:9
+        elif (a == 4):
+            ratio = 2.11/1.0   # DVB
         else:
-            gobject.idle_add(self.__get_aspect_ratio)
+            ratio = 16/9.0
+                      
+        print "RATIO", ratio
+        self._report_aspect_ratio(16/9.0)
+        #width, height = self.__player.get_video_size()
+        #print "ASPECT RATIO", width, height
+        #if (height > 0):
+        #    self._report_aspect_ratio(width / float(height))
+        #else:
+        #    gobject.idle_add(self.__get_aspect_ratio)
     
 
     def _send_key(self, key):
     
         self.__player.send_key(key)
+        gobject.idle_add(self.__get_aspect_ratio)
+        gobject.timeout_add(500, self.__get_aspect_ratio)
+        gobject.timeout_add(1000, self.__get_aspect_ratio)
+        gobject.timeout_add(1500, self.__get_aspect_ratio)
+        
         return True
         
         

@@ -68,39 +68,34 @@ class AudioArtistStorage(Device):
         media, added, removed = \
                 self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                  [File.DIRECTORY])
-        print "ADDED", added
-        print "REMOVED", removed
+        #print "ADDED", added
+        #print "REMOVED", removed
         #finished = threading.Event()
         #gobject.idle_add(f)        
         #threads.wait_for(lambda :finished.isSet())
         f()
         
         
-    def _list_artists(self):
+    def get_index(self):
     
-        return self.__index.list_artists()  
-
-
-    def _list_albums(self, artist):
-    
-        return self.__index.list_albums(artist)
+        return self.__index
         
-
+        
     def _list_files(self, artist, album):
 
         if (album == "All Tracks"):
-            albums = self._list_albums(artist)
+            albums = self.__index.list_albums_by_artist(artist)
         else:
-            album_fp = self.__index.get_album(artist, album)
-            albums = [(album, album_fp)]
+            albums = [album]
             
         files = []
-        for name, album_fp in albums:
-            f = self.call_service(msgs.CORE_SVC_GET_FILE, album_fp)
-            if (f):
-                files += [ c for c in f.get_children()
-                           if c.mimetype.startswith("audio/") ]
-        #end for        
+        for album in albums:
+            for path in self.__index.list_files(album):
+                f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
+                if (f):
+                    files.append(f)
+            #end for
+        #end for
 
         return files
 
@@ -136,18 +131,17 @@ class AudioArtistStorage(Device):
     
     def ls_async(self, path, cb, *args):
 
-        if (not path.endswith("/")): path += "/"        
-        num_of_slash = len(path) - len(path.replace("/", ""))
-        
-        if (num_of_slash == 1):        
-            artists = self._list_artists()
-            artists.sort()
-            for artist in artists:
+        if (not path.endswith("/")): path += "/"
+        parts = [ p for p in path.split("/") if p ]
+        len_parts = len(parts)
+        index = self.get_index()
+
+        if (len_parts == 0):
+            for artist in index.list_artists():
                 f = File(self)
                 f.can_skip = True
-                f.path = path + urlquote.quote(artist)
+                f.path = path + urlquote.quote(artist, "")
                 f.name = artist
-                #f.info = "%d albums" % len(self.__artists[artist])
                 f.mimetype = f.DIRECTORY
 
                 cb(f, *args)
@@ -155,43 +149,25 @@ class AudioArtistStorage(Device):
             
             cb(None, *args)
 
-        elif (num_of_slash == 2):
-            artist = urlquote.unquote(path.replace("/", ""))
-
-            f = File(self)
-            f.is_local = True
-            f.path = path + urlquote.quote("All Tracks")
-            f.can_skip = True
-            f.name = "All Tracks"
-            f.info = artist
-            f.mimetype = "application/x-music-folder" #f.DIRECTORY           
-            cb(f, *args)
-
-            albums = self._list_albums(artist)
-            albums.sort()
-            for album, fp in albums:
-                album_f = self.call_service(msgs.CORE_SVC_GET_FILE, fp)
+        elif (len_parts == 1):
+            artist = urlquote.unquote(parts[0])
+            for album in ["All Tracks"] + index.list_albums_by_artist(artist):
                 f = File(self)
                 f.is_local = True
-                f.path = path + urlquote.quote(album)
+                f.path = path + urlquote.quote(album, "")
                 f.can_skip = True
                 f.name = album
                 f.info = artist
-                #f.info = "%d items" % len(self.__albums[(artist, album)])
-                f.mimetype = "application/x-music-folder" #f.DIRECTORY
-                if (album_f):
-                    f.resource = album_f.resource                    
-                    f.thumbnail_md5 = album_f.md5
+                f.mimetype = "application/x-music-folder"
 
                 cb(f, *args)
             #end for
             
             cb(None, *args)
             
-        else:
-            parts = path.split("/")
-            artist = urlquote.unquote(parts[1])
-            album = urlquote.unquote(parts[2])
+        elif (len_parts == 2):
+            artist = urlquote.unquote(parts[0])
+            album = urlquote.unquote(parts[1])
 
             tracks = []
             for f in self._list_files(artist, album):
@@ -200,7 +176,6 @@ class AudioArtistStorage(Device):
                 f.info = tags.get("ARTIST") or "unknown"
                 al = tags.get("ALBUM") or "unknown"
                 
-                print (artist, album), (f.info, al)
                 if (artist != f.info): continue
                 
                 try:

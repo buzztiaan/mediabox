@@ -40,7 +40,7 @@ class VCDDevice(Device):
         f.path = "/"
         f.name = self.__name
         f.mimetype = "video/x-vcd-image"
-        f.resource = "vcd://%s" % self.__path
+        f.resource = "vcd://dev/cdrom@P1" # % self.__path
         
         return f
 

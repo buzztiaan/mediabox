@@ -9,7 +9,8 @@ _INDEX_FILE = os.path.join(values.USER_DIR, "audio.idx")
 
 # when the index format becomes incompatible, raise the magic number to force
 # rejection of old index
-_MAGIC = 0xbeef0002
+_MAGIC = 0xbeef0003
+
 
 
 class _MusicIndex(object):
@@ -19,15 +20,52 @@ class _MusicIndex(object):
     """
 
     def __init__(self):
-
-        # list of tuples (artist, album, folderfullpath)
+    
         self.__index = []
-        
+               
         # function scheduled for scanning
         self.__scheduled_scanner = None
 
         self.__load_index()
         
+
+
+
+    def __add_to_index(self, folderpath, filepath, title, artist, album, genre):
+
+        key = (folderpath, filepath, title, artist, album, genre)
+        if (not key in self.__index):
+            self.__index.append(key)
+            
+            
+    def __delete_from_index(self, folderpath):
+    
+        new_index = []
+        for item in self.__index:
+            if (item[0] != folderpath):
+                new_index.append(item)
+        #end for
+        
+        self.__index = new_index
+
+
+    def __list_index(self, selector, column):
+    
+        out = []
+        for item in self.__index:
+            value = item[column]
+            if (selector):
+                if (selector(item) and not value in out):
+                    out.append(value)
+            else:
+                if (not value in out):
+                    out.append(value)
+            #end if
+        #end for
+        out.sort()
+        
+        return out
+
         
     def __save_index(self):
         """
@@ -41,7 +79,8 @@ class _MusicIndex(object):
             return
             
         try:
-            cPickle.dump((_MAGIC, self.__index), fd, 2)
+            cPickle.dump((_MAGIC, self.__index),
+                         fd, 2)
         except:
             pass
         finally:
@@ -98,74 +137,78 @@ class _MusicIndex(object):
     def list_artists(self):
     
         self.__check_scanner()
-        artists = []
-        for ar, al, fp in self.__index:
-            if (not ar in artists):
-                artists.append(ar)
-        #end for
-        
+        artists = self.__list_index(None, 3)
         return artists
 
 
-    def list_albums(self, artist):
-
-        self.__check_scanner()    
-        albums = []
-        for ar, al, fp in self.__index:
-            if (ar == artist and not (al, fp) in albums):
-                albums.append((al, fp))
-        #end for
-        
+    def list_albums(self):
+    
+        self.__check_scanner()
+        albums = self.__list_index(None, 4)
         return albums
 
 
-    def get_album(self, artist, album):
+    def list_genres(self):
+    
+        self.__check_scanner()
+        genres = self.__list_index(None, 5)
+        return genres
+
+
+    def list_albums_by_artist(self, artist):
 
         self.__check_scanner()
-        for ar, al, fp in self.__index:
-            if ((ar, al) == (artist, album)):
-                return fp
-        #end for
+        selector = lambda item: item[3] == artist
+        albums = self.__list_index(selector, 4)
+        return albums
 
-        return None
+
+    def list_albums_by_genre(self, genre):
+
+        self.__check_scanner()
+        selector = lambda item: item[5] == genre
+        albums = self.__list_index(selector, 4)
+        return albums
+
+
+    def list_files(self, album):
+
+        self.__check_scanner()
+        selector = lambda item: item[4] == album
+        tracks = self.__list_index(selector, 1)
+        return tracks
+
         
 
     def add_album(self, folder):
-    
-        album_fp = folder.full_path
 
         for f in folder.get_children():
             if (not f.mimetype.startswith("audio/")): continue
-            
+
             tags = tagreader.get_tags(f)
+            title = (tags.get("TITLE") or f.name).encode("utf-8")
             artist = (tags.get("ARTIST") or "unknown").encode("utf-8")
             album = (tags.get("ALBUM") or "").encode("utf-8")
+            try:
+                genre = (tags.get("GENRE") or "unknown").encode("utf-8")
+            except:
+                genre = "unknown"
             if (not album):
-                album = os.path.basename(album_fp)
+                album = os.path.basename(folder.full_path)
 
-            # TODO: albums sharing the same name cause problems
-            artist = artist.replace("/", "|")
-            album = album.replace("/", "|")
-
-            key = (artist, album, album_fp)
-            if (not key in self.__index):
-                self.__index.append(key)
-        #end for
+            self.__add_to_index(folder.full_path,
+                                f.full_path,
+                                title,
+                                artist,
+                                album,
+                                genre)
+        #end for            
       
         
     def remove_album(self, folder):
     
-        album_fp = folder.full_path
+        self.__delete_from_index(folder.full_path)
         
-        new_index = []
-        for artist, album, fp in self.__index:
-            if (fp != album_fp):
-                new_index.append((artist, album, fp))
-        #end for
-        self.__index = new_index
-
-        
-
 
         
 _singleton = _MusicIndex()

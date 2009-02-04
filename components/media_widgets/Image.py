@@ -14,7 +14,8 @@ import gc
 
 
 # predefined zoom levels
-_ZOOM_LEVELS = [12, 25, 50, 100, 200, 400, 800, 1600, 3200]
+_ZOOM_LEVELS = [12, 18, 25, 36, 50, 75, 100, 150, 200, 300, 400, 600,
+                800, 1200, 1600, 2400, 3200]
 
 # read this many bytes at once
 _CHUNK_SIZE = 50000

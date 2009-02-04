@@ -1,4 +1,5 @@
 import thief
+import imageloader
 from utils import logging
 
 import os
@@ -14,6 +15,18 @@ def is_media(f):
 
 def make_thumbnail_async(f, dest, cb):
 
+    def on_loaded(pbuf):
+        if (pbuf):
+            pbuf.save(dest, "jpeg")
+            del pbuf
+        cb()
+
+    uri = f.resource
+    uri = thief.steal_image(uri) or uri
+    imageloader.load(uri, on_loaded)
+    
+
+"""
     def finish_loading(loader):
         try:
             loader.close()
@@ -61,7 +74,7 @@ def make_thumbnail_async(f, dest, cb):
     loader = gtk.gdk.PixbufLoader()
     loader.connect("size-prepared", on_size_available)
     f.load(0, on_data, loader)
-
+"""
 
         
 """

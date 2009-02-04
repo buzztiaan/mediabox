@@ -39,3 +39,6 @@ class VolumeMount(Component):
         if (dev and path):
             logging.info("device unmounted: %s", dev)
             self.emit_event(msgs.SYSTEM_EV_DRIVE_UNMOUNTED, path)
+        else:
+            logging.info("unspecified device unmounted: %s", ident)
+            self.emit_event(msgs.SYSTEM_EV_DRIVE_UNMOUNTED, path)

@@ -157,7 +157,8 @@ class FileIndex(object):
         roots = []
         for fp in self.__index:
             root = self.get_field(self.ROOT, fp)
-            if (not root in roots):
+            status = self.get_field(self.STATUS, fp)
+            if (status != self.STATUS_REMOVED and not root in roots):
                 roots.append(root)
         #end for
         

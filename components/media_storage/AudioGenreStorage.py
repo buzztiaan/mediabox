@@ -15,7 +15,7 @@ import threading
 
 
 
-class AudioAlbumStorage(AudioArtistStorage):
+class AudioGenreStorage(AudioArtistStorage):
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_AUDIO
@@ -33,12 +33,12 @@ class AudioAlbumStorage(AudioArtistStorage):
         
     def get_prefix(self):
     
-        return "library://audio-albums"
+        return "library://audio-genres"
         
         
     def get_name(self):
     
-        return "By Album"
+        return "By Genre"
 
 
     def get_icon(self):
@@ -67,9 +67,23 @@ class AudioAlbumStorage(AudioArtistStorage):
         parts = [ p for p in path.split("/") if p ]
         len_parts = len(parts)
         index = self.get_index()
-        
+
         if (len_parts == 0):
-            for album in index.list_albums():
+            for genre in index.list_genres():
+                f = File(self)
+                f.can_skip = True
+                f.path = path + urlquote.quote(genre, "")
+                f.name = genre
+                f.mimetype = f.DIRECTORY
+
+                cb(f, *args)
+            #end for
+            
+            cb(None, *args)                
+            
+        elif (len_parts == 1):
+            genre = urlquote.unquote(parts[0])
+            for album in index.list_albums_by_genre(genre):
                 f = File(self)
                 f.is_local = True
                 f.path = path + urlquote.quote(album, "")
@@ -84,7 +98,8 @@ class AudioAlbumStorage(AudioArtistStorage):
             cb(None, *args)
             
         else:
-            album = urlquote.unquote(parts[0])
+            album = urlquote.unquote(parts[1])
+
             tracks = []
             
             for filepath in index.list_files(album):
@@ -94,7 +109,7 @@ class AudioAlbumStorage(AudioArtistStorage):
                 f.name = tags.get("TITLE") or f.name
                 f.info = tags.get("ARTIST") or "unknown"
                 al = tags.get("ALBUM")
-
+                
                 try:
                     trackno = tags.get("TRACKNUMBER")
                     trackno = trackno.split("/")[0]

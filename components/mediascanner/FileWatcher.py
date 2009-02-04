@@ -26,8 +26,8 @@ class FileWatcher(Component, ProcessEvent):
     
         Component.__init__(self)
         
-        self.__watch_manager = WatchManager()
-        self.__notifier = Notifier(self.__watch_manager, self)
+        #self.__watch_manager = WatchManager()
+        #self.__notifier = Notifier(self.__watch_manager, self)
         #self.__setup_watches()
 
         self.__scanner = gobject.timeout_add(1000, self.__scanning_handler)
@@ -43,7 +43,7 @@ class FileWatcher(Component, ProcessEvent):
     
         elif (ev == msgs.MEDIASCANNER_EV_SCANNING_STARTED):
             self.__currently_scanning = True
-            self.__setup_watches()
+            #self.__setup_watches()
 
         elif (ev == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             self.__currently_scanning = False
@@ -89,9 +89,9 @@ class FileWatcher(Component, ProcessEvent):
     
     def __scanning_handler(self):
 
-        self.__notifier.process_events()
-        if (self.__notifier.check_events(0)):
-            self.__notifier.read_events()
+        #self.__notifier.process_events()
+        #if (self.__notifier.check_events(0)):
+        #    self.__notifier.read_events()
 
         if (self.__requires_rescan and not self.__currently_scanning):
             self.emit_event(msgs.CORE_ACT_SCAN_MEDIA, False)

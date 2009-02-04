@@ -4,10 +4,11 @@ def get_devices():
     from AudioStorage import AudioStorage
     from AudioAlbumStorage import AudioAlbumStorage
     from AudioArtistStorage import AudioArtistStorage
+    from AudioGenreStorage import AudioGenreStorage
     from ImageStorage import ImageStorage
     
     devices = [AudioStorage, AudioAlbumStorage, AudioArtistStorage,
-               ImageStorage]
+               AudioGenreStorage, ImageStorage]
     
     # video still doesn't work well on the 770 :(
     if (maemo.get_product_code() != "SU-18"):

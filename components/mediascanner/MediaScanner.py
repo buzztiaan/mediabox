@@ -35,7 +35,6 @@ class MediaScanner(Component):
         self.__mediaroot_types = {}
         
         self.__thumbnailer = Thumbnailer()
-        self.__thumbnailer.set_thumb_folder(os.path.abspath(config.thumbdir()))
         
     
         Component.__init__(self)
@@ -52,29 +51,20 @@ class MediaScanner(Component):
             mediaroots, rebuild_index = args
             #self.__scan(mediaroots, rebuild_index)
             self.__scan_roots(mediaroots, rebuild_index)
-            
-        elif (ev == msgs.MEDIASCANNER_SVC_CREATE_THUMBNAIL):
-            f, cb = args[:2]
-            u_args = args[2:]
-            
-            gobject.timeout_add(0, self.__make_thumbnail,
-                                self.MEDIA_VIDEO |
-                                self.MEDIA_AUDIO |
-                                self.MEDIA_IMAGE,
-                                f, cb, *u_args)
-            return 0#self.__thumbnailer.get_thumbnail_path(f)
-            
+
         elif (ev == msgs.MEDIASCANNER_SVC_GET_MEDIA):
             mime_types = args[0]
             return self.__get_media(mime_types)
             
         elif (ev == msgs.MEDIASCANNER_SVC_GET_THUMBNAIL):
+            logging.warning("MEDIASCANNER_SVC_GET_THUMBNAIL is deprecated")
             f = args[0]
             path = self.__thumbnailer.get_thumbnail_path(f)
             uptodate = self.__thumbnailer.is_thumbnail_up_to_date(f)
             return (path, uptodate)
 
         elif (ev == msgs.MEDIASCANNER_SVC_SET_THUMBNAIL):
+            logging.warning("MEDIASCANNER_SVC_SET_THUMBNAIL is deprecated")
             f, pbuf = args
             thumbpath = self.__thumbnailer.get_thumbnail_path(f)
             pbuf.save(thumbpath, "jpeg")
@@ -108,7 +98,8 @@ class MediaScanner(Component):
             if (not root in scanned_roots):
                 #print "is new:", root
                 new_roots.append(root)
-            elif (mediatypes[root] != self.__mediaroot_types.get(root, 0)):
+            elif (mediatypes[root] != self.__mediaroot_types.get(root, 0)
+                  and mediatypes[root] != 0):
                 #print "type changed:", root
                 new_roots.append(root)
         #end for
@@ -148,6 +139,9 @@ class MediaScanner(Component):
         removed_roots = self.__find_removed_roots(roots)
         self.__mediaroot_types.update(mediatypes)
         
+        #print "NEW:", new_roots
+        #print "REMOVED:", removed_roots
+        
         if (rebuild_index):
             # scan all when rebuilding index
             to_scan = [ root for root in roots if not root in removed_roots ]
@@ -156,13 +150,14 @@ class MediaScanner(Component):
             to_scan = [ root for root in new_roots if not root in removed_roots ]
         logging.debug("media roots to scan:\n%s", to_scan)
 
+        self.__file_index.clear_status()
+
         # don't do anything if there's nothing to scan or remove
         if (not to_scan and not removed_roots):
             self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
             return
         
         self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_STARTED)
-        self.__file_index.clear_status()
 
         # remove from index
         for root in removed_roots:
@@ -173,7 +168,7 @@ class MediaScanner(Component):
                                             FileIndex.STATUS_REMOVED)
             #end for
         #end for
-        
+
         # scan present roots
         for root in to_scan:
             f = self.call_service(msgs.CORE_SVC_GET_FILE, root)
@@ -308,8 +303,8 @@ class MediaScanner(Component):
         
       
         # skip thumbnail folder
-        if (f.resource == self.__thumbnailer.get_thumb_folder()):
-            return
+        #if (f.resource == self.__thumbnailer.get_thumb_folder()):
+        #    return
             
         # process directory recursively
         if (f.mimetype == f.DIRECTORY):
@@ -344,6 +339,7 @@ class MediaScanner(Component):
         
         
     def __make_thumbnail(self, mediatypes, f, cb, *args):
+        # TODO: remove from here eventually
 
         def on_generated():
             # no thumbnail generated? remember this

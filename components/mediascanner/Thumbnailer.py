@@ -1,40 +1,163 @@
+from com import Component, msgs
 from mediabox import config
+from io import Downloader
 from utils import logging
+
 import os
+import gtk
+
+# these modules handle the particular media types
+import video
+import audio
+import image
 
 
-class Thumbnailer(object):
+class Thumbnailer(Component):
     """
     Class for retrieving thumbnails.
     """
 
     def __init__(self):
     
-        self.__thumb_folder = ""
+        self.__thumb_folder = os.path.abspath(config.thumbdir())
         self.__store_thumbnails_on_medium = config.store_thumbnails_on_medium()
 
+        Component.__init__(self)
 
-
-    def get_thumb_folder(self):
-        """
-        Returns the path of the thumbnail folder.
-        """
-        
-        return self.__thumb_folder
-       
-
-    def set_thumb_folder(self, path):
-        """
-        Sets the folder for storing the thumbnails.
-        """
-    
-        self.__thumb_folder = path
         # create directory for thumbnails if it doesn't exist yet
         try:
-            if (not os.path.exists(path)):
-                os.makedirs(path)
+            if (not os.path.exists(self.__thumb_folder)):
+                os.makedirs(self.__thumb_folder)
         except:
-            pass          
+            pass
+
+
+    def handle_message(self, msg, *args):
+
+        if (msg == msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL):
+            f = args[0]
+            cb = args[1]
+            cb_args = args[2:]
+            self.__load_thumbnail(f, cb, *cb_args)
+            return 0
+
+        elif (msg == msgs.MEDIASCANNER_SVC_COPY_THUMBNAIL):
+            f1, f2 = args
+            self.__copy_thumbnail(f1, f2)
+
+        elif (msg == msgs.MEDIASCANNER_SVC_SET_THUMBNAIL):
+            f, pbuf = args
+            thumbpath = self.__thumbnailer.get_thumbnail_path(f)
+            pbuf.save(thumbpath, "jpeg")
+            print "saving thumbnail for %s as %s" % (f.name, thumbpath)
+            return thumbpath
+        
+        
+        
+    def __load_thumbnail(self, f, cb, *args):
+    
+        thumbnail_path = self.get_thumbnail_path(f)
+        logging.debug("loading thumbnail for %s", f.full_path)
+        
+        if (self.is_thumbnail_up_to_date(f)):
+            cb(thumbnail_path, *args)
+
+        elif (f.thumbnail):
+            self.__load_from_uri(f.thumbnail, thumbnail_path, cb, *args)
+            
+        else:
+            self.__load_from_media(f, thumbnail_path, cb, *args)
+
+
+
+    def __load_from_image(self, data, thumbnail_path):
+                
+        def on_size_available(loader, width, height):
+            if (width > 160 or height > 120):
+                factor = 1            
+                factor1 = 160 / float(width)
+                factor2 = 120 / float(height)
+                factor = min(factor1, factor2)
+                loader.set_size(int(width * factor), int(height * factor))
+            #end if                
+
+        try:
+            loader = gtk.gdk.PixbufLoader()
+            loader.connect("size-prepared", on_size_available)
+            loader.write(data)
+            loader.close()                                
+            pbuf = loader.get_pixbuf()
+        except:
+            return
+
+        pbuf.save(thumbnail_path, "jpeg")
+        del pbuf
+        del loader
+        
+
+        
+    def __load_from_uri(self, uri, thumbnail_path, cb, *args):
+
+        def on_download(d, a, t, data):
+        
+            if (d):
+                # still loading
+                data[0] += d
+                
+            else:
+                # aborted or finished
+                self.__load_from_image(data, thumbnail_path)
+                cb(thumbnail_path, *args)
+
+
+        if (uri.startswith("/")):
+            # it's a local file
+            data = open(uri, "r").read()
+            self.__load_from_image(data, thumbnail_path)
+            cb(thumbnail_path, *args)
+
+        else:
+            Downloader(uri, on_download, [""])
+
+
+
+    def __load_from_media(self, f, thumbnail_path, cb, *args):
+    
+        def on_generated():
+            # no thumbnail generated? remember this
+            #if (not os.path.exists(thumbnail_path)):
+            #    self.mark_as_unavailable(f)
+            #else:
+            #    self.unmark_as_unavailable(f)
+            
+            cb(thumbnail_path, *args)
+            
+    
+        for mod in (audio, video, image):
+            if (mod.is_media(f)):
+                mod.make_thumbnail_async(f, thumbnail_path, on_generated)
+                return
+        #end for
+        
+        cb(thumbnail_path, *args)
+
+
+    def __copy_thumbnail(self, file1, file2):
+        """
+        Copies the thumbnail for C{file1} to be used for C{file2}.
+        Does nothing if C{file1} has no thumbnail.
+        """
+        
+        tn1 = self.get_thumbnail_path(file1)
+        tn2 = self.get_thumbnail_path(file2)
+
+        if (os.path.exists(tn1)):
+            try:
+                shutil.copyfile(tn1, tn2)
+            except:
+                pass
+
+        
 
         
     def is_thumbnail_up_to_date(self, f):

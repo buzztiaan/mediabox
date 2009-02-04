@@ -534,16 +534,10 @@ class YouTube(Device):
         return name + ".flv"
 
 
-    def __copy_thumbnail(self, f, path):
+    def __copy_thumbnail(self, f1, path):
     
-        tn, uptodate = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
         f2 = File(self)
         f2.path = "/local" + path
-        tn2, uptodate = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f2)
 
-        if (os.path.exists(tn)):
-            try:
-                shutil.copyfile(tn, tn2)
-            except:
-                pass
-                
+        self.call_service(msgs.MEDIASCANNER_SVC_COPY_THUMBNAIL, f1, f2)
+

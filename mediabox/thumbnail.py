@@ -47,7 +47,7 @@ def render_on_pixbuf(thumbfile, mimetype):
     
 def render_on_canvas(cnv, x, y, w, h, thumbfile, mimetype):
 
-    _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype)    
+    return _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype)
 
 
 
@@ -122,7 +122,6 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
     coordinates, or returns a pixbuf, if C{cnv} is C{None}.
     """
    
-   
     if (not cnv):
         _PBUF.fill(0x00000000)
    
@@ -152,6 +151,7 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
     #end if
 
     pbuf = _thumbnail_cache.get((thumbfile, w, h))
+
     if (not pbuf):
         #print "not in cache:", thumbfile
         pbuf, cachable = _make_thumbnail(thumbfile, mimetype)

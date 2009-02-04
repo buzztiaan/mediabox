@@ -67,11 +67,13 @@ class MPlayerBackend(AbstractBackend):
                                           #"x=174:y=60:w=600:h=360")
             else:
                 logging.debug("mplayer backend detected Nokia maemo-device")
-                vo_opts = "-vo xv"
+                vo_opts = "-vo xv:ck-method=auto "\
+                          "-noslices -hardframedrop " \
+                          "-lavdopts fast:lowres=1,400"
         
             cmd = "LANG=C %s -quiet -slave " \
                   "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
-                  "-idle -osdlevel 0 -idx " \
+                  "-dr -nomenu -idle -osdlevel 0 -idx " \
                   "-cache 256 -cache-min 50 " \
                   "-identify -wid %d %s 2>&1 3>/dev/null" \
                   % (_MPLAYER, self.__window_id, vo_opts)
