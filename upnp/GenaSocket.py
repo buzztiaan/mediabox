@@ -246,17 +246,10 @@ class NewEvent (object):
         self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
 
 
-    def __del__(self):
-
-        if ( self.__working_callback_id > 0 ):  gobject.source_remove (self.__timeout_callback_id)
-        if ( self.__timeout_callback_id > 0 ):  gobject.source_remove (self.__working_callback_id)
-        self.__socket.close()
-
-
     def __timeout (self):
 
         if ( self.__working_callback_id > 0 ):  gobject.source_remove (self.__timeout_callback_id)
-        socket.close()
+        self.__socket.close()
         self.__working_callback_id = 0
         self.__timeout_callback_id = 0
         gobject.idle_add ( self.__execute_final_callback, False )
@@ -322,6 +315,11 @@ class NewEvent (object):
                 self.__timeout_callback_id = 0
 
                 self.__body_processing_callback (self, data[index+4:], uuid)
+
+                if self.__working_callback_id == 0 : #if the body_processing_callback has set no action is a programing error
+                    socket.close()
+                    raise NoAnswerSet
+
                 return (False)
 
             else :
@@ -348,6 +346,11 @@ class NewEvent (object):
             self.__timeout_callback_id = 0
 
             self.__body_processing_callback (self, data[index+4:], uuid)
+
+            if self.__working_callback_id == 0 : #if the body_processing_callback has set no action is a programing error
+                socket.close()
+                raise NoAnswerSet
+
             return (False)
 
         self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
@@ -377,5 +380,9 @@ class NewEvent (object):
 
         self.__final_callback (success)
         return (False)
+
+
+class NoAnswerSet ( Exception ) :
+    pass
 
 
