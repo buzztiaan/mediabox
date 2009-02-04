@@ -115,6 +115,13 @@ def _parse_tagsoup(soup, params):
         result = _read_frame(soup, pos, params)
         if (not result): break
         key, value, pos = result
+        
+        if (key == "GENRE" and value.isdigit()):
+            v = int(value)
+            if (0 <= v < 256):
+                value = mapping.GENRES[int(value)]
+        #end if
+        
         tags[key] = value
     #end while
     

@@ -32,6 +32,13 @@ def _parse_tagsoup(soup):
             key = e[:idx]
             #print "  " + key
             value = e[idx + 1:-1]
+            
+            if (key.upper() == "GENRE" and value.isdigit()):
+                v = int(value)
+                if (0 <= v < 256):
+                    value = mapping.GENRES[int(value)]
+            #end if
+
             tags[key.upper()] = value
     #end for
 
