@@ -67,6 +67,7 @@ class DVDDetector(Component):
         elif (msg == msgs.INPUT_EV_EJECT):
             if (self.__devices):
                 dev = self.__devices.keys()[0]
+                self.emit_event(msgs.MEDIA_ACT_STOP)
                 self.emit_event(msgs.UI_ACT_SHOW_MESSAGE,
                                 "Ejecting Disc", "",
                                 None)
