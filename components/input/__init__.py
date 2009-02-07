@@ -44,6 +44,7 @@ messages = [
     "INPUT_EV_FORWARD",
     "INPUT_EV_PLAY",
     "INPUT_EV_MENU",
+    "INPUT_EV_ENTER",
     "INPUT_EV_FULLSCREEN",
     "INPUT_EV_EJECT",
 
@@ -51,5 +52,12 @@ messages = [
     "INPUT_EV_DOWN",
     "INPUT_EV_LEFT",
     "INPUT_EV_RIGHT",
-    "INPUT_EV_ENTER",
+
+    # DVD navigation, etc.
+    "INPUT_EV_NAV_UP",
+    "INPUT_EV_NAV_DOWN",
+    "INPUT_EV_NAV_LEFT",
+    "INPUT_EV_NAV_RIGHT",
+    "INPUT_EV_NAV_ENTER",
+    "INPUT_EV_NAV_MENU",
 ]

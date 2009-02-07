@@ -14,6 +14,8 @@ _DESCRIPTIONS = {"no":
                  "yes":
                  "The display does not switch off and the device does not go\n"
                  "into powersaving, unless the menu panel is open.",
+                 "playing":
+                 "The display does not switch off while playing media.",
                  "ac":
                  "The display doesn't turn off when the device is powered by\n"
                  "powered by the AC adapter."}
@@ -39,6 +41,7 @@ class Prefs(Configurator):
 
         lit = config.get_display_lit()
         chbox = ChoiceBox("never", "no",
+                          "while playing", "playing",
                           #"when on AC", "ac",
                           "yes", "yes")
         chbox.select_by_value(lit)

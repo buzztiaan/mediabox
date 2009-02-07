@@ -1,5 +1,5 @@
 from com import Component, msgs
-from pyinotify import WatchManager, Notifier, ProcessEvent, EventsCodes
+#from pyinotify import WatchManager, Notifier, ProcessEvent, EventsCodes
 from mediabox import config as config_mb
 from utils import logging
 

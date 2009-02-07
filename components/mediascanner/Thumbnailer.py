@@ -34,7 +34,14 @@ class Thumbnailer(Component):
 
     def handle_message(self, msg, *args):
 
-        if (msg == msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL):
+        if (msg == msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL):
+            f = args[0]
+            if (self.has_thumbnail(f)):
+                return self.get_thumbnail_path(f)
+            else:
+                return 0
+
+        elif (msg == msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL):
             f = args[0]
             cb = args[1]
             cb_args = args[2:]

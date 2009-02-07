@@ -23,6 +23,7 @@ messages = [
     "MEDIASCANNER_ACT_SCAN",             # (mediaroots, rebuild_index)
     "MEDIASCANNER_SVC_GET_MEDIA",        # (mimetypes: items, added, removed)
 
+    "MEDIASCANNER_SVC_LOOKUP_THUMBNAIL",  # (file: path)
     "MEDIASCANNER_SVC_LOAD_THUMBNAIL",    # (file, cb, *args)
     "MEDIASCANNER_SVC_COPY_THUMBNAIL",    # (file1, file2)    
 

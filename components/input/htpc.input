@@ -43,12 +43,11 @@
 
 
 [FULLSCREEN]
-    UP              UP              -
-    DOWN            DOWN            -
-    LEFT            LEFT            -
-    RIGHT           RIGHT           -
+    UP              UP          -
+    DOWN            DOWN        -
+    LEFT            LEFT        -
+    RIGHT           RIGHT       -
     F6              FULLSCREEN      -
-    ESCAPE          FULLSCREEN      -
-    ENTER           ENTER           -
-    F11             MENU            -
+    ESCAPE          NAV_MENU        -
+    ENTER           NAV_ENTER       -
 

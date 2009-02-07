@@ -18,7 +18,7 @@ class ListItem(ButtonListItem):
 
     def __init__(self, f, thumbnail):
 
-        self.__icon = thumbnail
+        self.__icon = thumbnail or ""
         self.__emblem = f.emblem
         self.__source_icon = f.source_icon
         self.__mimetype = f.mimetype
@@ -32,7 +32,7 @@ class ListItem(ButtonListItem):
 
     def set_icon(self, icon):
     
-        self.__icon = icon
+        self.__icon = icon or ""
         
 
     def set_emblem(self, emblem):
@@ -43,6 +43,6 @@ class ListItem(ButtonListItem):
     def render_icon(self, cnv, x, y, w, h):
 
         if (self.__icon):
-            icon = thumbnail.render_on_canvas(cnv, x, y, w, h,
-                                              self.__icon, self.__mimetype)
+            thumbnail.render_on_canvas(cnv, x, y, w, h,
+                                       self.__icon, self.__mimetype)
 

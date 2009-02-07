@@ -550,7 +550,8 @@ class AppWindow(Component, RootPane):
         if (key == "space"): key = " "
         
         if (key == "Escape"):
-            pass #self.emit_event(msgs.HWKEY_EV_ESCAPE)
+            print "Escape"
+            self.emit_event(msgs.HWKEY_EV_ESCAPE)
         
         elif (key == "Return"):
             self.emit_event(msgs.HWKEY_EV_ENTER)

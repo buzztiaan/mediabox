@@ -41,13 +41,13 @@ class Prefs(Configurator):
                     theme.font_mb_plain, theme.color_mb_listitem_text)        
         chk.add(lbl)
 
-        chk = CheckBox(mb_config.scan_with_inotify())
-        chk.connect_checked(self.__on_check_inotify)
-        self.__vbox.add(chk)
-        lbl = Label("Watch folders for changes via inotify\n"
-                    "(detects new files automatically)",
-                    theme.font_mb_plain, theme.color_mb_listitem_text)        
-        chk.add(lbl)
+        #chk = CheckBox(mb_config.scan_with_inotify())
+        #chk.connect_checked(self.__on_check_inotify)
+        #self.__vbox.add(chk)
+        #lbl = Label("Watch folders for changes via inotify\n"
+        #            "(detects new files automatically)",
+        #            theme.font_mb_plain, theme.color_mb_listitem_text)        
+        #chk.add(lbl)
 
         self.__btn_reindex = Button("Update index now")
         self.__btn_reindex.connect_clicked(self.__on_click_rebuild)

@@ -25,7 +25,7 @@ class MediaItem(ListItem):
         w, h = self.get_size()
 
         self.render_icon(cnv, 8, 8, 120, h - 16)
-        self.render_label(cnv, 160 + 8, self.__label, self.__sublabel)
+        self.render_label(cnv, 130 + 8, self.__label, self.__sublabel)
         self.render_selection_frame(cnv)
         self.render_buttons(cnv)
 

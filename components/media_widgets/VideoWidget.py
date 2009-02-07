@@ -76,22 +76,22 @@ class VideoWidget(MediaWidget):
 
     def handle_message(self, msg, *args):
     
-        if (msg == msgs.INPUT_EV_UP):
+        if (msg == msgs.INPUT_EV_NAV_UP):
             handled = self.__player.send_key(self.__player.KEY_UP)
             
-        elif (msg == msgs.INPUT_EV_DOWN):
+        elif (msg == msgs.INPUT_EV_NAV_DOWN):
             handled = self.__player.send_key(self.__player.KEY_DOWN)
 
-        elif (msg == msgs.INPUT_EV_LEFT):
+        elif (msg == msgs.INPUT_EV_NAV_LEFT):
             handled = self.__player.send_key(self.__player.KEY_LEFT)
 
-        elif (msg == msgs.INPUT_EV_RIGHT):
+        elif (msg == msgs.INPUT_EV_NAV_RIGHT):
             handled = self.__player.send_key(self.__player.KEY_RIGHT)
 
-        elif (msg == msgs.INPUT_EV_ENTER):
+        elif (msg == msgs.INPUT_EV_NAV_ENTER):
             handled = self.__player.send_key(self.__player.KEY_SELECT)
 
-        elif (msg == msgs.INPUT_EV_MENU):
+        elif (msg == msgs.INPUT_EV_NAV_MENU):
             handled = self.__player.send_key(self.__player.KEY_MENU1)
 
 

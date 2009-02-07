@@ -256,9 +256,9 @@ class GenericViewer(Viewer):
         
         strip_owner = (self, self.__view_mode)
         needs_reload = self.__needs_reload.get(strip_owner, True)
+        items_to_thumbnail = []
         
         if (not needs_reload):            
-            print "NOT RELOAD"
             return
         else:
             self.__needs_reload[strip_owner] = False
@@ -275,10 +275,8 @@ class GenericViewer(Viewer):
         elif (self.__view_mode == self._VIEWMODE_SPLIT_BROWSER):
             if (len(self.__path_stack) > 1):
                 for entry in self.__sibling_folders:
-                    icon, uptodate = self.call_service(
-                                    msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
-    
-                    tn = FileThumbnail(icon, entry)
+                    tn = FileThumbnail(None, entry)
+                    items_to_thumbnail.append((None, tn, entry))
                     strip_items.append(tn)
                 #end for
                         
@@ -294,16 +292,11 @@ class GenericViewer(Viewer):
         
         # show playable items
         elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
-            import time
-            print time.time()
             for entry in self.__playable_items:
-                icon, uptodate = self.call_service(
-                                    msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, entry)
-
-                tn = FileThumbnail(icon, entry)
+                tn = FileThumbnail(None, entry)
+                items_to_thumbnail.append((None, tn, entry))
                 strip_items.append(tn)
             #end for
-            print time.time()
             
             if (self.__current_file in self.__playable_items):
                 strip_index = self.__playable_items.index(self.__current_file)           
@@ -311,6 +304,9 @@ class GenericViewer(Viewer):
         self.set_strip(strip_items)
         if (strip_index >= 0):
             self.hilight_strip_item(strip_index)
+
+        if (self.__path_stack):
+            self.__create_thumbnails(self.__path_stack[-1][0], items_to_thumbnail)
 
 
     def __update_toolbar(self):
@@ -381,6 +377,11 @@ class GenericViewer(Viewer):
                 self.__list.scroll_to_item(idx + 1)
 
         elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
+            if (self.__current_file in self.__playable_items):
+                idx = self.__playable_items.index(self.__current_file)
+                self.hilight_strip_item(idx)
+
+        elif (self.__view_mode == self._VIEWMODE_PLAYER_FULLSCREEN):
             if (self.__current_file in self.__playable_items):
                 idx = self.__playable_items.index(self.__current_file)
                 self.hilight_strip_item(idx)
@@ -792,6 +793,11 @@ class GenericViewer(Viewer):
         
         root = device.get_root()
         print "LOAD DEVICE", device, root
+        
+        if (self.__current_device in self.__device_items):
+            strip_index = self.__device_items.index(self.__current_device)        
+            self.hilight_strip_item(strip_index)
+        
         self.set_title(device.get_name())
         if (root.mimetype == root.DIRECTORY):
             self.__load_folder(root, self.__GO_NEW)
@@ -1035,19 +1041,17 @@ class GenericViewer(Viewer):
         Adds the given file item to the list.
         """
 
-        # lookup thumbnail        
-        icon, uptodate = self.call_service(msgs.MEDIASCANNER_SVC_GET_THUMBNAIL,
-                                           entry)
-
-        #tn = FileThumbnail(icon, entry)
-        #if (entry.mimetype != entry.DIRECTORY):
-        #    self.__thumbnails.append(tn)
-        
         # determine available item buttons
         if (insert_at == -1):
-            item = MediaItem(entry, icon)
+            thumbnail = self.call_service(
+                msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, entry) or None
+            item = MediaItem(entry, thumbnail)
+            if (not thumbnail):
+                items_to_thumbnail.append((item, None, entry))
+                
         else:
             item = SubItem(entry)
+            
         buttons = []
         
         if (entry.mimetype == "application/x-music-folder"):
@@ -1065,9 +1069,9 @@ class GenericViewer(Viewer):
         item.set_buttons(*buttons)
 
         # remember if thumbnail does not yet exist
-        if (insert_at == -1 and (not os.path.exists(icon) or not uptodate)):
-            if (entry.is_local or entry.thumbnail):
-                items_to_thumbnail.append((item, None, entry))
+        #if (insert_at == -1 and (not os.path.exists(icon))):
+        #    if (entry.is_local or entry.thumbnail):
+        #items_to_thumbnail.append((item, None, entry))
         #end if
         
         self.__list.set_frozen(True)
@@ -1240,58 +1244,6 @@ class GenericViewer(Viewer):
 
         if (self.__current_file):
             self.__current_file.keep()
-            
-
-
-    def __on_download_thumbnail(self, d, a, t, f, data, path, items_to_thumbnail):
-        """
-        Callback for downloading a thumbnail image.
-        """
-
-        def on_size_available(loader, width, height):
-            if (width > 160 or height > 120):
-                factor = 1            
-                factor1 = 160 / float(width)
-                factor2 = 120 / float(height)
-                factor = min(factor1, factor2)
-                loader.set_size(int(width * factor), int(height * factor))
-            #end if
-            
-
-        data[0] += d
-        if (not d):
-            item, tn = self.__items_downloading_thumbnails.get(f, (None, None))
-            if (not item): return
-
-            data = data[0]
-            if (data):
-                try:
-                    loader = gtk.gdk.PixbufLoader()
-                    loader.connect("size-prepared", on_size_available)
-                    loader.write(data)
-                    loader.close()                                
-                    pbuf = loader.get_pixbuf()
-                except:
-                    gobject.idle_add(self.__create_thumbnails,
-                                     path, items_to_thumbnail)
-                    return
-                
-                thumbpath = self.call_service(msgs.MEDIASCANNER_SVC_SET_THUMBNAIL,
-                                              f, pbuf)
-                del pbuf
-                item.set_icon(thumbpath)
-                item.invalidate()
-                self.__list.invalidate_buffer()
-                self.__list.render()
-                
-                #tn.set_thumbnail(thumbpath)
-                #tn.invalidate()
-                if (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
-                    self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
-            #end if
-            
-            gobject.idle_add(self.__create_thumbnails, path, items_to_thumbnail)
-        #end if
 
 
     def __create_thumbnails(self, path, items_to_thumbnail):
@@ -1299,20 +1251,23 @@ class GenericViewer(Viewer):
         Creates thumbnails for the given items.
         """
 
-        def on_created(thumbpath, item, tn):
-            item.set_icon(thumbpath)
-            item.invalidate()
-            self.__list.invalidate_buffer()
-            self.__list.render()
+        def on_loaded(thumbpath, item, tn):
+            if (item):
+                item.set_icon(thumbpath)
+                item.invalidate()
+                self.__list.invalidate_buffer()
+                self.__list.render()
             
-            #tn.set_thumbnail(thumbpath)
-            #tn.invalidate()
+            if (tn):
+                tn.set_thumbnail(thumbpath)
+                tn.invalidate()
             
             if (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
                 self.emit_event(msgs.CORE_ACT_RENDER_ITEMS)
 
             # proceed to next thumbnail
-            gobject.idle_add(self.__create_thumbnails, path, items_to_thumbnail)
+            gobject.idle_add(self.__create_thumbnails, path,
+                             items_to_thumbnail)
             
 
         # abort if the user has changed the directory again
@@ -1339,28 +1294,12 @@ class GenericViewer(Viewer):
             #end if            
         
             item, tn, f = items_to_thumbnail.pop(0)
-            if (f.thumbnail):
-                # a thumbnail URI is specified
-                self.__items_downloading_thumbnails[f] = (item, tn)
-                print "GET FROM URI", f.thumbnail
-                if (f.thumbnail.startswith("/")):
-                    try:
-                        self.__on_download_thumbnail("", 0, 0, f,
-                                                     [open(f.thumbnail).read()],
-                                                     path, items_to_thumbnail)
-                    except:
-                        pass
-                else:
-                    Downloader(f.thumbnail, self.__on_download_thumbnail, f,
-                               [""], path, items_to_thumbnail)
-            else:
-                # create new thumbnail
-                self.call_service(msgs.MEDIASCANNER_SVC_CREATE_THUMBNAIL, f,
-                                  on_created, item, tn)
 
-            #end if
-    
+            # load thumbnail
+            self.call_service(msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL, f,
+                              on_loaded, item, tn)
         #end if
+            
 
 
     def __search(self, key):

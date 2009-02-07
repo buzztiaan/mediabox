@@ -43,7 +43,7 @@ class AudioGenreStorage(AudioArtistStorage):
 
     def get_icon(self):
     
-        return theme.mb_device_audio
+        return theme.mb_device_genres
 
 
 

@@ -52,6 +52,10 @@ class PlaylistViewer(Viewer):
         self.__media_widget = None
         self.__view_mode = _VIEWMODE_NONE
     
+        # table: owner -> needs_reload
+        self.__needs_reload = {}
+
+    
         Viewer.__init__(self)
         
         self.__playlist = TrackList(with_drag_sort = True)
@@ -129,13 +133,16 @@ class PlaylistViewer(Viewer):
 
 
     def __get_playlist_thumbnail_pieces(self, pl):
+        """
+        Returns the thumbnails that will be used for rendering the icon for the
+        given playlist.
+        """
     
         pieces = []
         for f in pl.get_files():
             if (not f): continue
-            thumb, uptodate = self.call_service(
-                                        msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
-            if (not (thumb, f.mimetype) in pieces and os.path.exists(thumb)):
+            thumb = self.call_service(msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, f) or None
+            if (thumb and not (thumb, f.mimetype) in pieces):
                 pieces.append((thumb, f.mimetype))
             if (len(pieces) == 4):
                 break
@@ -145,12 +152,68 @@ class PlaylistViewer(Viewer):
 
 
     def __update_playlist_thumbnail(self):
+        """
+        Updates the thumbnail of the current playlist.
+        """
     
         pl_tn = self.__pl_thumbnails[self.__current_list]
         pl = self.__lists[self.__current_list]
         pl_tn.set_thumbnails(self.__get_playlist_thumbnail_pieces(pl))
+        self.__strip_needs_reload(_VIEWMODE_PLAYLIST)
+
+
+    def __strip_needs_reload(self, view_mode):
+        """
+        Marks the current side strip to need a reload.
+        """
+        
+        strip_owner = (self, view_mode)
+        self.__needs_reload[strip_owner] = True
+        
+
+    def __update_side_strip(self):
+        """
+        Updates the side strip depending on the current view mode.
+        """
+        
+        strip_items = []
+        strip_index = -1
+        
+        if (not self.is_active()): return
+        
+        strip_owner = (self, self.__view_mode)
+        needs_reload = self.__needs_reload.get(strip_owner, True)
+        items_to_thumbnail = []
+        
+        if (not needs_reload):            
+            return
+        else:
+            self.__needs_reload[strip_owner] = False
+
+        pl = self.__lists[self.__current_list]
+        pl_tn = self.__pl_thumbnails[self.__current_list]
+
+        # show devices
         if (self.__view_mode == _VIEWMODE_PLAYLIST):
-            self.set_strip(self.__pl_thumbnails)
+            strip_items = self.__pl_thumbnails
+            strip_index = self.__current_list
+
+        # show playable items
+        elif (self.__view_mode == _VIEWMODE_PLAYER):
+            for tn in pl.get_thumbnails():
+                #items_to_thumbnail.append((None, tn, entry))
+                strip_items.append(tn)
+            #end for
+            
+            if (self.__current_file in pl.get_files()):
+                strip_index = pl.get_files().index(self.__current_file)
+
+        self.set_strip(strip_items)
+        if (strip_index >= 0):
+            self.hilight_strip_item(strip_index)
+
+        #if (self.__path_stack):
+        #    self.__create_thumbnails(self.__path_stack[-1][0], items_to_thumbnail)
 
 
     def __update_input_context(self):
@@ -262,9 +325,11 @@ class PlaylistViewer(Viewer):
             pl_tn = PlaylistThumbnail(pl)
             self.__pl_thumbnails.append(pl_tn)
         
-            self.set_strip(self.__pl_thumbnails)
-            self.select_strip_item(len(self.__lists) - 1)
+            #self.set_strip(self.__pl_thumbnails)
+            #self.select_strip_item(len(self.__lists) - 1)
         #end if
+        self.__strip_needs_reload(_VIEWMODE_PLAYLIST)
+        self.__update_side_strip()
         
         
     def __delete_playlist(self):
@@ -281,7 +346,9 @@ class PlaylistViewer(Viewer):
             pl.delete_playlist()            
             self.__load_playlists()
             self.__update_playlist_thumbnail()
-            self.select_strip_item(0)
+            #self.select_strip_item(0)
+            
+        self.__update_side_strip()
 
 
     def __on_toggle_fullscreen(self):
@@ -349,6 +416,7 @@ class PlaylistViewer(Viewer):
             self.__remove_item(pl, idx)
             pl.save()
             self.__update_playlist_thumbnail()
+            self.__update_side_strip()
                 
         elif (button == item.BUTTON_REMOVE_PRECEEDING):
             self.__playlist.set_frozen(True)
@@ -357,6 +425,7 @@ class PlaylistViewer(Viewer):
             pl.save()
             self.__playlist.set_frozen(False)
             self.__update_playlist_thumbnail()
+            self.__update_side_strip()
 
         elif (button == item.BUTTON_REMOVE_FOLLOWING):
             self.__playlist.set_frozen(True)
@@ -365,6 +434,8 @@ class PlaylistViewer(Viewer):
             pl.save()
             self.__playlist.set_frozen(False)
             self.__update_playlist_thumbnail()
+            self.__update_side_strip()
+
 
 
     def __on_swap(self, idx1, idx2):
@@ -574,8 +645,7 @@ class PlaylistViewer(Viewer):
                 return
             #end if
             
-            thumb, uptodate = self.call_service(
-                                        msgs.MEDIASCANNER_SVC_GET_THUMBNAIL, f)
+            thumb = self.call_service(msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, f)
         else:
             thumb = None
 
@@ -586,7 +656,7 @@ class PlaylistViewer(Viewer):
 
         pl.append(plitem, tn, f)
         self.__random_items.append(f)
-        
+        self.__strip_needs_reload(_VIEWMODE_PLAYER)
 
 
     def __remove_item(self, pl, idx):
@@ -617,6 +687,7 @@ class PlaylistViewer(Viewer):
             self.__random_items.append(f)
         self.__playlist.invalidate_buffer()
         self.__playlist.render()
+        self.__strip_needs_reload(_VIEWMODE_PLAYER)
         
         
     def handle_message(self, msg, *args):
@@ -743,3 +814,5 @@ class PlaylistViewer(Viewer):
         Viewer.show(self)
         
         self.change_strip((self, self.__view_mode))
+        self.__update_side_strip()
+        
