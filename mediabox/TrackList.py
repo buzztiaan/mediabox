@@ -91,7 +91,7 @@ class TrackList(ItemList):
         if (need_render):
             self.invalidate_buffer()
             self.render()
-        #if (handled): self.__kscr.stop_scrolling()
+        if (handled): self.__kscr.stop_scrolling()
 
         return handled
 

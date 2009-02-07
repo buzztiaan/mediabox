@@ -326,7 +326,7 @@ class TabPanel(HilightingWidget, Observable):
 
         def fx(params): #from_y, to_y):
             from_y, to_y = params
-            dy = (to_y - from_y) / 5
+            dy = (to_y - from_y) / 3
             if (dy > 0):
                 screen.move_area(0, dy, pw, ph - from_y - dy, 0, -dy)
                 screen.copy_pixmap(buf, 0, h - from_y - dy, 0, ph - from_y - dy,
@@ -367,7 +367,7 @@ class TabPanel(HilightingWidget, Observable):
         
         def fx(params): #from_y, to_y):
             from_y, to_y = params
-            dy = (to_y - from_y) / 5
+            dy = (to_y - from_y) / 3
             if (dy > 0):
                 screen.move_area(0, 0, pw, ph - h + from_y, 0, dy)
                 screen.copy_pixmap(self.__backing_buffer,

@@ -1,9 +1,8 @@
 from ui.Widget import Widget
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP, text_extents
-from utils import threads
+from utils import logging
 from theme import theme
 
-import threading
 import gtk
 import gobject
 import time
@@ -42,7 +41,7 @@ class RootPane(Widget):
         w, h = self.get_size()
         self.render_at(self.__buffer)
         self.get_screen().copy_pixmap(self.__buffer, 0, 0, 0, 0, w, h)
-        print "rendering took %fs" % (time.time() - now)
+        logging.debug("rendering took %fs", (time.time() - now))
 
 
     def show_overlay(self, text, subtext, icon):
@@ -99,26 +98,20 @@ class RootPane(Widget):
 
     def fx_slide_in(self, wait = True):
     
-        #if (self.have_animation_lock()): return
-        #self.set_animation_lock(True)
-    
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
 
         buf = Pixmap(None, w, h)
-        #self.set_frozen(False)
         self.render_at(buf)
-        #self.set_frozen(True)
-        #finished = threading.Event()
         
-        def fx(params): #from_y, to_y):
+        def fx(params):
             from_y, to_y = params
-            dy = (to_y - from_y) / 5
+            dy = (to_y - from_y) / 3
             if (dy > 0):
                 screen.move_area(x, y, w, from_y, 0, dy)
                 screen.copy_pixmap(buf, x, y + h - from_y - dy, 0, 0, w, dy)
-                #gobject.timeout_add(10, fx, from_y + dy, to_y)
+
                 params[0] = from_y + dy
                 params[1] = to_y
                 return True
@@ -126,14 +119,7 @@ class RootPane(Widget):
                 dy = to_y - from_y
                 screen.move_area(x, y, w, from_y, 0, dy)
                 screen.copy_pixmap(buf, x, y + h - from_y - dy, 0, 0, w, dy)
-                #finished.set()
                 return False
         
-        #self.set_events_blocked(True)
-        #fx(0, h)
-        #if (wait): threads.wait_for(lambda :finished.isSet(), "sliding rootpane")
         self.animate(50, fx, [0, h])
-        #self.set_events_blocked(False)
-        #self.set_frozen(False)
-        #self.set_animation_lock(False)
 
