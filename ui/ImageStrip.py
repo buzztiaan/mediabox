@@ -1030,7 +1030,7 @@ class ImageStrip(Widget):
                 self.__scroll_to_item_handler = None
                 return False
 
-            delta = distance / 10
+            delta = distance / 3 #10
 
             if (distance < 2):
                 self.__move(0, max(-h, min(-1, delta)))
@@ -1056,6 +1056,11 @@ class ImageStrip(Widget):
             #self.animate_with_events(50, f)
             #self.set_events_blocked(True)
             #self.set_events_blocked(False)
+
+            # kill queued events
+            while (True):
+                e = gtk.gdk.event_get()
+                if (not e): break
 
 
     def fx_cycle_item(self, idx):

@@ -6,9 +6,32 @@ import gtk
 import pango
 
 
-_DEPTH = gtk.gdk.get_default_root_window().get_depth()
-_PANGO_CTX = gtk.HBox().get_pango_context()
-_PANGO_LAYOUT = pango.Layout(_PANGO_CTX)
+#_PANGO_CTX = gtk.HBox().get_pango_context()
+#_PANGO_LAYOUT = pango.Layout(_PANGO_CTX)
+
+# table: bpp -> layout
+_pango_layouts = {}
+
+
+
+def _get_pango_layout(rgba = False):
+
+    if (rgba):
+        depth = 32
+        cmap = gtk.gdk.screen_get_default().get_rgba_colormap()
+    else:
+        depth = gtk.gdk.get_default_root_window().get_depth()
+        cmap = gtk.gdk.screen_get_default().get_rgb_colormap()
+        
+    if (not depth in _pango_layouts):
+        w = gtk.HBox()
+        w.set_colormap(cmap)        
+        ctx = gtk.HBox().get_pango_context()
+        layout = pango.Layout(ctx)
+        _pango_layouts[depth] = layout
+        
+    return _pango_layouts[depth]
+    
 
 
 def _reload(*items):
@@ -30,10 +53,11 @@ def text_extents(text, font):
     """
 
     _reload(font)
-    _PANGO_LAYOUT.set_font_description(font)
-    _PANGO_LAYOUT.set_text(text)
+    layout = _get_pango_layout()
+    layout.set_font_description(font)
+    layout.set_text(text)
         
-    rect_a, rect_b = _PANGO_LAYOUT.get_extents()
+    rect_a, rect_b = layout.get_extents()
     nil, nil, w, h = rect_b
     w /= pango.SCALE
     h /= pango.SCALE
@@ -65,7 +89,7 @@ class Pixmap(object):
     RIGHT = 8
     
 
-    def __init__(self, pmap, w = 0, h = 0):
+    def __init__(self, pmap, w = 0, h = 0, rgba = False):
         """
         Creates a new Pixmap object. If C{pmap} is C{None}, the pixmap will
         be off-screen, otherwise it will be on-screen.
@@ -74,27 +98,36 @@ class Pixmap(object):
         @param w: width
         @param h: height
         """
-        
-        self.__is_hibernating = False
-        
+
+        cmap = gtk.gdk.screen_get_default().get_rgba_colormap()
+        if (rgba):
+            self.__depth = 32
+            self.__layout = _get_pango_layout(True)
+        else:
+            self.__depth = gtk.gdk.get_default_root_window().get_depth()
+            self.__layout = _get_pango_layout(False)
+
         if (pmap):
             self.__pixmap = pmap
             w, h = pmap.get_size()
             self.__buffered = True
-            self.__buffer = gtk.gdk.Pixmap(None, w, h, _DEPTH)
+            self.__buffer = gtk.gdk.Pixmap(None, w, h, self.__depth)
+            self.__buffer_cmap = self.__buffer.get_colormap() or cmap
+            self.__buffer.set_colormap(self.__buffer_cmap)
             self.__buffer_gc = self.__buffer.new_gc()
-            self.__buffer_cmap = self.__buffer.get_colormap()
         else:
-            self.__pixmap = gtk.gdk.Pixmap(None, w, h, _DEPTH)
+            self.__pixmap = gtk.gdk.Pixmap(None, w, h, self.__depth)
             self.__buffered = False
             
         self.__width = w
         self.__height = h
         
+        self.__cmap = self.__pixmap.get_colormap() or cmap
+        self.__pixmap.set_colormap(self.__cmap)
         self.__gc = self.__pixmap.new_gc()
-        self.__cmap = self.__pixmap.get_colormap()
                 
-        
+                
+                        
     def _get_pixmap(self):
     
         return self.__pixmap
@@ -132,50 +165,7 @@ class Pixmap(object):
         new_pmap.copy_buffer(self, x, y, 0, 0, w, h)
         
         return new_pmap
-        
-
-
-    def hibernate(self):
-        """
-        Hibernates this pixmap to save memory. Issue 'wakeup' before working
-        with this pixmap again. Subclasses may extend this method.
-        
-        @todo: DEPRECATED
-        """
-        
-        del self.__pixmap
-        self.__pixmap = None
-        self.__gc = None
-        self.__cmap = None
-        self.__is_hibernating = True
-
-
-    def wakeup(self):
-        """
-        Restores this pixmap after hibernating. Subclasses may extend this
-        method.
-
-        @todo: DEPRECATED
-        """
-
-        if (self.is_hibernating()):
-            print "wakeup"
-            self.__pixmap = gtk.gdk.Pixmap(None,
-                                           self.__width, self.__height, _DEPTH)
-            self.__gc = self.__pixmap.new_gc()
-            self.__cmap = self.__pixmap.get_colormap()
-            self.__is_hibernating = False
-
-
-    def is_hibernating(self):
-        """
-        Returns whether this pixmap is currently hibernating.
-
-        @todo: DEPRECATED
-        """
-
-        return self.__is_hibernating
-        
+              
         
     def resize(self, w, h):
         """
@@ -185,9 +175,12 @@ class Pixmap(object):
         @param h: height
         """
         
-        new_pmap = gtk.gdk.Pixmap(None, w, h, _DEPTH)
+        cmap = gtk.gdk.screen_get_default().get_rgba_colormap()
+        
+        new_pmap = gtk.gdk.Pixmap(None, w, h, self.__depth)
         self.__gc = new_pmap.new_gc()
-        self.__cmap = new_pmap.get_colormap()
+        self.__cmap = new_pmap.get_colormap() or cmap
+        new_pmap.set_colormap(self.__cmap)
         del self.__pixmap
         self.__pixmap = new_pmap
 
@@ -311,6 +304,26 @@ class Pixmap(object):
         return (self.__width, self.__height)
 
 
+    def clear_translucent(self):
+
+        import cairo
+        ctx = self.__pixmap.cairo_create()
+        ctx.save()
+        ctx.set_source_rgba(1, 1, 1, 0)
+        ctx.set_operator(cairo.OPERATOR_SOURCE)
+        ctx.paint()
+        ctx.restore()
+        
+        if (self.__buffered):
+            ctx = self.__buffer.cairo_create()
+            ctx.save()
+            ctx.set_source_rgba(1, 1, 1, 0)
+            ctx.set_operator(cairo.OPERATOR_SOURCE)
+            ctx.paint()
+            ctx.restore()
+        
+
+
     def fill_area(self, x, y, w, h, color):
         """
         Fills the given area with the given color (opaquely).
@@ -426,28 +439,28 @@ class Pixmap(object):
         """
 
         _reload(font, color)
-        _PANGO_LAYOUT.set_font_description(font)
-        _PANGO_LAYOUT.set_text("")
-        _PANGO_LAYOUT.set_markup("")
+        self.__layout.set_font_description(font)
+        self.__layout.set_text("")
+        self.__layout.set_markup("")
         if (use_markup):
-            _PANGO_LAYOUT.set_markup(text)
+            self.__layout.set_markup(text)
         else:
-            _PANGO_LAYOUT.set_text(text)
+            self.__layout.set_text(text)
         self.__gc.set_foreground(self.__cmap.alloc_color(str(color)))
         
-        rect_a, rect_b = _PANGO_LAYOUT.get_extents()
+        rect_a, rect_b = self.__layout.get_extents()
         nil, nil, w, h = rect_b
         w /= pango.SCALE
         h /= pango.SCALE
         w = min(w, self.__width - x)
         h = min(h, self.__height - y)
         
-        self.__pixmap.draw_layout(self.__gc, x, y, _PANGO_LAYOUT)
+        self.__pixmap.draw_layout(self.__gc, x, y, self.__layout)
 
         if (self.__buffered):        
             self.__buffer_gc.set_foreground(
                                        self.__buffer_cmap.alloc_color(str(color)))
-            self.__buffer.draw_layout(self.__buffer_gc, x, y, _PANGO_LAYOUT)
+            self.__buffer.draw_layout(self.__buffer_gc, x, y, self.__layout)
         
         
     def draw_pixbuf(self, pbuf, x, y, w = -1, h = -1, scale = False):

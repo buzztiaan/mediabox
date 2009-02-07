@@ -75,8 +75,8 @@ class HilightingWidget(Widget):
         #def move_box(from_x, from_y, to_x, to_y):
         def move_box(params):
             from_x, from_y, to_x, to_y = params
-            dx = (to_x - from_x) / 5
-            dy = (to_y - from_y) / 5
+            dx = (to_x - from_x) / 3
+            dy = (to_y - from_y) / 3
             if (abs(dx) > 0 or abs(dy) > 0):
                 self.__move_cursor(from_x, from_y, dx, dy)
                 self.__box_pos = (from_x + dx, from_y + dy)
