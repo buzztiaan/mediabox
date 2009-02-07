@@ -2,6 +2,8 @@
 Parser for FLAC tags.
 """
 
+import mapping
+
 
 def _read_int(fd, size):
 
@@ -43,6 +45,10 @@ def _parse_tagsoup(soup):
             key = e[:idx]
             #print "  " + key
             value = e[idx + 1:-1]
+
+            if (key.upper() == "GENRE"):
+                value = mapping.resolve_genre(value)
+
             tags[key.upper()] = value
     #end for
 

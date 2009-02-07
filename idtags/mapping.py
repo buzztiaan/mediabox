@@ -180,3 +180,26 @@ GENRES = [
   "Synthpop"
 ] + ["Unknown"] * 108
 
+
+
+def resolve_genre(value):
+
+    if (value.isdigit()):
+        try:
+            genre = GENRES[int(value)]
+        except:
+            genre = value
+
+    elif ("(" in value and ")" in value):
+        idx1 = value.find("(")
+        idx2 = value.find(")")
+        try:
+            genre = GENRES[int(value[idx1 + 1:idx2])]
+        except:
+            genre = value
+
+    else:
+        genre = value
+        
+    return genre
+

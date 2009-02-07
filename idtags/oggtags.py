@@ -2,6 +2,8 @@
 Parser for Ogg tags.
 """
 
+import mapping
+
 
 def _read_tagsoup(fd):
 
@@ -33,11 +35,8 @@ def _parse_tagsoup(soup):
             #print "  " + key
             value = e[idx + 1:-1]
             
-            if (key.upper() == "GENRE" and value.isdigit()):
-                v = int(value)
-                if (0 <= v < 256):
-                    value = mapping.GENRES[int(value)]
-            #end if
+            if (key.upper() == "GENRE"):
+                value = mapping.resolve_genre(value)
 
             tags[key.upper()] = value
     #end for

@@ -28,7 +28,7 @@ def _parse_tagsoup(soup):
     else:
         # ID3v1
         tags["COMMENT"] = soup[97:127].strip("\x00")
-    tags["GENRE"] = mapping.GENRES[ord(soup[127])]
+    tags["GENRE"] = mapping.resolve_genre(`ord(soup[127])`)
 
     return tags
 
