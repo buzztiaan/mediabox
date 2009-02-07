@@ -69,11 +69,11 @@ class MPlayerBackend(AbstractBackend):
                 logging.debug("mplayer backend detected Nokia maemo-device")
                 vo_opts = "-vo xv:ck-method=auto "\
                           "-noslices -hardframedrop " \
-                          "-lavdopts fast:lowres=1,400"
+                          "-lavdopts fast:lowres=1,480"
         
             cmd = "LANG=C %s -quiet -slave " \
                   "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
-                  "-dr -nomenu -idle -osdlevel 0 -idx " \
+                  "-nomenu -idle -osdlevel 0 -idx " \
                   "-cache 256 -cache-min 50 " \
                   "-identify -wid %d %s 2>&1 3>/dev/null" \
                   % (_MPLAYER, self.__window_id, vo_opts)
