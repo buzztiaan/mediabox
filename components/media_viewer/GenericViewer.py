@@ -175,7 +175,7 @@ class GenericViewer(Viewer):
         """
     
         def f():
-            gobject.timeout_add(50, self.__set_view_mode, view_mode)
+            gobject.timeout_add(0, self.__set_view_mode, view_mode)
             
         self.__side_tabs.add_tab(None, name, f)
 
@@ -708,8 +708,9 @@ class GenericViewer(Viewer):
             entry = self.__items[idx - 1]
             self.__list.hilight(idx)
             self.__list.render()
-            gobject.timeout_add(50, self.__load_file, entry,
-                                MediaWidget.DIRECTION_NONE)
+            #gobject.timeout_add(50, self.__load_file, entry,
+            #                    MediaWidget.DIRECTION_NONE)
+            self.__load_file(entry, MediaWidget.DIRECTION_NONE)
 
         elif (button == item.BUTTON_ENQUEUE):
             if (idx == 0):
@@ -736,9 +737,11 @@ class GenericViewer(Viewer):
         elif (button == item.BUTTON_OPEN):
             entry = self.__items[idx - 1]
             if (self.__view_mode == self._VIEWMODE_BROWSER):
-                gobject.timeout_add(50, self.__insert_folder, entry)
+                #gobject.timeout_add(50, self.__insert_folder, entry)
+                self.__insert_folder(entry)
             else:
-                gobject.timeout_add(50, self.__load_folder, entry, None)
+                #gobject.timeout_add(50, self.__load_folder, entry, None)
+                self.__load_folder(entry, None)
                 
         elif (button == item.BUTTON_CLOSE):
             self.__close_subfolder()
@@ -814,7 +817,8 @@ class GenericViewer(Viewer):
         """
 
         if (f.mimetype.endswith("-folder")):    
-            gobject.timeout_add(250, self.__load_folder, f, self.__GO_CHILD)
+            #gobject.timeout_add(250, self.__load_folder, f, self.__GO_CHILD)
+            self.__load_folder(f, self.__GO_CHILD)
                 
         else:
             self.__current_file = f

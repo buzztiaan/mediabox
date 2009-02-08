@@ -409,13 +409,13 @@ class AppWindow(Component, RootPane):
         self.set_enabled(False)
         self.set_frozen(True)
         
-        self.__tab_panel.render()
 
         self.__tab_panel.set_enabled(True)
         self.__tab_panel.set_frozen(False)        
         self.__tab_panel.set_visible(True)
         
         self.__tab_panel.fx_raise()
+        #self.__tab_panel.render()
         
         cw, ch = self.__window_ctrls.get_size()
         tw, th = self.__tab_panel.get_size()
