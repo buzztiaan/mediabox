@@ -43,11 +43,23 @@
 
 
 [FULLSCREEN]
-    UP              UP          -
-    DOWN            DOWN        -
-    LEFT            LEFT        -
-    RIGHT           RIGHT       -
+    UP              VOLUME_UP       -
+    DOWN            VOLUME_DOWN     -
+    LEFT            PREVIOUS        -
+    RIGHT           NEXT            -
     F6              FULLSCREEN      -
     ESCAPE          NAV_MENU        -
+    ENTER           PLAY            -
+    MENU            -               CUSTOM_1
+
+
+# alternative controls for DVD menu
+[CUSTOM_1]
+    UP              NAV_UP          -
+    DOWN            NAV_DOWN        -
+    LEFT            NAV_LEFT        -
+    RIGHT           NAV_RIGHT       -
     ENTER           NAV_ENTER       -
+    ESCAPE          NAV_MENU
+    MENU            -               FULLSCREEN
 
