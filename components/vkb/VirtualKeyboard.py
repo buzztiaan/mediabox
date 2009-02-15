@@ -46,6 +46,12 @@ class VirtualKeyboard(gtk.Window, Component):
         self.set_size_request(800, 150)
         self.connect("expose-event", self.__on_expose)
         self.set_app_paintable(True)
+
+        # switch on compositing
+        scr = self.get_screen()
+        cmap = scr.get_rgba_colormap() or scr.get_rgb_colormap()
+        self.set_colormap(cmap)
+
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                         gtk.gdk.BUTTON_RELEASE_MASK |
                         gtk.gdk.POINTER_MOTION_MASK |

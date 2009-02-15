@@ -16,13 +16,14 @@ class Container(Component):
     The Container loads and instantiates components.
     """
     
-    def __init__(self, *paths):
+    def __init__(self, paths, blacklist = []):
         """
         @param paths: paths where to look for components
         """
     
         self.__components = []
         self.__devices = []
+        self.__blacklist = blacklist
         
         Component.__init__(self)
         
@@ -46,6 +47,8 @@ class Container(Component):
             dirs = ["core"] + dirs
 
         for f in dirs:
+            if (f in self.__blacklist): continue
+            
             comppath = os.path.join(path, f)
             if (os.path.isdir(comppath) and 
                   not f.startswith(".")):

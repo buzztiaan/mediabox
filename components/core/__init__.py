@@ -2,21 +2,13 @@ def get_classes():
 
     from AppWindow import AppWindow
     from IdleDetector import IdleDetector
-    from Preferences import Preferences
-    from ConfigBackend import ConfigBackend
-    from ConfigTheme import ConfigTheme
     from DirectoryService import DirectoryService
     from MediaWidgetRegistry import MediaWidgetRegistry
     from NotificationService import NotificationService
 
-    return [AppWindow, IdleDetector, Preferences, ConfigTheme, ConfigBackend,
-            DirectoryService, MediaWidgetRegistry, NotificationService]
+    return [AppWindow, IdleDetector, DirectoryService, MediaWidgetRegistry,
+            NotificationService]
     
-    
-def get_devices():
-
-    from LocalDevice import LocalDevice
-    return [LocalDevice]
     
     
 messages = [
@@ -56,6 +48,9 @@ messages = [
     "CORE_EV_APP_IDLE_BEGIN",
     "CORE_EV_APP_IDLE_END",
     "CORE_EV_MAY_BLANK_DISPLAY",  # (value)
+    
+    "CORE_ACT_APP_MINIMIZE",
+    "CORE_ACT_APP_CLOSE",
     
     # Notifications about adding or removing storage devices.
     #

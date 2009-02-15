@@ -457,15 +457,23 @@ class YouTube(Device):
                 #end if
             #end if
 
-
+        
+        # handle locally saved videos
         if (f.resource.startswith("/")): return f.resource
         
         self.emit_event(msgs.UI_ACT_SHOW_MESSAGE,
                         "Requesting Video",
                         "- %s -" % f.name,
                         theme.youtube_device)
+
+        # download high-quality version, if desired
+        if (config.get_hi_quality()):
+            url = f.resource + "&fmt=18"
+        else:
+            url = f.resource
+            
         try:
-            flv = self.__get_flv(f.resource)
+            flv = self.__get_flv(url)
         except:
             return ""
         self.emit_event(msgs.UI_ACT_HIDE_MESSAGE)

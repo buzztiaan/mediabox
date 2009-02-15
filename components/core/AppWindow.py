@@ -1,4 +1,4 @@
-from com import Component, Viewer, msgs
+from com import Component, Viewer, Widget, msgs
 import components
 from utils import logging
 
@@ -6,8 +6,6 @@ from mediabox.MainWindow import MainWindow
 from mediabox.RootPane import RootPane
 from mediabox.TitlePanel import TitlePanel
 from mediabox.ControlPanel import ControlPanel
-from mediabox.TabPanel import TabPanel
-from mediabox.WindowControls import WindowControls
 from mediabox.ViewerState import ViewerState
 from ui.Image import Image
 from ui.Pixmap import Pixmap
@@ -92,8 +90,8 @@ class AppWindow(Component, RootPane):
 
         
         Component.__init__(self)
-        RootPane.set_event_sensor(self.__window)
         RootPane.__init__(self)
+        self.set_window(self.__window)
         self.set_size(w, h)
         self.set_screen(screen)      
 
@@ -124,22 +122,6 @@ class AppWindow(Component, RootPane):
         self.__ctrl_panel = ControlPanel()
         self.__ctrl_panel.set_visible(False)
 
-        # tab panel and window controls
-        self.__tab_panel = TabPanel()
-        self.__tab_panel.set_visible(False)
-        self.__tab_panel.add_observer(self.__on_observe_tabs)
-        self.add(self.__tab_panel)
-        
-        self.__window_ctrls = WindowControls()
-        self.__window_ctrls.set_visible(False)
-        self.__window_ctrls.add_observer(self.__on_observe_window_ctrls)
-
-        self.__touch_back_area = EventBox()
-        self.__touch_back_area.connect_button_pressed(
-                                          lambda x,y:self.__hide_tabs())
-        self.__touch_back_area.set_visible(False)
-        self.add(self.__touch_back_area)
-
         self.__startup()
         
        
@@ -155,8 +137,6 @@ class AppWindow(Component, RootPane):
                                         "",
                                         theme.mb_viewer_audio]),
                    (self.__register_viewers, []),
-                   (self.add, [self.__tab_panel]),
-                   (self.add, [self.__window_ctrls]),
                    (self.__add_panels, []),
                    (self.__scan_at_startup, []),
                    (self.hide_overlay, []),
@@ -204,6 +184,7 @@ class AppWindow(Component, RootPane):
         current_viewer = config.current_viewer()
         current_device_id = config.current_device()
         self.__select_viewer_by_name(current_viewer)
+        self.emit_event(msgs.UI_ACT_SELECT_VIEWER, current_viewer)
         self.emit_event(msgs.UI_ACT_SELECT_DEVICE, current_device_id)
 
 
@@ -216,7 +197,6 @@ class AppWindow(Component, RootPane):
 
         for viewer in self.__viewers:
             logging.info("registering viewer [%s]", viewer)
-            self.__tab_panel.add_viewer(viewer)
             self.add(viewer)
             viewer.set_visible(False)        
 
@@ -399,78 +379,9 @@ class AppWindow(Component, RootPane):
         Reacts on pressing the menu button.
         """
         
-        self.__show_tabs()
+        #self.__show_tabs()
+        self.emit_message(msgs.INPUT_EV_MENU)
 
-
-    def __show_tabs(self):
-          
-        w, h = self.get_size()
-
-        self.set_enabled(False)
-        self.set_frozen(True)
-        
-
-        self.__tab_panel.set_enabled(True)
-        self.__tab_panel.set_frozen(False)        
-        self.__tab_panel.set_visible(True)
-        
-        self.__tab_panel.fx_raise()
-        #self.__tab_panel.render()
-        
-        cw, ch = self.__window_ctrls.get_size()
-        tw, th = self.__tab_panel.get_size()
-        self.__tab_panel.set_pos(0, h - th)
-
-        self.__window_ctrls.set_frozen(False)
-        self.__window_ctrls.set_enabled(True)
-        self.__window_ctrls.set_geometry(w - cw, 0, cw, ch)        
-        self.__window_ctrls.set_visible(True)
-        self.__window_ctrls.fx_slide_in()
-        
-        self.__touch_back_area.set_visible(True)
-        self.__touch_back_area.set_enabled(True)
-        self.__touch_back_area.set_geometry(0, 0, w - cw, h - th)
-        
-        self.emit_event(msgs.INPUT_EV_CONTEXT_MENU)
-        self.emit_event(msgs.UI_EV_VIEWER_CHANGED, -1)
-
-
-    def __hide_tabs(self):
-    
-        self.__window_ctrls.set_visible(False)
-        self.__window_ctrls.fx_slide_out()
-        self.__tab_panel.set_visible(False)
-        self.__touch_back_area.set_visible(False)
-
-        self.__tab_panel.fx_lower()
-        self.set_enabled(True)
-        self.set_frozen(False)
-        self.render_buffered()
-        
-        self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
-        try:
-            viewer_idx = self.__viewers.index(self.__current_viewer)
-        except:
-            viewer_idx = 0
-        self.emit_event(msgs.UI_EV_VIEWER_CHANGED, viewer_idx)
-
-
-    def __select_tab(self, idx):
-
-        if (self.__viewers[idx] != self.__current_viewer):
-            self.__window_ctrls.set_visible(False)
-            self.__window_ctrls.fx_slide_out()
-            self.__tab_panel.set_visible(False)
-            self.__touch_back_area.set_visible(False)
-
-            self.set_enabled(True)
-            self.set_frozen(False)
-            self.__select_viewer(idx)
-            
-        else:
-            self.__hide_tabs()
-
-        
 
 
     def __scan_media(self, force_rebuild):
@@ -519,7 +430,6 @@ class AppWindow(Component, RootPane):
             screen = Pixmap(self.__window.window)
             self.set_screen(screen)
             self.set_size(w, h)
-            self.__tab_panel.set_size(w, 0)
             self.render_buffered()
 
     def __on_expose(self, src, ev):
@@ -530,18 +440,7 @@ class AppWindow(Component, RootPane):
 
 
     def __on_key(self, src, ev):
-
-        # show memory consumption      
-        import os
-        pid = os.getpid()
-        size = int(open("/proc/%d/status" % pid, "r").read().splitlines()[15].split()[1])
-        size /= 1024.0
-        logging.debug("current Resident Set Size: %0.02f MB", size)
-
-
-        #if (not self.is_enabled()): return
-        #if (self.have_animation_lock()): return
-    
+   
         keyval = ev.keyval
         key = gtk.gdk.keyval_name(keyval)
 
@@ -586,25 +485,13 @@ class AppWindow(Component, RootPane):
             self.emit_event(msgs.HWKEY_EV_EJECT)  # deprecated
             
         elif (key == "Up"):
-            if (self.__tab_panel.is_visible()):
-                self.__tab_panel.up()
-            else:
-                self.emit_event(msgs.HWKEY_EV_UP)
+            self.emit_event(msgs.HWKEY_EV_UP)
         elif (key == "Down"):
-            if (self.__tab_panel.is_visible()):
-                self.__tab_panel.down()
-            else:
-                self.emit_event(msgs.HWKEY_EV_DOWN)
+            self.emit_event(msgs.HWKEY_EV_DOWN)
         elif (key == "Left"):
-            if (self.__tab_panel.is_visible()):
-                self.__tab_panel.left()
-            else:
-                self.emit_event(msgs.HWKEY_EV_LEFT)
+            self.emit_event(msgs.HWKEY_EV_LEFT)
         elif (key == "Right"):
-            if (self.__tab_panel.is_visible()):
-                self.__tab_panel.right()
-            else:
-                self.emit_event(msgs.HWKEY_EV_RIGHT)
+             self.emit_event(msgs.HWKEY_EV_RIGHT)
 
             
         elif (key == "XF86Headset"):
@@ -632,35 +519,8 @@ class AppWindow(Component, RootPane):
         """
         Displays the virtual keyboard.
         """
-
-        #def f(src, cmd, *args):            
-        #    if (cmd == src.OBS_DELETE):
-        #        term = self.__get_search_term()
-        #        term = term[:-1]
-        #        self.__set_search_term(term)
-        #    
-        #    elif (cmd == src.OBS_KEY):
-        #        key = args[0]
-        #        
-        #        term = self.__get_search_term()
-        #        term += key.lower()
-        #        self.__set_search_term(term)
-
-
-        #w, h = self.get_size()
-    
-        #osim = OnScreenInputMethod()
-        #osim.add_observer(f)
-        #osim.popup(self.__window)
-        
+       
         self.emit_event(msgs.VKB_ACT_SHOW, self.__window)
-        
-        #try:
-        #    hildon_input_method.show_im(self.__window, f)
-        #except:
-        #    # only available on maemo
-        #    pass
-        #self.__set_search_term("")
 
 
 
@@ -702,39 +562,6 @@ class AppWindow(Component, RootPane):
         if (term):
             self.emit_event(msgs.CORE_ACT_SEARCH_ITEM, term)
             
-        
-
-    def __on_observe_window_ctrls(self, src, cmd, *args):
-    
-        if (cmd == src.OBS_MINIMIZE_WINDOW):
-            self.__window.iconify()
-
-        elif (cmd == src.OBS_MAXIMIZE_WINDOW):
-            #self.set_frozen(False)
-            self.__is_fullscreen = not self.__is_fullscreen
-            if (self.__is_fullscreen): self.__window.fullscreen()
-            else: self.__window.unfullscreen()
-
-        elif (cmd == src.OBS_CLOSE_WINDOW):
-            self.__try_quit()
-
-
-    def __on_observe_tabs(self, src, cmd, *args):
-    
-        if (cmd == src.OBS_TAB_SELECTED):
-            idx = args[0]
-            self.__select_tab(idx)
-        
-        elif (cmd == src.OBS_REPEAT_MODE):
-            mode = args[0]
-            config.set_repeat_mode(mode)
-            self.__prepare_collection_caps()
-            
-        elif (cmd == src.OBS_SHUFFLE_MODE):
-            mode = args[0]
-            config.set_shuffle_mode(mode)
-            self.__prepare_collection_caps()
-
 
     def __on_observe_strip(self, src, cmd, *args):
     
@@ -753,7 +580,7 @@ class AppWindow(Component, RootPane):
                 self.__select_item(idx)
                 handled = True
             elif (0 <= px <= 80 and py >= h - 60):
-                self.__show_tabs()
+                self.emit_message(msgs.INPUT_EV_MENU)
                 handled = True
 
         return handled        
@@ -765,6 +592,8 @@ class AppWindow(Component, RootPane):
             component = args[0]
             if (isinstance(component, Viewer)):
                 self.__viewers.append(component)
+            elif (isinstance(component, Widget)):
+                self.add(component)
     
         elif (event == msgs.COM_EV_LOADING_MODULE):
             name = args[0]
@@ -773,6 +602,12 @@ class AppWindow(Component, RootPane):
                               theme.mb_viewer_audio)
             
     
+        elif (event == msgs.CORE_ACT_APP_MINIMIZE):
+            self.__window.iconify()
+            
+        elif (event == msgs.CORE_ACT_APP_CLOSE):
+            self.__try_quit()
+
         elif (event == msgs.CORE_ACT_SCAN_MEDIA):
             force_rebuild = args[0]
             self.__scan_media(force_rebuild)
@@ -787,17 +622,8 @@ class AppWindow(Component, RootPane):
 
         elif (event == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             self.hide_overlay()
-            
 
-   
-        #elif (event == msgs.CORE_EV_DEVICE_ADDED):
-        #    ident, dev = args
-        #    gobject.timeout_add(0, self.__scan_media, True)
-        
-        #elif (event == msgs.CORE_ACT_SHOW_MENU):
-        #    self.__show_tabs()
-        #    self.drop_event()
-        
+
         elif (event == msgs.CORE_EV_THEME_CHANGED):
             from mediabox import thumbnail
             thumbnail.clear_cache()
@@ -817,6 +643,7 @@ class AppWindow(Component, RootPane):
             
         elif (event == msgs.UI_ACT_THAW):
             self.set_frozen(False)
+            self.__prepare_collection_caps()
             self.render_buffered()
             
         elif (event == msgs.UI_ACT_RENDER):
@@ -912,23 +739,7 @@ class AppWindow(Component, RootPane):
         elif (event == msgs.MEDIA_EV_VOLUME_CHANGED):
             percent = args[0]
             self.__title_panel.set_volume(percent)
-            
-        elif (event == msgs.MEDIA_EV_LOADED):
-            viewer, f = args
-            idx = self.__viewers.index(viewer)
-            self.__tab_panel.set_currently_playing(idx)
 
-
-        elif (event == msgs.INPUT_EV_MENU):
-            if (self.__tab_panel.is_visible()):
-                self.__tab_panel.select_current()
-            else:
-                self.__show_tabs()
-
-        elif (event == msgs.INPUT_EV_ENTER):
-            if (self.__tab_panel.is_visible()):
-                self.__tab_panel.select_current()
-                
         elif (event == msgs.HWKEY_EV_BACKSPACE):
             term = self.__get_search_term()
             if (term):
@@ -979,10 +790,8 @@ class AppWindow(Component, RootPane):
         viewers = [ v for v in self.__viewers if repr(v) == name ]
         if (viewers):
             idx = self.__viewers.index(viewers[0])
-            self.__tab_panel.select_viewer(idx)
             self.__select_viewer(idx)
         else:
-            self.__tab_panel.select_viewer(0)
             self.__select_viewer(0)
             
 
@@ -1017,7 +826,6 @@ class AppWindow(Component, RootPane):
         
         self.set_frozen(False)
         self.fx_slide_in() #render() #_buffered()
-        self.__tab_panel.close()
         #self.render()
         self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
         self.emit_event(msgs.UI_EV_VIEWER_CHANGED, idx)

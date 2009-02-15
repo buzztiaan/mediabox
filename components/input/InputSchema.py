@@ -68,8 +68,8 @@ class InputSchema(object):
             self.__event, new_context = self.__mapping[(key, None)]
 
         else:
-            logging.warning("key [%s] undefined for the current input context",
-                            msgs._id_to_name(key))
+            #logging.warning("key [%s] undefined for the current input context",
+            #                msgs._id_to_name(key))
             self.__event = None
             new_context = None
         

@@ -5,28 +5,51 @@ from mediabox import values
 from utils import logging
 import os
 import sys
+import getopt
 
 
-# TODO: use getopt
+_LOG_LEVELS = [logging.OFF, logging.ERROR, logging.WARNING,
+               logging.INFO, logging.DEBUG]
+
+
 try:
-    arg = sys.argv[1]
+    opts, args = getopt.getopt(sys.argv[1:],
+                               "vqh", ["plugin-dir=", "blacklist-plugins=", "help"])
 except:
-    arg = ""
-if (arg == "-vvv"):
-    logging.set_level(logging.DEBUG)
-elif (arg == "-vv"):
-    logging.set_level(logging.INFO)
-elif (arg == "-v"):
-    logging.set_level(logging.WARNING)
-elif (arg == "-q"):
-    logging.set_level(logging.OFF)
-else:
-    logging.set_level(logging.ERROR)
+    opts = [("--help", None)]
+
+log_count = 1
+plugin_dirs = [os.path.join(values.MEDIABOX_DIR, "components")]
+blacklist = []
+for o, v in opts:
+    if (o == "-v"):
+        log_count += 1
+    elif (o == "-q"):
+        log_count = 0
+    elif (o == "--plugin-dir"):
+        plugin_dirs.append(os.path.abspath(v))
+    elif (o == "--blacklist-plugins"):
+        blacklist = v.split(",")
+    elif (o == "-h" or o == "--help"):
+        print "Usage: %s [-v|-q] [--blacklist-plugins=plugin1,plugin2,...] [-h|--help]" \
+              % os.path.basename(sys.argv[0])
+        print ""
+        print "  -h, --help            Show this help."
+        print "  -q                    Turn off logging."
+        print "  -v                    Increase logging verbosity. Use up to three -v."
+        print "  --blacklist-plugins   Don't load the given plugins. Separate plugin"
+        print "                        names by commas."
+        print "  --plugin-dir          Load additional plugins from the given directory."
+        sys.exit(0)
+#end for
+
+logging.set_level(_LOG_LEVELS[log_count])
 
 
 logging.debug("initializing application")
-container = Container(os.path.join(values.MEDIABOX_DIR, "components"),
-                      os.path.join(values.MEDIABOX_DIR, "components_extra"))
+container = Container(plugin_dirs, #[os.path.join(values.MEDIABOX_DIR, "components"),
+                       #os.path.join(values.MEDIABOX_DIR, "components_extra")],
+                       blacklist)
 
 logging.debug("running application")
 import gtk

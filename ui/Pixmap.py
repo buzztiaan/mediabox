@@ -6,6 +6,15 @@ import gtk
 import pango
 
 
+scr = gtk.gdk.screen_get_default()
+if (scr.get_rgba_colormap()):
+    _CMAP = scr.get_rgba_colormap()
+    _DEPTH = 32
+else:
+    _CMAP = scr.get_rgb_colormap()
+    _DEPTH = gtk.gdk.get_default_root_window().get_depth()
+
+
 #_PANGO_CTX = gtk.HBox().get_pango_context()
 #_PANGO_LAYOUT = pango.Layout(_PANGO_CTX)
 
@@ -14,23 +23,16 @@ _pango_layouts = {}
 
 
 
-def _get_pango_layout(rgba = False):
-
-    if (rgba):
-        depth = 32
-        cmap = gtk.gdk.screen_get_default().get_rgba_colormap()
-    else:
-        depth = gtk.gdk.get_default_root_window().get_depth()
-        cmap = gtk.gdk.screen_get_default().get_rgb_colormap()
-        
-    if (not depth in _pango_layouts):
+def _get_pango_layout():
+       
+    if (not _DEPTH in _pango_layouts):
         w = gtk.HBox()
-        w.set_colormap(cmap)        
+        w.set_colormap(_CMAP)        
         ctx = gtk.HBox().get_pango_context()
         layout = pango.Layout(ctx)
-        _pango_layouts[depth] = layout
+        _pango_layouts[_DEPTH] = layout
         
-    return _pango_layouts[depth]
+    return _pango_layouts[_DEPTH]
     
 
 
@@ -89,7 +91,7 @@ class Pixmap(object):
     RIGHT = 8
     
 
-    def __init__(self, pmap, w = 0, h = 0, rgba = False):
+    def __init__(self, pmap, w = 0, h = 0):
         """
         Creates a new Pixmap object. If C{pmap} is C{None}, the pixmap will
         be off-screen, otherwise it will be on-screen.
@@ -99,30 +101,24 @@ class Pixmap(object):
         @param h: height
         """
 
-        cmap = gtk.gdk.screen_get_default().get_rgba_colormap()
-        if (rgba):
-            self.__depth = 32
-            self.__layout = _get_pango_layout(True)
-        else:
-            self.__depth = gtk.gdk.get_default_root_window().get_depth()
-            self.__layout = _get_pango_layout(False)
+        self.__layout = _get_pango_layout()
 
         if (pmap):
             self.__pixmap = pmap
             w, h = pmap.get_size()
             self.__buffered = True
-            self.__buffer = gtk.gdk.Pixmap(None, w, h, self.__depth)
-            self.__buffer_cmap = self.__buffer.get_colormap() or cmap
+            self.__buffer = gtk.gdk.Pixmap(None, w, h, _DEPTH)
+            self.__buffer_cmap = self.__buffer.get_colormap() or _CMAP
             self.__buffer.set_colormap(self.__buffer_cmap)
             self.__buffer_gc = self.__buffer.new_gc()
         else:
-            self.__pixmap = gtk.gdk.Pixmap(None, w, h, self.__depth)
+            self.__pixmap = gtk.gdk.Pixmap(None, w, h, _DEPTH)
             self.__buffered = False
             
         self.__width = w
         self.__height = h
         
-        self.__cmap = self.__pixmap.get_colormap() or cmap
+        self.__cmap = self.__pixmap.get_colormap() or _CMAP
         self.__pixmap.set_colormap(self.__cmap)
         self.__gc = self.__pixmap.new_gc()
                 
@@ -177,7 +173,7 @@ class Pixmap(object):
         
         cmap = gtk.gdk.screen_get_default().get_rgba_colormap()
         
-        new_pmap = gtk.gdk.Pixmap(None, w, h, self.__depth)
+        new_pmap = gtk.gdk.Pixmap(None, w, h, _DEPTH)
         self.__gc = new_pmap.new_gc()
         self.__cmap = new_pmap.get_colormap() or cmap
         new_pmap.set_colormap(self.__cmap)

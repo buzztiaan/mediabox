@@ -48,7 +48,8 @@ class Image(MultiTouchWidget, Observable):
         self.__bg_color = gtk.gdk.color_parse("#000000")
         
         # offscreen drawing pixmap
-        self.__offscreen = Pixmap(None, 800, 480)
+        self.__offscreen = Pixmap(None, gtk.gdk.screen_width(),
+                                        gtk.gdk.screen_height())
 
         # original size of the image
         self.__original_size = (0, 0)
@@ -129,7 +130,9 @@ class Image(MultiTouchWidget, Observable):
 
         # create a client-side pixmap for rendering
         self.__buffer = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
-                                       True, 8, 800, 480)
+                                       True, 8,
+                                       gtk.gdk.screen_width(),
+                                       gtk.gdk.screen_height())
 
 
     def render_this(self):
@@ -353,7 +356,7 @@ class Image(MultiTouchWidget, Observable):
         from_value = self.__zoom_value
         to_value = self.__zoom_levels[level] / 100.0
         
-        self.animate(50, f, [from_value, to_value])
+        self.animate(25, f, [from_value, to_value])
         self.__zoom_level = level
         
       

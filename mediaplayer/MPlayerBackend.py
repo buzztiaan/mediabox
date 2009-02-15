@@ -68,7 +68,7 @@ class MPlayerBackend(AbstractBackend):
             else:
                 logging.debug("mplayer backend detected Nokia maemo-device")
                 vo_opts = "-vo xv:ck-method=auto "\
-                          "-noslices -hardframedrop " \
+                          "-noslices -framedrop " \
                           "-lavdopts fast:lowres=1,480"
         
             cmd = "LANG=C %s -quiet -slave " \
@@ -407,6 +407,10 @@ class MPlayerBackend(AbstractBackend):
         elif (data.startswith("Error opening/initializing ")):
             #print "ERROR OPENING"
             self._report_error(self.ERR_INVALID, "")
+            
+        elif (data.startswith("- MPlayer crashed.")):
+            self._report_error(self.ERR_INVALID, "")
+            self.__stop_mplayer()
 
         elif (data.startswith("Server returned 400:Server Full")):
             #print "ERROR 400:Server Full"

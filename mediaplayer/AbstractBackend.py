@@ -233,8 +233,12 @@ class AbstractBackend(Observable):
                     self.update_observer(self.OBS_POSITION, self.__context_id,
                                          pos, total)
 
+            if (total != 0 and total - pos < 1):
+                delay = 300
+            else:
+                delay = 1000
             self.__position_handler = \
-                  gobject.timeout_add(300, self.__update_position,
+                  gobject.timeout_add(delay, self.__update_position,
                                       beginpos, timestamp)
 
             # detect EOF
@@ -300,7 +304,7 @@ class AbstractBackend(Observable):
         self.stop()
 
         self._load(uri)
-        self._set_volume(self.__volume)
+        #self._set_volume(self.__volume)
         
         self.play()
 
@@ -423,6 +427,7 @@ class AbstractBackend(Observable):
         @param volume: volume as a value between 0 and 100
         """
 
+        self.__volume = volume
         self._set_volume(volume)    
         
         

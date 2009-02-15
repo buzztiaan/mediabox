@@ -32,6 +32,16 @@ def set_level(level):
     
     _level = level
     
+    
+def get_level():
+    """
+    Returns the current log level.
+    
+    @return: log level
+    """
+    
+    return _level
+    
 
 def is_level(level):
     """

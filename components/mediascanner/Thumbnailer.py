@@ -51,6 +51,7 @@ class Thumbnailer(Component):
         elif (msg == msgs.MEDIASCANNER_SVC_COPY_THUMBNAIL):
             f1, f2 = args
             self.__copy_thumbnail(f1, f2)
+            return 0
 
         elif (msg == msgs.MEDIASCANNER_SVC_SET_THUMBNAIL):
             f, pbuf = args
@@ -111,9 +112,9 @@ class Thumbnailer(Component):
                 # still loading
                 data[0] += d
                 
-            else:
+            elif (a == t):
                 # aborted or finished
-                self.__load_from_image(data, thumbnail_path)
+                self.__load_from_image(data[0], thumbnail_path)
                 cb(thumbnail_path, *args)
 
 

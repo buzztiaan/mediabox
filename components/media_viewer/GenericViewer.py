@@ -293,8 +293,11 @@ class GenericViewer(Viewer):
         # show playable items
         elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
             for entry in self.__playable_items:
-                tn = FileThumbnail(None, entry)
-                items_to_thumbnail.append((None, tn, entry))
+                thumb = self.call_service(
+                    msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, entry) or None
+                tn = FileThumbnail(thumb, entry)
+                if (not thumb):
+                    items_to_thumbnail.append((None, tn, entry))
                 strip_items.append(tn)
             #end for
             
@@ -795,7 +798,6 @@ class GenericViewer(Viewer):
         self.__path_stack = []
         
         root = device.get_root()
-        print "LOAD DEVICE", device, root
         
         if (self.__current_device in self.__device_items):
             strip_index = self.__device_items.index(self.__current_device)        

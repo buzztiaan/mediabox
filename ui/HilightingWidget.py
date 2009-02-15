@@ -45,8 +45,9 @@ class HilightingWidget(Widget):
         
     def overlay_this(self):
     
-        x, y = self.__box_pos
-        self.__move_cursor(x, y, 0, 0)
+        if (self.__hilight_box):
+            x, y = self.__box_pos
+            self.__move_cursor(x, y, 0, 0)
 
 
     def set_hilighting_box(self, pbuf):

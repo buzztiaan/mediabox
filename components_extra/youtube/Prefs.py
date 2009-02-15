@@ -36,11 +36,11 @@ class Prefs(Configurator):
         chbox.connect_changed(self.__on_select_cache_location)
         self.__vbox.add(chbox)
 
-        chk = CheckBox(False)
-        #chk.connect_checked()
+        chk = CheckBox(config.get_hi_quality())
+        chk.connect_checked(self.__on_check_hi_quality)
         self.__vbox.add(chk)
-        lbl = Label("Load high-quality version of video if available\n"
-                    "(this feature is not yet available)",
+        lbl = Label("Retrieve high-quality version of video if available\n"
+                    "",
                     theme.font_mb_plain, theme.color_mb_listitem_text)        
         chk.add(lbl)
         
@@ -60,4 +60,9 @@ class Prefs(Configurator):
     def __on_select_cache_location(self, location):
     
         config.set_cache_folder(location)
+
+
+    def __on_check_hi_quality(self, v):
+    
+        config.set_hi_quality(v)
 

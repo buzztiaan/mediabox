@@ -25,9 +25,7 @@ class ImageWidget(MediaWidget):
         self.__uri = ""
     
         MediaWidget.__init__(self)
-        
-        self.__layout = self.get_window()
-        
+              
         # image
         self.__image = Image()
         self.__image.add_observer(self.__on_observe_image)

@@ -2,6 +2,8 @@
 Every widget is derived from this base class.
 """
 
+from utils import logging
+
 import time
 import threading
 import gtk
@@ -23,10 +25,12 @@ class Widget(object):
     # static lock for animations
     __animation_lock = threading.Event()
 
-    # widget instances
+    # all widget instances
     __instances = []
 
-    _esens = None
+   
+    # event zones; table: ident -> (x, y, w, h, tstamp, cb)
+    _zones = {}
         
 
     def __init__(self):
@@ -38,8 +42,9 @@ class Widget(object):
         self.__children = []
         self.__parent = None
     
-        self.__event_sensor = self._esens
         self.__event_handlers = {}
+        self.__locked_zone = None
+        
         self.__is_enabled = True
         self.__is_frozen = False
         self.__is_visible = True
@@ -52,7 +57,30 @@ class Widget(object):
         self.__clip_rect = None
         
         self.__screen = None
+        self.__window = None
         self.__instances.append(self)
+          
+          
+    def _handle_event(self, ev, px, py, *args):
+    
+        zone = None
+        zone_tstamp = 0
+        
+        for x, y, w, h, tstamp, cb in self._zones.values():
+            if (x <= px <= x + w and y <= py <= y + h and tstamp > zone_tstamp):
+                zone = cb
+                zone_tstamp = tstamp
+        #end for
+        
+        if (zone):
+            cb = zone or self.__locked_zone
+            cb(ev, px, py, *args)
+            
+            if (ev == Widget.EVENT_BUTTON_PRESS):
+                self.__locked_zone = zone
+            elif (ev == Widget.EVENT_BUTTON_RELEASE):
+                self.__locked_zone = None
+
           
           
     def send_event(self, ev, *args):
@@ -230,16 +258,28 @@ class Widget(object):
             screen.set_clip_rect(None)
             
         
-    def set_zone(self, ident, x, y, w, h):
+    def __set_zone(self, ident, x, y, w, h):
         """
-        Registers a zone at the event sensor. If the zone already exists,
-        only its coordinates are updated.
+        Registers an event zone. If the zone already exists, only its
+        coordinates are updated.
         """
     
         #print "ZONE", x, y, w, h, ident
-        self.__event_sensor.set_zone(ident, x, y, w, h, time.time(),
-                                     self.__on_action)
+        self._zones[ident] = (x, y, w, h, time.time(), self.__on_action)
         
+        #if (self.__event_sensor):
+        #    self.__event_sensor.set_zone(ident, x, y, w, h, time.time(),
+        #                                 self.__on_action)
+        
+        
+    def __remove_zone(self, ident):
+        """
+        Removes the given event zone.
+        """
+        
+        if (ident in self._zones):
+            del self._zones[ident]
+    
         
     def set_enabled(self, value):
         """
@@ -383,9 +423,9 @@ class Widget(object):
         if (self.is_enabled() and self.__event_handlers):
             x, y = self.get_screen_pos()
             w, h = self.get_size()
-            self.set_zone(self, x, y, w, h)
+            self.__set_zone(self, x, y, w, h)
         else:
-            self.__event_sensor.remove_zone(self)
+            self.__remove_zone(self)
             
             
     def __check_zones(self):
@@ -684,6 +724,16 @@ class Widget(object):
         return self.__event_sensor
         
         
+    def set_window(self, win):
+    
+        self.__window = win
+        try:
+            win.set_widget_for_events(self)
+        except:
+            logging.error("window object %s must implement method " \
+                          "set_widget_for_events" % win)
+        
+        
     def get_window(self):
         """
         Returns the GTK window of the widget hierarchy.
@@ -691,20 +741,11 @@ class Widget(object):
         @return: window
         """
     
-        return self.get_event_sensor()
+        if (self.__parent):
+            return self.__parent.get_window()
+        else:
+            return self.__window
         
-
-    @staticmethod
-    def set_event_sensor(esens):
-        """
-        Sets the event sensor of this widget hierarchy. This has only to be
-        done once.
-        
-        @param esens: event sensor
-        """
-        
-        Widget._esens = esens
-
 
     def animate(self, fps, cb, *args):
         """

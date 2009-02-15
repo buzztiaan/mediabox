@@ -24,6 +24,7 @@ class VideoWidget(MediaWidget):
 
     def __init__(self):
     
+        self.__layout = None
         self.__player = None
         self.__load_handler = None
         mediaplayer.add_observer(self.__on_observe_player)
@@ -35,7 +36,6 @@ class VideoWidget(MediaWidget):
         self.__context_id = 0
 
         MediaWidget.__init__(self)
-        self.__layout = self.get_window()
       
         # video screen
         self.__screen = gtk.DrawingArea()
@@ -44,7 +44,11 @@ class VideoWidget(MediaWidget):
         self.__screen.connect("expose-event", self.__on_expose)
         self.__screen.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                                  gtk.gdk.KEY_PRESS_MASK)
-        self.__layout.put(self.__screen, -1000, 0)
+
+        scr = self.__screen.get_screen()
+        cmap = scr.get_rgb_colormap()
+        self.__screen.set_colormap(cmap)
+
         
         self.__ebox = EventBox()
         self.add(self.__ebox)
@@ -229,6 +233,7 @@ class VideoWidget(MediaWidget):
                 self.__progress.set_message("error")
                 self.__show_error(err)
                 self.__hide_video_screen()
+                self.emit_message(msgs.MEDIA_EV_PAUSE)
             
         elif (cmd == src.OBS_PLAYING):
             ctx = args[0]
@@ -238,6 +243,7 @@ class VideoWidget(MediaWidget):
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)
                 self.__show_video_screen()
+                self.emit_message(msgs.MEDIA_EV_PLAY)
             
         elif (cmd == src.OBS_STOPPED):
             ctx = args[0]
@@ -246,6 +252,7 @@ class VideoWidget(MediaWidget):
                 self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
+                self.emit_message(msgs.MEDIA_EV_PAUSE)
             
         elif (cmd == src.OBS_EOF):
             ctx = args[0]
@@ -259,6 +266,7 @@ class VideoWidget(MediaWidget):
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)                
                 self.send_event(self.EVENT_MEDIA_EOF)
+                self.emit_message(msgs.MEDIA_EV_PAUSE)
 
 
         elif (cmd == src.OBS_ASPECT):
@@ -344,7 +352,11 @@ class VideoWidget(MediaWidget):
             if (w2 > 0): self.__screen.set_size_request(w2, h)
             w2, h2 = w2, h
 
-        self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
+        if (not self.__layout):
+            self.__layout = self.get_window()
+            self.__layout.put(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
+        else:
+            self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
         #print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
         cnt = 0

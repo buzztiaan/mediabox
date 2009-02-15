@@ -1,4 +1,4 @@
-from ui.EventSensor import EventSensor
+from ui.Widget import Widget
 from utils import maemo
 import config
 
@@ -10,10 +10,12 @@ if (maemo.IS_MAEMO): import hildon
 _Window = maemo.IS_MAEMO and hildon.Window or gtk.Window
 
 
-class MainWindow(_Window, EventSensor):
+class MainWindow(_Window):
 
     def __init__(self):
     
+        self.__widget = None
+        
         if (maemo.IS_MAEMO):
             _Window.__init__(self)
             self.fullscreen()
@@ -29,11 +31,25 @@ class MainWindow(_Window, EventSensor):
                 self.set_size_request(800, 480)
                 #self.fullscreen()
 
+        # switch on compositing
+        scr = self.get_screen()
+        cmap = scr.get_rgba_colormap() or scr.get_rgb_colormap()
+        self.set_colormap(cmap)
+
+
         self._fixed = gtk.Fixed()
         self._fixed.show()
         self.add(self._fixed)
 
-        EventSensor.__init__(self, self)
+       
+        self.connect("button-press-event", self.__on_button_pressed)
+        self.connect("button-release-event", self.__on_button_released)
+        self.connect("motion-notify-event", self.__on_motion)
+        
+        self.set_events(gtk.gdk.BUTTON_PRESS_MASK |
+                        gtk.gdk.BUTTON_RELEASE_MASK |
+                        gtk.gdk.POINTER_MOTION_MASK |
+                        gtk.gdk.POINTER_MOTION_HINT_MASK)
         
         
         #def f():
@@ -42,6 +58,29 @@ class MainWindow(_Window, EventSensor):
         #    csr = gtk.gdk.Cursor(gtk.gdk.display_get_default(), pbuf, 0, 0)
         #    self.window.set_cursor(csr)
         #gobject.idle_add(f)
+
+
+    def set_widget_for_events(self, w):
+    
+        self.__widget = w
+
+
+    def __on_button_pressed(self, src, ev):
+
+        px, py = src.get_pointer()
+        self.__widget._handle_event(Widget.EVENT_BUTTON_PRESS, px, py)
+
+        
+    def __on_button_released(self, src, ev):
+
+        px, py = src.get_pointer()
+        self.__widget._handle_event(Widget.EVENT_BUTTON_RELEASE, px, py)
+        
+        
+    def __on_motion(self, src, ev):
+
+        px, py = src.get_pointer()
+        self.__widget._handle_event(Widget.EVENT_MOTION, px, py)
 
 
     def put(self, child, x, y):

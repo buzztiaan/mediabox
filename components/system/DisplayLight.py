@@ -20,13 +20,13 @@ class DisplayLight(Component):
         if (msg == msgs.MEDIA_EV_PLAY):
             lit = config.get_display_lit()
             if (lit == "playing"):
-                self.__disable_light()
+                self.__enable_light()
 
         
         elif (msg in (msgs.MEDIA_EV_PAUSE, msgs.MEDIA_EV_EOF)):
             lit = config.get_display_lit()
             if (lit == "playing"):
-                self.__enable_light()
+                self.__disable_light()
 
     
         elif (msg == msgs.UI_EV_VIEWER_CHANGED):

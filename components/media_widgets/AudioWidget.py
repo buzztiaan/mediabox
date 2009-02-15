@@ -1,3 +1,4 @@
+from com import msgs
 from mediabox.MediaWidget import MediaWidget
 from mediabox import media_bookmarks
 from mediabox import tagreader
@@ -265,6 +266,7 @@ class AudioWidget(MediaWidget):
                 self.__cover.set_active(True)
                 self.__progress.set_message("error")
                 self.__show_error(err)
+                self.emit_message(msgs.MEDIA_EV_PAUSE)
                 
 
         elif (cmd == src.OBS_PLAYING):
@@ -276,6 +278,7 @@ class AudioWidget(MediaWidget):
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)                
                 self.__cover.set_active(False)
+                self.emit_message(msgs.MEDIA_EV_PLAY)
             
         elif (cmd == src.OBS_STOPPED):
             ctx = args[0]
@@ -285,6 +288,7 @@ class AudioWidget(MediaWidget):
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
                 self.__cover.set_active(True)
+                self.emit_message(msgs.MEDIA_EV_PAUSE)
             
         elif (cmd == src.OBS_EOF):
             ctx = args[0]
@@ -295,6 +299,7 @@ class AudioWidget(MediaWidget):
                                            theme.mb_btn_play_2)
                 self.__cover.set_active(True)
                 self.send_event(self.EVENT_MEDIA_EOF)
+                self.emit_message(msgs.MEDIA_EV_PAUSE)
 
         elif (cmd == src.OBS_TAG_INFO):
             ctx, tags = args

@@ -1,4 +1,4 @@
-# Maemo Input Schema
+# HTPC Input Schema
 
 
     F7              VOLUME_UP       -
@@ -50,7 +50,8 @@
     F6              FULLSCREEN      -
     ESCAPE          NAV_MENU        -
     ENTER           PLAY            -
-    MENU            -               CUSTOM_1
+    MENU            MENU            -
+    F5              MENU            -
 
 
 # alternative controls for DVD menu
@@ -60,6 +61,6 @@
     LEFT            NAV_LEFT        -
     RIGHT           NAV_RIGHT       -
     ENTER           NAV_ENTER       -
-    ESCAPE          NAV_MENU
+    ESCAPE          NAV_MENU        -
     MENU            -               FULLSCREEN
 
