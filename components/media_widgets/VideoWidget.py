@@ -131,7 +131,7 @@ class VideoWidget(MediaWidget):
     
     def __hide_video_screen(self):
     
-        self.__screen.show()
+        #self.__screen.show()
         self.__screen.hide()
 
 
@@ -352,10 +352,11 @@ class VideoWidget(MediaWidget):
             if (w2 > 0): self.__screen.set_size_request(w2, h)
             w2, h2 = w2, h
 
-        if (not self.__layout):
-            self.__layout = self.get_window()
-            self.__layout.put(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
-        else:
+        #if (not self.__layout):
+        #    self.__layout = self.get_window()
+        #    self.__layout.put(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
+        #else:
+        if (self.__layout):
             self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
         #print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
@@ -367,9 +368,7 @@ class VideoWidget(MediaWidget):
 
 
     def load(self, item, direction = MediaWidget.DIRECTION_NEXT):
-    
-        self.__show_video_screen()
-    
+        
         def f():
             self.__load_handler = None
             uri = item.get_resource()
@@ -403,11 +402,23 @@ class VideoWidget(MediaWidget):
                 
                 #self.update_observer(self.OBS_SHOW_PANEL)
 
+
+        self.__show_video_screen()
+
+        if (not self.__layout):
+            self.__layout = self.get_window()
+            self.__layout.put(self.__screen, 0, 0)
+
         if (self.__load_handler):
             gobject.source_remove(self.__load_handler)
             
         self.__load_handler = gobject.idle_add(f)                
 
+
+    def play_pause(self):
+    
+        if (self.__player):
+            self.__on_play_pause()
 
 
     def stop(self):

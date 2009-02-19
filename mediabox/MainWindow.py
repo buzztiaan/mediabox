@@ -1,3 +1,4 @@
+import ui
 from ui.Widget import Widget
 from utils import maemo
 import config
@@ -31,11 +32,8 @@ class MainWindow(_Window):
                 self.set_size_request(800, 480)
                 #self.fullscreen()
 
-        # switch on compositing
-        scr = self.get_screen()
-        cmap = scr.get_rgba_colormap() or scr.get_rgb_colormap()
-        self.set_colormap(cmap)
-
+        # try to switch on compositing
+        ui.try_rgba(self)
 
         self._fixed = gtk.Fixed()
         self._fixed.show()

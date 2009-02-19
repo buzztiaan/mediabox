@@ -23,6 +23,7 @@ class RootPane(Widget):
     
         Widget.set_size(self, w, h)
         self.__buffer = Pixmap(None, w, h)
+        self.__buffer.fill_area(0, 0, w, h, "#000000")
 
 
     def render_this(self):
@@ -48,6 +49,7 @@ class RootPane(Widget):
     
         w, h = self.get_size()
         screen = self.get_screen()
+        TEMPORARY_PIXMAP.fill_area(0, 0, w, h, "#000000")
 
         if (not self.__has_overlay):
             self.__buffer.draw_pixmap(screen, 0, 0)

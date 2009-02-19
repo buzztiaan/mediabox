@@ -5,13 +5,11 @@ A scrollable strip of images.
 from Widget import Widget
 from Pixmap import Pixmap, TEMPORARY_PIXMAP
 from SharedPixmap import SharedPixmap
+from utils import logging
 
 import gtk
 import gobject
 import threading
-
-
-_BPP = gtk.gdk.get_default_root_window().get_depth()
 
 
 class _ImageSet(object):
@@ -529,21 +527,21 @@ class ImageStrip(Widget):
             cw, ch = self.__cap_top_size
             y -= ch
         
-        if (not self.__images or y > self.__totalsize):
-            return -1, 0
-        else:
-            blocksize = self.__itemsize + self.__gapsize
-            pos = self.__offset + y            
-            index = (pos / blocksize)
-            inside_y = (float(pos) / blocksize) - index
+        if (not self.__images):
+            return (-1, 0)
             
-            if (index < 0 or index >= len(self.__images)):
-                if (self.__is_wrap_around()):
-                    index %= len(self.__images)
-                else:
-                    index = -1
+        blocksize = self.__itemsize + self.__gapsize
+        pos = self.__offset + y
+        index = (pos / blocksize)
+        inside_y = (float(pos) / blocksize) - index
         
-            return index, inside_y
+        if (self.__is_wrap_around()):
+            index %= len(self.__images)
+        elif (index >= len(self.__images)):
+            print "out of range", index, len(self.__images)
+            return (-1, 0)
+
+        return (index, inside_y)
             
             
     def swap(self, idx1, idx2):
@@ -748,6 +746,7 @@ class ImageStrip(Widget):
             self.__buffer.draw_pixbuf(self.__cap_bottom, 0, h - ch)
 
         screen.copy_pixmap(self.__buffer, 0, offset, x, y + offset, w, height)
+        #print "COPY BUFFER"
         self.__buffer.copy_pixmap(TEMPORARY_PIXMAP, 0, 0, 0, 0, w, h)
         self.__buffer_dirty = False
 
@@ -757,13 +756,15 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         screen = self.get_screen()
 
+        if (not self.may_render()): return
+
         if (self.__buffer_dirty):
             self.render_full()
             self.__render_buffered(screen, 0, h)
             
         else:
             # nothing changed; simply render the buffer again
-            print "restoring from buffer"
+            logging.debug("restoring list from buffer")
             self.__render_buffered(screen, 0, h)
         
         
@@ -787,39 +788,79 @@ class ImageStrip(Widget):
    
         if (not self.may_render()): return
 
-        
+        #print "render", render_offset, render_height, "{"
         blocksize = self.__itemsize + self.__gapsize
         render_to = render_offset + render_height
-
-        x, y = 0, 0 #self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.__buffer
-        if (not self.__wrap_around and self.__totalsize > h and 
-              self.__offset > self.__totalsize - h):
-            self.__offset = self.__totalsize - h
+
+        self.__buffer.fill_area(0, render_offset, w, render_height,
+                                self.__bg_color)
 
         if (not self.__is_scrollable()):
             cw, ch = self.__cap_top_size
-            screen.fill_area(x, y, w, ch, self.__bg_color)
-            y += ch
-            h -= ch
+            render_offset += ch
 
-        # render items
-        while (self.__images and render_offset < render_to):            
-            idx = ((self.__offset + render_offset) / blocksize)
+        idx1 = self.get_index_at(render_offset)
+        if (idx1 == -1):
+            # nothing to render
+            return
+        
+        y = render_offset
+        idx = idx1
+        while (y < render_to + blocksize):
+            if (idx >= len(self.__images) and not self.__is_wrap_around()):
+                break
+            #print "  ", idx % len(self.__images)
+            self.__render_item(idx % len(self.__images))
+            y += blocksize
+            idx += 1
+        #end while
+        #print "}"
 
-            # wrap around is not available when there are too few items
-            if (self.__is_wrap_around()):
-                idx %= len(self.__images)
-            elif (idx >= len(self.__images) or idx < 0):
-                break                            
 
-            img_offset = (self.__offset + render_offset) % blocksize
 
-            # compute the remaining visible part of the item            
-            remain = min(self.__itemsize - img_offset, render_to - render_offset)
-            if (remain > 0):
-                # prepare item
+    def __render_item(self, idx):
+        """
+        Renders the given single item onto the buffer.
+        """
+
+        w, h = self.get_size()
+        blocksize = self.__itemsize + self.__gapsize
+        item_y = idx * blocksize - self.__offset
+        item_height = self.__itemsize
+
+        if (not self.__is_scrollable()):
+            cw, ch = self.__cap_top_size
+            item_y += ch
+
+        item = None
+        offx = 0
+        pw = 0
+
+        while (item_y < h):
+            # is the item on screen?
+            if (item_y < 0 - item_height):
+                item_y += self.__totalsize
+                continue
+        
+       
+            # determine visible part of item
+            if (item_y < 0):
+                item_top = 0
+                item_offset = abs(item_y)
+            else:
+                item_top = item_y
+                item_offset = 0
+                
+            if (item_y + item_height > h):
+                item_remain = h - item_y - item_offset
+            else:
+                item_remain = item_height - item_offset
+        
+            #print item_y, "->", item_height, "(", item_top, item_offset, item_remain, ")"
+        
+            # render item
+            if (not item):
                 item = self.__images[idx]
                 self.__shared_pmap.prepare(item)
                 pw, ph = item.get_size()
@@ -829,76 +870,35 @@ class ImageStrip(Widget):
                     offx = (w - pw) / 2
                 else:
                     offx = 0
-
-                if (idx == self.__floating_index):
-                    # leave a gap where the floating item would have been
-                    screen.fill_area(x + offx, y + render_offset, pw, remain,
-                                     self.__bg_color)
-
-                else:
-                    # render item normally
-                    screen.copy_pixmap(self.__shared_pmap, 0, img_offset,
-                                       x + offx, y + render_offset,
-                                       pw, remain)
-
-                # fill the empty space at the sides if the item was centered
-                if (offx > 0 and self.__bg_color):
-                    screen.fill_area(x, y + render_offset,
-                                     offx, remain,
-                                     self.__bg_color)
-                    screen.fill_area(x + offx + pw, y + render_offset,
-                                     offx, remain,
-                                     self.__bg_color)
-            #end if
-            
-            render_offset += (remain + self.__gapsize)
-        #end while
-        
-        # render the space not covered by items
-        if (self.__bg_color):
-
-            # fill the space beneath the items, if any
-            if (render_offset < render_to):
-                screen.fill_area(x, y + render_offset, w, render_to - render_offset,
-                                 self.__bg_color)
-                #screen.draw_subpixbuf(self.__bg,
-                #                      0, render_offset, x, y + render_offset,
-                #                      w, render_to - render_offset)
             #end if
 
-            if (self.__gapsize > 0):
-                # compute position of first gap
-                gap_offset = 0 - (self.__offset % blocksize) - self.__gapsize
+            if (idx == self.__floating_index):
+                # leave a gap where the floating item would have been
+                self.__buffer.fill_area(offx, item_top,
+                                        pw, item_remain,
+                                        self.__bg_color)
+
+            else:
+                # render item normally
+                self.__buffer.copy_pixmap(self.__shared_pmap,
+                                          0, item_offset,
+                                          offx, item_top,
+                                          pw, item_remain)
+
+            # fill the empty space at the sides if the item was centered
+            if (offx > 0 and self.__bg_color):
+                self.__buffer.fill_area(0, item_top,
+                                        offx, item_remain,
+                                       self.__bg_color)
+                self.__buffer.fill_area(offx + pw, item_top,
+                                        offx, item_remain,
+                                        self.__bg_color)
+
+            if (not self.__is_wrap_around()):
+                break
                 
-                # render gap by gap
-                while (gap_offset < h):
-                    if (gap_offset + self.__gapsize < 0):
-                        # gap is off screen
-                        gap_offset += self.__gapsize + self.__itemsize
-                        continue
-                    elif (gap_offset < 0):
-                        # gap is partially on screen
-                        render_offset = 0
-                        remain = self.__gapsize - abs(gap_offset)
-                    else:
-                        # gap is on screen
-                        render_offset = gap_offset
-                        remain = min(self.__gapsize, h - render_offset)
-                        
-                    # render gap if visible
-                    if (remain > 0):
-                        screen.fill_area(x, y + render_offset, w, remain,
-                                         self.__bg_color)
-                        #screen.draw_subpixbuf(self.__bg,
-                        #                   0, render_offset, x, y + render_offset,
-                        #                   min(w, self.__bg.get_width()),
-                        #                   min(remain, self.__bg.get_height()))
-                    #end if
-
-                    gap_offset += blocksize    
-                #end while
-            #end if
-        #end if
+            item_y += self.__totalsize
+        #end while
 
         
     def move(self, nil, delta):

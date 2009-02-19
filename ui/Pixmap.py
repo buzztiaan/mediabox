@@ -6,21 +6,28 @@ import gtk
 import pango
 
 
-scr = gtk.gdk.screen_get_default()
-if (scr.get_rgba_colormap()):
-    _CMAP = scr.get_rgba_colormap()
-    _DEPTH = 32
-else:
-    _CMAP = scr.get_rgb_colormap()
-    _DEPTH = gtk.gdk.get_default_root_window().get_depth()
-
-
 #_PANGO_CTX = gtk.HBox().get_pango_context()
 #_PANGO_LAYOUT = pango.Layout(_PANGO_CTX)
 
 # table: bpp -> layout
 _pango_layouts = {}
 
+
+def _get_colormap_and_depth():
+
+    screen = gtk.gdk.screen_get_default()
+    try:
+        have_rgba = screen.is_composited()
+    except:
+        have_rgba = False
+    if (have_rgba):
+        cmap = screen.get_rgba_colormap()        
+    else:
+        cmap = screen.get_rgb_colormap()
+
+    depth = cmap.get_visual().depth
+
+    return (cmap, depth)
 
 
 def _get_pango_layout():
@@ -76,7 +83,9 @@ def pixmap_for_text(text, font):
     _reload(font)
     w, h = text_extents(text, font)
     return Pixmap(None, w, h)
-    
+
+
+_CMAP, _DEPTH = _get_colormap_and_depth()    
 
 
 class Pixmap(object):
@@ -171,9 +180,9 @@ class Pixmap(object):
         @param h: height
         """
         
-        cmap = gtk.gdk.screen_get_default().get_rgba_colormap()
+        cmap, depth = _get_colormap_and_depth()
         
-        new_pmap = gtk.gdk.Pixmap(None, w, h, _DEPTH)
+        new_pmap = gtk.gdk.Pixmap(None, w, h, depth)
         self.__gc = new_pmap.new_gc()
         self.__cmap = new_pmap.get_colormap() or cmap
         new_pmap.set_colormap(self.__cmap)

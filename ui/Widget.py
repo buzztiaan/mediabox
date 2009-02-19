@@ -637,6 +637,7 @@ class Widget(object):
             return
         
         self.render_this()
+
         for c in self.__children:
             if (c.is_visible()):
                 c.render()

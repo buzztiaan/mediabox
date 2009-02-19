@@ -304,7 +304,7 @@ class AbstractBackend(Observable):
         self.stop()
 
         self._load(uri)
-        #self._set_volume(self.__volume)
+        self._set_volume(self.__volume)
         
         self.play()
 

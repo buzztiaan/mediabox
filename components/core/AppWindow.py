@@ -87,13 +87,12 @@ class AppWindow(Component, RootPane):
 
         # screen pixmap
         screen = Pixmap(self.__window.window)
-
         
         Component.__init__(self)
         RootPane.__init__(self)
         self.set_window(self.__window)
         self.set_size(w, h)
-        self.set_screen(screen)      
+        self.set_screen(screen)
 
         # image strip       
         self.__strip = ImageStrip(5)
@@ -123,6 +122,7 @@ class AppWindow(Component, RootPane):
         self.__ctrl_panel.set_visible(False)
 
         self.__startup()
+
         
        
     def __startup(self):

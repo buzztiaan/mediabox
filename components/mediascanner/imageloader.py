@@ -71,6 +71,7 @@ def load(path, cb, *args):
             #end if
         except:
             logging.error("error\n%s", logging.stacktrace())
+            cb(None, *args)
             
 
     def load_cb():

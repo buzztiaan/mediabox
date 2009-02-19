@@ -184,6 +184,8 @@ class MPlayerBackend(AbstractBackend):
     
         if (xid != self.__window_id):
             self.__window_id = xid
+            # restart required
+            self.__stop_mplayer()
         
         
     def _is_eof(self):

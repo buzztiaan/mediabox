@@ -17,6 +17,9 @@ class SideTabs(HilightingWidget):
         self.__tabs = []
         self.__tab_callbacks = []
         self.__tab_pmaps = []
+        self.__current_tab = -1
+        
+        self.__is_prepared = False
     
         HilightingWidget.__init__(self)
         self.set_size(100, 100)
@@ -27,7 +30,8 @@ class SideTabs(HilightingWidget):
     
         HilightingWidget._reload(self)
     
-        self.__prepare_tabs()
+        #self.__prepare_tabs()
+        self.__is_prepared = False
 
 
     def set_size(self, w, h):
@@ -39,11 +43,14 @@ class SideTabs(HilightingWidget):
 
         HilightingWidget.set_size(self, w, h)
 
-        if (need_prepare):
+        if (need_prepare and self.__tabs):
             self.__prepare_tabs()
 
 
     def render_this(self):
+
+        if (not self.__is_prepared):
+            self.__prepare_tabs()
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
@@ -56,6 +63,9 @@ class SideTabs(HilightingWidget):
             offset += pmap.get_size()[1]
         #end for
 
+        if (self.__current_tab == -1):
+            self.select_tab(0)
+            
         
     def __on_click(self, px, py):
         
@@ -77,8 +87,9 @@ class SideTabs(HilightingWidget):
         self.__tab_callbacks.append((cb, args))
         self.__tab_pmaps.append(None)
         
-        self.__prepare_tabs()
-        self.select_tab(0)
+        self.__is_prepared = False
+        #self.__prepare_tabs()
+        #self.select_tab(0)
         
         
     def __prepare_tabs(self):
@@ -95,6 +106,7 @@ class SideTabs(HilightingWidget):
             self.set_hilighting_box(
                   pixbuftools.make_frame(theme.mb_selection_frame, w, h, True))
         #end if
+        self.__is_prepared = True
 
 
     def __prepare_tab(self, idx):
@@ -139,5 +151,5 @@ class SideTabs(HilightingWidget):
             cb(*args)
         except:
             pass
-
+        self.__current_tab = idx
 

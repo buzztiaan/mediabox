@@ -18,6 +18,9 @@ class Menu(Widget):
     
         # buffer for saving the screen
         self.__backing_buffer = None
+        
+        # buffer for caching the menu panel
+        self.__panel_buffer = None
     
         # list of viewer components
         self.__viewers = []
@@ -93,6 +96,13 @@ class Menu(Widget):
         elif (cmd == src.OBS_CLOSE_WINDOW):
             self.emit_message(msgs.CORE_ACT_APP_CLOSE)
 
+
+    def _reload(self):
+    
+        self.__is_prepared = False
+        self.__panel.set_hilighting_box(
+              pixbuftools.make_frame(theme.mb_selection_frame, 120, 120, True))
+        
 
     def render_this(self):
 
@@ -179,8 +189,9 @@ class Menu(Widget):
         self.__panel.set_geometry(0, ph - h, w, h)
         self.__touch_back_area.set_geometry(0, 0, w, ph - h)
 
-        # prepare backing buffer
+        # prepare buffers
         self.__backing_buffer = Pixmap(None, w, h)
+        self.__panel_buffer = Pixmap(None, pw, ph)
 
         if (self.__icons):
             csrx, csry = self.__get_cursor_position(self.__index)
@@ -188,7 +199,7 @@ class Menu(Widget):
             self.__panel.place_hilighting_box(x, y)
 
         self.__is_prepared = True
-
+        self.render_at(self.__panel_buffer)
 
 
 
@@ -256,16 +267,23 @@ class Menu(Widget):
         self.__window_ctrls.fx_slide_in()
         self.__previous_index = self.__index
         self.emit_message(msgs.INPUT_EV_CONTEXT_MENU)
+        self.emit_message(msgs.UI_EV_VIEWER_CHANGED, -1)
         
         
         
     def __hide_menu(self):
+
+        x, y = self.__panel.get_screen_pos()
+        w, h = self.__panel.get_size()
+        screen = self.__panel.get_screen()
+        self.__panel_buffer.copy_pixmap(screen, x, y, x, y, w, h)
     
         self.set_visible(False)
         self.__window_ctrls.fx_slide_out()
 
         if (self.__index == self.__previous_index):
             self.__fx_lower()
+            self.emit_message(msgs.UI_EV_VIEWER_CHANGED, self.__index)
         else:
             self.emit_message(msgs.UI_ACT_SELECT_VIEWER,
                               `self.__viewers[self.__index]`)
@@ -338,8 +356,8 @@ class Menu(Widget):
         pw, ph = self.get_parent().get_size()
         screen = self.get_screen()
 
-        buf = Pixmap(None, pw, ph)
-        self.render_at(buf)
+        buf = self.__panel_buffer #Pixmap(None, pw, ph)
+        #self.render_at(buf)
         
         self.__backing_buffer.copy_pixmap(screen, 0, 0, 0, 0, pw, h)
 

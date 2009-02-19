@@ -94,7 +94,7 @@ class PlaylistViewer(Viewer):
         ]
         self.set_toolbar(self.__playlist_tbset)
 
-        #self.__set_view_mode(_VIEWMODE_PLAYLIST)
+        self.__set_view_mode(_VIEWMODE_PLAYLIST)
 
         self.__side_tabs.add_tab(None, "Playlist",
                                  self.__set_view_mode, _VIEWMODE_PLAYLIST)
@@ -366,7 +366,7 @@ class PlaylistViewer(Viewer):
         self.__update_input_context()
         
         if (mode == _VIEWMODE_PLAYLIST):
-            self.emit_event(msgs.UI_ACT_FREEZE)
+            #self.emit_event(msgs.UI_ACT_FREEZE)
             self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
         
             self.__playlist.set_visible(True)
@@ -376,10 +376,12 @@ class PlaylistViewer(Viewer):
             self.set_strip(self.__pl_thumbnails)
             self.hilight_strip_item(self.__current_list)
 
-            self.emit_event(msgs.UI_ACT_THAW)
+            #self.emit_event(msgs.UI_ACT_THAW)
+            #self.render()
+            self.emit_event(msgs.UI_ACT_RENDER)
 
         elif (mode == _VIEWMODE_PLAYER):
-            self.emit_event(msgs.UI_ACT_FREEZE)
+            #self.emit_event(msgs.UI_ACT_FREEZE)
             self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
             
             self.__playlist.set_visible(False)
@@ -390,9 +392,8 @@ class PlaylistViewer(Viewer):
             self.set_strip(pl.get_thumbnails())
             self.hilight_strip_item(pl.get_position())
 
-            self.emit_event(msgs.UI_ACT_THAW)
+            #self.emit_event(msgs.UI_ACT_THAW)
             self.emit_event(msgs.UI_ACT_RENDER)
-                
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):
             self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
@@ -815,4 +816,4 @@ class PlaylistViewer(Viewer):
         
         self.change_strip((self, self.__view_mode))
         self.__update_side_strip()
-        
+

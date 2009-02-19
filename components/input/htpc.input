@@ -43,13 +43,13 @@
 
 
 [FULLSCREEN]
-    UP              VOLUME_UP       -
-    DOWN            VOLUME_DOWN     -
-    LEFT            PREVIOUS        -
-    RIGHT           NEXT            -
+    UP              NAV_UP          -
+    DOWN            NAV_DOWN        -
+    LEFT            NAV_LEFT        -
+    RIGHT           NAV_RIGHT       -
     F6              FULLSCREEN      -
     ESCAPE          NAV_MENU        -
-    ENTER           PLAY            -
+    ENTER           NAV_ENTER       -
     MENU            MENU            -
     F5              MENU            -
 

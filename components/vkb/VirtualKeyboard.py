@@ -1,6 +1,7 @@
 from com import Component, msgs
 import vkblayout
 import layouts
+import ui
 from ui.Pixmap import Pixmap, text_extents
 from theme import theme
 from utils.Observable import Observable
@@ -47,10 +48,8 @@ class VirtualKeyboard(gtk.Window, Component):
         self.connect("expose-event", self.__on_expose)
         self.set_app_paintable(True)
 
-        # switch on compositing
-        scr = self.get_screen()
-        cmap = scr.get_rgba_colormap() or scr.get_rgb_colormap()
-        self.set_colormap(cmap)
+        # try to switch on compositing
+        ui.try_rgba(self)
 
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                         gtk.gdk.BUTTON_RELEASE_MASK |

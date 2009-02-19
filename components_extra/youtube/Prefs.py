@@ -40,7 +40,7 @@ class Prefs(Configurator):
         chk.connect_checked(self.__on_check_hi_quality)
         self.__vbox.add(chk)
         lbl = Label("Retrieve high-quality version of video if available\n"
-                    "",
+                    "(HQ videos don't play well on the Nokia N8x0 devices)",
                     theme.font_mb_plain, theme.color_mb_listitem_text)        
         chk.add(lbl)
         

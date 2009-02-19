@@ -1,14 +1,13 @@
 from ui.Widget import Widget
 from ui.HBox import HBox
 from ui import pixbuftools
-from utils.Observable import Observable
 from theme import theme
 
 import gtk
 import pango
 
 
-class ControlPanel(Widget, Observable):   
+class ControlPanel(Widget):
 
     def __init__(self):
     
