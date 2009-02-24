@@ -253,6 +253,7 @@ class AppWindow(Component, RootPane):
         """
 
         if (not self.__is_initialized): return
+        if (view_mode == self.__view_mode): return
 
         w, h = self.get_size()
 
@@ -751,6 +752,17 @@ class AppWindow(Component, RootPane):
             term = self.__get_search_term()
             term += key.lower()
             self.__set_search_term(term)
+            
+        elif (event == msgs.INPUT_EV_PREVIOUS_VIEWER):
+            idx = self.__viewers.index(self.__current_viewer)
+            if (idx > 0):
+                self.__select_viewer(idx - 1)
+                
+        elif (event == msgs.INPUT_EV_NEXT_VIEWER):
+            idx = self.__viewers.index(self.__current_viewer)
+            if (idx < len(self.__viewers) - 1):
+                self.__select_viewer(idx + 1)
+
 
 
 

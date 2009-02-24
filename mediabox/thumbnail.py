@@ -126,7 +126,7 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
         _PBUF.fill(0x00000000)
    
     frame_pbuf, tx, ty, tw, th = _frame_cache.get(thumbfile, (None, 0, 0, _WIDTH, _HEIGHT))
-    if (not frame_pbuf):
+    if (not frame_pbuf and thumbfile):
         frame_pbuf, tx, ty, tw, th = _make_frame(thumbfile, mimetype)
         _frame_cache[thumbfile] = (frame_pbuf, tx, ty, tw, th)
     #end if
@@ -155,7 +155,7 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
     if (not pbuf):
         #print "not in cache:", thumbfile
         pbuf, cachable = _make_thumbnail(thumbfile, mimetype)
-        if (pbuf and cachable):
+        if (pbuf and cachable and thumbfile):
             _thumbnail_cache[(thumbfile, w, h)] = pbuf
             _cache_history.append((thumbfile, w, h))
         #end if

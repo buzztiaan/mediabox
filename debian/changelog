@@ -8,9 +8,14 @@ mediabox (0.96.4) unstable; urgency=low
   
   Downscaling of hi-res videos for smoother playback in the mplayer backend
 
-  Display can be kept lit while playing media.
+  Display can be kept lit while playing media
+  
+  Headset button gestures (1x: PLAY/PAUSE, 2x: NEXT, 3x: PREVIOUS) in the maemo
+  input schema
+  
+  Bugfixes
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 21 Jan 2009 20:30:00 +0100
+ -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 25 Jan 2009 20:00:00 +0100
 
 mediabox (0.96.3-2) unstable; urgency=low
 

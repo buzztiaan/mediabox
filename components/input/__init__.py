@@ -48,6 +48,9 @@ messages = [
     "INPUT_EV_FULLSCREEN",
     "INPUT_EV_EJECT",
 
+    "INPUT_EV_PREVIOUS_VIEWER",
+    "INPUT_EV_NEXT_VIEWER",
+
     "INPUT_EV_UP",
     "INPUT_EV_DOWN",
     "INPUT_EV_LEFT",

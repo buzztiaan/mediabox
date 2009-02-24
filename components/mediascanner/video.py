@@ -30,7 +30,7 @@ def make_thumbnail_async(f, dest, cb):
 
     def get_thumbnail():
         thumbs = [ os.path.join("/tmp", f) for f in os.listdir("/tmp")
-                   if f.endswith("00002.jpg") ]
+                   if f.endswith("00010.jpg") ]
 
         if (thumbs):
             thumb = thumbs[0]
@@ -72,7 +72,7 @@ def make_thumbnail_async(f, dest, cb):
     else:
         # quick and dirty way of getting a video thumbnail
         cmd = "mplayer -idx -really-quiet -zoom -ss 10 -nosound " \
-              "-vo jpeg:outdir=\"%s\" -frames 5 -vf scale=134:-3  \"%s\"" \
+              "-vo jpeg:outdir=\"%s\" -frames 10 -vf scale=134:-3  \"%s\"" \
               " >/dev/null 2>&1 &\necho $!" \
               % ("/tmp", f.resource.replace("\"", "\\\"").replace("`", "\\`"))
         mplayer_pid = commands.getoutput(cmd)

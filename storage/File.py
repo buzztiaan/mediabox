@@ -168,10 +168,15 @@ class File(object):
                 return None
             
             longest = ""
+            blacklist = ["/sys", "/proc", "/dev"]
             for line in mounts:
                 parts = line.split()
                 mountpoint = parts[1]
-                if (uri.startswith(mountpoint)):
+                
+                if (mountpoint in blacklist):
+                    continue
+                
+                elif (uri.startswith(mountpoint)):
                     if (len(mountpoint) > len(longest)):
                         longest = mountpoint
             #end for

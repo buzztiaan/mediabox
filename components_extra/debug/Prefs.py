@@ -12,6 +12,7 @@ from theme import theme
 import commands
 import os
 import time
+import gtk
 
 
 _LOG_LEVELS = {
@@ -69,6 +70,11 @@ class Prefs(Configurator):
         self.__lbl_mem_size = Label("",
                     theme.font_mb_tiny, theme.color_mb_listitem_text)
         self.__vbox.add(self.__lbl_mem_size)
+        
+        self.__lbl_bpp = Label("",
+                    theme.font_mb_tiny, theme.color_mb_listitem_text)
+        self.__vbox.add(self.__lbl_bpp)
+        
 
 
 
@@ -88,8 +94,18 @@ class Prefs(Configurator):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        self.__lbl_mem_size.set_text("Resident Set Size: %0.02f MB" \
+        self.__lbl_mem_size.set_text("Resident set size: %0.02f MB" \
                                      % self.__get_mem_size())
+        try:
+            composited = self.get_window().is_composited() and "composited" \
+                                                           or "not composited"
+        except:
+            composited = "not composited"
+        self.__lbl_bpp.set_text("Screen: %d x %d x %d, %s" \
+                                % (gtk.gdk.screen_width(),
+                                   gtk.gdk.screen_height(),
+                                   screen.get_color_depth(),
+                                   composited))
         
         self.__vbox.set_geometry(32, 32, w - 64, h - 64)
         screen.fill_area(x, y, w, h, theme.color_mb_background)

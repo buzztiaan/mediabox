@@ -46,6 +46,13 @@ class MPlayerBackend(AbstractBackend):
         return theme.mb_backend_mplayer
 
 
+    def __busy_wait(self, delay):
+    
+        next = time.time() + delay
+        while (time.time() < next):
+            pass
+
+
     def __start_mplayer(self):
     
         if (self._get_mode() == self.MODE_AUDIO):
@@ -59,7 +66,7 @@ class MPlayerBackend(AbstractBackend):
             product = maemo.get_product_code()
             if (product == "?"):
                 logging.debug("mplayer backend detected non-maemo device")
-                vo_opts = "-vo xv"
+                vo_opts = "-vo xv -softsleep"
             elif (product == "SU-18"):
                 logging.debug("mplayer backend detected Nokia 770")
                 vo_opts = "-vo nokia770"
@@ -85,7 +92,10 @@ class MPlayerBackend(AbstractBackend):
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              close_fds=True)
 
-        time.sleep(0.25)
+        # a busy wait puts load on the CPU and this seems to better when
+        # starting mplayer on maemo to get smoother playback
+        self.__busy_wait(0.25)
+        
         if (p.poll()):
             print "Startup failed"
             self._report_error(self.ERR_INVALID, "Could not start mplayer")
@@ -184,7 +194,8 @@ class MPlayerBackend(AbstractBackend):
     
         if (xid != self.__window_id):
             self.__window_id = xid
-            # restart required
+        # restart required
+        if (self.__stdin):
             self.__stop_mplayer()
         
         
@@ -214,6 +225,7 @@ class MPlayerBackend(AbstractBackend):
         
         uri = uri.replace("\"", "\\\"")
         self.__send_cmd("loadfile \"%s\"" % uri)
+        self.__busy_wait(0.25)
         self.__send_cmd("get_time_length")
         self.__send_cmd("get_time_pos")
         

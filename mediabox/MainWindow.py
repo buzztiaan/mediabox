@@ -28,8 +28,8 @@ class MainWindow(_Window):
             if (gtk.gdk.screen_width() == 800):
                 self.fullscreen()
             else:
-                #self.set_default_size(800, 480)
-                self.set_size_request(800, 480)
+                self.set_default_size(800, 480)
+                #self.set_size_request(480, 800)
                 #self.fullscreen()
 
         # try to switch on compositing

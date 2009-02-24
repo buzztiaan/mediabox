@@ -234,9 +234,9 @@ class AbstractBackend(Observable):
                                          pos, total)
 
             if (total != 0 and total - pos < 1):
-                delay = 300
+                delay = 200
             else:
-                delay = 1000
+                delay = 600
             self.__position_handler = \
                   gobject.timeout_add(delay, self.__update_position,
                                       beginpos, timestamp)
@@ -306,7 +306,7 @@ class AbstractBackend(Observable):
         self._load(uri)
         self._set_volume(self.__volume)
         
-        self.play()
+        gobject.timeout_add(0, self.play)
 
         if (ctx_id != -1):
             self.__context_id = ctx_id
@@ -427,6 +427,7 @@ class AbstractBackend(Observable):
         @param volume: volume as a value between 0 and 100
         """
 
+        self._ensure_backend()
         self.__volume = volume
         self._set_volume(volume)    
         

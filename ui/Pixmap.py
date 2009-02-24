@@ -239,6 +239,16 @@ class Pixmap(object):
         """
         
         return (self.__pixmap == None)
+
+
+    def get_color_depth(self):
+        """
+        Returns the color depth in bits per pixel.
+        
+        @return: color depth
+        """
+        
+        return _DEPTH
         
         
     def render_on_pixbuf(self, target = None):

@@ -150,9 +150,8 @@ class GenericViewer(Viewer):
 
         self.accept_device_types(Device.TYPE_GENERIC)
         
-        #self.set_size(800, 480)
-        self.__set_view_mode(self._VIEWMODE_BROWSER)
         gobject.idle_add(self.__init_library)
+        gobject.timeout_add(0, self.__set_view_mode, self._VIEWMODE_BROWSER)
 
 
 
@@ -897,15 +896,17 @@ class GenericViewer(Viewer):
         def on_child(f, path, entries, items_to_thumbnail):
             # abort if the user has changed the directory again
             if (self.__path_stack[-1][0] != path): return False
-
+            
             if (f):
                 self.__list.get_item(0).set_info("Loading (%d items)..." \
                                                  % len(self.__items))
+                self.__list.invalidate_image(0)
                 entries.append(f)
                 self.__add_file(f, items_to_thumbnail, -1)
 
             else:
                 self.__list.get_item(0).set_info("%d items" % len(self.__items))
+                self.__list.invalidate_image(0)
                 self.__random_items = self.__playable_items[:]
                 # finished loading items; now create thumbnails
                 self.__create_thumbnails(path, items_to_thumbnail)
@@ -914,10 +915,10 @@ class GenericViewer(Viewer):
             now = time.time()
             #if (not f or len(entries) == 4 or \
             if (not f or
-                  now > self.__last_list_render_time + 0.5):
+                  now > self.__last_list_render_time + 1.0):
                 self.__last_list_render_time = now
             #if (not f or len(entries) == 4 or len(entries) % 10 == 0):
-                self.__list.invalidate_buffer()
+                #self.__list.invalidate_image(len(entries) + 1) #buffer()
                 self.__list.render()
             
             return True
@@ -1008,15 +1009,15 @@ class GenericViewer(Viewer):
             self.__subfolder_range = (insert_at, insert_at + len(entries))
             #if (not f or len(entries) == 4 or \
             if (not f or
-                  now > self.__last_list_render_time + 0.5):
+                  now > self.__last_list_render_time + 1.0):
                 self.__last_list_render_time = now
                 self.__list.invalidate_buffer()
                 self.__list.render()
             
             return True
     
-        idx = self.__items.index(path)
-        self.__list.scroll_to_item(idx + 1, force_on_top = True)
+        #idx = self.__items.index(path)
+        #self.__list.scroll_to_item(idx + 1, force_on_top = True)
         self.__close_subfolder()
         idx = self.__items.index(path)
     
@@ -1060,7 +1061,7 @@ class GenericViewer(Viewer):
             thumbnail = self.call_service(
                 msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, entry) or None
             item = MediaItem(entry, thumbnail)
-            if (not thumbnail):
+            if (not thumbnail and entry.mimetype != entry.DIRECTORY):
                 items_to_thumbnail.append((item, None, entry))
                 
         else:
@@ -1088,14 +1089,18 @@ class GenericViewer(Viewer):
         #items_to_thumbnail.append((item, None, entry))
         #end if
         
-        self.__list.set_frozen(True)
+        if (self.may_render()):
+            self.__list.set_frozen(True)
+            
         if (insert_at == -1):
             self.__list.append_item(item)
             self.__items.append(entry)
         else:
             self.__list.insert_item(item, insert_at)
             self.__items.insert(insert_at, entry)
-        self.__list.set_frozen(False)
+            
+        if (self.may_render()):
+            self.__list.set_frozen(False)
         
         if (not entry.mimetype.endswith("-folder")):
             self.__playable_items.append(entry)
@@ -1291,7 +1296,7 @@ class GenericViewer(Viewer):
     
         if (items_to_thumbnail):
             # hmm, may we want to reorder a bit?
-            if (len(items_to_thumbnail) % 10 == 0 and\
+            if (len(items_to_thumbnail) % 10 == 0 and \
                   len(items_to_thumbnail) > 5):
                 idx_in_list = self.__list.get_index_at(0)
                 item_in_view = self.__items[idx_in_list - 1]

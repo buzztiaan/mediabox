@@ -64,11 +64,14 @@ class ImageStrip(Widget):
         self.__image_sets = {}
         self.__current_image_set = None
     
+        # indices of images that have been invalidated
+        self.__invalidated_images = []
+    
         Widget.__init__(self)
 
         self.__images = []
         self.__bg = None
-        self.__bg_color = None
+        self.__bg_color = "#ffffff"
         self.__offset = 0
         self.__canvas = None
         self.__cmap = None
@@ -83,7 +86,7 @@ class ImageStrip(Widget):
         self.__wrap_around = True
         
         self.__buffer = Pixmap(None, 100, 100)
-        self.__buffer_dirty = False
+        #self.__buffer_dirty = False
  
         self.set_size(100, 100)
  
@@ -94,6 +97,7 @@ class ImageStrip(Widget):
         """
 
         self.invalidate_buffer()
+        self.__clear_buffer()
 
         if (self.__scrollbar_pbuf):
             self.set_scrollbar(self.__scrollbar_pbuf)
@@ -113,7 +117,27 @@ class ImageStrip(Widget):
         contents of an item you have to invoke this method manually.
         """
 
-        self.__buffer_dirty = True
+        #self.__buffer_dirty = True
+        self.__invalidated_images = list(range(len(self.__images)))
+        
+        
+    def __clear_buffer(self):
+    
+        w, h = self.get_size()
+        self.__buffer.fill_area(0, 0, w, h, self.__bg_color)
+        
+        
+    def invalidate_image(self, idx):
+        """
+        Invalidates a single image. Rendering the list will only render the
+        invalidated images.
+        
+        @param idx: index of image
+        """
+        
+        #print "invalidating", idx
+        if (not idx in self.__invalidated_images):
+            self.__invalidated_images.append(idx)
 
  
     def set_size(self, w, h):
@@ -138,10 +162,9 @@ class ImageStrip(Widget):
 
     def set_bg_color(self, color):
     
-        w, h = self.get_size()
-        self.invalidate_buffer()
         self.__bg_color = color
-        self.__buffer.fill_area(0, 0, w, h, self.__bg_color)
+        self.invalidate_buffer()
+        self.__clear_buffer()
         
         
     def set_background(self, bg):
@@ -149,8 +172,9 @@ class ImageStrip(Widget):
         Sets the background image from the given pixbuf or filename.
         """
     
-        self.invalidate_buffer()
         self.__bg = bg
+        self.invalidate_buffer()
+        self.__clear_buffer()
         
         
     def set_caps(self, top, bottom):
@@ -165,6 +189,7 @@ class ImageStrip(Widget):
     
         w, h = self.get_size()
         self.invalidate_buffer()
+        self.__clear_buffer()
         self.__caps = (top, bottom)
 
         if (top):
@@ -203,6 +228,7 @@ class ImageStrip(Widget):
         """
 
         self.invalidate_buffer()
+        self.__clear_buffer()
     
         arrow_up = None
         arrow_down = None
@@ -249,6 +275,7 @@ class ImageStrip(Widget):
         """
     
         self.invalidate_buffer()
+        self.__clear_buffer()
     
         self.__scrollbar_pbuf = pbuf
         if (not pbuf):
@@ -271,7 +298,12 @@ class ImageStrip(Widget):
         @param pos: position where to display the item
         """
 
-        self.invalidate_buffer()
+        if (idx >= 0):
+            self.invalidate_image(idx)
+        else:
+            self.invalidate_image(self.__floating_index)
+        #self.invalidate_buffer()
+        #self.__clear_buffer()
         
         self.__floating_index = idx
         self.__floating_position = pos
@@ -302,6 +334,7 @@ class ImageStrip(Widget):
         for image in self.__images:
             image.invalidate()
         self.invalidate_buffer()
+        self.__clear_buffer()
 
 
     def get_image(self, idx):
@@ -341,7 +374,8 @@ class ImageStrip(Widget):
         
         import gc; gc.collect()
         
-        self.invalidate_buffer()
+        self.__invalidated_images = []
+        #self.invalidate_buffer()
 
         # append new images
         for img in images:
@@ -349,6 +383,7 @@ class ImageStrip(Widget):
         #endfor
 
         #self.invalidate_buffer()
+        self.__clear_buffer()
         self.__offset = 0
         
         
@@ -367,7 +402,13 @@ class ImageStrip(Widget):
         img.set_size(w, img_h)
         img.set_hilighted(False)
 
-        self.invalidate_buffer()
+        #self.invalidate_buffer()
+        
+        is_scrollable = self.__is_scrollable()
+        
+        idx = len(self.__images)
+        self.invalidate_image(idx)
+        
         if (not self.__shared_pmap):
             self.__shared_pmap = SharedPixmap(w, img_h)
 
@@ -379,6 +420,9 @@ class ImageStrip(Widget):
 
 
         #if (len(self.__images) < 30): self.__shared_pmap.prepare(img)
+        
+        if (is_scrollable != self.__is_scrollable):
+            self.invalidate_buffer()
         
         return len(self.__images) - 1
 
@@ -398,6 +442,7 @@ class ImageStrip(Widget):
         img.set_size(w, img_h)
 
         self.invalidate_buffer()
+        self.__clear_buffer()
         if (not self.__shared_pmap):
             self.__shared_pmap = SharedPixmap(w, img_h)
 
@@ -417,7 +462,8 @@ class ImageStrip(Widget):
        @param image: StripItem object with which to replace
        """
 
-       self.invalidate_buffer()
+       #self.invalidate_buffer()
+       self.invalidate_image(idx)
        img = self.__images[idx]
        self.__images[idx] = image
        del img
@@ -436,6 +482,7 @@ class ImageStrip(Widget):
         """
     
         self.invalidate_buffer()
+        self.__clear_buffer()
         w, h = self.get_size()
         del self.__images[idx]
         self.__totalsize = (self.__itemsize + self.__gapsize) * len(self.__images)        
@@ -462,8 +509,10 @@ class ImageStrip(Widget):
         a time.
         """
 
-        self.invalidate_buffer()
+        #self.invalidate_buffer()
+        
         if (self.__hilighted_image >= 0):
+            self.invalidate_image(self.__hilighted_image)
             try:
                 item = self.get_image(self.__hilighted_image)
                 item.set_hilighted(False)
@@ -472,6 +521,7 @@ class ImageStrip(Widget):
 
         if (idx >= 0 and idx < len(self.__images)):
             item = self.get_image(idx)
+            self.invalidate_image(idx)
             item.set_hilighted(True)
             self.__hilighted_image = idx
             self.render()
@@ -552,7 +602,10 @@ class ImageStrip(Widget):
         @param idx2: place 2
         """
         
-        self.invalidate_buffer()
+        #self.invalidate_buffer()
+        self.invalidate_image(idx1)
+        self.invalidate_image(idx2)
+        
         temp = self.__images[idx1]
         self.__images[idx1] = self.__images[idx2]
         self.__images[idx2] = temp
@@ -748,7 +801,7 @@ class ImageStrip(Widget):
         screen.copy_pixmap(self.__buffer, 0, offset, x, y + offset, w, height)
         #print "COPY BUFFER"
         self.__buffer.copy_pixmap(TEMPORARY_PIXMAP, 0, 0, 0, 0, w, h)
-        self.__buffer_dirty = False
+        #self.__buffer_dirty = False
 
         
     def render_this(self):
@@ -758,7 +811,8 @@ class ImageStrip(Widget):
 
         if (not self.may_render()): return
 
-        if (self.__buffer_dirty):
+        #if (self.__buffer_dirty):
+        if (self.__invalidated_images):
             self.render_full()
             self.__render_buffered(screen, 0, h)
             
@@ -793,8 +847,8 @@ class ImageStrip(Widget):
         render_to = render_offset + render_height
         w, h = self.get_size()
 
-        self.__buffer.fill_area(0, render_offset, w, render_height,
-                                self.__bg_color)
+        #self.__buffer.fill_area(0, render_offset, w, render_height,
+        #                        self.__bg_color)
 
         if (not self.__is_scrollable()):
             cw, ch = self.__cap_top_size
@@ -807,11 +861,18 @@ class ImageStrip(Widget):
         
         y = render_offset
         idx = idx1
+        len_img = len(self.__images)
+        is_wrap_around = self.__is_wrap_around()
         while (y < render_to + blocksize):
-            if (idx >= len(self.__images) and not self.__is_wrap_around()):
+            m_idx = idx % len_img
+            if (m_idx >= len_img and not is_wrap_around):
                 break
-            #print "  ", idx % len(self.__images)
-            self.__render_item(idx % len(self.__images))
+
+            if (m_idx in self.__invalidated_images):
+                #print "  ", m_idx, self.is_frozen(), self.is_visible()
+                self.__render_item(m_idx)
+                self.__invalidated_images.remove(m_idx)
+                
             y += blocksize
             idx += 1
         #end while
@@ -831,7 +892,8 @@ class ImageStrip(Widget):
 
         if (not self.__is_scrollable()):
             cw, ch = self.__cap_top_size
-            item_y += ch
+            item_y = idx * blocksize + ch
+            self.__offset = 0
 
         item = None
         offx = 0
@@ -893,6 +955,16 @@ class ImageStrip(Widget):
                 self.__buffer.fill_area(offx + pw, item_top,
                                         offx, item_remain,
                                         self.__bg_color)
+
+            # fill gap between items
+            if (self.__gapsize > 0):
+                self.__buffer.fill_area(0, item_top - self.__gapsize,
+                                        pw, self.__gapsize,
+                                        self.__bg_color)
+                self.__buffer.fill_area(0, item_top + item_remain,
+                                        pw, self.__gapsize,
+                                        self.__bg_color)
+
 
             if (not self.__is_wrap_around()):
                 break

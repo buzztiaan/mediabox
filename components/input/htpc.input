@@ -1,5 +1,7 @@
 # HTPC Input Schema
 
+    F1              PREVIOUS_VIEWER -
+    F2              NEXT_VIEWER     -
 
     F7              VOLUME_UP       -
     F8              VOLUME_DOWN     -

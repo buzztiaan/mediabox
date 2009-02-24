@@ -17,7 +17,7 @@ class Image(Widget):
         self.__pbuf = pbuf
         self.set_size(pbuf.get_width(), pbuf.get_height())
 
-        self.render()
+        #self.render()
 
        
     def render_this(self):

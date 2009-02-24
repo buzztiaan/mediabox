@@ -79,6 +79,7 @@ def load(path, cb, *args):
         if (d):
             if (not aborted[0]):
                 loader.write(d)
+            gtk.main_iteration(False)
             return True
         else:
             try:

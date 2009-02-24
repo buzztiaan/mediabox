@@ -25,6 +25,7 @@ _cfg = Config("",
                ("scan_at_startup", Config.BOOL, True),
                ("scan_with_inotify", Config.BOOL, True),
                ("store_thumbnails_on_medium", Config.BOOL, True),
+               ("thumbnails_epoch", Config.INTEGER, 0),
                ("thumbnails_folder", Config.STRING, 
                               os.path.expanduser("~/.thumbnails/mediabox")),
                ("theme", Config.STRING, "default"),
@@ -131,6 +132,16 @@ def store_thumbnails_on_medium():
 def set_store_thumbnails_on_medium(v):
 
     _cfg["store_thumbnails_on_medium"] = v
+
+
+def thumbnails_epoch():
+
+    return _cfg["thumbnails_epoch"]
+
+
+def set_thumbnails_epoch(v):
+
+    _cfg["thumbnails_epoch"] = v
 
 
 def thumbdir():

@@ -1,9 +1,11 @@
 # Maemo Input Schema
 
-
     F7              VOLUME_UP       -
     F8              VOLUME_DOWN     -
 
+    HEADSET         PLAY            -
+    HEADSET_DOUBLE  NEXT            -
+    HEADSET_TRIPLE  PREVIOUS        -
 
 [MENU]
     LEFT            LEFT            -

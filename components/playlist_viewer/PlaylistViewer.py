@@ -46,7 +46,7 @@ class PlaylistViewer(Viewer):
         # list of thumbnails representing the playlists
         self.__pl_thumbnails = []
     
-        self.__random_items = []
+        self.__random_items = []        
     
         self.__current_file = None
         self.__media_widget = None
@@ -54,6 +54,8 @@ class PlaylistViewer(Viewer):
     
         # table: owner -> needs_reload
         self.__needs_reload = {}
+        
+        self.__needs_playlist_reload = False
 
     
         Viewer.__init__(self)
@@ -94,13 +96,13 @@ class PlaylistViewer(Viewer):
         ]
         self.set_toolbar(self.__playlist_tbset)
 
-        self.__set_view_mode(_VIEWMODE_PLAYLIST)
 
         self.__side_tabs.add_tab(None, "Playlist",
                                  self.__set_view_mode, _VIEWMODE_PLAYLIST)
         self.__side_tabs.add_tab(None, "Player",
                                  self.__set_view_mode, _VIEWMODE_PLAYER)
         gobject.idle_add(self.__load_playlists)
+        gobject.timeout_add(0, self.__set_view_mode, _VIEWMODE_PLAYLIST)
 
 
     def render_this(self):
@@ -366,7 +368,7 @@ class PlaylistViewer(Viewer):
         self.__update_input_context()
         
         if (mode == _VIEWMODE_PLAYLIST):
-            #self.emit_event(msgs.UI_ACT_FREEZE)
+            self.emit_event(msgs.UI_ACT_FREEZE)
             self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
         
             self.__playlist.set_visible(True)
@@ -376,12 +378,11 @@ class PlaylistViewer(Viewer):
             self.set_strip(self.__pl_thumbnails)
             self.hilight_strip_item(self.__current_list)
 
-            #self.emit_event(msgs.UI_ACT_THAW)
-            #self.render()
+            self.emit_event(msgs.UI_ACT_THAW)
             self.emit_event(msgs.UI_ACT_RENDER)
 
         elif (mode == _VIEWMODE_PLAYER):
-            #self.emit_event(msgs.UI_ACT_FREEZE)
+            self.emit_event(msgs.UI_ACT_FREEZE)
             self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
             
             self.__playlist.set_visible(False)
@@ -392,7 +393,7 @@ class PlaylistViewer(Viewer):
             self.set_strip(pl.get_thumbnails())
             self.hilight_strip_item(pl.get_position())
 
-            #self.emit_event(msgs.UI_ACT_THAW)
+            self.emit_event(msgs.UI_ACT_THAW)
             self.emit_event(msgs.UI_ACT_RENDER)
 
         elif (mode == _VIEWMODE_PLAYER_FULLSCREEN):
@@ -723,7 +724,8 @@ class PlaylistViewer(Viewer):
                 self.drop_event()
 
         elif (msg == msgs.CORE_EV_DEVICE_ADDED):
-            self.__load_playlists()
+            self.__needs_playlist_reload = True
+            #self.__load_playlists()
 
         elif (msg == msgs.MEDIA_ACT_STOP):
             if (self.__media_widget):
@@ -783,7 +785,7 @@ class PlaylistViewer(Viewer):
         # watch FULLSCREEN hw key
         if (msg == msgs.HWKEY_EV_FULLSCREEN):
             if (self.__view_mode in \
-                (_VIEWMODE_PLAYER, _VIEWMODE_PLAYER_FULLSCREEN)):
+                (_VIEWMODE_PLAYLIST, _VIEWMODE_PLAYER, _VIEWMODE_PLAYER_FULLSCREEN)):
                 self.__on_toggle_fullscreen()
                 
         # watch INCREMENT hw key
@@ -813,6 +815,10 @@ class PlaylistViewer(Viewer):
     def show(self):
     
         Viewer.show(self)
+        
+        if (self.__needs_playlist_reload):
+            self.__load_playlists()
+            self.__needs_playlist_reload = False
         
         self.change_strip((self, self.__view_mode))
         self.__update_side_strip()

@@ -107,13 +107,6 @@ class VideoWidget(MediaWidget):
             pass #self.__show_video_screen()
 
 
-    def set_frozen(self, v):
-    
-        if (v):
-            self.__hide_video_screen()
-        #else:
-        #    self.__show_video_screen()
-
     def set_size(self, w, h):
     
         if ((w, h) != self.get_size()):

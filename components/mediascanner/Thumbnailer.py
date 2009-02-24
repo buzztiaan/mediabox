@@ -176,18 +176,21 @@ class Thumbnailer(Component):
                 
         thumb = self.get_thumbnail_path(f)
         broken = thumb + ".broken"
+        tn_epoch = config.thumbnails_epoch()
                 
         if (os.path.exists(broken)):
             thumburi = broken
         else:
             thumburi = thumb
-          
+        
+        if (not f.resource.startswith("/")): return True
+        
         try:
             mtime1 = os.path.getmtime(f.resource)
             mtime2 = os.path.getmtime(thumburi)
             #f.mtime = mtime1
 
-            return (mtime1 <= mtime2)
+            return (mtime1 <= mtime2 and mtime2 >= tn_epoch)
 
         except:
             return False        
@@ -239,7 +242,7 @@ class Thumbnailer(Component):
         """
 
         thumb = self.get_thumbnail_path(f)
-        return os.path.exists(thumb)
+        return os.path.exists(thumb) and self.is_thumbnail_up_to_date(f)
         
 
         

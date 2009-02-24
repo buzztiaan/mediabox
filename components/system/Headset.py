@@ -80,7 +80,7 @@ class Headset(Component):
             if (self.__click_handler):
                 gobject.source_remove(self.__click_handler)
 
-            self.__click_handler = gobject.timeout_add(500, self.__handle_click)
+            self.__click_handler = gobject.timeout_add(700, self.__handle_click)
 
 
     def __on_connect(self, src, cond):

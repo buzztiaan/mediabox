@@ -680,7 +680,9 @@ class Image(MultiTouchWidget, Observable):
             
 
         # automatically rotate images in portrait format
-        if (pbuf.get_width() < pbuf.get_height()):
+        w, h = self.get_size()
+        if (w > h and pbuf.get_width() < pbuf.get_height() or
+            w < h and pbuf.get_width() > pbuf.get_height()):
             try:
                 # rotating is only supported by pygtk >= 2.10
                 pixbuf = pbuf.rotate_simple(

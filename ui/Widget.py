@@ -66,20 +66,24 @@ class Widget(object):
         zone = None
         zone_tstamp = 0
         
-        for x, y, w, h, tstamp, cb in self._zones.values():
-            if (x <= px <= x + w and y <= py <= y + h and tstamp > zone_tstamp):
-                zone = cb
-                zone_tstamp = tstamp
-        #end for
+        if (ev == Widget.EVENT_BUTTON_PRESS):
+            for x, y, w, h, tstamp, cb in self._zones.values():
+                if (x <= px <= x + w and y <= py <= y + h and tstamp > zone_tstamp):
+                    zone = cb
+                    zone_tstamp = tstamp
+            #end for
         
-        if (zone):
-            cb = zone or self.__locked_zone
-            cb(ev, px, py, *args)
-            
-            if (ev == Widget.EVENT_BUTTON_PRESS):
+            if (zone):            
                 self.__locked_zone = zone
-            elif (ev == Widget.EVENT_BUTTON_RELEASE):
-                self.__locked_zone = None
+ 
+        else:
+            zone = self.__locked_zone
+            
+
+        if (zone):
+            self.__locked_zone = zone
+            cb = zone
+            cb(ev, px, py, *args)
 
           
           

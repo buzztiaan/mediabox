@@ -7,6 +7,8 @@ from ui.Button import Button
 from theme import theme
 from mediabox import config as mb_config
 
+import time
+
 
 class Prefs(Configurator):
 
@@ -25,14 +27,7 @@ class Prefs(Configurator):
         #self.__vbox.set_geometry(0, 0, 620, 370)
         self.add(self.__vbox)
 
-        chk = CheckBox(mb_config.store_thumbnails_on_medium())
-        chk.connect_checked(self.__on_check_store_thumbs)
-        self.__vbox.add(chk)
-        lbl = Label("Store thumbnails and caches on the same medium as the\n"
-                    "associated files (restart MediaBox for this)",
-                    theme.font_mb_plain, theme.color_mb_listitem_text)        
-        chk.add(lbl)
-        
+                
         chk = CheckBox(mb_config.scan_at_startup())
         chk.connect_checked(self.__on_check_startup)
         self.__vbox.add(chk)
@@ -49,9 +44,22 @@ class Prefs(Configurator):
         #            theme.font_mb_plain, theme.color_mb_listitem_text)        
         #chk.add(lbl)
 
+
         self.__btn_reindex = Button("Update index now")
         self.__btn_reindex.connect_clicked(self.__on_click_rebuild)
         self.__vbox.add(self.__btn_reindex)
+
+        chk = CheckBox(mb_config.store_thumbnails_on_medium())
+        chk.connect_checked(self.__on_check_store_thumbs)
+        self.__vbox.add(chk)
+        lbl = Label("Store thumbnails and caches on the same medium as the\n"
+                    "associated files (restart MediaBox for this)",
+                    theme.font_mb_plain, theme.color_mb_listitem_text)        
+        chk.add(lbl)
+
+        self.__btn_reset = Button("Reset thumbnail previews")
+        self.__btn_reset.connect_clicked(self.__on_click_reset)
+        self.__vbox.add(self.__btn_reset)
 
 
 
@@ -63,6 +71,7 @@ class Prefs(Configurator):
         screen = self.get_screen()
         
         self.__vbox.set_geometry(32, 32, w - 64, h - 64)
+        self.__btn_reset.set_size(w - 64, 64)
         self.__btn_reindex.set_size(w - 64, 64)
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         
@@ -81,6 +90,11 @@ class Prefs(Configurator):
     def __on_check_store_thumbs(self, value):
     
         mb_config.set_store_thumbnails_on_medium(value)
+
+
+    def __on_click_reset(self):
+    
+        mb_config.set_thumbnails_epoch(int(time.time()))
 
 
     def __on_click_rebuild(self):
