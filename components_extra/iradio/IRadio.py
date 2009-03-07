@@ -40,6 +40,7 @@ class IRadio(Device):
         f.name = self.get_name()
         f.mimetype = f.DIRECTORY
         f.resource = ""
+        f.info = "Listen to internet radio stations"
         
         return f
 

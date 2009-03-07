@@ -13,6 +13,8 @@ In order to save battery, this idle callback shuts down automatically if
 not in use.
 
 Threads must invoke keep_alive() regularly.
+
+@since: 0.96
 """
 
 import logging
@@ -61,6 +63,7 @@ def keep_alive():
 def wait_for(tester, why = None):
     """
     Waits until the given tester returns True.
+    @since: 0.96
     
     @param tester: boolean function
     """

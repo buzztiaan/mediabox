@@ -67,10 +67,7 @@ class Thumbnailer(Component):
         thumbnail_path = self.get_thumbnail_path(f)
         logging.debug("loading thumbnail for %s", f.full_path)
         
-        if (self.is_thumbnail_up_to_date(f)):
-            cb(thumbnail_path, *args)
-
-        elif (f.thumbnail):
+        if (f.thumbnail):
             self.__load_from_uri(f.thumbnail, thumbnail_path, cb, *args)
             
         else:
@@ -182,7 +179,9 @@ class Thumbnailer(Component):
             thumburi = broken
         else:
             thumburi = thumb
-        
+
+        # if there is no local resource, consider the thumbnail being up to date,
+        # because we can't check
         if (not f.resource.startswith("/")): return True
         
         try:

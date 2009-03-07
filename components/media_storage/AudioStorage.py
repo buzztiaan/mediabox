@@ -48,7 +48,7 @@ class AudioStorage(Device):
         
     def get_name(self):
     
-        return "By Folder"
+        return "Music Folders"
 
 
     def get_icon(self):
@@ -65,6 +65,7 @@ class AudioStorage(Device):
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = self.get_name()
+        f.info = "Browse your music library by folders"
         
         return f
 

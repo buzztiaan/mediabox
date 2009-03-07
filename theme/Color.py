@@ -5,6 +5,7 @@ B{Used internally}
 class Color(object):
     """
     Class for color theme elements.
+    @since: 0.96
     """
     
     def __init__(self, value):

@@ -67,6 +67,7 @@ class ImageStorage(Device):
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = self.get_name()
+        f.info = "Browse your image library"
         
         return f
           

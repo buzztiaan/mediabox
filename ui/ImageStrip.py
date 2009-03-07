@@ -9,7 +9,6 @@ from utils import logging
 
 import gtk
 import gobject
-import threading
 
 
 class _ImageSet(object):
@@ -496,8 +495,9 @@ class ImageStrip(Widget):
         elif (idx < self.__hilighted_image):
             self.__hilighted_image -= 1
 
-        if (self.__totalsize < h):
-            self.__offset = 0
+        #if (self.__totalsize < self.__offset + h):
+        #    self.__offset = max(self.__totalsize - h, 0)
+        self.__fix_offset()
 
         #self.render()
 
@@ -539,7 +539,8 @@ class ImageStrip(Widget):
         
         if (not value):
             w, h = self.get_size()
-            self.__offset = max(0, min(self.__offset, self.__totalsize - h))
+            self.__fix_offset()
+            #self.__offset = max(0, min(self.__offset, self.__totalsize - h))
 
     def __is_wrap_around(self):
     
@@ -650,6 +651,33 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         offset = min(offset, max(0, self.__totalsize - h))
         self.__offset = offset
+        self.__fix_offset()
+        
+        
+    def __fix_offset(self):
+        """
+        Fixes the offset value to be in a valid range.
+        """
+        
+        w, h = self.get_size()
+        
+        if (not self.__is_scrollable()):
+            self.__offset = 0
+        
+        elif (self.__is_wrap_around()):
+            while (self.__offset < 0):
+                self.__offset += self.__totalsize
+            while (self.__offset > self.__totalsize):
+                self.__offset -= self.__totalsize
+
+        else:
+            if (self.__offset < 0):
+                self.__offset = 0
+            elif (self.__offset > self.__totalsize - h):
+                self.__offset = self.__totalsize - h
+
+        #end if
+
         
         
     def __render_arrows(self):
@@ -893,7 +921,6 @@ class ImageStrip(Widget):
         if (not self.__is_scrollable()):
             cw, ch = self.__cap_top_size
             item_y = idx * blocksize + ch
-            self.__offset = 0
 
         item = None
         offx = 0
@@ -996,20 +1023,32 @@ class ImageStrip(Widget):
         x, y = 0, 0 #self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-        
+
+        self.__fix_offset()
         if (not self.__is_wrap_around()):
             if (self.__offset + delta > self.__totalsize - h):
                 return
             elif (self.__offset + delta < 0):
                 return
         #end if
-
+        
         self.__offset += delta
+        """
+        if (not self.__is_wrap_around()):
+            print self.__offset, delta, self.__totalsize, h
+            if (self.__offset > self.__totalsize - h):
+                self.__offset = self.__totalsize - h
+                return
+            elif (self.__offset < 0):
+                self.__offset = 0
+                return
+        #end if
+
         while (self.__offset < 0):
             self.__offset += self.__totalsize
         while (self.__offset > self.__totalsize):
             self.__offset -= self.__totalsize
-            
+        """ 
 
         if (not self.may_render()): return
 
@@ -1071,8 +1110,10 @@ class ImageStrip(Widget):
 
             # no need to have this animated while the widget is hidden
             if (not self.may_render()):
-                self.__offset = max(0, offset2)
+                #self.__offset = max(0, offset2)
+                self.__fix_offset()
                 self.__scroll_to_item_handler = None
+                self.invalidate_buffer()
                 return False
            
             # how far would we have to scroll up or down?
@@ -1167,40 +1208,31 @@ class ImageStrip(Widget):
         self.animate(50, fx, [0, item_w])
 
 
-    """
-    def fx_slide_left(self, wait = True):
-    
-        STEP = 16
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
 
-        slider_width, nil = self.__scrollbar_pmap.get_size()
-        slider_width /= 2
-        w -= slider_width
+    def fx_slide_left(self):
 
-        buf = Pixmap(None, w, h) #x + w, y + h)
-        self.render_at(buf)
-        finished = threading.Event()
-        
-        def f(i):
-            screen.copy_pixmap(screen, x + STEP, y, x, y, w - STEP, h)
-            screen.copy_pixmap(buf, i, 0, x + w - STEP, y, STEP, h)
-            if (i < w - STEP):
-                gobject.timeout_add(5, f, i + STEP)
+        def fx(params):
+            from_x, to_x = params
+            dx = (to_x - from_x) / 3
+            
+            if (dx > 0):
+                screen.move_area(x + dx, y, w - dx, h, -dx, 0)
+                screen.copy_pixmap(buf, from_x, 0, x + w - dx, y, dx, h)
+
+                params[0] = from_x + dx
+                params[1] = to_x
+                return True
+
             else:
-                self.render()
-                finished.set()
-
-        self.set_events_blocked(True)                
-        f(0)        
-        while (wait and not finished.isSet()): gtk.main_iteration()
-        self.set_events_blocked(False)
+                dx = to_x - from_x
+                screen.move_area(x + dx, y, w - dx, h, -dx, 0)
+                screen.copy_pixmap(buf, from_x, 0, x + w - dx, y, dx, h)
+                
+                return False
 
 
-    def fx_slide_right(self, wait = True):
-    
-        STEP = 16
+        if (not self.may_render()): return
+
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
@@ -1210,26 +1242,56 @@ class ImageStrip(Widget):
             slider_width /= 2
             w -= slider_width
 
-        buf = Pixmap(None, w, h) #x + w, y + h)
+        buf = self.__buffer
         buf.fill_area(0, 0, w, h, self.__bg_color)
-        #self.render_at(buf)
-        finished = threading.Event()
-        
-        def f(i):
-            screen.copy_pixmap(screen, x, y, x + STEP, y, w - STEP, h)
-            screen.copy_pixmap(buf, w - i, 0, x, y, STEP, h)
-            if (i < w - STEP):
-                gobject.timeout_add(5, f, i + STEP)
-            else:
-                self.render()
-                finished.set()
+        self.render_at(buf)
 
-        self.set_events_blocked(True)                
-        f(0)
-        while (wait and not finished.isSet()): gtk.main_iteration(False)
-        self.set_events_blocked(False)
+        self.animate(50, fx, [0, w])
+
+
+
+    def fx_slide_right(self):
+
+        def fx(params):
+            from_x, to_x = params
+            dx = (to_x - from_x) / 3
             
+            if (dx > 0):
+                screen.move_area(x, y, w - dx, h, dx, 0)
+                screen.copy_pixmap(buf, w - from_x - dx, 0, x, y, dx, h)
+
+                params[0] = from_x + dx
+                params[1] = to_x
+                return True
+
+            else:
+                dx = to_x - from_x
+                screen.move_area(x, y, w - dx, h, dx, 0)
+                screen.copy_pixmap(buf, w - from_x - dx, 0, x, y, dx, h)
+
+                return False
+
+
+        if (not self.may_render()): return
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+
+        if (self.__scrollbar_pmap):
+            slider_width, nil = self.__scrollbar_pmap.get_size()
+            slider_width /= 2
+            w -= slider_width
+
+        buf = self.__buffer
+        buf.fill_area(0, 0, w, h, self.__bg_color)
+        self.render_at(buf)
+
+        self.animate(50, fx, [0, w])
+
+
             
+    """    
     def fx_slide_in(self, wait = True):
     
         STEP = 8

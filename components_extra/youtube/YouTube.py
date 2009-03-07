@@ -130,6 +130,7 @@ class YouTube(Device):
         f.name = "YouTube"
         f.mimetype = f.DIRECTORY
         f.resource = ""
+        f.info = "Browse and download videos from YouTube"
         
         return f
         

@@ -17,6 +17,7 @@ image/jpeg                            .jpg,.jpeg          JPEG           I
 image/png                             .png                PNG            I
 
 application/ogg                       -                   Ogg-Vorbis     A      # used by Rhythmbox UPnP server plugin
+application/vnd.rn-realmedia          .ram,.ra            Realmedia      A
 application/vorbis                    -                   Ogg-Vorbis     A
 audio/*                               -                   Unknown-Audio  A
 audio/mp2                             .mp2                MP2-Audio      A
@@ -31,12 +32,13 @@ audio/x-wav                           .wav                WAV            A
 video/*                               -                   Unknown-Video  V
 video/3gpp                            .3gp,.3gpp          3GPP           V
 video/avi                             -                   AVI            V      # used by BRisa
-application/vnd.rn-realmedia          .rm,.ram,.ra,.rmvb  Realmedia      V
+application/x-rmvb                    .rmvb               Real-Video     V
 application/x-flash-video             -                   Flash-Video    V      # used by Fuppes
 video/mp4                             .m4v,.mp4           MP4-Video      V
 video/mpeg                            .mpg,.mpeg          MPEG           V
 video/ogg                             .ogv                Ogg-Theora     V
 video/quicktime                       .mov,.qt            Quicktime      V
+video/x-realvideo                     .rm                 Real-Video     V
 video/x-flash-video                   .flv                Flash-Video    V      # used by MediaTomb
 video/flv                             -                   Flash-Video    V      # used by YouTube
 video/x-dvd-image                     .dvd                DVD-Image      V      # non-tablet stuff, nice for HTPC

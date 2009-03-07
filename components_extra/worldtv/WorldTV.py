@@ -70,6 +70,7 @@ class WorldTV(Device):
         f.name = "World TV"
         f.mimetype = f.DIRECTORY
         f.resource = ""
+        f.info = "Watch TV streams from all over the world"
         
         return f
         

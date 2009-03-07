@@ -4,6 +4,8 @@ mediabox (0.96.4) unstable; urgency=low
   
   Improved UI rendering performance
   
+  Advanced list navigation with slide effects and remembering last position
+  
   Fixed some media indexing bugs
   
   Downscaling of hi-res videos for smoother playback in the mplayer backend
@@ -13,9 +15,18 @@ mediabox (0.96.4) unstable; urgency=low
   Headset button gestures (1x: PLAY/PAUSE, 2x: NEXT, 3x: PREVIOUS) in the maemo
   input schema
   
+  Small workaround to get smoother video playback with mplayer on maemo
+  
+  Option in the media scanner preferences to reset thumbnail previews and have
+  them generated again
+  
+  Command line options for disabling plugins
+  
+  Plugin compatibility API bumped to 1.01
+  
   Bugfixes
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 25 Jan 2009 20:00:00 +0100
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 03 Mar 2009 21:00:00 +0100
 
 mediabox (0.96.3-2) unstable; urgency=low
 

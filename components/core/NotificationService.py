@@ -1,11 +1,11 @@
-from com import Component, msgs
+from com import Widget, msgs
 from utils import maemo
 from ui import dialogs
 
 import gtk
 
 
-class NotificationService(Component):
+class NotificationService(Widget):
     """
     Service for sending notifications to the user.
     """
@@ -14,7 +14,7 @@ class NotificationService(Component):
     
         self.__progress_banner = None
        
-        Component.__init__(self)
+        Widget.__init__(self)
         
         
     def handle_message(self, msg, *args):
@@ -40,8 +40,7 @@ class NotificationService(Component):
     
         if (maemo.IS_MAEMO):
             import hildon
-            from ui.Widget import Widget
-            hildon.hildon_banner_show_information(Widget().get_window(), icon, text)
+            hildon.hildon_banner_show_information(self.get_window(), icon, text)
         else:
             import dbus
             bus = maemo.get_session_bus()
@@ -55,7 +54,6 @@ class NotificationService(Component):
     def __show_progress(self, amount, total, text):
     
         if (maemo.IS_MAEMO):
-            from ui.Widget import Widget
             from ui.ProgressBanner import ProgressBanner
         
             if (self.__progress_banner):
@@ -64,7 +62,7 @@ class NotificationService(Component):
                     self.__progress_banner = None
 
             if (not self.__progress_banner):
-                self.__progress_banner = ProgressBanner(Widget().get_window(),
+                self.__progress_banner = ProgressBanner(self.get_window(),
                                                         text, total)
 
             self.__progress_banner.set(amount)

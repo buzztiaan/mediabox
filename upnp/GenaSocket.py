@@ -64,6 +64,7 @@ class _GenaSocket(object):
     """
     Class for a GENA socket for subscribing/unsubscribing to GENA events
     and dispatching incoming events to registered callback handlers.
+    @since: 0.96
     """
 
     def __init__(self):
@@ -171,6 +172,7 @@ class _GenaSocket(object):
     def subscribe(self, ev_url, cb):
         """
         Subscribes the given callback to the given event URL.
+        @since: 0.96
         """
 
         # create GENA socket when first used
@@ -193,6 +195,7 @@ class _GenaSocket(object):
     def unsubscribe(self, cb):
         """
         Unsubscribes the given callback.
+        @since: 0.96
         """
 
         if (cb in self.__cb_to_sid):

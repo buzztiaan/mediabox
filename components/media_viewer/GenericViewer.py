@@ -442,6 +442,7 @@ class GenericViewer(Viewer):
             self.__media_box.set_visible(False)
             self.__lib_list.set_visible(False)
 
+            self.__strip_needs_reload(self._VIEWMODE_BROWSER)
             if (not was_fullscreen):
                 self.__update_side_strip()
                 self.__hilight_current_file()
@@ -484,18 +485,20 @@ class GenericViewer(Viewer):
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
+
+            self.__strip_needs_reload(self._VIEWMODE_PLAYER_NORMAL)
+            self.__update_side_strip()
+            self.__hilight_current_file()
             
             if (not was_fullscreen):
                 #self.emit_message(msgs.UI_ACT_FREEZE)
-                self.__update_side_strip()
-                self.__hilight_current_file()
                 self.__update_toolbar()
                 if (self.__current_file):
                     self.set_title(self.__current_file.name)
                 #self.emit_message(msgs.UI_ACT_THAW)
                 #self.render()
                 self.emit_event(msgs.UI_ACT_RENDER)
-            else:
+            else:                
                 self.render()
                 gobject.timeout_add(50, self.emit_message, msgs.UI_ACT_RENDER)
 
@@ -554,7 +557,7 @@ class GenericViewer(Viewer):
             if (self.__current_device and self.__path_stack):
                 #self.__load_device(self.__current_device)
                 path = self.__path_stack[-1][0]
-                self.__load_folder(path, None)
+                self.__load_folder(path, self.__GO_NEW)
         
         # watch for new storage devices
         elif (msg == msgs.CORE_EV_DEVICE_ADDED):
@@ -609,16 +612,16 @@ class GenericViewer(Viewer):
                 if (dev != self.__current_device):
                     self.__load_device(dev)
 
-            elif (self.__view_mode == self._VIEWMODE_SPLIT_BROWSER):
-                if (len(self.__path_stack) > 1):
-                    folder = self.__sibling_folders[idx]
-                    if (self.__path_stack):
-                        self.__path_stack.pop()
-                    self.__load_folder(folder, None)
-                else:
-                    dev = self.__device_items[idx]
-                    if (dev != self.__current_device):
-                        self.__load_device(dev)               
+            #elif (self.__view_mode == self._VIEWMODE_SPLIT_BROWSER):
+            #    if (len(self.__path_stack) > 1):
+            #        folder = self.__sibling_folders[idx]
+            #        if (self.__path_stack):
+            #            self.__path_stack.pop()
+            #        self.__load_folder(folder, None)
+            #    else:
+            #        dev = self.__device_items[idx]
+            #        if (dev != self.__current_device):
+            #            self.__load_device(dev)               
                     
             elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
                 item = self.__playable_items[idx]
@@ -750,7 +753,7 @@ class GenericViewer(Viewer):
                 self.__insert_folder(entry)
             else:
                 #gobject.timeout_add(50, self.__load_folder, entry, None)
-                self.__load_folder(entry, None)
+                self.__load_folder(entry, self.__GO_CHILD)
                 
         elif (button == item.BUTTON_CLOSE):
             self.__close_subfolder()
@@ -922,27 +925,14 @@ class GenericViewer(Viewer):
                 self.__list.render()
             
             return True
-
-        
-        def on_sibling(f, path, entries):
-            # abort if the user has changed the directory again
-            if (self.__path_stack[-2][0] != path): return False
-            
-            if (f and f.mimetype.endswith("-folder")):
-                entries.append(f)
-            else:
-                if (`entries` != `self.__sibling_folders`):
-                    self.__sibling_folders = entries
-                    self.__update_side_strip()
-
-            return True
-                    
+                   
 
         self.__close_subfolder()
                    
         # clear items
         self.__items = []
         self.__playable_items = []
+        self.__random_items = []
         self.__items_downloading_thumbnails.clear()
 
         # update path stack
@@ -957,33 +947,49 @@ class GenericViewer(Viewer):
         if (not reload_only):
             self.__path_stack.append([path, 0])
 
-        self.__list.clear_items()        
+
+        if (direction == self.__GO_PARENT):
+            # don't reload list
+            self.__list.clear_items()
+            self.__list.change_image_set(path.full_path)
+            self.__list.hilight(-1)
+            
+            self.__items = [ i.get_file() for i in self.__list.get_items()[1:] ]
+            self.__playable_items = [ i for i in self.__items 
+                                      if not i.mimetype.endswith("-folder") ]
+            self.__random_items = self.__playable_items[:]
+            self.__list.fx_slide_right()
+            
+        else:
+            # reload list           
+            self.__list.change_image_set(path.full_path)
+            self.__list.clear_items()
+
+            header = HeaderItem(path.name)
+            header.set_info("Retrieving...")
+            buttons = [(header.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue)]
+            if (path.can_add_to_library):
+                buttons.append((header.BUTTON_ADD_TO_LIBRARY, theme.mb_item_btn_add))
+            header.set_buttons(*buttons)
+            self.__list.append_item(header)
+
+            self.__list.fx_slide_left()
+
+            gobject.timeout_add(0, path.get_children_async, on_child, path,
+                                [], [])
+
+        #end if
+            
         #if (direction == self.__GO_PARENT):
         #    self.__list.fx_slide_right()
         #elif (direction == self.__GO_CHILD):
         #    self.__list.fx_slide_left()
 
-        header = HeaderItem(path.name)
-        header.set_info("Retrieving...")
-        buttons = [(header.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue)]
-        if (path.can_add_to_library):
-            buttons.append((header.BUTTON_ADD_TO_LIBRARY, theme.mb_item_btn_add))
-        header.set_buttons(*buttons)
-        self.__list.append_item(header)
-        self.__update_toolbar()
         #self.__list.render()
+        self.__update_toolbar()
         self.emit_message(msgs.UI_ACT_RENDER)
+        import gc; gc.collect()
         
-        if (self.__view_mode == self._VIEWMODE_SPLIT_BROWSER):
-            if (len(self.__path_stack) > 1):
-                parent_path = self.__path_stack[-2][0]
-                gobject.timeout_add(0, parent_path.get_children_async,
-                                    on_sibling, parent_path, [])
-            else:
-                self.__sibling_folders = []
-                self.__update_side_strip()
-
-        gobject.timeout_add(0, path.get_children_async, on_child, path, [], [])
 
 
 
@@ -1056,17 +1062,23 @@ class GenericViewer(Viewer):
         Adds the given file item to the list.
         """
 
-        # determine available item buttons
         if (insert_at == -1):
-            thumbnail = self.call_service(
-                msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, entry) or None
+            # look if there's a thumbnail available
+            if (entry.icon):
+                thumbnail = entry.icon
+            else:
+                thumbnail = self.call_service(
+                    msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, entry) or None
+
             item = MediaItem(entry, thumbnail)
+            # remember for thumbnailing if no thumbnail was found
             if (not thumbnail and entry.mimetype != entry.DIRECTORY):
                 items_to_thumbnail.append((item, None, entry))
-                
+
         else:
             item = SubItem(entry)
-            
+
+        # determine available item buttons
         buttons = []
         
         if (entry.mimetype == "application/x-music-folder"):

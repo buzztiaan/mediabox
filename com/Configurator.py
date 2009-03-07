@@ -11,12 +11,20 @@ class Configurator(Component, Widget):
     Base class for configurator components.
     Components derived from this class are shown as pages in the
     preferences viewer.
+    @since: 0.96
     """
 
     ICON = None
-    """theme reference to the icon which appears in the preferences viewer"""
+    """
+    theme reference to the icon which appears in the preferences viewer
+    @since: 0.96
+    """
+
     TITLE = ""
-    """title text of the configurator"""
+    """
+    title text of the configurator
+    @since: 0.96
+    """
     
 
     def __init__(self):

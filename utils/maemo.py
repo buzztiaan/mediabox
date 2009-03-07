@@ -6,7 +6,10 @@ Module for maemo-specific stuff.
 _osso_context = None
 
 IS_MAEMO = False
-"""this constant is C{True} when running on a maemo system"""
+"""
+this constant is C{True} when running on a maemo system
+@since: 0.96
+"""
 
 try:
     import hildon
@@ -19,7 +22,9 @@ import os
 
 def set_osso_context(ctx):
     """
-    Sets the OSSO context for the application.
+    Sets the OSSO context for the application. This function should only be
+    used internally.
+    @since: 0.96
     
     @param ctx: OSSO context
     """
@@ -31,6 +36,7 @@ def set_osso_context(ctx):
 def get_osso_context():
     """
     Returns the OSSO context.
+    @since: 0.96
     
     @return: OSSO context
     """
@@ -41,6 +47,7 @@ def get_osso_context():
 def get_device_state():
     """
     Returns the OSSO device state object.
+    @since: 0.96.3
     
     @return: OSSO device state
     """
@@ -53,6 +60,7 @@ def get_device_state():
 def get_system_bus():
     """
     Returns the DBus system bus.
+    @since: 0.96
     
     @return: dbus system bus
     """
@@ -63,6 +71,7 @@ def get_system_bus():
 def get_session_bus():
     """
     Returns the DBus session bus.
+    @since: 0.96
     
     @return: dbus session bus
     """
@@ -79,6 +88,8 @@ def get_product_code():
      - Nokia N810:   RX-44
      - Nokia N810WE: RX-48
      - Unknown:      ?
+    
+    @since: 0.96
     
     @return: product code
     """
@@ -111,6 +122,7 @@ def request_connection():
     If the device is not connected, tries to establish the default connection
     or pop up the connection dialog.
     Does nothing if the device does already have a network connection.
+    @since: 0.96.3
     """
     
     # dbus-send --type=method_call --system --dest=com.nokia.icd/com/nokia/icd com.nokia.icd.connect

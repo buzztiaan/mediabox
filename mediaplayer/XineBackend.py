@@ -36,8 +36,28 @@ class XineBackend(AbstractBackend):
         try:
             obj = bus.get_object(_SERVICE_NAME, _OBJECT_PATH)
             self.__player = dbus.Interface(obj, _PLAYER_IFACE)
+            self.__player.connect_to_signal("aspect_changed", self.__on_aspect_changed)
         except:
             pass
+
+
+    def __on_aspect_changed(self, a):
+    
+        if (a == 0):
+            ratio = 4/3.0      # auto
+        elif (a == 1):
+            ratio = 1.0        # square
+        elif (a == 2):
+            ratio = 4/3.0      # 4:3
+        elif (a == 3):
+            ratio = 16/9.0     # 16:9
+        elif (a == 4):
+            ratio = 2.11/1.0   # DVB
+        else:
+            ratio = 16/9.0
+                      
+        print "RATIO", ratio
+        self._report_aspect_ratio(ratio)
 
         
     def _ensure_backend(self):
@@ -76,43 +96,11 @@ class XineBackend(AbstractBackend):
 
         self.__player.open(uri)
 
-        if (self._get_mode() == self.MODE_VIDEO):
-            self.__get_aspect_ratio()
 
-
-    def __get_aspect_ratio(self):
-
-        a = self.__player.get_aspect()
-        if (a == 0):
-            ratio = 4/3.0      # auto
-        elif (a == 1):
-            ratio = 1.0        # square
-        elif (a == 2):
-            ratio = 4/3.0      # 4:3
-        elif (a == 3):
-            ratio = 16/9.0     # 16:9
-        elif (a == 4):
-            ratio = 2.11/1.0   # DVB
-        else:
-            ratio = 16/9.0
-                      
-        print "RATIO", ratio
-        self._report_aspect_ratio(16/9.0)
-        #width, height = self.__player.get_video_size()
-        #print "ASPECT RATIO", width, height
-        #if (height > 0):
-        #    self._report_aspect_ratio(width / float(height))
-        #else:
-        #    gobject.idle_add(self.__get_aspect_ratio)
-    
 
     def _send_key(self, key):
     
         self.__player.send_key(key)
-        gobject.idle_add(self.__get_aspect_ratio)
-        gobject.timeout_add(500, self.__get_aspect_ratio)
-        gobject.timeout_add(1000, self.__get_aspect_ratio)
-        gobject.timeout_add(1500, self.__get_aspect_ratio)
         
         return True
         

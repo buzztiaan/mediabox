@@ -47,9 +47,7 @@ logging.set_level(_LOG_LEVELS[log_count])
 
 
 logging.debug("initializing application")
-container = Container(plugin_dirs, #[os.path.join(values.MEDIABOX_DIR, "components"),
-                       #os.path.join(values.MEDIABOX_DIR, "components_extra")],
-                       blacklist)
+container = Container(plugin_dirs, blacklist)
 
 logging.debug("running application")
 import gtk

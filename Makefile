@@ -65,5 +65,5 @@ doc:
 	epydoc -n ${NAME} --parse-only -o ../www/apidoc -v \
 	       --no-sourcecode --show-private --inheritance=included \
 	       --parse-only \
-	       com storage theme # idtags io mediabox storage theme ui upnp utils
+	       com storage theme upnp utils # idtags io mediabox storage theme ui
 

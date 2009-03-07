@@ -8,6 +8,7 @@ import gtk
 class Pixbuf(gtk.gdk.Pixbuf):
     """
     Class for pixbuf theme elements.
+    @since: 0.96.3
     """
 
     def __init__(self, path):

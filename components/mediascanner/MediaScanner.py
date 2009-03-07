@@ -316,11 +316,25 @@ class MediaScanner(Component):
                                   (self.MEDIA_AUDIO, audio),
                                   (self.MEDIA_IMAGE, image)]:
 
-            if (mediatypes & mediatype and module.is_media(f)):
+            if (mediatypes & mediatype and module.is_media(f)):                    
                 if (self.__file_index.has_file(f.full_path)):
-                    logging.debug("already in file index [%s]", f.full_path)
-                    self.__file_index.set_field(FileIndex.STATUS, f.full_path,
-                                                FileIndex.STATUS_UNCHANGED)
+                    scantime = self.__file_index.get_field(FileIndex.SCANTIME,
+                                                           f.full_path)
+                    if (os.path.exists(f.resource)):
+                        mtime = os.path.getmtime(f.resource)
+                    else:
+                        mtime = 0
+                                      
+                    #print f, mtime, scantime
+                    if (mtime > scantime):
+                        logging.debug("updating in file index [%s]", f.full_path)
+                        self.__file_index.set_field(FileIndex.STATUS, f.full_path,
+                                                    FileIndex.STATUS_NEW)
+                    else:
+                        logging.debug("already in file index [%s]", f.full_path)
+                        self.__file_index.set_field(FileIndex.STATUS, f.full_path,
+                                                    FileIndex.STATUS_UNCHANGED)
+
                 else:
                     logging.debug("adding to file index [%s]", f.full_path)
                     self.__file_index.set_field(FileIndex.STATUS, f.full_path,

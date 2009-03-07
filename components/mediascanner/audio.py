@@ -90,7 +90,7 @@ def _load_embedded_cover(f, dest, cb):
     
 def _find_cover_file(uri):
 
-    if (not uri.startswith("/")):
+    if (not uri.startswith("/") or not os.path.isdir(uri)):
         return None
         
     cover = None

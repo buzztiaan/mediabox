@@ -24,6 +24,7 @@ _DEFAULT_LABELS = { CARD_1: "External Memory card",
 def exists(card):
     """
     Returns whether the given card exists, i.e. mounted.
+    @since: 0.96
     
     @param card: card (one of C{CARD_1} or C{CARD_2})
     @return: whether the card exists
@@ -37,6 +38,7 @@ def exists(card):
 def get_label(card):
     """
     Returns the label of the given card.
+    @since: 0.96
     
     @param card: card (one of C{CARD_1} or C{CARD_2})
     @return: label string
@@ -56,6 +58,7 @@ def get_label(card):
 def get_path(card):
     """
     Returns the path of the mount point of the given card.
+    @since: 0.96
     
     @param card: card (one of C{CARD_1} or C{CARD_2})
     @return: path of mount point
@@ -68,6 +71,7 @@ def get_device(card):
     """
     Returns the device node of the given card.
     Returns C{/dev/null} if the card does not exist.
+    @since: 0.96
 
     @param card: card (one of C{CARD_1} or C{CARD_2})
     @return: path of device node

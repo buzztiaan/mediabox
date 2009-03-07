@@ -31,6 +31,13 @@ class Container(Component):
             if (os.path.exists(p)):
                 self.load_path(p)
 
+        for c in self.__components:
+            self.emit_event(msgs.COM_EV_COMPONENT_LOADED, c)
+
+        for dev in self.__devices:
+            self.emit_event(msgs.CORE_EV_DEVICE_ADDED, dev.get_device_id(), dev)
+
+
         
     def __find_modules(self, path):
         """
@@ -155,8 +162,8 @@ class Container(Component):
         @param path: path of components directory
         """
         
-        self.__components = []
-        self.__devices = []
+        #self.__components = []
+        #self.__devices = []
         
         mods = self.__find_modules(path)
         for mod in mods:
@@ -164,10 +171,4 @@ class Container(Component):
         for mod in mods:
             self.emit_event(msgs.COM_EV_LOADING_MODULE, mod.__name__)
             self.__load_components(mod)
-
-        for c in self.__components:
-            self.emit_event(msgs.COM_EV_COMPONENT_LOADED, c)
-
-        for dev in self.__devices:
-            self.emit_event(msgs.CORE_EV_DEVICE_ADDED, dev.get_device_id(), dev)
 

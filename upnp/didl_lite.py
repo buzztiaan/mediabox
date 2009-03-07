@@ -15,6 +15,7 @@ _XMLNS_DC = "http://purl.org/dc/elements/1.1/"
 def parse(xml):
     """
     Parses the given DIDL-Lite XML and returns a list of items.
+    @since: 0.96
     
     @param xml: XML string in DIDL-Lite format
     @return: list of items
@@ -37,6 +38,7 @@ def parse_async(xml, cb, *args):
     Parses the given DIDL-Lite XML asynchronously and calls the given
     callback handler on each entry.
     Returns C{None} after the last entry to signalize the end.
+    @since: 0.96
     
     @param xml: XML string in DIDL-Lite format
     @param cb: callback function

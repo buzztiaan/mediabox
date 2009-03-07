@@ -25,6 +25,7 @@ def set_level(level):
     """
     Sets the log level. This is a global setting. The default log level
     is C{ERROR}.
+    @since: 0.96
     
     @param level: log level
     """
@@ -36,6 +37,7 @@ def set_level(level):
 def get_level():
     """
     Returns the current log level.
+    @since: 0.96.4
     
     @return: log level
     """
@@ -46,6 +48,7 @@ def get_level():
 def is_level(level):
     """
     Returns whether messages of the given level are logged.
+    @since: 0.96
     
     @param level: log level
     @return: whether messages are logged
@@ -72,6 +75,9 @@ def _log(ltype, s):
 
 
 def error(msg, *args):
+    """
+    @since: 0.96
+    """
 
     if (_level < ERROR): return
     if (args):
@@ -81,6 +87,9 @@ def error(msg, *args):
 
 
 def warning(msg, *args):
+    """
+    @since: 0.96
+    """
 
     if (_level < WARNING): return
     if (args):
@@ -90,6 +99,9 @@ def warning(msg, *args):
 
 
 def info(msg, *args):
+    """
+    @since: 0.96
+    """
 
     if (_level < INFO): return
     if (args):
@@ -99,6 +111,9 @@ def info(msg, *args):
 
 
 def debug(msg, *args):
+    """
+    @since: 0.96
+    """
 
     if (_level < DEBUG): return
     if (args):
@@ -110,6 +125,7 @@ def debug(msg, *args):
 def stacktrace():
     """
     Returns the current stack trace.
+    @since: 0.96
     
     @return: stack trace
     """

@@ -117,6 +117,7 @@ class AVDevice(Device):
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = self.get_name()
+        f.info = "UPnP network storage"
         
         return f    
 

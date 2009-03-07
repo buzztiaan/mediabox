@@ -23,6 +23,7 @@ MP2-Audio                      oms
 MP4-Audio                      oms
 MP3-Audio                      oms
 Ogg-Vorbis                     mplayer
+Realmedia                      oms
 Unknown-Audio                  mplayer
 WMA                            oms
 WAV                            oms
@@ -37,7 +38,7 @@ MP4-Video                      oms
 MPEG                           oms
 Ogg-Theora                     mplayer
 Quicktime                      mplayer
-Realmedia                      oms
+Real-Video                     oms
 Unknown-Video                  mplayer
 WMV                            mplayer
 

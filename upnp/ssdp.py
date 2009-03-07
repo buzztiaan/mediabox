@@ -25,6 +25,7 @@ def open_sockets():
     """
     Opens and returns the SSDP notification and discover sockets.
     If the sockets are already open, they are just returned.
+    @since: 0.96
     
     @return: notification socket
     @return: discovery socket
@@ -55,6 +56,7 @@ def open_sockets():
 def discover_devices():
     """
     Sends a M-SEARCH for discovering all available UPnP devices.
+    @since: 0.96
     """
     
     try:
@@ -115,7 +117,9 @@ def poll_event(sock):
     Polls for SSDP notifications on the given socket and returns an SSDP
     event tuple (event, location, usn, max_age) or None if no event was
     available.
+    @since: 0.96
     """
+
     try:
         data, addr = sock.recvfrom(1024)
     except socket.error:

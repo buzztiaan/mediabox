@@ -57,11 +57,14 @@ class SOAPProxy(object):
       
       # asynchronous service call    
       myproxy.GetStatus(f)      
+
+    @since: 0.96
     """
 
     def __init__(self, endpoint, namespace, scpdurl):
         """
         Creates a new SOAP proxy.
+        @since: 0.96
         
         @param endpoint: URL of SOAP endpoint
         @param namespace: namespace of outgoing parameters

@@ -21,6 +21,8 @@ class Device(Component):
     or L{TYPE_IMAGE}. Viewers list devices of certain types. The video viewer
     e.g. only lists devices of type L{TYPE_VIDEO}, while the devices of type
     L{TYPE_GENERIC} are listed by the folder viewer.
+
+    @since: 0.96
     """
 
 
@@ -50,6 +52,7 @@ class Device(Component):
     def get_device_id(self):
         """
         Returns the unique device identifier.
+        @since: 0.96
         
         @return: device identifier
         """
@@ -72,6 +75,7 @@ class Device(Component):
         Every prefix MUST contain '://' to separate the protocol name from the
         device identifier. The protocol name must not be empty. The device
         identifier may be empty where appropriate.
+        @since: 0.96
         
         @return: prefix
         """
@@ -82,6 +86,7 @@ class Device(Component):
     def get_name(self):
         """
         Returns the human readable name of this storage device.
+        @since: 0.96
         
         @return: name
         """
@@ -93,6 +98,7 @@ class Device(Component):
         """
         Returns the icon for representing this storage device in a user
         interface. Returns None if no icon is available.
+        @since: 0.96
         
         @return: icon pixbuf
         """
@@ -104,6 +110,7 @@ class Device(Component):
         """
         Returns the File object representing the root path of the device.
         The returned path does not contain the device prefix.
+        @since: 0.96
         
         @return: root file object
         """
@@ -115,6 +122,7 @@ class Device(Component):
         """
         Returns the File object representing the given path.
         The specified path does not contain the device prefix.
+        @since: 0.96
         
         @param path: path string
         @return: file object
@@ -126,6 +134,7 @@ class Device(Component):
     def new_file(self, path):
         """
         Can be implemented by devices to support creating new files.
+        @since: 0.96
         
         @param path: file object of the parent folder
         """
@@ -136,6 +145,7 @@ class Device(Component):
     def delete(self, f):
         """
         Can be implemented by devices to support deleting files.
+        @since: 096
         
         @param f: file object to delete
         """
@@ -147,6 +157,7 @@ class Device(Component):
         """
         Keeps the given file. Storage device can implement this method to
         let the user keep remote stuff locally.
+        @since: 0.96
         
         @param f: file object to keep
         """
@@ -158,6 +169,7 @@ class Device(Component):
         """
         Returns a list of File objects representing the contents of the
         given path.
+        @since: 0.96
         @deprecated: L{ls_async} should be used instead
         
         @param path: file object to list
@@ -183,6 +195,7 @@ class Device(Component):
         Lists the given path asynchronously by calling the given callback
         on each item. After processing every item, the implementation is
         expected to return None to signalize the end.
+        @since: 0.96
         
         @param path: file object to list
         @param cb:   callback handler
@@ -211,6 +224,7 @@ class Device(Component):
         Retrieves the given amount of bytes of the file asynchronously.
         
         May raise an IOError if retrieving is not supported.
+        @since: 0.96
         
         @param maxlen: number of bytes to retrieve or -1 for retrieving the
                        whole file
@@ -226,6 +240,7 @@ class Device(Component):
         Returns the resource URI to access the given resource. Usually this
         method just returns the given resource. But sometimes (e.g. YouTube),
         this URI has to be specially determined.
+        @since: 0.96
         """
         
         return f.resource

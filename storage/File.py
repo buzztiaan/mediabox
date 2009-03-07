@@ -9,6 +9,8 @@ class File(object):
     """
     Class for representing a file or folder on a storage device.
     Do not subclass this class.
+    
+    @since: 0.96
     """
 
     FILE = "application/x-other"
@@ -29,53 +31,108 @@ class File(object):
 
 
         self.can_skip = False
-        """whether the user may skip files (previous/next) in this folder"""
+        """
+        whether the user may skip files (previous/next) in this folder
+        @since: 0.96
+        """
 
         self.can_add_to_library = False
-        """whether the user may add this folder to the library"""
+        """
+        whether the user may add this folder to the library
+        @since: 0.96
+        """
 
         self.can_add = False
-        """whether the user may add items to this folder"""
+        """
+        whether the user may add items to this folder
+        @since: 0.96
+        """
         
         self.can_delete = False
-        """whether the user may delete this file"""
+        """
+        whether the user may delete this file
+        @since: 0.96
+        """
 
         self.can_keep = False
-        """whether the user may keep this non-local file"""
+        """
+        whether the user may keep this non-local file
+        @since: 0.96
+        """
 
         self.can_download = False
-        """whether the user may download this file"""
+        """
+        whether the user may download this file
+        @since: 0.96
+        """
 
         self.is_local = False
-        """whether this file is local"""
+        """
+        whether this file is local
+        @since: 0.96
+        """
                 
 
         self.path = ""
-        """virtual path of the file on the device"""
+        """
+        virtual path of the file on the device
+        @since: 0.96
+        """
 
         self.name = ""
-        """name of the file presented to the user"""
+        """
+        name of the file presented to the user
+        @since: 0.96
+        """
 
         self.info = ""
-        """some info text"""
+        """
+        some info text
+        @since: 0.96
+        """
         
         self.description = ""
-        """text for further description"""
+        """
+        text for further description
+        @since: 0.96
+        """
 
         self.index = 0
-        """index number that can be used for sorting"""
+        """
+        index number that can be used for sorting
+        @since: 0.96
+        """
 
         self.parent = ""
-        """name of parent folder, if any (can be used for grouping items)"""
+        """
+        name of parent folder, if any (can be used for grouping items)
+        @since: 0.96
+        """
 
         self.thumbnail = ""
-        """may contain the URI of a thumbnail image"""
+        """
+        may contain the URI of an image that can be used to generate a thumbnail
+        @since: 0.96
+        """
+        
+        self.icon = ""
+        """
+        may contain the path of an icon image that can be used instead of a
+        thumbnnail
+        @since: 0.96.4
+        """
         
         self.mimetype = self.FILE
-        """MIME type of the file"""
+        """
+        MIME type of the file
+        @since: 0.96
+        """
                
         self.resource = ""
-        """URI for accessing the file"""
+        """
+        URI for accessing the actual file, if any
+        @since: 0.96
+        """
 
         
         self.__medium = None
@@ -109,7 +166,10 @@ class File(object):
         return self.__device.get_prefix() + self.path
         
     full_path = property(__get_full_path)
-    """read-only: full virtual path of the file"""
+    """
+    read-only: full virtual path of the file
+    @since: 0.96
+    """
     
     
     def __get_source_icon(self):
@@ -117,7 +177,10 @@ class File(object):
         return self.__device.get_icon()
         
     source_icon = property(__get_source_icon)
-    """read-only: pixbuf icon representing the source device"""
+    """
+    read-only: pixbuf icon representing the source device
+    @since: 0.96
+    """
 
 
     def __get_md5(self):
@@ -129,7 +192,10 @@ class File(object):
             return self.__md5
 
     md5 = property(__get_md5)
-    """read-only: MD5 sum for uniquely identifying the file internally"""
+    """
+    read-only: MD5 sum for uniquely identifying the file internally
+    @since: 0.96
+    """
 
     
 
@@ -146,7 +212,11 @@ class File(object):
             return self.md5
 
     thumbnail_md5 = property(__get_thumbnail_md5, __set_thumbnail_md5)
-    """read-write: MD5 sum for uniquely identifying the file's thumbnail preview"""
+    """
+    read-write: MD5 sum for uniquely identifying the file's thumbnail preview,
+    if the C{md5} property shouldn't be used
+    @since: 0.96
+    """
 
 
     def __get_medium(self):
@@ -187,13 +257,18 @@ class File(object):
         return None
 
     medium = property(__get_medium)
-    """read-only: path of the medium where the file is on (local files only)"""
+    """
+    read-only: path (mount point) of the medium where the file is on
+    (local files only)
+    @since: 0.96.3
+    """
        
         
     def new_file(self):
         """
         Creates a new file in this folder. This only works if the storage
         device implements the new_file method.
+        @since: 0.96
         
         @return: the new File object
         """
@@ -205,6 +280,7 @@ class File(object):
         """
         Deletes this file. This only works if the storage device implements
         the delete method.
+        @since: 0.96
         """
     
         return self.__device.delete(self)
@@ -213,6 +289,7 @@ class File(object):
     def get_children(self):
         """
         Returns a list of children of this folder.
+        @since: 0.96
         @deprecated: L{get_children_async} should be used instead
         
         @return: list of File objects
@@ -225,6 +302,7 @@ class File(object):
         """
         Lists the children of this folder asynchronously by invoking the
         given callback handler on every file. Terminates with a None object.
+        @since: 0.96
         
         @param cb: callback handler
         @param args: variable list of arguments to the callback handler
@@ -238,6 +316,7 @@ class File(object):
         Retrieves the given amount of bytes of the file asynchronously.
         
         May raise an IOError if retrieving is not supported.
+        @since: 0.96
         
         @param maxlen: number of bytes to retrieve or -1 for retrieving the
                        whole file
@@ -259,6 +338,7 @@ class File(object):
         Instructs the storage device to keep this file. This method can be used
         for keeping a local copy of a remote file. This only works if the
         storage device implements the keep method.
+        @since: 0.96
         """
     
         self.__device.keep(self)

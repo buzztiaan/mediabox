@@ -38,7 +38,7 @@ class AudioGenreStorage(AudioArtistStorage):
         
     def get_name(self):
     
-        return "By Genre"
+        return "Genres"
 
 
     def get_icon(self):
@@ -56,6 +56,7 @@ class AudioGenreStorage(AudioArtistStorage):
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = self.get_name()
+        f.info = "Browse your music library by genre"
         
         return f
           
@@ -84,6 +85,14 @@ class AudioGenreStorage(AudioArtistStorage):
         elif (len_parts == 1):
             genre = urlquote.unquote(parts[0])
             for album in index.list_albums_by_genre(genre):
+                #children = index.list_files(album)
+                #if (children):
+                #    f = self.call_service(msgs.CORE_SVC_GET_FILE, children[0])
+                #    tags = tagreader.get_tags(f)
+                #    artist = tags.get("ARTIST") or "unknown"
+                #else:
+                #    artist = "unknown"
+            
                 f = File(self)
                 f.is_local = True
                 f.path = path + urlquote.quote(album, "")

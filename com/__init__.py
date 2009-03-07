@@ -3,6 +3,7 @@ Component Subsystem
 ===================
 
 Component subsystem for extending the application.
+@since: 0.96
 """
 
 import msgs

@@ -12,6 +12,8 @@ class Mediator(object):
     
     Do not derive from this class directly. Derive from L{Component} or one of
     its subclasses instead.
+
+    @since: 0.96
     """
 
     PASS_TYPE_INVALID = 0
@@ -60,6 +62,7 @@ class Mediator(object):
         """
         Gets invoked when a message arrives on the message bus.
         Override this method in subclasses to listen for messages.
+        @since: 0.96
         
         @param msg: message
         @param args: variable list of arguments
@@ -81,6 +84,7 @@ class Mediator(object):
     def emit_event(self, event, *args):
         """
         Emits the given message.
+        @since: 0.96
         @deprecated: use L{emit_message} instead
 
         @param event: message
@@ -93,6 +97,7 @@ class Mediator(object):
     def emit_message(self, msg, *args):
         """
         Emits the given message.
+        @since: 0.96.1
 
         @param msg: message
         @param args: variable list of arguments
@@ -107,6 +112,7 @@ class Mediator(object):
         """
         Calls the given service and returns the return value of the service.
         Returns C{None} if the service was not found.
+        @since: 0.96
         
         @param svc: service message
         @param args: variable list of arguments

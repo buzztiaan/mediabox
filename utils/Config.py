@@ -28,6 +28,8 @@ class Config(object):
                                  ("bar", Config.INTEGER, 10)])
       cfg["foo"] = "Some string"
       print cfg["bar"]
+      
+    @since: 0.96
     """
 
     INTEGER = 0
@@ -47,6 +49,7 @@ class Config(object):
         Schema is a list of tuples of the form
         C{(key_name, datatype, default_value)}
         describing the valid keys that can be stored.
+        @since: 0.96
         
         @param agent: name of agent
         @param schema: list of schema tuples

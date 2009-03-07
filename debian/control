@@ -7,8 +7,11 @@ Standards-Version: 3.7.2
 
 Package: mediabox
 Architecture: any
-Depends: python2.5-runtime, mplayer, mediabox-compat-plugin (=1.0), mediabox-compat-theme (=1.0)
+Depends: python2.5-runtime, mplayer, mediabox-compat-plugin (=1.01), mediabox-compat-theme (=1.0)
 Description: A media center for Nokia Internet Tablets
-  MediaBox Media Center was built to handle large collections of media and plays your music, your videos, and shows your photos from your memory cards, or remotely over the network via UPnP.
-  More features can be added by plugins.
+ MediaBox Media Center was built to handle large collections of
+ media and lets you browse and play your music and videos and show
+ your photos either from your memory cards, or remotely over the
+ network via UPnP/DLNA.
+ More features are available as plugins.
 XB-Maemo-Icon-26: iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAA3WAAAN1gGQb3mcAAACoklEQVRIx+2US0iUURTHf/ebr9EZxxkVX71UNMtXYGhED4qChDaR1KqHuLNNFkLRrkWrFm2iaFPt3LUpCCKSiKJgMAozjcF8IejM5Mw443zjzHzz3RZ9H/h+5C48cLn3nnP+5385/8OFLVvDxGbAVzuPbheKUQ8UCCHzhZA1Qsiih/e9l60cdV2Frh9pFEIWmoUqwNg+N5eqyHZq51aArJ/g2s3DdxOJ+EmXSzlq+YpKHFTtKTZcOSW4nKWAgk2xE5rx8a6nfwF+TQLFNtfVcqbcWZhfh9NRiJQSKSWpdEyJRIeZDH5lbDSKfzJO67lWYIMEAKVFzYxPfKLX618Sm41lBkH1utyyjWU0XRcBQK/Xz2ws81PXba9V1Ra221W/lCKsqsKHFH6kdmVTBABPHvXVrhS7cfvA8i3eCMG/2BbBmraSyCt9IQpAR+ehW4ZMnjYymZpct7rDCsYTU/PzJCAXEPz9W/S2hDZ3Kq9AabH8aT1mHXMuXKx/0NDobC/bvRdPbgWO7AKklEwGvxAKj1h5NiCzhCASjt6prnV2NDXXke+pJs9dCVLiG31JUYkDoGpXmb29bt9BmUiGxaw2hZYIEgqPMT4aJRDQmBhLPzY7YyxukSjdqXacOH4Mw9Cx2bIIRXz8Dg3Q3zclZ2aSAigHmI4MCC2eNuJxPaOnMyIQ0FTDkIwMxd+/eO67t6oGv0a/kZ2t4nGHSCSn5fBQRPinUr7PHwI9QFX3s6Guge8zl+r2e5osTQb7o96Jca37R9/kF8A+T4MFYoqz5xtOuD3G08LirEoAXSfgG4x9fPNq6C2QBkZMjN18nFUoBcSBaSBo7gYgF0+LYgKzgBzAYRZOzYsLYJsppHVPAglAM3e52jiKeQtr3My7XCZ3sU/yX9kfipAKGtdWh2UAAAAASUVORK5CYII=

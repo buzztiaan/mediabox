@@ -13,6 +13,8 @@ class MiniXML(object):
     This is useful when RAM is limited and we don't need a full-featured
     XML parser. Well, actually, it's almost full-featured by now, while still
     being tiny. :)
+    
+    @since: 0.96
     """
 
     def __init__(self, data, namespace = "", callback = None):
@@ -22,6 +24,7 @@ class MiniXML(object):
         the XML overrides the default namespace.
         If a callback is given, the callback is being called every time a
         node has been closed and is thus finished.
+        @since: 0.96
         
         @param data: string of XML data
         @param namespace: namespace URI
@@ -49,6 +52,7 @@ class MiniXML(object):
         """
         Returns the DOM representation of the XML tree. This does not
         adhere to the DOM specification.
+        @since: 0.96
         
         @return: DOM tree
         """
@@ -278,6 +282,7 @@ class MiniXML(object):
 class _Node(object):
     """
     Class for representing a node in the DOM.
+    @since: 0.96
     """
 
     __slots__ = ["__tagname", "__attrs", "__children", "__value"]
@@ -286,6 +291,7 @@ class _Node(object):
         """
         Creates a new node with the given tagname and attributes.
         Pass an empty tagname for PCDATA nodes.
+        @since: 0.96
         """
 
         self.__tagname = tagname
@@ -297,6 +303,7 @@ class _Node(object):
     def add_child(self, child):
         """
         Adds a child node to this node.
+        @since: 0.96
         """
 
         self.__children.append(child)
@@ -305,6 +312,7 @@ class _Node(object):
         """
         Returns the node name. The name is prefixed by its namespace, if any.
         PCDATA nodes have an empty node name.
+        @since: 0.96
         """
 
         return self.__tagname
@@ -313,6 +321,7 @@ class _Node(object):
     def get_attrs(self):
         """
         Returns the attributes of this node as a dictionary.
+        @since: 0.96
         """
     
         return self.__attrs
@@ -322,6 +331,7 @@ class _Node(object):
         """
         Returns the value of the given attribute.
         Raises a KeyError if the attribute does not exist.
+        @since: 0.96
         """
         
         return self.__attrs[key]
@@ -330,6 +340,7 @@ class _Node(object):
     def get_children(self):
         """
         Returns a list of this node's child nodes.
+        @since: 0.96
         """
 
         return self.__children
@@ -340,6 +351,7 @@ class _Node(object):
         Convenience method for returning the child node with the given name,
         or the first child node if no name is given.
         Returns None if the child does not exist.
+        @since: 0.96
         """
     
         if (not name):
@@ -356,6 +368,7 @@ class _Node(object):
         Convenience function for returning the value of the PCDATA child
         node of this node.
         Returns "" if PCDATA is not available.
+        @since: 0.96
         """
         
         try:
@@ -372,6 +385,7 @@ class _Node(object):
     def set_value(self, value):
         """
         Sets the PCDATA value.
+        @since: 0.96
         """
         self.__value = value
 
@@ -379,6 +393,7 @@ class _Node(object):
     def get_value(self):
         """
         Returns the PCDATA value.
+        @since: 0.96
         """
 
         return self.__value
@@ -387,6 +402,7 @@ class _Node(object):
     def _dump(self, indent = 0):
         """
         Recursively dumps the subtree beginning at this node.
+        @since: 0.96
         """
         
         out = ""

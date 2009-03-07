@@ -30,16 +30,20 @@ class Viewer(Component, Widget):
           def handle_message(self, msg, *args):
           
               ...
+
+    @since: 0.96
     """
     
     PRIORITY = 0
     """
     The priority determines the position of the icon in the viewer menu. All
     viewers are sorted by priority.
+    @since: 0.96
     """
     ICON = None
     """
     The specified icon is used for representing the viewer in the viewer menu.
+    @since: 0.96
     """
     
 
@@ -60,6 +64,7 @@ class Viewer(Component, Widget):
     def set_toolbar(self, widgets):
         """
         Sets the toolbar from the given widgets.
+        @since: 0.96
         
         @param widgets: list of widgets
         """
@@ -72,6 +77,7 @@ class Viewer(Component, Widget):
     def set_title(self, title):
         """
         Sets the viewer title to the given text.
+        @since: 0.96
         
         @param title: title string
         """
@@ -84,6 +90,7 @@ class Viewer(Component, Widget):
     def set_info(self, info):
         """
         Sets the viewer info text to the given text.
+        @since: 0.96
         
         @param info: info string
         """
@@ -96,6 +103,7 @@ class Viewer(Component, Widget):
     def set_strip(self, collection):
         """
         Sets the collection of media items that is shown in the side strip.
+        @since: 0.96
         
         @param collection: list of items (derived from L{ui.StripItem})
         """
@@ -108,6 +116,7 @@ class Viewer(Component, Widget):
         """
         Switches the contents of the side strip to the items of the given
         owner.
+        @since: 0.96
         
         @param owner: owner object
         """
@@ -119,6 +128,7 @@ class Viewer(Component, Widget):
     def hilight_strip_item(self, idx):
         """
         Hilights the given item in the side strip.
+        @since: 0.96
         
         @param idx: index of the item to hilight
         """
@@ -129,6 +139,7 @@ class Viewer(Component, Widget):
     def select_strip_item(self, idx):
         """
         Selects the given item in the side strip.
+        @since: 0.96
         
         @param idx: index of the item to select
         """
@@ -139,6 +150,7 @@ class Viewer(Component, Widget):
     def show_strip_item(self, idx):
         """
         Scrolls to the given item in the side strip.
+        @since: 0.96
         
         @param idx: index of the item to scroll to
         """
@@ -152,6 +164,7 @@ class Viewer(Component, Widget):
         This method gets called when the viewer becomes visible. If you need
         to take action at this point, you may override this method but do
         not forget to call this method on the super class as well.
+        @since: 0.96
         """
     
         self.set_visible(True)        
@@ -168,6 +181,7 @@ class Viewer(Component, Widget):
         This method gets called when the viewer gets hidden. If you need
         to take action at this point, you may override this method but do
         not forget to call this method on the super class as well.
+        @since: 0.96
         """
         
         self.set_visible(False)
@@ -178,6 +192,7 @@ class Viewer(Component, Widget):
         """
         Returns whether this viewer is currently the active viewer. There is
         only one viewer active at a time.
+        @since: 0.96
         
         @return: whether this viewer is active
         """

@@ -17,6 +17,9 @@ except:
 def show_im(win, cb, *args):
     """
     Shows the hildon input method window.
+    @since: 0.96
+    @deprecated: the hildon input method causes trouble; use the vkb component
+                 instead
     
     @param win: GtkWindow to receive input
     @param cb:  callback handler to receive "C{commit}" signals

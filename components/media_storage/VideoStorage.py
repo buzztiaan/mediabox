@@ -66,6 +66,7 @@ class VideoStorage(Device):
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = self.get_name()
+        f.info = "Browse your video library"
         
         return f
           

@@ -8,6 +8,7 @@ import pango
 class Font(pango.FontDescription):
     """
     Class for font theme elements.
+    @since: 0.96
     """
 
     def __init__(self, desc):

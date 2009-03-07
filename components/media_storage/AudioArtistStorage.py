@@ -53,6 +53,7 @@ class AudioArtistStorage(Device):
                                 "- %d%% complete -" % (percent),
                                 self.get_icon())
                                 
+                self.__index.remove_album(folder)
                 self.__index.add_album(folder)
             #end for
             
@@ -107,7 +108,7 @@ class AudioArtistStorage(Device):
         
     def get_name(self):
     
-        return "By Artist"
+        return "Artists"
 
 
     def get_icon(self):
@@ -124,6 +125,7 @@ class AudioArtistStorage(Device):
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = self.get_name()
+        f.info = "Browse your music library by artist"
         
         return f
           

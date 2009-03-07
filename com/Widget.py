@@ -10,6 +10,8 @@ class Widget(Component, _Widget):
     """
     Base class for widget components.
     Widget components are put directly on the main window, hidden.
+    
+    @since: 0.96.4
     """
 
 

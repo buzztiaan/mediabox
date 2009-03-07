@@ -58,6 +58,7 @@ class LocalDevice(Device):
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = self.__name
+        f.info = "Browse the filesystem"
         
         return f
         

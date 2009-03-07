@@ -19,30 +19,27 @@ class ListItem(ButtonListItem):
     def __init__(self, f, thumbnail):
 
         self.__icon = thumbnail or ""
-        self.__emblem = f.emblem
-        self.__source_icon = f.source_icon
-        self.__mimetype = f.mimetype
+        self.__file = f
         
         
         ButtonListItem.__init__(self)        
         self.set_colors(theme.color_mb_listitem_text, theme.color_mb_listitem_subtext)
         self.set_font(theme.font_mb_tiny)
         
+        
+    def get_file(self):
+    
+        return self.__file
 
 
     def set_icon(self, icon):
     
         self.__icon = icon or ""
-        
-
-    def set_emblem(self, emblem):
-    
-        self.__emblem = emblem
 
 
     def render_icon(self, cnv, x, y, w, h):
 
         #if (self.__icon):
         thumbnail.render_on_canvas(cnv, x, y, w, h,
-                                    self.__icon, self.__mimetype)
+                                    self.__icon, self.__file.mimetype)
 

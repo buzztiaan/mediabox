@@ -92,7 +92,7 @@ class MPlayerBackend(AbstractBackend):
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              close_fds=True)
 
-        # a busy wait puts load on the CPU and this seems to better when
+        # a busy wait puts load on the CPU and this seems to help when
         # starting mplayer on maemo to get smoother playback
         self.__busy_wait(0.25)
         
@@ -157,7 +157,7 @@ class MPlayerBackend(AbstractBackend):
 
     def __read(self):
                 
-        data = self.__stdout.read(1024)
+        data = self.__stdout.read(4096)
         logging.debug("mplayer output:\n%s" % data)
         return data
 
@@ -324,7 +324,8 @@ class MPlayerBackend(AbstractBackend):
                                     self.__media_length
 
         elif (data.startswith("ANS_LENGTH")):
-            self.__media_length = float(self.__read_ans(data))
+            if (self.__media_length == 0):
+                self.__media_length = float(self.__read_ans(data))
 
         elif (data.startswith("ANS_VIDEO_RESOLUTION")):
             res = self.__read_ans(data)

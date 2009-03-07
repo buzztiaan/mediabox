@@ -18,12 +18,15 @@ class DeviceDescription(object):
     being loaded when needed to minimize load and memory consumption in an
     environment with many UPnP devices where we may not be interested in most
     of them.
+    
+    @since: 0.96
     """
     
     def __init__(self, location, dom):
         """
         Creates a new DeviceDescription object from the given DOM tree of a
         device description.
+        @since: 0.96
         
         @param location: URL of the device location
         @param dom: the DOM tree of the description XML (see L{utils.MiniXML})
@@ -139,6 +142,7 @@ class DeviceDescription(object):
     def get_url_base(self):
         """
         Returns the URL base used by the device.
+        @since: 0.96
         
         @return: URL base
         """
@@ -149,6 +153,7 @@ class DeviceDescription(object):
     def get_friendly_name(self):
         """
         Returns the friendly (i.e. human readable) name of the device.
+        @since: 0.96
         
         @param: human readable name of device
         """
@@ -160,6 +165,7 @@ class DeviceDescription(object):
         """
         Returns the URL of an icon which matches the given size best.
         Returns an empty string if the device has no icons.
+        @since: 0.96
         
         @param ideal_width: desired width
         @param ideal_height: desired height
@@ -175,6 +181,7 @@ class DeviceDescription(object):
     def get_device_type(self):
         """
         Returns the type of device.
+        @since: 0.96
         
         @return: UPnP device type
         """
@@ -185,6 +192,7 @@ class DeviceDescription(object):
     def get_udn(self):
         """
         Returns the UDN of the device.
+        @since: 0.96
         
         @return: UDN string
         """
@@ -195,6 +203,7 @@ class DeviceDescription(object):
     def get_model_description(self):
         """
         Returns the model description text.
+        @since: 0.96
         
         @return: human readable model description
         """
@@ -206,6 +215,7 @@ class DeviceDescription(object):
         """
         Returns the presentation URL of the device. This is typically the
         URL of a web interface provided by the device.
+        @since: 0.96
         
         @return: URL of presentation interface
         """
@@ -216,6 +226,7 @@ class DeviceDescription(object):
     def list_services(self):
         """
         Returns a list of the supported services.
+        @since: 0.96
         
         @return: list of services
         """
@@ -226,6 +237,7 @@ class DeviceDescription(object):
     def get_service_proxy(self, service):
         """
         Returns the service proxy object for the given service.
+        @since: 0.96
         
         @return: SOAP proxy object (see L{upnp.SOAPProxy})
         @raise KeyError: if the service is not supported
@@ -249,6 +261,7 @@ class DeviceDescription(object):
         """
         Subscribes to the given service and registers a callback for
         handling incoming events on this URL.
+        @since: 0.96
         
         @todo: describe signature of callback
         
@@ -264,6 +277,7 @@ class DeviceDescription(object):
     def unsubscribe(self, cb):
         """
         Unsubscribes the given callback.
+        @since: 0.96
         
         @param cb: callback function
         """
@@ -276,6 +290,7 @@ class DeviceDescription(object):
     def _dump_xml(self):
         """
         Dumps the description XML.
+        @since: 0.96
         """
         
         logging.debug("Device Description [%s]\n%s" \

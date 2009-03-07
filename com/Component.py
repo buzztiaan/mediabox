@@ -13,6 +13,8 @@ class Component(Mediator):
     More specialized component classes inherit from C{Component}, e.g.
      - L{Viewer}
      - L{Configurator}
+
+    @since: 0.96
     """
 
 

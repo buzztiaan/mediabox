@@ -13,6 +13,8 @@ the current theme by name::
   ...
   
   icon = theme.foo_icon
+
+@since: 0.96
 """
 
 from Color import Color
@@ -71,6 +73,7 @@ def _get_info(themepath):
 class _Theme(object):
     """
     Singleton class for loading themes.
+    @since: 0.96
     """
 
     def __init__(self):
@@ -97,6 +100,7 @@ class _Theme(object):
     def list_themes(self):
         """
         Lists the available themes.
+        @since: 0.96
         
         @return: list of (theme_path, preview_icon_path, name, description, author)
                  tuples
@@ -127,6 +131,7 @@ class _Theme(object):
     def set_theme(self, name):
         """
         Changes the current theme.
+        @since: 0.96
         
         @param name: name of new theme
         """
