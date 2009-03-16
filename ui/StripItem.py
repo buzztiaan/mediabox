@@ -1,4 +1,5 @@
 from Pixmap import Pixmap
+import pixbuftools
 
 
 class StripItem(object):
@@ -8,6 +9,9 @@ class StripItem(object):
 
     # table for sharing the same prerendered background pixmap among instances
     __bg_store = {}
+    
+    # table for sharing the same prerendered selection frame pixbuf among instances
+    __sel_store = {}
     
 
     def __init__(self):
@@ -28,6 +32,7 @@ class StripItem(object):
         
         if (self.__canvas in self.__bg_store):
             del self.__bg_store[(self.__class__, self.__canvas)]
+            del self.__sel_store[(self.__class__, self.__canvas)]
 
 
     def get_size(self):
@@ -88,8 +93,19 @@ class StripItem(object):
     def render_selection_frame(self, canvas):
     
         if (self.__is_hilighted and self.__selection_frame):
-            canvas.draw_frame(self.__selection_frame, 0, 0,
-                              self.__width, self.__height, True)
+            pbuf = self.__sel_store.get((self.__class__, self.__canvas))
+            if (not pbuf):
+                # prerender the pixbuf in order to have it ready on the
+                # server-side
+                w, h = self.get_size()
+                pbuf = pixbuftools.make_frame(self.__selection_frame,
+                                              w, h, True)
+                self.__sel_store[(self.__class__, self.__canvas)] = pbuf
+            #end if
+
+            canvas.draw_pixbuf(pbuf, 0, 0)
+            #canvas.draw_frame(self.__selection_frame, 0, 0,
+            #                  self.__width, self.__height, True)
 
 
     def render_this(self, canvas):

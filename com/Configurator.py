@@ -26,6 +26,12 @@ class Configurator(Component, Widget):
     @since: 0.96
     """
     
+    DESCRIPTION = ""
+    """
+    description text of the configurator
+    @since: 0.96.5
+    """
+    
 
     def __init__(self):
 

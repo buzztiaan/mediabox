@@ -64,6 +64,8 @@ class AudioAlbumStorage(AudioArtistStorage):
     
     def ls_async(self, path, cb, *args):
 
+        self._check_for_updated_media()
+
         if (not path.endswith("/")): path += "/"
         parts = [ p for p in path.split("/") if p ]
         len_parts = len(parts)

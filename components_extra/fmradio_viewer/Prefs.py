@@ -12,6 +12,7 @@ class Prefs(Configurator):
 
     ICON = theme.fmradio_viewer_radio
     TITLE = "FM Radio"
+    DESCRIPTION = "Change the FM band of the FM radio"
 
     def __init__(self):
     

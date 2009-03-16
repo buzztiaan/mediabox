@@ -14,6 +14,7 @@ class Prefs(Configurator):
 
     ICON = theme.youtube_device
     TITLE = "YouTube"
+    DESCRIPTION = "Configure the YouTube plugin"
 
 
     def __init__(self):

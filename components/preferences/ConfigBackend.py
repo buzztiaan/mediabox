@@ -13,6 +13,7 @@ class ConfigBackend(Configurator):
 
     ICON = theme.mb_viewer_audio
     TITLE = "Media Formats"
+    DESCRIPTION = "Choose the player backend for each media format"
 
 
     def __init__(self):

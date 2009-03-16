@@ -151,7 +151,7 @@ class GenericViewer(Viewer):
         self.accept_device_types(Device.TYPE_GENERIC)
         
         gobject.idle_add(self.__init_library)
-        gobject.timeout_add(0, self.__set_view_mode, self._VIEWMODE_BROWSER)
+        #gobject.timeout_add(0, self.__set_view_mode, self._VIEWMODE_BROWSER)
 
 
 
@@ -174,7 +174,7 @@ class GenericViewer(Viewer):
         """
     
         def f():
-            gobject.timeout_add(0, self.__set_view_mode, view_mode)
+            self.__set_view_mode(view_mode)
             
         self.__side_tabs.add_tab(None, name, f)
 
@@ -195,8 +195,9 @@ class GenericViewer(Viewer):
 
         if (self.__is_device_accepted(device)):
             self.__devices[ident] = device
-            self.__strip_needs_reload(self._VIEWMODE_BROWSER)
-            self.__update_side_strip()
+            #self.__strip_needs_reload(self._VIEWMODE_BROWSER)
+            #self.__update_side_strip()
+            self.__load_device(device)
         
         
     def __remove_device(self, ident):
@@ -206,8 +207,8 @@ class GenericViewer(Viewer):
     
         try:
             del self.__devices[ident]
-            self.__strip_needs_reload(self._VIEWMODE_BROWSER)
-            self.__update_side_strip()
+            #self.__strip_needs_reload(self._VIEWMODE_BROWSER)
+            #self.__update_side_strip()
         except:
             pass
 
@@ -216,7 +217,7 @@ class GenericViewer(Viewer):
         """
         Returns a list of device thumbnails.
         """
-    
+
         thumbnails = []
         self.__device_items = []            
         devs = self.__devices.items()
@@ -247,7 +248,32 @@ class GenericViewer(Viewer):
         """
         Updates the side strip depending on the current view mode.
         """
+
+        strip_items = []
+        strip_index = -1
+        items_to_thumbnail = []
         
+        # show playable items
+        for entry in self.__playable_items:
+            thumb = self.call_service(
+                msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, entry) or None
+            tn = FileThumbnail(thumb, entry)
+            if (not thumb):
+                items_to_thumbnail.append((None, tn, entry))
+            strip_items.append(tn)
+        #end for
+        
+        if (self.__current_file in self.__playable_items):
+            strip_index = self.__playable_items.index(self.__current_file)           
+
+        self.set_strip(strip_items)
+        if (strip_index >= 0):
+            self.hilight_strip_item(strip_index)
+
+        if (self.__path_stack):
+            self.__create_thumbnails(self.__path_stack[-1][0], items_to_thumbnail)        
+        
+        """
         strip_items = []
         strip_index = -1
         
@@ -309,7 +335,8 @@ class GenericViewer(Viewer):
 
         if (self.__path_stack):
             self.__create_thumbnails(self.__path_stack[-1][0], items_to_thumbnail)
-
+        """
+        
 
     def __update_toolbar(self):
         """
@@ -342,15 +369,22 @@ class GenericViewer(Viewer):
         self.set_toolbar(items)
 
 
+    def __update_title(self):
+        """
+        Updates the title text.
+        """
+        
+        names = [ p[0].name for p in self.__path_stack ]
+        title = u" \u00bb ".join(names)
+        self.set_title(title)
+
+
     def __update_input_context(self):
         """
         Updates the input context according to the current view mode.
         """
         
         if (self.__view_mode == self._VIEWMODE_BROWSER):
-            self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
-
-        elif (self.__view_mode == self._VIEWMODE_SPLIT_BROWSER):
             self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
 
         elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
@@ -372,12 +406,11 @@ class GenericViewer(Viewer):
                 self.__list.hilight(idx + 1)
                 self.__list.scroll_to_item(idx + 1)
 
-        elif (self.__view_mode == self._VIEWMODE_SPLIT_BROWSER):
-            if (self.__current_file in self.__items):
-                idx = self.__items.index(self.__current_file)
-                self.__list.hilight(idx + 1)
-                self.__list.scroll_to_item(idx + 1)
+        if (self.__current_file in self.__playable_items):
+            idx = self.__playable_items.index(self.__current_file)
+            self.hilight_strip_item(idx)
 
+        """
         elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
             if (self.__current_file in self.__playable_items):
                 idx = self.__playable_items.index(self.__current_file)
@@ -386,8 +419,8 @@ class GenericViewer(Viewer):
         elif (self.__view_mode == self._VIEWMODE_PLAYER_FULLSCREEN):
             if (self.__current_file in self.__playable_items):
                 idx = self.__playable_items.index(self.__current_file)
-                self.hilight_strip_item(idx)
-
+                #self.hilight_strip_item(idx)
+        """
     
     
     def render_this(self):
@@ -399,11 +432,7 @@ class GenericViewer(Viewer):
         if (self.__view_mode == self._VIEWMODE_BROWSER):
             self.__side_tabs.set_geometry(w - 60 + 4, 4, 60 - 8, h - 8)
             self.__list.set_geometry(0, 0, w - 60, h)
-
-        elif (self.__view_mode == self._VIEWMODE_SPLIT_BROWSER):
-            self.__side_tabs.set_geometry(w - 60 + 4, 4, 60 - 8, h - 8)
-            self.__list.set_geometry(0, 0, w - 60, h)
-            
+           
         elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
             self.__side_tabs.set_geometry(w - 60 + 4, 4, 60 - 8, h - 8)
             self.__media_box.set_geometry(2, 2, w - 60 - 4, h - 4)
@@ -427,53 +456,27 @@ class GenericViewer(Viewer):
         w, h = self.get_size()
         
         strip_owner = (self, mode)
-        if (mode != self._VIEWMODE_PLAYER_FULLSCREEN and not was_fullscreen):
-            self.change_strip(strip_owner)
+        #if (mode != self._VIEWMODE_PLAYER_FULLSCREEN and not was_fullscreen):
+        #    self.change_strip(strip_owner)
 
         if (mode == self._VIEWMODE_BROWSER):
             #self.emit_message(msgs.UI_ACT_FREEZE)
-            self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
+            self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)
             
             #if (self.__path_stack):
             #    self.__load_folder(self.__path_stack[-1][0], None)
-            
             self.__side_tabs.set_visible(True)
             self.__list.set_visible(True)
             self.__media_box.set_visible(False)
             self.__lib_list.set_visible(False)
 
-            self.__strip_needs_reload(self._VIEWMODE_BROWSER)
-            if (not was_fullscreen):
-                self.__update_side_strip()
-                self.__hilight_current_file()
-                self.__update_toolbar()
-            if (self.__current_device):
-                self.set_title(self.__current_device.get_name())
-            
-            #self.emit_message(msgs.UI_ACT_THAW)
-            #self.render()
-            self.emit_event(msgs.UI_ACT_RENDER)
-
-
-        elif (mode == self._VIEWMODE_SPLIT_BROWSER):
-            #self.emit_message(msgs.UI_ACT_FREEZE)
-            self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
-
-            #if (self.__path_stack):
-            #    self.__load_folder(self.__path_stack[-1][0], None)
-            
-            self.__side_tabs.set_visible(True)
-            self.__list.set_visible(True)
-            self.__media_box.set_visible(False)
-            self.__lib_list.set_visible(False)
+            #self.__strip_needs_reload(self._VIEWMODE_BROWSER)
 
             if (not was_fullscreen):
-                self.__update_side_strip()
-                self.__hilight_current_file()
+            #    self.__update_side_strip()
+            #    self.__hilight_current_file()
                 self.__update_toolbar()
-            if (self.__current_device):
-                self.set_title(self.__current_device.get_name())
-                        
+            
             #self.emit_message(msgs.UI_ACT_THAW)
             #self.render()
             self.emit_event(msgs.UI_ACT_RENDER)
@@ -486,21 +489,20 @@ class GenericViewer(Viewer):
             self.__list.set_visible(False)
             self.__lib_list.set_visible(False)
 
-            self.__strip_needs_reload(self._VIEWMODE_PLAYER_NORMAL)
-            self.__update_side_strip()
-            self.__hilight_current_file()
+            #self.__strip_needs_reload(self._VIEWMODE_PLAYER_NORMAL)
+            #self.__update_side_strip()
+            #self.__hilight_current_file()
             
             if (not was_fullscreen):
                 #self.emit_message(msgs.UI_ACT_FREEZE)
                 self.__update_toolbar()
-                if (self.__current_file):
-                    self.set_title(self.__current_file.name)
                 #self.emit_message(msgs.UI_ACT_THAW)
                 #self.render()
-                self.emit_event(msgs.UI_ACT_RENDER)
-            else:                
-                self.render()
-                gobject.timeout_add(50, self.emit_message, msgs.UI_ACT_RENDER)
+            self.emit_event(msgs.UI_ACT_RENDER)
+            #self.render()
+            #else:                
+            #    self.render()
+            #    gobject.timeout_add(50, self.emit_message, msgs.UI_ACT_RENDER)
 
 
         elif (mode == self._VIEWMODE_PLAYER_FULLSCREEN):
@@ -524,7 +526,6 @@ class GenericViewer(Viewer):
             self.__media_box.set_visible(False)
             
             self.__update_toolbar()
-            self.set_title("Media Library")
             
             #self.emit_message(msgs.UI_ACT_THAW)
             #self.render()
@@ -557,12 +558,13 @@ class GenericViewer(Viewer):
             if (self.__current_device and self.__path_stack):
                 #self.__load_device(self.__current_device)
                 path = self.__path_stack[-1][0]
-                self.__load_folder(path, self.__GO_NEW)
+                #self.__load_folder(path, self.__GO_NEW)
         
         # watch for new storage devices
         elif (msg == msgs.CORE_EV_DEVICE_ADDED):
             ident, device = args
-            self.__add_device(ident, device)
+            if (device.CATEGORY == device.CATEGORY_INDEX):
+                self.__add_device(ident, device)
             
         # remove gone storage devices
         elif (msg == msgs.CORE_EV_DEVICE_REMOVED):
@@ -636,6 +638,7 @@ class GenericViewer(Viewer):
         # select a device
         elif (msg == msgs.UI_ACT_SELECT_DEVICE):
             dev_id = args[0]
+            print "SELECT", dev_id
             if (dev_id in self.__devices):
                 self.__load_device(self.__devices[dev_id])
                 #self.__strip_needs_reload()
@@ -808,11 +811,10 @@ class GenericViewer(Viewer):
         
         root = device.get_root()
         
-        if (self.__current_device in self.__device_items):
-            strip_index = self.__device_items.index(self.__current_device)        
-            self.hilight_strip_item(strip_index)
+        #if (self.__current_device in self.__device_items):
+        #    strip_index = self.__device_items.index(self.__current_device)        
+        #    self.hilight_strip_item(strip_index)
         
-        self.set_title(device.get_name())
         if (root.mimetype == root.DIRECTORY):
             self.__load_folder(root, self.__GO_NEW)
         else:
@@ -833,7 +835,6 @@ class GenericViewer(Viewer):
                 
         else:
             self.__current_file = f
-            self.set_title(f.name)
 
             if (not f.mimetype in mimetypes.get_image_types()):
                 self.emit_message(msgs.MEDIA_ACT_STOP)
@@ -913,7 +914,7 @@ class GenericViewer(Viewer):
                 self.__random_items = self.__playable_items[:]
                 # finished loading items; now create thumbnails
                 self.__create_thumbnails(path, items_to_thumbnail)
-                self.__strip_needs_reload(self._VIEWMODE_PLAYER_NORMAL)
+                self.__update_side_strip()
 
             now = time.time()
             #if (not f or len(entries) == 4 or \
@@ -926,7 +927,7 @@ class GenericViewer(Viewer):
             
             return True
                    
-
+        #print "LOAD FOLDER", path
         self.__close_subfolder()
                    
         # clear items
@@ -975,8 +976,9 @@ class GenericViewer(Viewer):
 
             self.__list.fx_slide_left()
 
-            gobject.timeout_add(0, path.get_children_async, on_child, path,
-                                [], [])
+            #gobject.timeout_add(0, path.get_children_async, on_child, path,
+            #                    [], [])
+            path.get_children_async(on_child, path, [], [])
 
         #end if
             
@@ -987,11 +989,10 @@ class GenericViewer(Viewer):
 
         #self.__list.render()
         self.__update_toolbar()
-        self.emit_message(msgs.UI_ACT_RENDER)
+        self.__update_title()
+        #self.emit_message(msgs.UI_ACT_RENDER)
         import gc; gc.collect()
         
-
-
 
     def __insert_folder(self, path):
 
@@ -1010,6 +1011,7 @@ class GenericViewer(Viewer):
                 self.__random_items = self.__playable_items[:]
                 # finished loading items; now create thumbnails
                 self.__create_thumbnails(path, items_to_thumbnail)
+                self.__update_side_strip()
 
             now = time.time()
             self.__subfolder_range = (insert_at, insert_at + len(entries))
@@ -1035,8 +1037,10 @@ class GenericViewer(Viewer):
         item.set_buttons(#(item.BUTTON_CLOSE, theme.mb_item_btn_close),
                          (item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
 
-        gobject.timeout_add(0, path.get_children_async, on_child,
-                            self.__path_stack[-1][0], [], [], idx + 1)
+        #gobject.timeout_add(0, path.get_children_async, on_child,
+        #                    self.__path_stack[-1][0], [], [], idx + 1)
+        path.get_children_async(on_child, self.__path_stack[-1][0], [], [],
+                                idx + 1)
 
 
     def __close_subfolder(self):
@@ -1248,6 +1252,7 @@ class GenericViewer(Viewer):
             self.__close_subfolder()
         
         elif (len(self.__path_stack) > 1):
+            print self.__path_stack
             self.__path_stack.pop()
             path, list_offset = self.__path_stack.pop()
             self.__load_folder(path, self.__GO_PARENT)
@@ -1293,8 +1298,8 @@ class GenericViewer(Viewer):
                 tn.set_thumbnail(thumbpath)
                 tn.invalidate()
             
-            if (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
-                self.emit_message(msgs.CORE_ACT_RENDER_ITEMS)
+            #if (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
+            #    self.emit_message(msgs.CORE_ACT_RENDER_ITEMS)
 
             # proceed to next thumbnail
             gobject.idle_add(self.__create_thumbnails, path,
@@ -1348,24 +1353,13 @@ class GenericViewer(Viewer):
 
 
     def show(self):
-        
-        def f():
-            if (self.may_render()):
-                if (not self.__current_device):
-                    self.select_strip_item(0)
-                return False
-            else:
-                return True
-    
+           
         Viewer.show(self)
-        self.change_strip((self, self.__view_mode))
-        self.__update_side_strip()
+        #self.__set_view_mode(self._VIEWMODE_BROWSER)
+        #self.change_strip(self)
+        #self.__update_side_strip()
+        #self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)
         
-        if (not self.__current_device):
-            self.__list.clear_items()
-            self.__subfolder_range = None
-            
-            gobject.timeout_add(50, f)
 
 
     def hide(self):

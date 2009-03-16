@@ -134,7 +134,7 @@ class MediaScanner(Component):
             mediatypes[path] = mtypes
             roots.append(path)
         #end for
-        
+
         new_roots = self.__find_new_roots(roots, mediatypes)
         removed_roots = self.__find_removed_roots(roots)
         self.__mediaroot_types.update(mediatypes)

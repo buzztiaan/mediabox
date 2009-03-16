@@ -28,6 +28,7 @@ class Prefs(Configurator):
 
     ICON = theme.mb_viewer_prefs
     TITLE = "Debugging"
+    DESCRIPTION = "Information and settings for developers"
 
 
     def __init__(self):

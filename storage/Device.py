@@ -26,11 +26,12 @@ class Device(Component):
     """
 
 
-    CATEGORY_CORE = 0
-    CATEGORY_LOCAL = 1
-    CATEGORY_LAN = 2
-    CATEGORY_WAN = 3
-    CATEGORY_OTHER = 4
+    CATEGORY_INDEX = 0
+    CATEGORY_CORE = 1
+    CATEGORY_LOCAL = 2
+    CATEGORY_LAN = 3
+    CATEGORY_WAN = 4
+    CATEGORY_OTHER = 5
     
     TYPE_GENERIC = 0
     TYPE_AUDIO = 1

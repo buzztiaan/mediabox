@@ -14,6 +14,7 @@ class Prefs(Configurator):
 
     ICON = theme.mediascanner_prefs
     TITLE = "Media Indexing"
+    DESCRIPTION = "Configure file indexing and thumbnail previews"
     
 
     def __init__(self):

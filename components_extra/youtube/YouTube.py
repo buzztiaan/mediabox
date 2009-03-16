@@ -469,7 +469,7 @@ class YouTube(Device):
 
         # download high-quality version, if desired
         if (config.get_hi_quality()):
-            url = f.resource + "&fmt=18"
+            url = f.resource + "&fmt=35"
         else:
             url = f.resource
             

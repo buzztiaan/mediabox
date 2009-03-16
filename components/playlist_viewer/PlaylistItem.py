@@ -2,8 +2,6 @@ from ui.ButtonListItem import ButtonListItem
 from mediabox import thumbnail
 from theme import theme
 
-import gtk
-
 
 class PlaylistItem(ButtonListItem):
     """

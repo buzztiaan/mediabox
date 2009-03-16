@@ -22,7 +22,9 @@ class InputSchema(object):
         
         
         try:
+            logging.debug("parsing schema")
             self.__parse_schema(schema)
+            logging.debug("parsing schema done")
         except:
             logging.error("syntax error in schema:\n%s\n%s",
                           schema, logging.stacktrace())

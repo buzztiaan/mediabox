@@ -35,8 +35,8 @@ class ControlPanel(Widget):
             self.__bg_pbuf = pixbuftools.make_frame(theme.mb_panel, w, h, True,
                                            pixbuftools.TOP | pixbuftools.RIGHT)
     
-        Widget.set_size(self, w, h)
-        self.__box.set_size(w - 20, h)
+            Widget.set_size(self, w, h)
+            self.__box.set_size(w - 20, h)
         
 
         

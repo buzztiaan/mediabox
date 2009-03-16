@@ -30,6 +30,7 @@ class VideoWidget(MediaWidget):
         mediaplayer.add_observer(self.__on_observe_player)
 
         self.__aspect_ratio = 1.0
+        self.__overlay_coords = (0, 0, 0, 0)
 
         self.__current_file = None
         self.__uri = ""
@@ -141,12 +142,34 @@ class VideoWidget(MediaWidget):
 
         if (w < 800):
             screen.draw_rect(fx, fy, fw, fh, "#000000")
-            screen.fill_area(vx, vy, vw, vh, "#000000")
+            self.__render_overlay_frame(screen, vx, vy, vw, vh)
+            #screen.fill_area(vx, vy, vw, vh, "#000000")
         else:
-            screen.fill_area(x, y, w, h, "#000000")
+            self.__render_overlay_frame(screen, x, y, w, h)
+        #    screen.fill_area(x, y, w, h, "#000000")
 
         gobject.idle_add(self.__show_video_screen)
 
+
+    def __render_overlay_frame(self, screen, x, y, w, h):
+    
+        vx, vy, vw, vh = self.__overlay_coords
+        
+        w1 = vx - x
+        h1 = vy - y
+        
+        if (w1 > 0):
+            # left
+            screen.fill_area(x, y, w1, h, "#000000")
+            # right
+            screen.fill_area(x + w - w1, y, w1, h, "#000000")
+            
+        if (h1 > 0):
+            # top
+            screen.fill_area(x, y, w, h1, "#000000")
+            # bottom
+            screen.fill_area(x, y + h - h1, w, h1, "#000000")
+        
         
     def __on_expose(self, src, ev):
 
@@ -351,6 +374,7 @@ class VideoWidget(MediaWidget):
         #else:
         if (self.__layout):
             self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
+            self.__overlay_coords = (x + (w - w2) / 2, y + (h - h2) / 2, w2, h2)
         #print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
         cnt = 0
@@ -358,6 +382,7 @@ class VideoWidget(MediaWidget):
         #    gtk.main_iteration(False)
         #    cnt += 1
         #self.__show_video_screen()
+        self.render()
 
 
     def load(self, item, direction = MediaWidget.DIRECTION_NEXT):

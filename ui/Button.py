@@ -14,6 +14,15 @@ class Button(ImageButton):
         self.set_size(w + 24, h + 24)
 
 
+    def set_text(self, text):
+        """
+        @since: 0.96.5
+        """
+    
+        self.__label = text
+        self.render()
+
+
     def _render_content(self, cnv):
 
         w, h = self.get_size()

@@ -43,7 +43,7 @@ for o, v in opts:
         sys.exit(0)
 #end for
 
-logging.set_level(_LOG_LEVELS[log_count])
+logging.set_level(_LOG_LEVELS[min(4, log_count)])
 
 
 logging.debug("initializing application")

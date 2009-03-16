@@ -24,6 +24,8 @@ class MPlayerBackend(AbstractBackend):
         self.__window_id = 0
         self.__current_mode = AbstractBackend.MODE_AUDIO
         
+        self.__uri = ""
+        
         self.__stdin = None
         self.__stdout = None
         self.__collect_handler = None
@@ -80,12 +82,11 @@ class MPlayerBackend(AbstractBackend):
         
             cmd = "LANG=C %s -quiet -slave " \
                   "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
-                  "-nomenu -idle -osdlevel 0 -idx " \
+                  "-nomenu -osdlevel 0 -idx " \
                   "-cache 256 -cache-min 50 " \
-                  "-identify -wid %d %s 2>&1 3>/dev/null" \
-                  % (_MPLAYER, self.__window_id, vo_opts)
-        
-        
+                  "-identify -wid %d %s \"%s\" 2>&1 3>/dev/null" \
+                  % (_MPLAYER, self.__window_id, vo_opts, self.__uri)
+
         
         p = subprocess.Popen([cmd],
                              shell=True, cwd="/tmp",
@@ -166,6 +167,8 @@ class MPlayerBackend(AbstractBackend):
         
         if (cond == gobject.IO_HUP):
             self.__collect_handler = None
+            self.__maybe_eof = 1
+            self.__stop_mplayer()
             return False
             
         else:
@@ -205,17 +208,22 @@ class MPlayerBackend(AbstractBackend):
             return False
     
         elif (self.__maybe_eof == 1):
-            # provoke an answer from mplayer; if it fails, we have reached EOF
-            #self.__send_cmd("get_time_pos")
-            #self.__maybe_eof = 2
             return True
-            
-        #elif (self.__maybe_eof == 2):
-        #    return True
+        
+        
+    def load_video(self, uri):
+    
+        # reliable EOF detection with videos is difficult with mplayer,
+        # so we circumvent this problem by not running mplayer in -idle mode
+        # for videos. this way mplayer terminates when reaching EOF.
+        # for this, we need to know the URI already when starting mplayer,
+        # so we intercept the load_video call.
+        self.__uri = uri.replace("\"", "\\\"")
+        return AbstractBackend.load_video(self, uri)
         
         
     def _load(self, uri):
-    
+
         self.__media_length = 0
         self.__media_position = 0
         self.__video_width = 0
@@ -223,12 +231,15 @@ class MPlayerBackend(AbstractBackend):
         self.__maybe_eof = 0
         self.__filename = uri
         
-        uri = uri.replace("\"", "\\\"")
-        self.__send_cmd("loadfile \"%s\"" % uri)
+        if (self._get_mode() == self.MODE_AUDIO):
+            uri = uri.replace("\"", "\\\"")
+            self.__send_cmd("loadfile \"%s\"" % uri)
+            
         self.__busy_wait(0.25)
         self.__send_cmd("get_time_length")
         self.__send_cmd("get_time_pos")
         
+       
         
     def _play(self):
     
@@ -309,8 +320,9 @@ class MPlayerBackend(AbstractBackend):
         
     def __parse_value(self, data):
 
-        if (not data):
-            # an empty line may indicate EOF, but not every empty line is an EOF
+        if (not data and self._get_mode() == self.MODE_AUDIO):
+            # an empty line may indicate EOF for audio only;
+            # we let mplayer terminate on video EOF
             self.__maybe_eof = 1
         else:
             self.__maybe_eof = 0

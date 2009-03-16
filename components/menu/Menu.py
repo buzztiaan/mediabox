@@ -346,7 +346,7 @@ class Menu(Widget):
 
 
 
-    def __fx_raise(self, wait = True):
+    def __fx_raise(self):
 
         if (not self.__is_prepared):
             self.__prepare()
@@ -385,7 +385,7 @@ class Menu(Widget):
 
 
 
-    def __fx_lower(self, wait = True):
+    def __fx_lower(self):
 
         x, y = self.__panel.get_screen_pos()
         w, h = self.__panel.get_size()

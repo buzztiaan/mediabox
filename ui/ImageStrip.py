@@ -26,6 +26,9 @@ class ImageStrip(Widget):
     Class for rendering a scrollable strip of images.
     """
 
+    #__buffer = Pixmap(None, 1680, 1050)
+    
+
     def __init__(self, gapsize):
         """
         Creates a new ImageStrip object.
@@ -85,7 +88,7 @@ class ImageStrip(Widget):
         self.__wrap_around = True
         
         self.__buffer = Pixmap(None, 100, 100)
-        #self.__buffer_dirty = False
+        self.__buffer_dirty = False
  
         self.set_size(100, 100)
  
@@ -150,7 +153,10 @@ class ImageStrip(Widget):
         self.set_scrollbar(self.__scrollbar_pbuf)
         self.set_caps(*self.__caps)
 
-        self.__shared_pmap = None
+        if (self.__shared_pmap):
+            self.__shared_pmap.clear_all_renderers()
+            self.__shared_pmap = None
+        
         for img in self.__images:
             nil, img_h = img.get_size()
             if (not self.__shared_pmap):
@@ -367,7 +373,9 @@ class ImageStrip(Widget):
         # remove current images
         while (self.__images):
             img = self.__images.pop()
-            del img  
+            self.__shared_pmap.clear_renderer(img)
+            del img
+            
 
         self.__hilighted_image = -1
         
@@ -574,9 +582,9 @@ class ImageStrip(Widget):
                  position
         """
       
-        if (not self.__is_scrollable()):
-            cw, ch = self.__cap_top_size
-            y -= ch
+        #if (not self.__is_scrollable()):
+        #    cw, ch = self.__cap_top_size
+        #    y -= ch
         
         if (not self.__images):
             return (-1, 0)
@@ -878,9 +886,9 @@ class ImageStrip(Widget):
         #self.__buffer.fill_area(0, render_offset, w, render_height,
         #                        self.__bg_color)
 
-        if (not self.__is_scrollable()):
-            cw, ch = self.__cap_top_size
-            render_offset += ch
+        #if (not self.__is_scrollable()):
+        #    cw, ch = self.__cap_top_size
+        #    render_offset += ch
 
         idx1 = self.get_index_at(render_offset)
         if (idx1 == -1):
@@ -918,9 +926,9 @@ class ImageStrip(Widget):
         item_y = idx * blocksize - self.__offset
         item_height = self.__itemsize
 
-        if (not self.__is_scrollable()):
-            cw, ch = self.__cap_top_size
-            item_y = idx * blocksize + ch
+        #if (not self.__is_scrollable()):
+        #    cw, ch = self.__cap_top_size
+        #    item_y = idx * blocksize + ch
 
         item = None
         offx = 0

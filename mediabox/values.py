@@ -3,7 +3,7 @@ import time
 
 NAME = "MediaBox"
 OSSO_NAME = "de.pycage.mediabox"
-VERSION = "0.96.4"
+VERSION = "0.96.5svn"
 
 AUTHORS = ["Martin Grimme  <martin.grimme@lintegra.de>"]
 COPYRIGHT = "\xc2\xa9 2007 - 2009 Martin Grimme"

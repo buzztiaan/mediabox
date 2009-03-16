@@ -13,6 +13,7 @@ class ConfigTheme(Configurator):
 
     ICON = theme.prefs_theme
     TITLE = "Themes"
+    DESCRIPTION = "Change the look of MediaBox with themes"
     
 
     def __init__(self):

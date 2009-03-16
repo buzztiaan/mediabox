@@ -5,7 +5,6 @@ from utils import logging
 from theme import theme
 
 import os
-import commands
 
 
 
@@ -18,6 +17,7 @@ class ImageStorage(Device):
     def __init__(self):
     
         self.__folders = {}
+        self.__media_was_updated = False
     
         Device.__init__(self)
         
@@ -25,7 +25,8 @@ class ImageStorage(Device):
     def handle_message(self, msg, *args):
     
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
-            self.__update_media()
+            #self.__update_media()
+            self.__media_was_updated = True
 
 
     def __update_media(self):
@@ -41,6 +42,8 @@ class ImageStorage(Device):
             self.__folders[parent].append(f)
             self.__folders["All Images"].append(f)        
         #end for
+        
+        self.__media_was_updated = False
           
         
     def get_prefix(self):
@@ -82,6 +85,10 @@ class ImageStorage(Device):
                 return 1
             else:
                 return cmp(a, b)
+
+
+        if (self.__media_was_updated):
+            self.__update_media()
 
     
         if (path == "/"):

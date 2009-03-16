@@ -10,7 +10,8 @@ import gobject
 import time
 
 
-_SCROLL_DELAY = 10
+_FPS = 50
+_SCROLL_DELAY = 1.0 / _FPS
 _TAP_AND_HOLD_DELAY = 500
 
 
@@ -99,6 +100,14 @@ class KineticScroller(Observable):
         
         delta_sx, delta_sy = self.__delta_s
         
+        now = time.time()
+        if (now < self.__impulse_point + _SCROLL_DELAY):
+            gobject.timeout_add(5, self.__impulse_handler)
+            return False
+        else:
+            self.__impulse_point = now
+            
+        
         if (self.__is_dragging or (abs(delta_sx) < 1 and abs(delta_sy) < 1)):
             # shut down impulse handler when not needed to save battery
             self.__impulse_handler_running = False
@@ -115,7 +124,7 @@ class KineticScroller(Observable):
             
             self.__delta_s = (vx * self.__delta_t, vy * self.__delta_t)
             
-            gobject.timeout_add(_SCROLL_DELAY, self.__impulse_handler)
+            gobject.timeout_add(5, self.__impulse_handler)
                 
         
     def __on_drag_start(self, px, py):

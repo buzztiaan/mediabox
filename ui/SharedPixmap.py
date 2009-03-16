@@ -24,6 +24,19 @@ class SharedPixmap(Pixmap):
         Pixmap.__init__(self, None, w, h)
         
         
+    def clear_all_renderers(self):
+    
+        self.__renderers.clear()
+        
+        
+    def clear_renderer(self, ident):
+    
+        # 'if' is faster than 'try...except'
+        if (ident in self.__renderers):
+            del self.__renderers[ident]
+            #print len(self.__renderers)
+        
+        
     def set_renderer(self, ident, renderer):
     
         self.__renderers[ident] = renderer

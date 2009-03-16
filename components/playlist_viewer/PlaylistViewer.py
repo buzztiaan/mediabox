@@ -102,7 +102,6 @@ class PlaylistViewer(Viewer):
         self.__side_tabs.add_tab(None, "Player",
                                  self.__set_view_mode, _VIEWMODE_PLAYER)
         gobject.idle_add(self.__load_playlists)
-        gobject.timeout_add(0, self.__set_view_mode, _VIEWMODE_PLAYLIST)
 
 
     def render_this(self):
@@ -503,6 +502,7 @@ class PlaylistViewer(Viewer):
                     self.__play_next(False)
 
                 elif (shuffle_mode == mb_config.SHUFFLE_MODE_ONE):
+                    print "PLAY SHUFFLED"
                     self.__play_shuffled(False)
                     
                 elif (shuffle_mode == mb_config.SHUFFLE_MODE_ALL):
@@ -815,11 +815,12 @@ class PlaylistViewer(Viewer):
     def show(self):
     
         Viewer.show(self)
+        self.__set_view_mode(VIEWMODE_PLAYLIST)
         
         if (self.__needs_playlist_reload):
             self.__load_playlists()
             self.__needs_playlist_reload = False
         
-        self.change_strip((self, self.__view_mode))
-        self.__update_side_strip()
+        #self.change_strip((self, self.__view_mode))
+        #self.__update_side_strip()
 

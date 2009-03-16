@@ -20,11 +20,13 @@ class AudioArtistStorage(Device):
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_AUDIO
     
+    
+    _media_was_updated = [False]
+    
+    __index = MusicIndex()
 
     def __init__(self):
     
-        self.__index = MusicIndex()
-
 
         Device.__init__(self)
 
@@ -34,8 +36,9 @@ class AudioArtistStorage(Device):
     
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
             #self.__index.schedule_scanner(self.__update_media)
-            self.__update_media()
-            self.__index.save()
+            #self.__update_media()
+            #self.__index.save()
+            self._media_was_updated[0] = True
 
 
     def __update_media(self):
@@ -76,6 +79,14 @@ class AudioArtistStorage(Device):
         #threads.wait_for(lambda :finished.isSet())
         f()
         
+        
+    def _check_for_updated_media(self):
+    
+        if (self._media_was_updated[0]):
+            self.__update_media()
+            self.__index.save()
+            self._media_was_updated[0] = False
+
         
     def get_index(self):
     
@@ -132,6 +143,8 @@ class AudioArtistStorage(Device):
     
     
     def ls_async(self, path, cb, *args):
+
+        self._check_for_updated_media()
 
         if (not path.endswith("/")): path += "/"
         parts = [ p for p in path.split("/") if p ]

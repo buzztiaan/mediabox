@@ -1,6 +1,5 @@
-from Factory import Factory
-
-
 def get_classes():
 
+    from Factory import Factory
     return [Factory]
+

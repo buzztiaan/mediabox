@@ -7,6 +7,7 @@ from mediabox.RootPane import RootPane
 from mediabox.TitlePanel import TitlePanel
 from mediabox.ControlPanel import ControlPanel
 from mediabox.ViewerState import ViewerState
+from ui.Button import Button
 from ui.Image import Image
 from ui.Pixmap import Pixmap
 from ui.ImageStrip import ImageStrip
@@ -94,15 +95,20 @@ class AppWindow(Component, RootPane):
         self.set_size(w, h)
         self.set_screen(screen)
 
-        # image strip       
-        self.__strip = ImageStrip(5)
-        self.__strip.set_bg_color(theme.color_mb_background)
-        self.__strip.set_visible(False)
-        self.add(self.__strip)
-
-        self.__kscr = KineticScroller(self.__strip)
-        self.__kscr.set_touch_area(0, 108)
-        self.__kscr.add_observer(self.__on_observe_strip)
+        # image strip
+        self.__btn_strip = Button(">")
+        self.__btn_strip.set_visible(False)
+        self.__btn_strip.connect_clicked(self.__on_show_side_strip)
+        self.add(self.__btn_strip)
+        
+        #self.__strip = ImageStrip(5)
+        #self.__strip.set_bg_color(theme.color_mb_background)
+        #self.__strip.set_visible(False)
+        #self.add(self.__strip)
+        
+        #self.__kscr = KineticScroller(self.__strip)
+        #self.__kscr.set_touch_area(0, 108)
+        #self.__kscr.add_observer(self.__on_observe_strip)
 
         # title panel
         self.__title_panel_left = Image(None)
@@ -121,7 +127,7 @@ class AppWindow(Component, RootPane):
         self.__ctrl_panel = ControlPanel()
         self.__ctrl_panel.set_visible(False)
 
-        self.__startup()
+        gobject.timeout_add(0, self.__startup)
 
         
        
@@ -137,6 +143,9 @@ class AppWindow(Component, RootPane):
                                         "",
                                         theme.mb_viewer_audio]),
                    (self.__register_viewers, []),
+                   #(self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
+                   #                     "- starting -",
+                   #                     theme.mb_viewer_audio]),
                    (self.__add_panels, []),
                    (self.__scan_at_startup, []),
                    (self.hide_overlay, []),
@@ -147,7 +156,7 @@ class AppWindow(Component, RootPane):
         def f():
             if (actions):                
                 act, args = actions.pop(0)
-                logging.debug("running startup action %s, %s", `act`, `args`)
+                logging.info("running startup action %s, %s", `act`, `args`)
                 try:
                     act(*args)
                 except:
@@ -155,10 +164,22 @@ class AppWindow(Component, RootPane):
                     pass
                 return True
             else:
-                logging.debug("startup complete")
+                logging.info("startup complete, took %0.2f seconds" \
+                              % (time.time() - values.START_TIME))
                 return False
                 
-        gobject.idle_add(f)
+        for act, args in actions:
+            logging.info("running startup action %s, %s", `act`, `args`)
+            try:
+                act(*args)
+            except:
+                logging.info("an error occured:\n%s", logging.stacktrace())
+        #end for
+        
+        logging.info("startup complete, took %0.2f seconds" \
+                        % (time.time() - values.START_TIME))
+
+        #gobject.timeout_add(0, f)
 
 
 
@@ -170,6 +191,7 @@ class AppWindow(Component, RootPane):
         if (config.scan_at_startup()):
             self.__scan_media(True)
         else:
+            #self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
             self.__scan_media(False)
 
 
@@ -185,7 +207,7 @@ class AppWindow(Component, RootPane):
         current_device_id = config.current_device()
         self.__select_viewer_by_name(current_viewer)
         self.emit_event(msgs.UI_ACT_SELECT_VIEWER, current_viewer)
-        self.emit_event(msgs.UI_ACT_SELECT_DEVICE, current_device_id)
+        #self.emit_event(msgs.UI_ACT_SELECT_DEVICE, current_device_id)
 
 
     def __register_viewers(self):
@@ -224,11 +246,13 @@ class AppWindow(Component, RootPane):
         self.__title_panel.set_geometry(170, 0, w - 170, 40)
         self.__panel_left.set_geometry(0, h - 70, 160, 70)
         self.__ctrl_panel.set_geometry(170, h - 70, w - 170, 70)
-        self.__strip.set_geometry(0, 0, 170, h)
+        #self.__strip.set_geometry(0, 0, 170, h)
+        self.__btn_strip.set_geometry(0, 40, 64, h - 110)
 
+        
         if (self.__view_mode == viewmodes.NORMAL):
             if (self.__current_viewer):
-                self.__current_viewer.set_geometry(180, 40, w - 180, h - 110)
+                self.__current_viewer.set_geometry(64, 40, w - 64, h - 110)
 
         elif (self.__view_mode == viewmodes.NO_STRIP):
             if (self.__current_viewer):
@@ -258,55 +282,60 @@ class AppWindow(Component, RootPane):
         w, h = self.get_size()
 
         if (view_mode == viewmodes.NORMAL):
-            self.__title_panel_left.set_visible(False)
+            self.__title_panel_left.set_visible(True)
             self.__title_panel.set_visible(True)
-            self.__panel_left.set_visible(False)
+            self.__panel_left.set_visible(True)
             self.__ctrl_panel.set_visible(True)
-            self.__strip.set_visible(True)
-            if (self.__current_viewer):
-                self.__current_viewer.set_geometry(180, 40, w - 180, h - 110)
-                self.__get_vstate().collection_visible = True
+            self.__btn_strip.set_visible(True)
+            #if (self.__current_viewer):
+            #    self.__get_vstate().view_mode = view_mode
+                #self.__current_viewer.set_geometry(64, 40, w - 64, h - 110)
+                #self.__get_vstate().collection_visible = True
             
         elif (view_mode == viewmodes.NO_STRIP):
             self.__title_panel_left.set_visible(True)
             self.__title_panel.set_visible(True)
             self.__panel_left.set_visible(True)
             self.__ctrl_panel.set_visible(True)
-            self.__strip.set_visible(False)
-            if (self.__current_viewer):            
-                self.__current_viewer.set_geometry(0, 40, w, h - 110)
-                self.__get_vstate().collection_visible = False
+            self.__btn_strip.set_visible(False)
+            #if (self.__current_viewer):
+            #    self.__get_vstate().view_mode = view_mode
+                #self.__current_viewer.set_geometry(0, 40, w, h - 110)
+                #self.__get_vstate().collection_visible = False
 
-        elif (view_mode == viewmodes.NO_STRIP_PANEL):
-            self.__title_panel_left.set_visible(False)
-            self.__title_panel.set_visible(True)
-            self.__panel_left.set_visible(False)
-            self.__ctrl_panel.set_visible(True)
-            self.__strip.set_visible(False)
-            if (self.__current_viewer):            
-                self.__current_viewer.set_geometry(0, 0, w, h)
-                self.__get_vstate().collection_visible = False
+        #elif (view_mode == viewmodes.NO_STRIP_PANEL):
+        #    self.__title_panel_left.set_visible(False)
+        #    self.__title_panel.set_visible(True)
+        #    self.__panel_left.set_visible(False)
+        #    self.__ctrl_panel.set_visible(True)
+        #    self.__btn_strip.set_visible(False)
+        #    if (self.__current_viewer):            
+        #        self.__current_viewer.set_geometry(0, 0, w, h)
+        #        self.__get_vstate().collection_visible = False
             
         elif (view_mode == viewmodes.FULLSCREEN):
             self.__title_panel_left.set_visible(False)
             self.__title_panel.set_visible(False)
             self.__panel_left.set_visible(False)
             self.__ctrl_panel.set_visible(False)
-            self.__strip.set_visible(False)
-            if (self.__current_viewer):            
+            self.__btn_strip.set_visible(False)
+            if (self.__current_viewer):
                 self.__current_viewer.set_geometry(0, 0, w, h)
 
-        elif (view_mode == viewmodes.TITLE_ONLY):
-            self.__title_panel_left.set_visible(True)
-            self.__title_panel.set_visible(True)
-            self.__panel_left.set_visible(False)
-            self.__ctrl_panel.set_visible(False)
-            self.__strip.set_visible(False)
-            if (self.__current_viewer):            
-                self.__current_viewer.set_geometry(0, 40, w, h - 40)
-                self.__get_vstate().collection_visible = False
+        #elif (view_mode == viewmodes.TITLE_ONLY):
+        #    self.__title_panel_left.set_visible(True)
+        #    self.__title_panel.set_visible(True)
+        #    self.__panel_left.set_visible(False)
+        #    self.__ctrl_panel.set_visible(False)
+        #    self.__btn_strip.set_visible(False)
+        #    if (self.__current_viewer):            
+        #        self.__current_viewer.set_geometry(0, 40, w, h - 40)
+        #        self.__get_vstate().collection_visible = False
 
         self.__view_mode = view_mode
+        if (self.__current_viewer):
+            self.__get_vstate().view_mode = view_mode
+
 
 
 
@@ -363,7 +392,7 @@ class AppWindow(Component, RootPane):
 
         self.__title_panel_left.set_image(left_top)
         self.__panel_left.set_image(left_bottom)
-        self.__strip.set_caps(left_top, left_bottom)
+        #self.__strip.set_caps(left_top, left_bottom)
 
 
     def __on_click_title(self):
@@ -415,6 +444,11 @@ class AppWindow(Component, RootPane):
 
         import gc; gc.collect()
         #self.hide_overlay()
+
+
+    def __on_show_side_strip(self):
+        
+        self.emit_message(msgs.UI_ACT_SHOW_STRIP)
 
                         
     def __on_close_window(self, src, ev):
@@ -563,7 +597,7 @@ class AppWindow(Component, RootPane):
         if (term):
             self.emit_event(msgs.CORE_ACT_SEARCH_ITEM, term)
             
-
+    """
     def __on_observe_strip(self, src, cmd, *args):
     
         w, h = self.get_size()
@@ -585,6 +619,7 @@ class AppWindow(Component, RootPane):
                 handled = True
 
         return handled        
+    """
 
 
     def handle_message(self, event, *args):
@@ -598,9 +633,9 @@ class AppWindow(Component, RootPane):
     
         elif (event == msgs.COM_EV_LOADING_MODULE):
             name = args[0]
-            self.show_overlay("%s %s" % (values.NAME, values.VERSION),
-                              "- loading %s -" % name,
-                              theme.mb_viewer_audio)
+            #self.show_overlay("%s %s" % (values.NAME, values.VERSION),
+            #                  "- loading %s -" % name,
+            #                  theme.mb_viewer_audio)
             
     
         elif (event == msgs.CORE_ACT_APP_MINIMIZE):
@@ -657,7 +692,7 @@ class AppWindow(Component, RootPane):
         elif (event == msgs.UI_ACT_HIDE_MESSAGE):
             self.hide_overlay()
             
-        
+            """
         elif (event == msgs.UI_ACT_SET_STRIP):
             viewer, items = args
             vstate = self.__get_vstate(viewer)
@@ -689,6 +724,7 @@ class AppWindow(Component, RootPane):
             viewer, idx = args
             if (viewer == self.__current_viewer):
                 self.__strip.scroll_to_item(idx)
+            """
                
         elif (event == msgs.UI_ACT_SELECT_VIEWER):
             name = args[0]
@@ -715,6 +751,7 @@ class AppWindow(Component, RootPane):
             self.__title_panel.set_info(info)
 
 
+            """
         elif (event == msgs.CORE_ACT_SCROLL_UP):
             w, h = self.__strip.get_size()
             idx = self.__strip.get_index_at(h)
@@ -732,6 +769,7 @@ class AppWindow(Component, RootPane):
         elif (event == msgs.CORE_ACT_RENDER_ITEMS):
             self.__strip.invalidate_buffer()
             self.__strip.render()
+            """
 
         elif (event == msgs.CORE_ACT_SET_TOOLBAR):
             tbset = args[0]
@@ -770,8 +808,8 @@ class AppWindow(Component, RootPane):
     
         if (not viewer):
             viewer = self.__current_viewer
-            
-        elif (not viewer in self.__viewer_states):
+       
+        if (not viewer in self.__viewer_states):
             vstate = ViewerState()
             self.__viewer_states[viewer] = vstate
         
@@ -779,6 +817,7 @@ class AppWindow(Component, RootPane):
                 
             
             
+    """
     def __select_item(self, idx, hilight_only = False):
 
         self.__hilight_item(idx)
@@ -787,11 +826,14 @@ class AppWindow(Component, RootPane):
             self.emit_event(msgs.CORE_ACT_LOAD_ITEM, idx)
             
         self.__strip.scroll_to_item(idx)
+    """
 
 
+    """
     def __hilight_item(self, idx):
     
         self.__strip.hilight(idx)
+    """
  
  
     def __select_viewer_by_name(self, name):
@@ -817,37 +859,34 @@ class AppWindow(Component, RootPane):
         
         if (self.__current_viewer):
             self.__current_viewer.hide()
-            self.__get_vstate().item_offset = self.__strip.get_offset()
+            #self.__get_vstate().item_offset = self.__strip.get_offset()
                 
         self.__current_viewer = viewer
-        self.__kscr.stop_scrolling()
+        #self.__kscr.stop_scrolling()
 
         vstate = self.__get_vstate()
-        if (vstate.collection_visible):
-            self.__set_view_mode(viewmodes.NORMAL)
-        else:
-            self.__set_view_mode(viewmodes.NO_STRIP)
+        self.__set_view_mode(vstate.view_mode)
         
         self.set_frozen(True)
         viewer.show()
         
-        #self.__set_collection(vstate.items)
-        self.__strip.set_offset(vstate.item_offset)
-        if (vstate.selected_item >= 0):
-            self.__hilight_item(vstate.selected_item)
+        #self.__strip.set_offset(vstate.item_offset)
+        #if (vstate.selected_item >= 0):
+        #    self.__hilight_item(vstate.selected_item)
         
         self.set_frozen(False)
-        self.fx_slide_in() #render() #_buffered()
-        #self.render()
+        self.fx_slide_in()
+        #self.render_buffered()
+        
         self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
         self.emit_event(msgs.UI_EV_VIEWER_CHANGED, idx)
 
 
-
+    """
     def __set_collection(self, collection):
-        """
+        ""
         Loads the given collection into the item strip.
-        """
+        ""
 
         self.__hilight_item(-1)
         thumbnails = collection        
@@ -860,7 +899,7 @@ class AppWindow(Component, RootPane):
         #              "There are no items.\n"
         #              "Please go to Media Collection in the Preferences view\n"
         #              "to tell MediaBox where to look for your files.")
-
+    """
         
         
     def __try_quit(self):

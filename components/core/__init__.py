@@ -75,6 +75,8 @@ messages = [
     "MEDIA_EV_PAUSE",
     "MEDIA_EV_EOF",
     "MEDIA_EV_VOLUME_CHANGED",   # (volume)
+    "MEDIA_EV_POSITION",         # (position, total)   @since: 0.96.5
+    "MEDIA_EV_LYRICS",           # (text)              @since: 0.96.5
 
     "COM_EV_COMPONENT_LOADED",  # (component)
     "COM_EV_LOADING_MODULE",    # (name)
@@ -114,6 +116,7 @@ messages = [
     "UI_EV_VIEWER_CHANGED",      # (index)
     "UI_EV_DEVICE_SELECTED",     # (device_id)
        
+    "UI_ACT_SHOW_STRIP",
     "UI_ACT_SET_STRIP",          # (viewer, items)
     "UI_ACT_CHANGE_STRIP",       # (owner)
     "UI_ACT_HILIGHT_STRIP_ITEM", # (viewer, index)

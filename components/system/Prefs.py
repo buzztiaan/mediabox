@@ -25,6 +25,7 @@ class Prefs(Configurator):
 
     ICON = theme.mb_device_n800
     TITLE = "Device"
+    DESCRIPTION = "Configure the device hardware"
 
 
     def __init__(self):

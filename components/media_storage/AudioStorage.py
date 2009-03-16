@@ -19,6 +19,7 @@ class AudioStorage(Device):
     def __init__(self):
     
         self.__albums = []
+        self.__media_was_updated = False
     
         Device.__init__(self)
         
@@ -26,7 +27,8 @@ class AudioStorage(Device):
     def handle_message(self, msg, *args):
     
         if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
-            self.__update_media()
+            #self.__update_media()
+            self.__media_was_updated = True
 
 
     def __update_media(self):
@@ -39,6 +41,8 @@ class AudioStorage(Device):
             self.__albums.append(f)
         #end for
         self.__albums.sort()
+        
+        self.__media_was_updated = False
           
         
     def get_prefix(self):
@@ -76,6 +80,9 @@ class AudioStorage(Device):
     
     
     def ls_async(self, path, cb, *args):
+    
+        if (self.__media_was_updated):
+            self.__update_media()
     
         if (path == "/"):
             for album in self.__albums:

@@ -23,6 +23,7 @@ class VirtualKeyboard(gtk.Window, Component):
     def __init__(self):
     
         self.__is_showing = False
+        self.__invalidated = True
     
         # current keyboard layout
         self.__current_layout = layouts.get_default_layout()
@@ -61,7 +62,7 @@ class VirtualKeyboard(gtk.Window, Component):
         self.__clear_keyboard()
 
         self.hide()
-        self.__render_keyboard(self.__current_layout)
+        #self.__render_keyboard(self.__current_layout)
         
         self.connect("button-press-event", self.__on_press)
         self.connect("button-release-event", self.__on_release)
@@ -120,14 +121,19 @@ class VirtualKeyboard(gtk.Window, Component):
     
         if (msg == msgs.VKB_ACT_SHOW):
             parent = args[0]
+            if (self.__invalidated):
+                self.__key_cache.clear()
+                self.__clear_keyboard()
+                self.__render_keyboard(self.__current_layout)
+                self.__invalidated = False
             self.__is_showing = True
-            self.__key_cache.clear()
             self.__popup(parent)
             
         elif (msg == msgs.CORE_EV_THEME_CHANGED):
-            self.__key_cache.clear()
-            self.__clear_keyboard()
-            self.__render_keyboard(self.__current_layout)
+            self.__invalidated = True
+            #self.__key_cache.clear()
+            #self.__clear_keyboard()
+            #self.__render_keyboard(self.__current_layout)
         
         
     def __popup(self, parent):

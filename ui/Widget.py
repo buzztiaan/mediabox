@@ -44,6 +44,7 @@ class Widget(object):
     
         self.__event_handlers = {}
         self.__locked_zone = None
+        self.__need_to_check_zones = False
         
         self.__is_enabled = True
         self.__is_frozen = False
@@ -75,6 +76,8 @@ class Widget(object):
         
             if (zone):            
                 self.__locked_zone = zone
+            else:
+                self.__locked_zone = None
  
         else:
             zone = self.__locked_zone
@@ -225,7 +228,7 @@ class Widget(object):
         self.__screen = screen
         for c in self.__children:
             c.set_screen(screen)
-        self.__check_zones()
+        #self.__check_zones()
         
         
     def get_screen(self):
@@ -358,7 +361,9 @@ class Widget(object):
                 f(c)
     
         self.__is_visible = value
+
         self.__check_zones()
+            
         f(self)
 
 
@@ -424,6 +429,9 @@ class Widget(object):
 
     def __check_zone(self):
     
+        # don't check zone when widget does not have event handlers
+        if (not self.__event_handlers): return
+    
         if (self.is_enabled() and self.__event_handlers):
             x, y = self.get_screen_pos()
             w, h = self.get_size()
@@ -434,6 +442,7 @@ class Widget(object):
             
     def __check_zones(self):
     
+        self.__need_to_check_zones = False
         self.__check_zone()
         for c in self.__children:
             c.__check_zones()
@@ -521,8 +530,10 @@ class Widget(object):
         @param y: y coordinate
         """
     
-        self.__position = (x, y)
-        self.__check_zones()
+        if ((x, y) != self.__position):
+            self.__position = (x, y)
+            self.__need_to_check_zones = True
+            #self.__check_zones()
         
         
     def get_pos(self):
@@ -561,8 +572,9 @@ class Widget(object):
         @param h: height
         """
     
-        self.__size = (w, h)
-        self.__check_zone()
+        if ((w, h) != self.__size):
+            self.__size = (w, h)
+            self.__check_zone()
         
         
     def get_size(self):
@@ -640,6 +652,10 @@ class Widget(object):
         if (not self.may_render()):
             return
         
+        logging.debug("rendering widget %s", `self`)
+        if (self.__need_to_check_zones):
+            self.__check_zones()
+
         self.render_this()
 
         for c in self.__children:
@@ -683,6 +699,7 @@ class Widget(object):
         self.__parent = parent
         self.set_screen(real_screen)
         self.set_pos(real_x, real_y)
+        self.__check_zones()
         
         
     def skip_next_render(self):

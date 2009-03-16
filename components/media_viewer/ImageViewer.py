@@ -14,4 +14,5 @@ class ImageViewer(GenericViewer):
         self.accept_device_types(Device.TYPE_IMAGE)
         self.add_tab("Browser", self._VIEWMODE_BROWSER)
         self.add_tab("Image", self._VIEWMODE_PLAYER_NORMAL)
+        self.add_tab("Info", self._VIEWMODE_PLAYER_NORMAL)
 

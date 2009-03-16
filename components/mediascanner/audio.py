@@ -96,7 +96,7 @@ def _find_cover_file(uri):
     cover = None
     contents = os.listdir(uri)
     candidates = (".folder.png", "folder.jpg", "cover.jpg",
-                    "cover.jpeg", "cover.png")
+                    "cover.jpeg", "cover.png", "cover.bmp")
     for c in contents:
         if (c in candidates):
             cover = os.path.join(uri, c)
@@ -108,7 +108,8 @@ def _find_cover_file(uri):
             cl = c.lower()
             if (cl.endswith(".jpg") or \
                   cl.endswith(".png") or \
-                  cl.endswith(".jpeg")):
+                  cl.endswith(".jpeg") or \
+                  cl.endswith(".bmp")):
                 cover = os.path.join(uri, c)
                 break
         #end for

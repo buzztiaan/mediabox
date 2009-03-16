@@ -3,6 +3,7 @@ from mediabox.MediaWidget import MediaWidget
 from mediabox import media_bookmarks
 from mediabox import tagreader
 from mediabox import config as mb_config
+from ui.Button import Button
 from ui.EventBox import EventBox
 from ui.ImageButton import ImageButton
 from ui.Image import Image
@@ -53,6 +54,13 @@ class AudioWidget(MediaWidget):
         self.__artist = Label("-", theme.font_mb_plain,
                               theme.color_mb_trackinfo_text)
         self.add(self.__artist)
+
+        self.__lyrics = Label("", theme.font_mb_plain,
+                              theme.color_mb_trackinfo_text)
+        self.__lyrics.set_alignment(Label.CENTERED)
+        #self.__lyrics = Button("")
+        self.add(self.__lyrics)
+
 
         self.__progress_label = Label("", theme.font_mb_headline,
                                       theme.color_mb_trackinfo_text)
@@ -116,6 +124,16 @@ class AudioWidget(MediaWidget):
         self.__prepare_cover()
 
 
+    def handle_message(self, msg, *args):
+    
+        if (msg == msgs.MEDIA_EV_LYRICS):
+            words, hi_from, hi_to = args
+            self.__lyrics.set_text(words)
+                                   #words[:hi_from] +\
+                                   #"[" + words[hi_from:hi_to] + "]" + \
+                                   #words[hi_to:])
+
+
     def render_this(self):
 
         x, y = self.get_screen_pos()
@@ -135,38 +153,41 @@ class AudioWidget(MediaWidget):
             self.__car_btn_prev.set_geometry(0, 50, 128, h - 100)
             self.__car_btn_next.set_geometry(w - 128, 50, 128, h - 100)
             self.__progress_label.set_geometry(w - 200, h - 90, 190, 0)
-                
-        # place labels
-        lbl_x = 10
-        lbl_y = 6
-        lbl_w = w - 20
-        self.__title.set_geometry(lbl_x, lbl_y, lbl_w, 0)
-        
+
+        # top and bottom borders
         screen.fill_area(x, y, w, 50,
                          theme.color_mb_trackinfo_background_2)
         screen.fill_area(x, y + h - 50, w, 50,
                          theme.color_mb_trackinfo_background_2)
-               
-        lbl_y = h - 42
+                
+        # title label
+        lbl_x = 10
+        lbl_y = 6
+        lbl_w = w - 20
+        self.__title.set_geometry(lbl_x, lbl_y, lbl_w, 0)       
+
+        # lyrics label
+        lbl_x = 10
+        lbl_y = h - 38
+        lbl_w = w - 20
+        self.__lyrics.set_geometry(lbl_x, lbl_y, lbl_w, 0)
+
+        # album label
+        lbl_x = w / 2
+        lbl_y = 64 #h - 42
         lbl_w = w / 2 - 20
-        screen.draw_pixbuf(theme.mb_music_album,
-                                  x + lbl_x, y + lbl_y)
+        screen.draw_pixbuf(theme.mb_music_album, x + lbl_x, y + lbl_y)
         self.__album.set_geometry(lbl_x + 48, lbl_y + 4, lbl_w -48, 0)
         
-        lbl_x += w / 2
-        screen.draw_pixbuf(theme.mb_music_artist,
-                                  x + lbl_x, y + lbl_y)
+        # artist label
+        lbl_y = 112
+        screen.draw_pixbuf(theme.mb_music_artist, x + lbl_x, y + lbl_y)
         self.__artist.set_geometry(lbl_x + 48, lbl_y + 4, lbl_w - 48, 0)
 
-        # place lyrics box
-        lb_x = lbl_x
-        lb_y = lbl_y + 48
-        lb_w = lbl_w
-        lb_h = h - lb_y - 10
         
-        # place cover
-        cover_size = h - 128
-        cover_x = (w - cover_size) / 2
+        # cover art
+        cover_size = min(h - 128, w / 2 - 20)
+        cover_x = (w / 2 - cover_size) / 2 #20 #(w - cover_size) / 2
         cover_y = 60
 
         self.__cover.set_geometry(cover_x, cover_y,
@@ -229,6 +250,8 @@ class AudioWidget(MediaWidget):
                     total = 0
 
                 self.send_event(self.EVENT_MEDIA_POSITION, info)
+                self.emit_message(msgs.MEDIA_EV_POSITION,
+                                  pos * 1000, total * 1000)
                 self.__progress.set_position(pos, total)
                 self.__progress_label.set_text(info)
 
@@ -391,6 +414,7 @@ class AudioWidget(MediaWidget):
             self.__progress.set_bookmarks(bookmarks)
                         
             self.__show_info(item)
+            self.__lyrics.set_text("- no lyrics found -")
             self.render()
 
                 
@@ -446,12 +470,14 @@ class AudioWidget(MediaWidget):
                        os.path.join(uri, "folder.jpg"),
                        os.path.join(uri, "cover.jpg"),
                        os.path.join(uri, "cover.jpeg"),
-                       os.path.join(uri, "cover.png") ]
+                       os.path.join(uri, "cover.png"),
+                       os.path.join(uri, "cover.bmp") ]
 
         imgs = [ os.path.join(uri, f)
                  for f in os.listdir(uri)
                  if f.lower().endswith(".png") or
-                 f.lower().endswith(".jpg") ]
+                 f.lower().endswith(".jpg") or
+                 f.lower().endswith(".bmp") ]
 
         cover = ""
         for c in candidates + imgs:
