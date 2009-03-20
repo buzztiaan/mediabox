@@ -25,7 +25,7 @@ class GenericDevice(Device):
         
     def get_name(self):
     
-        return "Devices"
+        return "Devices and Network"
         
         
     def get_icon(self):
@@ -36,7 +36,7 @@ class GenericDevice(Device):
     def get_root(self):
     
         f = File(self)
-        f.name = "Devices"
+        f.name = self.get_name()
         f.path = "/"
         f.mimetype = f.DIRECTORY
         return f
