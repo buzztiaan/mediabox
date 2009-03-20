@@ -78,7 +78,10 @@ def load(path, cb, *args):
         d = fd.read(_CHUNK_SIZE)
         if (d):
             if (not aborted[0]):
-                loader.write(d)
+                try:
+                    loader.write(d)
+                except:
+                    pass
             gtk.main_iteration(False)
             return True
         else:
