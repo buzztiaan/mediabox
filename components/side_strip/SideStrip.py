@@ -100,6 +100,7 @@ class SideStrip(Widget):
         self.__fx_slide_out()
         self.set_visible(False)
         self.emit_message(msgs.UI_ACT_THAW)
+        self.emit_message(msgs.INPUT_ACT_REPORT_CONTEXT)
 
         
 

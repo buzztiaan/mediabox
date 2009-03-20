@@ -31,6 +31,18 @@ class ListItem(StripItem):
                 .replace(">", "&gt;") \
                 .replace("&", "&amp;")
         
+        
+    def get_letter(self):
+        """
+        Returns the first letter of the label to aid list navigation.
+        @since: 0.96.5
+        
+        @return: string consisting of the letter
+        """
+        
+        return ""
+        
+        
 
     def set_grip(self, pbuf):
     

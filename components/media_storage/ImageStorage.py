@@ -31,7 +31,7 @@ class ImageStorage(Device):
 
     def __update_media(self):
 
-        self.__folders = {"All Images": []}
+        self.__folders = {"All Pictures": []}
         media, nil, removed = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                                 ["image/"])
         #print "removed", removed
@@ -40,7 +40,7 @@ class ImageStorage(Device):
             if (not parent in self.__folders):
                 self.__folders[parent] = []
             self.__folders[parent].append(f)
-            self.__folders["All Images"].append(f)        
+            self.__folders["All Pictures"].append(f)        
         #end for
         
         self.__media_was_updated = False
@@ -53,7 +53,7 @@ class ImageStorage(Device):
         
     def get_name(self):
     
-        return "Images"
+        return "Local Pictures"
 
 
     def get_icon(self):
@@ -70,7 +70,7 @@ class ImageStorage(Device):
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = self.get_name()
-        f.info = "Browse your image library"
+        f.info = "Browse your picture library"
         
         return f
           
@@ -79,9 +79,9 @@ class ImageStorage(Device):
     def ls_async(self, path, cb, *args):
 
         def folder_cmp(a, b):
-            if (a == "All Images"):
+            if (a == "All Pictures"):
                 return -1
-            if (b == "All Images"):
+            if (b == "All Pictures"):
                 return 1
             else:
                 return cmp(a, b)

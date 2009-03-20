@@ -631,19 +631,20 @@ class PlaylistViewer(Viewer):
 
 
 
-    def __add_item(self, pl, f):
+    def __add_item(self, pl, f, count = [0]):
         """
         Adds the given item to the playlist.
         """
         
+        if (count[0] >= 500): return
+        
         if (f):
-            if (f.mimetype in (f.DIRECTORY,
-                               "application/x-music-folder",
-                               "application/x-image-folder")):
-                items = [ c for c in f.get_children()
-                          if c.mimetype != f.DIRECTORY ]
+            if (f.mimetype.endswith("-folder")):
+                items = [ c for c in f.get_children() ]
+                          #if not c.mimetype.endswith("-folder") ]
                 for item in items:
-                    self.__add_item(pl, item)
+                    count[0] += 1
+                    self.__add_item(pl, item, count)
                 return
             #end if
             

@@ -7,9 +7,15 @@ class MediaItem(ListItem):
     def __init__(self, f, icon):
 
         self.__label = self.escape_xml(f.name)
+        self.__letter = self.__label and unicode(self.__label)[0].upper() or " "
         self.__sublabel = self.escape_xml(f.info)
 
         ListItem.__init__(self, f, icon)
+
+
+    def get_letter(self):
+    
+        return self.__letter
 
 
     def set_info(self, info):

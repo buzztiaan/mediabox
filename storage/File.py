@@ -145,8 +145,8 @@ class File(object):
     def __cmp__(self, other):
     
         if (other):
-            return cmp((self.index, self.name, self.full_path),
-                       (other.index, other.name, other.full_path))
+            return cmp((self.index, self.name.upper(), self.full_path),
+                       (other.index, other.name.upper(), other.full_path))
         else:
             return 1
 

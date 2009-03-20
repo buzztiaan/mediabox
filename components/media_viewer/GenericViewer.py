@@ -374,9 +374,15 @@ class GenericViewer(Viewer):
         Updates the title text.
         """
         
-        names = [ p[0].name for p in self.__path_stack ]
-        title = u" \u00bb ".join(names)
-        self.set_title(title)
+        if (self.__view_mode == self._VIEWMODE_BROWSER):
+            names = [ p[0].name for p in self.__path_stack ]
+            title = u" \u00bb ".join(names)
+            self.set_title(title)
+        else:
+            if (self.__current_file):
+                self.set_title(self.__current_file.name)
+            else:
+                self.set_title("")
 
 
     def __update_input_context(self):
@@ -453,6 +459,7 @@ class GenericViewer(Viewer):
         was_fullscreen = (self.__view_mode == self._VIEWMODE_PLAYER_FULLSCREEN)
         self.__view_mode = mode
         self.__update_input_context()
+        self.__update_title()
         w, h = self.get_size()
         
         strip_owner = (self, mode)
@@ -564,7 +571,7 @@ class GenericViewer(Viewer):
         elif (msg == msgs.CORE_EV_DEVICE_ADDED):
             ident, device = args
             if (device.CATEGORY == device.CATEGORY_INDEX):
-                self.__add_device(ident, device)
+                gobject.idle_add(self.__add_device, ident, device)
             
         # remove gone storage devices
         elif (msg == msgs.CORE_EV_DEVICE_REMOVED):
@@ -858,6 +865,7 @@ class GenericViewer(Viewer):
                 self.__media_widget = media_widget                
                             
             self.__update_toolbar()
+            self.__update_title()
             
             self.__media_widget.set_visible(True)
             self.__media_widget.connect_media_position(self.__on_media_position)
@@ -1085,7 +1093,8 @@ class GenericViewer(Viewer):
         # determine available item buttons
         buttons = []
         
-        if (entry.mimetype == "application/x-music-folder"):
+        if (entry.mimetype in ("application/x-bookmarks-folder",
+                               "application/x-music-folder")):
             buttons.append((item.BUTTON_OPEN, theme.mb_item_btn_open))
             
         elif (entry.mimetype.endswith("-folder")):

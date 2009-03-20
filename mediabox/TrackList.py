@@ -1,4 +1,4 @@
-from ui.ItemList import ItemList
+from ui.ThumbableList import ThumbableList
 from ui.KineticScroller import KineticScroller
 from ui.DragSorter import DragSorter
 from theme import theme
@@ -6,7 +6,7 @@ from theme import theme
 import time
 
 
-class TrackList(ItemList):
+class TrackList(ThumbableList):
 
     EVENT_BUTTON_CLICKED = "button-clicked"
     EVENT_ITEM_CLICKED = "item-clicked"
@@ -15,13 +15,15 @@ class TrackList(ItemList):
 
     def __init__(self, with_drag_sort = False, with_header = False):
     
+        self.__kscr = None
+    
         # ignore clicks until the given time was reached
         self.__ignore_click_until = 0
         
         self.__open_item = -1
         self.__has_header = with_header
     
-        ItemList.__init__(self, 110, 0)
+        ThumbableList.__init__(self, 110, 0)
         self.set_caps(theme.mb_list_top, theme.mb_list_bottom)
         self.set_bg_color(theme.color_mb_background)
         #self.set_arrows(theme.arrows)
@@ -33,6 +35,13 @@ class TrackList(ItemList):
             self.__dragsorter = DragSorter(self)
             self.__dragsorter.add_observer(self.__on_drag_sort)
             self.set_drag_sort_enabled(True)
+
+
+    def set_size(self, w, h):
+    
+        ThumbableList.set_size(self, w, h)
+        if (self.__kscr):
+            self.__kscr.set_touch_area(0, w - 100)
 
     
     def set_drag_sort_enabled(self, v):
@@ -58,10 +67,22 @@ class TrackList(ItemList):
 
         handled = False
         need_render = False
+        
+        #if (cmd == src.OBS_SCROLLING):
+        #    self.set_show_slider(True)
+        #
+        #elif (cmd == src.OBS_STOPPED):
+        #    self.set_show_slider(False)
+        #    self.render()
+        
         if (cmd == src.OBS_CLICKED and time.time() > self.__ignore_click_until):
             self.__ignore_click_until = time.time() + 0.4
             
             x, y = args
+            
+            if (self.slider_is_active()):
+                return
+                
             idx = self.get_index_at(y)
             item = self.get_item(idx)
             button = item.get_button_at(x)

@@ -288,6 +288,7 @@ class Menu(Widget):
             self.emit_message(msgs.UI_ACT_SELECT_VIEWER,
                               `self.__viewers[self.__index]`)
         self.emit_message(msgs.UI_ACT_THAW)
+        self.emit_message(msgs.INPUT_ACT_REPORT_CONTEXT)
 
 
 

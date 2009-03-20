@@ -76,5 +76,4 @@ class VideoDevice(Device):
             if (device != self and device.TYPE == device.TYPE_VIDEO):
                 self.__devices[ident] = device
 
-
         

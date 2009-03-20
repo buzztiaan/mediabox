@@ -60,6 +60,7 @@ messages = [
     "CORE_SVC_LIST_PATH",       # (path)
     "CORE_SVC_GET_FILE",        # (path)
     
+    
     # Media actions control the currently playing media viewer.
     #
     "MEDIA_ACT_PLAY",
@@ -74,9 +75,10 @@ messages = [
     "MEDIA_EV_PLAY",
     "MEDIA_EV_PAUSE",
     "MEDIA_EV_EOF",
-    "MEDIA_EV_VOLUME_CHANGED",   # (volume)
-    "MEDIA_EV_POSITION",         # (position, total)   @since: 0.96.5
-    "MEDIA_EV_LYRICS",           # (text)              @since: 0.96.5
+    "MEDIA_EV_VOLUME_CHANGED",    # (volume)
+    "MEDIA_EV_POSITION",          # (position, total)   @since: 0.96.5
+    "MEDIA_EV_LYRICS",            # (text)              @since: 0.96.5
+    "MEDIA_EV_DOWNLOAD_PROGRESS", # (file, amount, total)  @since: 0.96.5
 
     "COM_EV_COMPONENT_LOADED",  # (component)
     "COM_EV_LOADING_MODULE",    # (name)

@@ -662,6 +662,16 @@ class ImageStrip(Widget):
         self.__fix_offset()
         
         
+    def get_total_size(self):
+        """
+        Returns the total size of the list.
+        
+        @return: total size
+        """
+        
+        return self.__totalsize
+        
+        
     def __fix_offset(self):
         """
         Fixes the offset value to be in a valid range.
@@ -750,14 +760,13 @@ class ImageStrip(Widget):
                            arrow_width, arrow_height)
         
         
-    def __render_scrollbar(self):
+    def _render_scrollbar(self, screen):
         """
         Renders the scrollbar onto the buffer.
         """
 
         x, y = 0, 0 #self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.__buffer
 
         if (self.__totalsize > 0):
             percent = self.__offset / float(self.__totalsize)
@@ -782,14 +791,13 @@ class ImageStrip(Widget):
 
 
     
-    def __render_floating_item(self):
+    def _render_floating_item(self, screen):
         """
         Renders the floating item onto the buffer.
         """
     
         x, y = 0, 0 #self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.__buffer
         
         try:        
             item = self.__images[self.__floating_index]
@@ -820,12 +828,12 @@ class ImageStrip(Widget):
 
         #if (self.__arrows[0]):
         #    self.__render_arrows()
-        
-        if (self.__scrollbar_pmap):
-            self.__render_scrollbar()
-            
+                    
         if (self.__floating_index >= 0):
-            self.__render_floating_item()
+            self._render_floating_item(self.__buffer)
+
+        if (self.__scrollbar_pmap):
+            self._render_scrollbar(self.__buffer)
 
         if (self.__cap_top):
             self.__buffer.draw_pixbuf(self.__cap_top, 0, 0)

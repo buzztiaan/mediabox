@@ -1,3 +1,19 @@
+mediabox (0.96.5) unstable; urgency=low
+
+  Support for LRC file format for music lyrics
+
+  Improved UI rendering performance and reduced memory footprint
+  
+  Cleaner user interface
+  
+  Thumbable scrollbar
+  
+  Reduced startup time
+
+  Bugfixes
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Mon, 09 Mar 2009 19:00:00 +0100
+
 mediabox (0.96.4.1) unstable; urgency=low
 
   Fixed end-of-file detection for video streams in the mplayer backend

@@ -133,6 +133,13 @@ class AudioWidget(MediaWidget):
                                    #"[" + words[hi_from:hi_to] + "]" + \
                                    #words[hi_to:])
 
+        elif (msg == msgs.MEDIA_EV_DOWNLOAD_PROGRESS):
+            f, amount, total = args
+            if (f == self.__current_file and total > 0):
+                percent = int(float(amount) / total * 100)
+                self.__progress.set_message("... loading (%d%%)..." % percent)
+
+
 
     def render_this(self):
 

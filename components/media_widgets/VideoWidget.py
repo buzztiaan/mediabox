@@ -99,6 +99,12 @@ class VideoWidget(MediaWidget):
         elif (msg == msgs.INPUT_EV_NAV_MENU):
             handled = self.__player.send_key(self.__player.KEY_MENU1)
 
+        elif (msg == msgs.MEDIA_EV_DOWNLOAD_PROGRESS):
+            f, amount, total = args
+            if (f == self.__current_file and total > 0):
+                percent = int(float(amount) / total * 100)
+                self.__progress.set_message("... loading (%d%%)..." % percent)
+                
 
     def _visibility_changed(self):
 

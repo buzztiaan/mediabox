@@ -76,6 +76,7 @@ class KineticScroller(Observable):
     
         self.__delta_s = (0, 0)
         self.__is_dragging = False
+        self.update_observer(self.OBS_STOPPED)
             
 
     def enable_kinetic(self, value):
@@ -96,7 +97,9 @@ class KineticScroller(Observable):
         Handler for applying the physics of kinetic scrolling.
         """
         
-        if (not self.__kinetic_enabled): return False
+        if (not self.__kinetic_enabled):
+            self.update_observer(self.OBS_STOPPED)
+            return False
         
         delta_sx, delta_sy = self.__delta_s
         
@@ -111,6 +114,7 @@ class KineticScroller(Observable):
         if (self.__is_dragging or (abs(delta_sx) < 1 and abs(delta_sy) < 1)):
             # shut down impulse handler when not needed to save battery
             self.__impulse_handler_running = False
+            self.update_observer(self.OBS_STOPPED)
             return False
         
         else:
@@ -174,7 +178,7 @@ class KineticScroller(Observable):
         self.__pointer = (px, py)
             
         if (self.__is_dragging):
-            now = time.time()            
+            now = time.time()
 
             if (self.__drag_pointer == (px, py)): return
 
@@ -195,10 +199,14 @@ class KineticScroller(Observable):
             if (abs(self.__delta_s[0]) > 0.1 or abs(self.__delta_s[1]) > 0.1):
                 
                 if (not self.__scrolling):
-                    self.update_observer(self.OBS_SCROLLING)        
+                    self.update_observer(self.OBS_SCROLLING)
                     self.__scrolling = True                                        
                     
                 self.__child.move(self.__delta_s[0], self.__delta_s[1])
-            #end if        
+            
+            else:
+                self.update_observer(self.OBS_STOPPED)
+            #end if
+
         #end if
 

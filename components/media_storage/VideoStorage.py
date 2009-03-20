@@ -49,7 +49,7 @@ class VideoStorage(Device):
         
     def get_name(self):
     
-        return "Videos"
+        return "Local Videos"
 
 
     def get_icon(self):

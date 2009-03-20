@@ -158,6 +158,7 @@ class AudioArtistStorage(Device):
                 f.path = path + urlquote.quote(artist, "")
                 f.name = artist
                 f.mimetype = f.DIRECTORY
+                f.icon = theme.mb_device_artists.get_path()
 
                 cb(f, *args)
             #end for
