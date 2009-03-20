@@ -35,5 +35,5 @@ class Input(Component):
             if (event):
                 self.emit_event(event)
 
-        elif (msg in _CONTEXTS):            
+        elif (msg in _CONTEXTS):
             self.__schema.set_context(msg)
