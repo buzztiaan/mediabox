@@ -132,6 +132,11 @@ class SideStrip(Widget):
             viewer, idx = args
             self.__strip.hilight(idx)
 
+        elif (msg == msgs.UI_ACT_SHOW_STRIP_ITEM):
+            viewer, idx = args
+            self.__strip.scroll_to_item(idx)
+
+
         """               
         elif (event == msgs.UI_ACT_SELECT_STRIP_ITEM):
             viewer, idx = args
@@ -140,10 +145,6 @@ class SideStrip(Widget):
             if (viewer == self.__current_viewer):
                 self.__select_item(idx)
 
-        elif (event == msgs.UI_ACT_SHOW_STRIP_ITEM):
-            viewer, idx = args
-            if (viewer == self.__current_viewer):
-                self.__strip.scroll_to_item(idx)
         """
         
         

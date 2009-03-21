@@ -253,6 +253,8 @@ class GenericViewer(Viewer):
         strip_index = -1
         items_to_thumbnail = []
         
+        self.change_strip(self)
+        
         # show playable items
         for entry in self.__playable_items:
             thumb = self.call_service(
@@ -415,6 +417,7 @@ class GenericViewer(Viewer):
         if (self.__current_file in self.__playable_items):
             idx = self.__playable_items.index(self.__current_file)
             self.hilight_strip_item(idx)
+            self.show_strip_item(idx)
 
         """
         elif (self.__view_mode == self._VIEWMODE_PLAYER_NORMAL):
@@ -462,7 +465,7 @@ class GenericViewer(Viewer):
         self.__update_title()
         w, h = self.get_size()
         
-        strip_owner = (self, mode)
+        #strip_owner = (self, mode)
         #if (mode != self._VIEWMODE_PLAYER_FULLSCREEN and not was_fullscreen):
         #    self.change_strip(strip_owner)
 
@@ -481,7 +484,7 @@ class GenericViewer(Viewer):
 
             if (not was_fullscreen):
             #    self.__update_side_strip()
-            #    self.__hilight_current_file()
+                self.__hilight_current_file()
                 self.__update_toolbar()
             
             #self.emit_message(msgs.UI_ACT_THAW)
@@ -498,7 +501,7 @@ class GenericViewer(Viewer):
 
             #self.__strip_needs_reload(self._VIEWMODE_PLAYER_NORMAL)
             #self.__update_side_strip()
-            #self.__hilight_current_file()
+            self.__hilight_current_file()
             
             if (not was_fullscreen):
                 #self.emit_message(msgs.UI_ACT_FREEZE)
@@ -968,6 +971,7 @@ class GenericViewer(Viewer):
                                       if not i.mimetype.endswith("-folder") ]
             self.__random_items = self.__playable_items[:]
             self.__list.fx_slide_right()
+            self.__update_side_strip()
             
         else:
             # reload list           
@@ -1365,7 +1369,7 @@ class GenericViewer(Viewer):
            
         Viewer.show(self)
         #self.__set_view_mode(self._VIEWMODE_BROWSER)
-        #self.change_strip(self)
+        self.change_strip(self)
         #self.__update_side_strip()
         #self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)
         

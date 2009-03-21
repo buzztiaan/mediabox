@@ -1126,7 +1126,7 @@ class ImageStrip(Widget):
 
             # no need to have this animated while the widget is hidden
             if (not self.may_render()):
-                #self.__offset = max(0, offset2)
+                self.__offset = max(0, offset2)
                 self.__fix_offset()
                 self.__scroll_to_item_handler = None
                 self.invalidate_buffer()
@@ -1154,10 +1154,10 @@ class ImageStrip(Widget):
             elif (distance < -1000):
                 self.__offset += distance + 500
 
-            if (not self.may_render()):
-                self.__offset += distance
-                self.__scroll_to_item_handler = None
-                return False
+            #if (not self.may_render()):
+            #    self.__offset += distance
+            #    self.__scroll_to_item_handler = None
+            #    return False
 
             delta = distance / 3 #10
 

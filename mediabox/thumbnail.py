@@ -16,7 +16,7 @@ _PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, _WIDTH, _HEIGHT)
 _frame_cache = {}
 
 # cache for thumbnails
-_CACHE_SIZE = 20
+_CACHE_SIZE = 10
 _thumbnail_cache = {}
 _cache_history = []
 
@@ -51,25 +51,27 @@ def render_on_canvas(cnv, x, y, w, h, thumbfile, mimetype):
 
 
 
-def _make_frame(thumbfile, mimetype):
+def _make_frame(mimetype):
     """
-    Returns the appropriate frame for the given MIME type.
+    Returns the appropriate frame as pixbuf for the given MIME type, or None
+    if there is no frame.
     """
 
     if (mimetype == "application/x-folder"):
         tx, ty, tw, th = 3, 3, 109, 109
-        if (os.path.exists(thumbfile)):
-            frame = theme.mb_frame_music
-        else:
-            frame = None
+        #if (os.path.exists(thumbfile)):
+        #frame = theme.mb_frame_music
+        frame = None
+        #else:
+        #frame = None
 
     elif (mimetype == "application/x-music-folder"):
-        if (os.path.exists(thumbfile)):
-            tx, ty, tw, th = 3, 3, 109, 109
-            frame = theme.mb_frame_music
-        else:
-            tx, ty, tw, th = 0, 0, _WIDTH, _HEIGHT
-            frame = None
+        #if (os.path.exists(thumbfile)):
+        tx, ty, tw, th = 3, 3, 109, 109
+        frame = theme.mb_frame_music
+        #else:
+        #    tx, ty, tw, th = 0, 0, _WIDTH, _HEIGHT
+        #    frame = None
 
     elif (mimetype == "application/x-image-folder"):
         tx, ty, tw, th = 35, 30, 100, 69
@@ -77,10 +79,10 @@ def _make_frame(thumbfile, mimetype):
         
     elif (mimetype in mimetypes.get_audio_types()):
         tx, ty, tw, th = 3, 3, 109, 109
-        if (os.path.exists(thumbfile)):
-            frame = theme.mb_frame_music
-        else:
-            frame = None
+        #if (os.path.exists(thumbfile)):
+        frame = None
+        #else:
+        #    frame = None
 
     elif (mimetype in mimetypes.get_image_types()):
         tx, ty, tw, th = 7, 7, 142, 102
@@ -125,11 +127,13 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
     if (not cnv):
         _PBUF.fill(0x00000000)
    
-    frame_pbuf, tx, ty, tw, th = _frame_cache.get(thumbfile, (None, 0, 0, _WIDTH, _HEIGHT))
-    if (not frame_pbuf and thumbfile):
-        frame_pbuf, tx, ty, tw, th = _make_frame(thumbfile, mimetype)
-        _frame_cache[thumbfile] = (frame_pbuf, tx, ty, tw, th)
+    frame_pbuf, tx, ty, tw, th = _frame_cache.get(mimetype, (None, 0, 0, _WIDTH, _HEIGHT))
+    if (not frame_pbuf):
+        frame_pbuf, tx, ty, tw, th = _make_frame(mimetype)
+        _frame_cache[mimetype] = (frame_pbuf, tx, ty, tw, th)
     #end if
+    
+    # render frame
     if (frame_pbuf):
         sx = w / float(frame_pbuf.get_width())
         sy = h / float(frame_pbuf.get_height())
@@ -151,7 +155,6 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
     #end if
 
     pbuf = _thumbnail_cache.get((thumbfile, w, h))
-
     if (not pbuf):
         #print "not in cache:", thumbfile
         pbuf, cachable = _make_thumbnail(thumbfile, mimetype)
@@ -166,6 +169,7 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
         del _thumbnail_cache[key]
     #end while
     
+    # render thumbnail
     if (pbuf):
         if (cnv):
             cnv.fit_pixbuf(pbuf, int(x + fx + tx * scale),
@@ -184,19 +188,26 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
     
 
 def _get_fallback_thumbnail(mimetype):
+    """
+    Returns the fallback thumbnail for the given MIME type, or None, if there
+    is no fallback.
+    """
 
     if (mimetype == "application/x-music-folder"):
-        return theme.mb_unknown_album
+        return theme.mb_filetype_loading
+        #theme.mb_unknown_album
     elif (mimetype == "application/x-image-folder"):
+        #return theme.mb_filetype_loading
         return None
     elif (mimetype.endswith("-folder")):
         return theme.mb_filetype_folder
     elif (mimetype in mimetypes.get_audio_types()):
         return theme.mb_filetype_audio
     elif (mimetype in mimetypes.get_image_types()):
-        return theme.mb_filetype_image
+        #return theme.mb_filetype_image
+        return theme.mb_filetype_loading
     elif (mimetype in mimetypes.get_video_types()):
-        return None #theme.mb_filetype_video
+        return theme.mb_filetype_loading
     else:
         return theme.mb_filetype_unknown
 

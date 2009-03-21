@@ -5,7 +5,7 @@ font_mb_headline: Nokia Sans bold 22
 font_mb_plain:    Nokia Sans Cn 16
 font_mb_tiny:     Nokia Sans Cn 13
 font_mb_micro:    Nokia Sans Cn 10
-font_mb_list_letter: Nokia Sans bold 64
+font_mb_list_letter: Nokia Sans bold 42
 
 #
 # Background
@@ -52,6 +52,7 @@ color_mb_list_letter_background: #000000a0
 color_mb_trackinfo_background: #eef0ff
 color_mb_trackinfo_background_2: #dddddd
 color_mb_trackinfo_text: #000000
+font_mb_trackinfo_lyrics: Nokia Sans Cn 20
 
 
 #

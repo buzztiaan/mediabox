@@ -55,7 +55,7 @@ class AudioWidget(MediaWidget):
                               theme.color_mb_trackinfo_text)
         self.add(self.__artist)
 
-        self.__lyrics = Label("", theme.font_mb_plain,
+        self.__lyrics = Label("", theme.font_mb_trackinfo_lyrics,
                               theme.color_mb_trackinfo_text)
         self.__lyrics.set_alignment(Label.CENTERED)
         #self.__lyrics = Button("")
@@ -153,6 +153,7 @@ class AudioWidget(MediaWidget):
             self.__car_btn_prev.set_visible(False)
             self.__car_btn_next.set_visible(False)
             self.__progress_label.set_visible(False)
+            border_width = 10
         else:
             self.__car_btn_prev.set_visible(True)
             self.__car_btn_next.set_visible(True)
@@ -160,6 +161,7 @@ class AudioWidget(MediaWidget):
             self.__car_btn_prev.set_geometry(0, 50, 128, h - 100)
             self.__car_btn_next.set_geometry(w - 128, 50, 128, h - 100)
             self.__progress_label.set_geometry(w - 200, h - 90, 190, 0)
+            border_width = 10
 
         # top and bottom borders
         screen.fill_area(x, y, w, 50,
@@ -170,19 +172,19 @@ class AudioWidget(MediaWidget):
         # title label
         lbl_x = 10
         lbl_y = 6
-        lbl_w = w - 20
+        lbl_w = w - 2 * 20
         self.__title.set_geometry(lbl_x, lbl_y, lbl_w, 0)       
 
         # lyrics label
         lbl_x = 10
-        lbl_y = h - 38
+        lbl_y = h - 42
         lbl_w = w - 20
         self.__lyrics.set_geometry(lbl_x, lbl_y, lbl_w, 0)
 
         # album label
         lbl_x = w / 2
         lbl_y = 64 #h - 42
-        lbl_w = w / 2 - 20
+        lbl_w = w / 2 - 2 * border_width
         screen.draw_pixbuf(theme.mb_music_album, x + lbl_x, y + lbl_y)
         self.__album.set_geometry(lbl_x + 48, lbl_y + 4, lbl_w -48, 0)
         
@@ -193,7 +195,7 @@ class AudioWidget(MediaWidget):
 
         
         # cover art
-        cover_size = min(h - 128, w / 2 - 20)
+        cover_size = min(h - 128, w / 2 - 2 * border_width)
         cover_x = (w / 2 - cover_size) / 2 #20 #(w - cover_size) / 2
         cover_y = 60
 

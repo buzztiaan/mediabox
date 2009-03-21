@@ -16,6 +16,7 @@ class TrackList(ThumbableList):
     def __init__(self, with_drag_sort = False, with_header = False):
     
         self.__kscr = None
+        self.__with_drag_sort = with_drag_sort
     
         # ignore clicks until the given time was reached
         self.__ignore_click_until = 0
@@ -37,21 +38,28 @@ class TrackList(ThumbableList):
             self.set_drag_sort_enabled(True)
 
 
+    def __update_touch_area(self):
+
+        if (not self.__kscr): return
+        
+        w, h = self.get_size()
+        if (self.__with_drag_sort):
+            self.__kscr.set_touch_area(80, w - 100)
+        else:
+            self.__kscr.set_touch_area(0, w - 100)
+
+
     def set_size(self, w, h):
     
         ThumbableList.set_size(self, w, h)
-        if (self.__kscr):
-            self.__kscr.set_touch_area(0, w - 100)
+        self.__update_touch_area()
 
     
     def set_drag_sort_enabled(self, v):
     
         self.__dragsorter.set_enabled(v)
-        w, h = self.get_size()
-        if (v):
-            self.__kscr.set_touch_area(80, 800)
-        else:
-            self.__kscr.set_touch_area(0, 800)
+        self.__with_drag_sort = v
+        self.__update_touch_area()
 
 
         
