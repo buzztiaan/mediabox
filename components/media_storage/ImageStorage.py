@@ -71,6 +71,7 @@ class ImageStorage(Device):
         f.resource = ""
         f.name = self.get_name()
         f.info = "Browse your picture library"
+        f.folder_flags = f.ITEMS_ENQUEUEABLE
         
         return f
           
@@ -104,6 +105,9 @@ class ImageStorage(Device):
                 f.name = folder
                 f.info = "%d items" % len(self.__folders.get(folder, []))
                 f.thumbnail = self.__find_image_in_folder(folder)
+                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                                 f.ITEMS_SKIPPABLE
+                
                 cb(f, *args)
                 
         else:

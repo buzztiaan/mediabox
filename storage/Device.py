@@ -166,12 +166,25 @@ class Device(Component):
         raise NotImplementedError
 
 
+    def swap(self, f, idx1, idx2):
+        """
+        Swaps two files in this folder.
+        @since: 0.96.5
+        
+        @param idx1: index of first file
+        @param idx2: index of second file
+        """
+        
+        pass
+
+
+
     def ls(self, path):
         """
         Returns a list of File objects representing the contents of the
         given path.
         @since: 0.96
-        @deprecated: L{ls_async} should be used instead
+        @deprecated: L{get_contents} should be used instead
         
         @param path: file object to list
         @return: list of file objects
@@ -218,6 +231,35 @@ class Device(Component):
         files = self.ls(path)
         import gobject        
         do_async(files)
+        
+        
+    def get_contents(self, path, begin_at, end_at, cb, *args):
+        """
+        Lists the contents of the given path asynchronously by invoking the
+        given callback handler on every file. Terminates with a C{None} object.
+        You can limit the result set by specifying C{begin_at} and C{end_at}.
+        Pass C{0} for C{begin_at} and C{end_at} to get the whole result set.
+        @since: 0.96.5
+        
+        @param begin_at: first element of the result set
+        @param end_at: last element of the result set, or C{0} for no limit
+        @param cb: callback handler
+        @param args: variable list of arguments to the callback handler
+        """
+        
+        def on_file(f, counter):
+            if (f):
+                if (end_at == 0 and begin_at <= counter[0]):
+                    cb(f, *args)
+                elif (begin_at <= counter[0] < end_at):
+                    cb(f, *args)
+                    
+                counter[0] += 1
+                
+            else:
+                cb(None, *args)
+
+        self.ls_async(path, on_file, [0])
 
 
     def load(self, f, maxlen, cb, *args):

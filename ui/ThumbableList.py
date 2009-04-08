@@ -44,6 +44,8 @@ class ThumbableList(ItemList):
         # time of letter appearance (for fade-in effect)
         self.__letter_appearance_time = 0
         
+        self.__scroll_handler = None
+        
     
         ItemList.__init__(self, itemsize, gapsize)
         self.connect_button_pressed(self.__on_button_pressed)
@@ -59,6 +61,7 @@ class ThumbableList(ItemList):
                 return True
             else:
                 self.__fx_slide_out_slider()
+                #self.render()
                 self.__slider_visible = False
                 return False
     
@@ -120,6 +123,10 @@ class ThumbableList(ItemList):
             prev_offset = self.get_offset()            
             offset = int((self.get_total_size() - h) * percent)
             self.__show_letter()
+            
+            #if (self.__scroll_handler):
+            #    gobject.source_remove(self.__scroll_handler)
+            #self.__scroll_handler = gobject.timeout_add(10, self.move, 0, offset - prev_offset)
             self.move(0, offset - prev_offset)
         
         
@@ -146,7 +153,8 @@ class ThumbableList(ItemList):
         percent = self.get_offset() / float(self.get_total_size() - h)
         sh = h - 80
         sy = int(percent * sh)
-        return (w - 80, sy, 80, 80)
+        #return (w - 80, sy, 80, 80)
+        return (0, sy, 80, 80)
         
         
     def _render_scrollbar(self, screen):
@@ -160,7 +168,7 @@ class ThumbableList(ItemList):
         if (self.__slider_visible):
             age = now - self.__slider_appearance_time
             if (age < 0.5):
-                self.__slider_offset = 80 - min(80, int(age / 0.002))
+                self.__slider_offset = -80 + min(80, int(age / 0.002))
 
             sx, sy, sw, sh = self.get_slider_coordinates()
             screen.draw_pixbuf(theme.mb_list_slider,
@@ -202,17 +210,16 @@ class ThumbableList(ItemList):
     
         def fx(params):
             from_x, to_x = params
-            self.__slider_offset = from_x
+            self.__slider_offset = 0 - from_x
             self.render()
             
-            if (self.__slider_offset < 80):
-                params[0] = from_x + 10
+            if (self.__slider_offset > -80):
+                params[0] = from_x + 20
                 params[1] = to_x
                 return True
                 
             else:
                 return False
-
 
         if (not self.may_render()): return
         self.animate_with_events(50, fx, [0, 80])

@@ -298,50 +298,74 @@ class Menu(Widget):
         idx = self.__get_index_from_cursor(csr_x + dx, csr_y + dy)
         self.__hilight_item(idx, None)
         
-        
-    def handle_message(self, msg, *args):
-    
-        # catch viewer objects
-        if (msg == msgs.COM_EV_COMPONENT_LOADED):
-            component = args[0]
-            if (isinstance(component, Viewer)):
-                self.__add_viewer(component)
-                
-        elif (msg == msgs.CORE_EV_APP_STARTED):
-            if (not self.__icons): self.__generate_icons()
 
-        elif (msg == msgs.UI_ACT_SELECT_VIEWER):
-            viewer_name = args[0]
-            if (not self.__icons): self.__generate_icons()
-            viewers = [ v for v in self.__viewers if repr(v) == viewer_name ]
-            if (viewers):
-                self.__index = self.__viewers.index(viewers[0])
-            else:
-                self.__index = 0
-            self.__hilight_item(self.__index, None)
+    def handle_COM_EV_COMPONENT_LOADED(self, component):
+
+        # catch viewer objects
+        if (isinstance(component, Viewer)):
+            self.__add_viewer(component)
+
     
-        elif (msg == msgs.MEDIA_EV_LOADED):
-            viewer, f = args
-            self.__currently_playing = self.__viewers.index(viewer)
+    def handle_CORE_EV_APP_STARTED(self):    
+
+        if (not self.__icons):
+            self.__generate_icons()
+
+
+    def handle_UI_ACT_SELECT_VIEWER(self, viewer_name):
+
+        if (not self.__icons): self.__generate_icons()
+        viewers = [ v for v in self.__viewers if repr(v) == viewer_name ]
+        if (viewers):
+            self.__index = self.__viewers.index(viewers[0])
+        else:
+            self.__index = 0
+        self.__hilight_item(self.__index, None)
+
+
+    def handle_MEDIA_EV_LOADED(self, viewer, f):    
+
+        self.__currently_playing = self.__viewers.index(viewer)
+
+
+    def handle_INPUT_EV_MENU(self):    
+
+        if (self.is_visible()):
+            self.__hide_menu()
+        else:
+            self.__show_menu()
+
+
+    def handle_INPUT_EV_ENTER(self):
     
-        elif (msg == msgs.INPUT_EV_MENU):
-            if (self.is_visible()):
-                self.__hide_menu()
-            else:
-                self.__show_menu()
-            
-        if (not self.is_visible()): return
-            
-        if (msg == msgs.INPUT_EV_LEFT):
+        if (self.is_visible()):
+            csr_x, csr_y = self.__cursor_position
+            self.__index = self.__get_index_from_cursor(csr_x, csr_y)
+            self.__hilight_item(self.__index, self.__hide_menu)
+
+
+
+    def handle_INPUT_EV_LEFT(self):
+    
+        if (self.is_visible()):
             self.__navigate(-1, 0)
-            
-        elif (msg == msgs.INPUT_EV_RIGHT):
+
+
+    def handle_INPUT_EV_RIGHT(self):
+    
+        if (self.is_visible()):
             self.__navigate(1, 0)
-            
-        elif (msg == msgs.INPUT_EV_UP):
+
+
+    def handle_INPUT_EV_UP(self):
+    
+        if (self.is_visible()):
             self.__navigate(0, -1)
 
-        elif (msg == msgs.INPUT_EV_DOWN):
+
+    def handle_INPUT_EV_DOWN(self):
+    
+        if (self.is_visible()):
             self.__navigate(0, 1)
 
 

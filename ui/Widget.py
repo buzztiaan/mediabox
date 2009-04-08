@@ -67,8 +67,13 @@ class Widget(object):
         zone = None
         zone_tstamp = 0
         
+       
         if (ev == Widget.EVENT_BUTTON_PRESS):
-            for x, y, w, h, tstamp, cb in self._zones.values():
+            for w in self._zones:
+                if (w.is_frozen()):
+                    continue
+                x, y, w, h, tstamp, cb = self._zones[w]
+            #for x, y, w, h, tstamp, cb in self._zones.values():
                 if (x <= px <= x + w and y <= py <= y + h and tstamp > zone_tstamp):
                     zone = cb
                     zone_tstamp = tstamp

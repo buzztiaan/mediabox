@@ -84,10 +84,12 @@ class AudioAlbumStorage(AudioArtistStorage):
                 f = File(self)
                 f.is_local = True
                 f.path = path + urlquote.quote(album, "")
-                f.can_skip = True
                 f.name = album
                 #f.info = artist
                 f.mimetype = "application/x-music-folder"
+                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                                 f.ITEMS_SKIPPABLE
+
 
                 cb(f, *args)
             #end for

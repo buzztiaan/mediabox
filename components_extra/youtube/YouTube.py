@@ -143,17 +143,7 @@ class YouTube(Device):
         
         return f
         
-        
-    def __send_async(self, items, cb, *args):
-    
-        if (not items):
-            return False
-            
-        else:
-            item = items.pop(0)
-            return cb(item, *args)
-        
-        
+
     def __parse_search_path(self, path):
     
         parts = path.split("/")
@@ -192,27 +182,33 @@ class YouTube(Device):
             
         
 
-    def __ls_menu(self):
+    def __ls_menu(self, cb, *args):
     
         items = []
         for name, path, mimetype, emblem in \
           [("Saved Videos", "/local", File.DIRECTORY, None),
            ("Search", "/search/video,,1", File.DIRECTORY, None),
-           ("Featured", "/search/recently_featured,1", File.DIRECTORY, None),
-           ("Most viewed", "/search/most_viewed,1", File.DIRECTORY, None),
-           ("Top rated", "/search/top_rated,1", File.DIRECTORY, None)]:
+           ("Featured Videos", "/search/recently_featured,1", File.DIRECTORY, None),
+           ("Most Viewed Videos", "/search/most_viewed,1", File.DIRECTORY, None),
+           ("Top Rated Videos", "/search/top_rated,1", File.DIRECTORY, None)]:
            #("Categories", "/categories", File.DIRECTORY, None)]:
             item = File(self)
             item.path = path
             item.resource = path
             item.name = name
             item.mimetype = mimetype
-            item.emblem = emblem
+            if (path != "/local"):
+                item.folder_flags = item.ITEMS_DOWNLOADABLE
+            else:
+                item.folder_flags = item.ITEMS_DELETABLE
             items.append(item)
+            
+            cb(item, *args)
         #end for
 
-        items.append(None)        
-        return items
+        #items.append(None)
+        cb(None, *args)
+
 
 
 
@@ -221,6 +217,7 @@ class YouTube(Device):
         xml[0] += data
         if (not data):
             # finished loading
+            print xml[0]
             self.__cache_search_result(ctx.url, xml[0])
             self.__parse_xml(xml[0], ctx, cb, *args)
 
@@ -241,11 +238,8 @@ class YouTube(Device):
                     f.mimetype = f.DIRECTORY
                     f.name = "Next Results"
                     f.info = "%d - %d of %d" % (a, b, total_results)
-                    
-                    return cb(f, *args)
-
-                else:
-                    return True
+                    f.folder_flags = f.ITEMS_DOWNLOADABLE
+                    cb(f, *args)
                 #end if      
 
         
@@ -275,7 +269,6 @@ class YouTube(Device):
                 rating = self.__parse_rating(rating_node)
                
                 f = File(self)
-                f.can_keep = True
                 f.path = ident
                 f.mimetype = "video/x-flash-video"
                 f.resource = ident
@@ -283,17 +276,13 @@ class YouTube(Device):
                 f.info = "%s\nby %s" % (rating, authors)
                 f.thumbnail = thumbnail
                 
-                #while (gtk.events_pending()): gtk.main_iteration()
-                
-                return cb(f, *args)
+                cb(f, *args)
 
             elif (node.get_name() == "{%s}feed" % _XMLNS_ATOM):
                 # finished parsing
                 cb (None, *args)
 
-            else:
-                return True            
-
+            return True
 
         #open("/tmp/yt.xml", "w").write(xml)
         MiniXML(xml, callback = on_receive_item)
@@ -420,8 +409,7 @@ class YouTube(Device):
             self.__flv_downloader.cancel()
     
         if (path == "/"):
-            gobject.timeout_add(0, self.__send_async, self.__ls_menu(),
-                                cb, *args)
+            self.__ls_menu(cb, *args)
 
         elif (path.startswith("/search")):
             self.__ls_search(path, cb, *args)
@@ -434,6 +422,7 @@ class YouTube(Device):
     
         def on_dload(d, a, t, flv_path, keep_path):
             if (d):
+                self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
                 print "%d / %d         " % (a, t)
                 print gobject.main_depth()
                 #if (gobject.main_depth() < 3): 
@@ -468,10 +457,12 @@ class YouTube(Device):
                         theme.youtube_device)
 
         # download high-quality version, if desired
-        if (config.get_hi_quality()):
-            url = f.resource + "&fmt=35"
+        qtype = config.get_quality_type()
+        if (qtype != 0):
+            url = f.resource + "&fmt=%d" % qtype
         else:
             url = f.resource
+        print url
             
         try:
             flv = self.__get_flv(url)

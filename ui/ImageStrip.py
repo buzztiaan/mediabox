@@ -91,6 +91,7 @@ class ImageStrip(Widget):
         self.__buffer_dirty = False
  
         self.set_size(100, 100)
+        self.change_image_set(self)
  
  
     def _reload(self):
@@ -138,7 +139,7 @@ class ImageStrip(Widget):
         """
         
         #print "invalidating", idx
-        if (not idx in self.__invalidated_images):
+        if (not idx in self.__invalidated_images and idx >= 0):
             self.__invalidated_images.append(idx)
 
  
@@ -157,13 +158,18 @@ class ImageStrip(Widget):
             self.__shared_pmap.clear_all_renderers()
             self.__shared_pmap = None
         
-        for img in self.__images:
-            nil, img_h = img.get_size()
-            if (not self.__shared_pmap):
-                self.__shared_pmap = SharedPixmap(w, img_h)
-            img.set_canvas(self.__shared_pmap)
-            img.set_size(w, img_h)
- 
+        for imgset in self.__image_sets.values():
+            for img in imgset.images:
+        #for i in range(1):
+        #    for img in self.__images:
+                nil, img_h = img.get_size()
+                if (not self.__shared_pmap):
+                    self.__shared_pmap = SharedPixmap(w, img_h)
+                img.set_canvas(self.__shared_pmap)
+                img.set_size(w, img_h)
+            #end for
+        #end for
+
 
     def set_bg_color(self, color):
     
@@ -335,6 +341,7 @@ class ImageStrip(Widget):
         self.__totalsize = imgset.totalsize
         self.__hilighted_image = imgset.hilighted
         self.__current_image_set = imgset
+        self.__invalidates_images = []
 
         for image in self.__images:
             image.invalidate()
@@ -532,6 +539,7 @@ class ImageStrip(Widget):
             self.invalidate_image(idx)
             item.set_hilighted(True)
             self.__hilighted_image = idx
+            #print "render hilighted", idx, self.__invalidated_images
             self.render()
 
 
@@ -852,7 +860,7 @@ class ImageStrip(Widget):
 
         w, h = self.get_size()
         screen = self.get_screen()
-
+    
         if (not self.may_render()): return
 
         #if (self.__buffer_dirty):
@@ -913,10 +921,10 @@ class ImageStrip(Widget):
                 break
 
             if (m_idx in self.__invalidated_images):
-                #print "  ", m_idx, self.is_frozen(), self.is_visible()
+                #print "rendering", m_idx
                 self.__render_item(m_idx)
                 self.__invalidated_images.remove(m_idx)
-                
+            
             y += blocksize
             idx += 1
         #end while
@@ -1071,19 +1079,20 @@ class ImageStrip(Widget):
         #if (self.__arrows[0]):
         #    self.__unrender_arrows()
             
-        if (delta > 0):
-            self.__buffer.move_area(x, y + delta, w, h - delta,
-                                    0, -delta)
-            self.__render(h - delta, delta)
+        if (abs(delta) < h):
+            if (delta > 0):
+                self.__buffer.move_area(x, y + delta, w, h - delta,
+                                        0, -delta)
+                self.__render(h - delta, delta)
 
-        elif (delta < 0):
-            self.__buffer.move_area(x, y, w, h - abs(delta),
-                                    0, abs(delta))
-            self.__render(0, abs(delta))
+            elif (delta < 0):
+                self.__buffer.move_area(x, y, w, h - abs(delta),
+                                        0, abs(delta))
+                self.__render(0, abs(delta))
+        else:
+                self.__render(0, h)
+        
             
-        #if (self.__arrows[0]):
-        #    self.__render_arrows()
-
         if (self.may_render()):
             self.__render_buffered(screen, 0, h)
 
@@ -1181,7 +1190,7 @@ class ImageStrip(Widget):
         w, h = self.get_size()
         self.__scroll_to_item_index = idx
         if (not self.__scroll_to_item_handler):
-            self.__scroll_to_item_handler = gobject.timeout_add(5, f)
+            self.__scroll_to_item_handler = gobject.timeout_add(10, f)
             #self.animate_with_events(50, f)
             #self.set_events_blocked(True)
             #self.set_events_blocked(False)

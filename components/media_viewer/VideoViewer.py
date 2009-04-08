@@ -1,17 +1,15 @@
-from GenericViewer import GenericViewer
+from mediabox.MediaViewer import MediaViewer
+from VideoDevice import VideoDevice
 from storage import Device
 from theme import theme
 
 
-class VideoViewer(GenericViewer):
+class VideoViewer(MediaViewer):
 
     ICON = theme.mb_viewer_video
     PRIORITY = 10
 
     def __init__(self):
     
-        GenericViewer.__init__(self)
-        self.accept_device_types(Device.TYPE_VIDEO)
-        self.add_tab("Browser", self._VIEWMODE_BROWSER)
-        self.add_tab("Video", self._VIEWMODE_PLAYER_NORMAL)
+        MediaViewer.__init__(self, VideoDevice(), "Browser", "Videos")
 

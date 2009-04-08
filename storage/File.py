@@ -13,6 +13,17 @@ class File(object):
     @since: 0.96
     """
 
+    NONE =         0
+    ITEMS_ENQUEUEABLE =  1 << 0
+    ITEMS_SKIPPABLE =    1 << 1
+    ITEMS_DELETABLE =    1 << 2
+    INDEXABLE =          1 << 3
+    ITEMS_DOWNLOADABLE = 1 << 4
+    ITEMS_ADDABLE =      1 << 5
+    ITEMS_SORTABLE =     1 << 6
+    
+
+
     FILE = "application/x-other"
     """MIME type for unknown file types"""
 
@@ -29,6 +40,8 @@ class File(object):
     
         self.__device = device
 
+
+        self.folder_flags = self.NONE
 
         self.can_skip = False
         """
@@ -303,12 +316,33 @@ class File(object):
         Lists the children of this folder asynchronously by invoking the
         given callback handler on every file. Terminates with a None object.
         @since: 0.96
+        @deprecated: L{get_contents} should be used instead.
         
         @param cb: callback handler
         @param args: variable list of arguments to the callback handler
         """
         
         self.__device.ls_async(self.path, cb, *args)
+        
+        
+    def get_contents(self, begin_at, end_at, cb, *args):
+        """
+        Lists the contents of this folder asynchronously by invoking the given
+        callback handler on every file. Terminates with a C{None} object.
+        You can limit the result set by specifying C{begin_at} and C{end_at}.
+        Pass C{0} for C{begin_at} and C{end_at} to get the whole result set.
+        
+        Not all devices may support limiting the result set.
+        
+        @since: 0.96.5
+        
+        @param begin_at: first element of the result set
+        @param end_at: last element of the result set, or C{0} for no limit
+        @param cb: callback handler
+        @param args: variable list of arguments to the callback handler
+        """
+        
+        self.__device.get_contents(self.path, begin_at, end_at, cb, *args)
 
 
     def load(self, maxlen, cb, *args):
@@ -342,4 +376,16 @@ class File(object):
         """
     
         self.__device.keep(self)
+
+
+    def swap(self, idx1, idx2):
+        """
+        Swaps two files in this folder.
+        @since: 0.96.5
+        
+        @param idx1: index of first file
+        @param idx2: index of second file
+        """
+        
+        self.__device.swap(self, idx1, idx2)
 

@@ -63,8 +63,8 @@ class SideTabs(HilightingWidget):
             offset += pmap.get_size()[1]
         #end for
 
-        if (self.__current_tab == -1):
-            self.select_tab(0)
+        #if (self.__current_tab == -1):
+        #    self.select_tab(0)
             
         
     def __on_click(self, px, py):

@@ -14,11 +14,3 @@ def get_classes():
 
     return classes
 
-
-def get_devices():
-
-    from GenericDevice import GenericDevice
-    from AudioDevice import AudioDevice
-    from VideoDevice import VideoDevice
-    from ImageDevice import ImageDevice
-    return [GenericDevice, AudioDevice, VideoDevice, ImageDevice]

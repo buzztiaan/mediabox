@@ -80,5 +80,5 @@ class ListItem(StripItem):
     
         if (self.__grip):
             w, h = self.get_size()
-            cnv.draw_pixbuf(self.__grip, 4, (h - self.__grip.get_height()) / 2)
+            cnv.draw_pixbuf(self.__grip, 8, (h - self.__grip.get_height()) / 2)
 

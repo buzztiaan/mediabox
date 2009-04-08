@@ -1,12 +1,15 @@
 def get_classes():
 
-    from AppWindow import AppWindow
+    from Initialiser import Initialiser
     from IdleDetector import IdleDetector
     from DirectoryService import DirectoryService
     from MediaWidgetRegistry import MediaWidgetRegistry
     from NotificationService import NotificationService
 
-    return [AppWindow, IdleDetector, DirectoryService, MediaWidgetRegistry,
+    return [Initialiser,
+            IdleDetector,
+            DirectoryService,
+            MediaWidgetRegistry,
             NotificationService]
     
     

@@ -14,6 +14,7 @@ import os
 _TAG_DIR = os.path.join(values.USER_DIR, "idtags")
 _STORE_ON_MEDIUM = config.store_thumbnails_on_medium()
 
+_USE_CACHE = True
 
 
 def _have_tags(f, tagfile):
@@ -39,7 +40,7 @@ def _scan_tags(f, tagfile):
     else:
         tags = {}
         
-    if (tags):
+    if (_USE_CACHE and tags):  # don't cache...
         try:
             fd = open(tagfile, "w")
             for k, v in tags.items():
@@ -99,7 +100,7 @@ def get_tags(f):
 
     tagfile = os.path.join(prefix, f.md5 + ".tags")
     
-    if (_have_tags(f, tagfile)):
+    if (_USE_CACHE and _have_tags(f, tagfile)):
         return _read_cached_tags(tagfile)
     else:
         return _scan_tags(f, tagfile)

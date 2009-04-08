@@ -59,22 +59,22 @@ class LocalDevice(Device):
         f.resource = ""
         f.name = self.__name
         f.info = "Browse the filesystem"
-        
+        f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                         f.INDEXABLE
+
         return f
         
         
-    def __ls_menu(self):
+    def __ls_menu(self, cb, *args):
     
-        items = []
         for name, path, mimetype, emblem in \
           [("Memory Cards", "MMC", File.DIRECTORY, None),
-           ("Sounds", "/home/user/MyDocs/.sounds", File.DIRECTORY, theme.mb_filetype_audio),
-           ("Videos", "/home/user/MyDocs/.videos", File.DIRECTORY, theme.mb_filetype_video),
+           ("Audio Clips", "/home/user/MyDocs/.sounds", File.DIRECTORY, theme.mb_filetype_audio),
+           ("Video Clips", "/home/user/MyDocs/.videos", File.DIRECTORY, theme.mb_filetype_video),
            ("Images", "/home/user/MyDocs/.images", File.DIRECTORY, theme.mb_filetype_image),
            ("Documents", maemo.IS_MAEMO and "/home/user/MyDocs/.documents"
                                         or os.path.expanduser("~"),
                                         File.DIRECTORY, None),
-           ("Games", "/home/user/MyDocs/.games", File.DIRECTORY, None),
            ("System", "/", File.DIRECTORY, None)]:
             item = File(self)
             item.is_local = True
@@ -85,37 +85,40 @@ class LocalDevice(Device):
             item.name = name
             item.mimetype = mimetype
             item.emblem = emblem
-            items.append(item)
+            item.folder_flags = item.ITEMS_ENQUEUEABLE | \
+                                item.INDEXABLE
+
+            cb(item, *args)
         #end for
         
-        return items
+        cb(None, *args)
+                
         
-        
-    def __ls_mmcs(self):
+    def __ls_mmcs(self, cb, *args):
     
-        items = []
         for f in [ f for f in os.listdir("/media")
                    if os.path.isdir(os.path.join("/media", f)) ]:
             path = os.path.join("/media", f)
             item = File(self)
             item.is_local = True
-            item.can_add_to_library = True
             item.path = path
             item.resource = path
             #item.child_count = self.__get_child_count(path)            
             item.name = mmc.get_label(path)
             item.mimetype = File.DIRECTORY
-            items.append(item)
+            item.folder_flags = item.ITEMS_ENQUEUEABLE | \
+                                item.INDEXABLE
+
+            cb(item, *args)
         #end for
         
-        return items
+        cb(None, *args)        
         
         
     def get_file(self, path):
 
         item = File(self)
         item.is_local = True
-        item.can_add_to_library = True
         item.path = path
         item.name = os.path.basename(path)
         item.resource = path
@@ -130,6 +133,9 @@ class LocalDevice(Device):
             #        break
             ##end for
             #item.child_count = len(children)
+            item.folder_flags = item.ITEMS_ENQUEUEABLE | \
+                                item.INDEXABLE
+            
         else:
             ext = os.path.splitext(path)[-1].lower()
             item.mimetype = mimetypes.lookup_ext(ext)
@@ -138,7 +144,7 @@ class LocalDevice(Device):
     
         
         
-    def ls(self, path):
+    def ls_async(self, path, cb, *args):
                    
         def comp(a, b):
             if (a.mimetype != b.mimetype):
@@ -153,10 +159,10 @@ class LocalDevice(Device):
                 
                    
         if (path == "MENU"):
-            return self.__ls_menu()
+            return self.__ls_menu(cb, *args)
             
         elif (path == "MMC"):
-            return self.__ls_mmcs()
+            return self.__ls_mmcs(cb, *args)
     
         #logging.debug("listing [%s]" % path)
         try:
@@ -194,7 +200,9 @@ class LocalDevice(Device):
         
         items.sort(comp)
         
-        return items
+        for i in items:
+            cb(i, *args)
+        cb(None, *args)
         
         
     def load(self, f, maxlen, cb, *args):

@@ -22,6 +22,7 @@ Import this module to get access to all known message types::
 """
 
 _cnt = 0
+_names = []
 
 
 def _id_to_name(ident):
@@ -35,12 +36,18 @@ def _id_to_name(ident):
     @return: printable name of the message, e.g. "C{CORE_APPLICATION_SHUTDOWN}"
     """
 
+    try:
+        return _names[ident]
+    except:
+        return "<undefined>"
+    """    
     for k, v in globals().items():
         if (v == ident):
             return k
     #end for
     
     return "<undefined>"
+    """
 
 
 def _register(name):
@@ -53,5 +60,6 @@ def _register(name):
     global _cnt
     
     globals()[name] = _cnt
+    _names.append(name)
     _cnt += 1
 

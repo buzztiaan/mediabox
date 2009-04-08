@@ -170,6 +170,7 @@ class Viewer(Component, Widget):
         self.set_visible(True)        
         self.__is_active = True
         
+        print self.__current_tbar_set
         self.set_toolbar(self.__current_tbar_set)
         #self.set_strip(self.__collection)
         self.set_title(self.__title)

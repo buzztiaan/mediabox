@@ -30,9 +30,9 @@ class StripItem(object):
         self.__width = w
         self.__height = h
         
-        if (self.__canvas in self.__bg_store):
-            del self.__bg_store[(self.__class__, self.__canvas)]
-            del self.__sel_store[(self.__class__, self.__canvas)]
+        #if (self.__canvas in self.__bg_store):
+        #    del self.__bg_store[(self.__class__, self.__canvas)]
+        #    del self.__sel_store[(self.__class__, self.__canvas)]
 
 
     def get_size(self):
@@ -64,6 +64,7 @@ class StripItem(object):
         if (self.__canvas):
             self.__canvas.invalidate_cache(self)
         self.__bg_store.clear()
+        self.__sel_store.clear()
         
 
     def render(self):
@@ -78,7 +79,7 @@ class StripItem(object):
         if (not self.__background): return
 
         pmap = self.__bg_store.get((self.__class__, self.__canvas))
-        if (not pmap):
+        if (not pmap or self.__width != pmap.get_size()[0]):
             # prerender the background pixmap in order to have it ready on the
             # server-side
             w, h = self.get_size()
@@ -94,7 +95,7 @@ class StripItem(object):
     
         if (self.__is_hilighted and self.__selection_frame):
             pbuf = self.__sel_store.get((self.__class__, self.__canvas))
-            if (not pbuf):
+            if (not pbuf or self.__width != pbuf.get_width()):
                 # prerender the pixbuf in order to have it ready on the
                 # server-side
                 w, h = self.get_size()

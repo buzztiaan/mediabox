@@ -42,6 +42,7 @@ class VideoWidget(MediaWidget):
         self.__screen = gtk.DrawingArea()
         self.__screen.hide()
         self.__screen.set_double_buffered(False)
+        self.__screen.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
         self.__screen.connect("expose-event", self.__on_expose)
         self.__screen.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                                  gtk.gdk.KEY_PRESS_MASK)
@@ -365,6 +366,9 @@ class VideoWidget(MediaWidget):
 
         w2 = int(ratio * h)
         h2 = int(w / ratio)
+
+        if (w % 2 == 1): w -= 1
+        if (w2 % 2 == 1): w2 -= 1
          
         #print ratio, w, h, w2, h2, self
         if (w2 > w):
@@ -374,6 +378,7 @@ class VideoWidget(MediaWidget):
             if (w2 > 0): self.__screen.set_size_request(w2, h)
             w2, h2 = w2, h
 
+
         #if (not self.__layout):
         #    self.__layout = self.get_window()
         #    self.__layout.put(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
@@ -381,7 +386,8 @@ class VideoWidget(MediaWidget):
         if (self.__layout):
             self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
             self.__overlay_coords = (x + (w - w2) / 2, y + (h - h2) / 2, w2, h2)
-        #print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
+            print "MOVED"
+        print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
         cnt = 0
         #while (gtk.events_pending() and cnt < 10):
@@ -472,6 +478,14 @@ class VideoWidget(MediaWidget):
 
         vol = mb_config.volume()
         vol = max(0, vol - 5)
+        mb_config.set_volume(vol)        
+        if (self.__player):
+            self.__player.set_volume(vol)
+        self.send_event(self.EVENT_MEDIA_VOLUME, vol)
+
+
+    def set_volume(self, vol):
+
         mb_config.set_volume(vol)        
         if (self.__player):
             self.__player.set_volume(vol)

@@ -154,11 +154,12 @@ class AudioArtistStorage(Device):
         if (len_parts == 0):
             for artist in index.list_artists():
                 f = File(self)
-                f.can_skip = True
                 f.path = path + urlquote.quote(artist, "")
                 f.name = artist
                 f.mimetype = f.DIRECTORY
                 f.icon = theme.mb_device_artists.get_path()
+                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                                 f.ITEMS_SKIPPABLE
 
                 cb(f, *args)
             #end for
@@ -171,10 +172,11 @@ class AudioArtistStorage(Device):
                 f = File(self)
                 f.is_local = True
                 f.path = path + urlquote.quote(album, "")
-                f.can_skip = True
                 f.name = album
                 f.info = artist
                 f.mimetype = "application/x-music-folder"
+                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                                 f.ITEMS_SKIPPABLE
 
                 cb(f, *args)
             #end for

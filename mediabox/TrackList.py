@@ -13,7 +13,7 @@ class TrackList(ThumbableList):
     EVENT_ITEMS_SWAPPED = "items-swapped"
 
 
-    def __init__(self, with_drag_sort = False, with_header = False):
+    def __init__(self, with_drag_sort = False):
     
         self.__kscr = None
         self.__with_drag_sort = with_drag_sort
@@ -22,7 +22,6 @@ class TrackList(ThumbableList):
         self.__ignore_click_until = 0
         
         self.__open_item = -1
-        self.__has_header = with_header
     
         ThumbableList.__init__(self, 110, 0)
         self.set_caps(theme.mb_list_top, theme.mb_list_bottom)
@@ -46,7 +45,7 @@ class TrackList(ThumbableList):
         if (self.__with_drag_sort):
             self.__kscr.set_touch_area(80, w - 100)
         else:
-            self.__kscr.set_touch_area(0, w - 100)
+            self.__kscr.set_touch_area(80, w - 100)
 
 
     def set_size(self, w, h):
@@ -76,20 +75,21 @@ class TrackList(ThumbableList):
         handled = False
         need_render = False
         
-        #if (cmd == src.OBS_SCROLLING):
-        #    self.set_show_slider(True)
-        #
-        #elif (cmd == src.OBS_STOPPED):
-        #    self.set_show_slider(False)
-        #    self.render()
+        if (self.__with_drag_sort):
+            if (cmd == src.OBS_SCROLLING):
+                self.__dragsorter.set_enabled(False)
+
+            elif (cmd == src.OBS_STOPPED):
+                if (self.__with_drag_sort):
+                    self.__dragsorter.set_enabled(True)
         
         if (cmd == src.OBS_CLICKED and time.time() > self.__ignore_click_until):
             self.__ignore_click_until = time.time() + 0.4
             
             x, y = args
             
-            if (self.slider_is_active()):
-                return
+            #if (self.slider_is_active()):
+            #    return
                 
             idx = self.get_index_at(y)
             item = self.get_item(idx)

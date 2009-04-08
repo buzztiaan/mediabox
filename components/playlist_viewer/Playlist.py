@@ -65,7 +65,7 @@ class Playlist(object):
         
         
     def remove(self, idx):
-    
+
         del self.__items[idx]
         del self.__thumbnails[idx]
         del self.__files[idx]

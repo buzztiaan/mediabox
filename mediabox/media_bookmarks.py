@@ -9,6 +9,36 @@ import os
 
 #_BM_DIR = os.path.join(values.USER_DIR, "bookmarks")
 _BM_ZIP = os.path.join(values.USER_DIR, "media_bookmarks.zip")
+_BM_FILES_LIST = os.path.join(values.USER_DIR, "media_bookmarks_files")
+
+
+
+def get_bookmarked_files():
+    """
+    @since: 0.96.5
+    """
+    
+    try:
+        files = open(_BM_FILES_LIST, "r").read().splitlines()
+    except:
+        files = []
+        
+    return files
+
+
+
+def is_file_bookmarked(f):
+    """
+    @since: 0.96.5
+    """
+    
+    if (os.path.isfile(_BM_FILES_LIST)):
+        if (f.full_path + "\n" in open(_BM_FILES_LIST).readlines()):
+            return True
+        #end if
+    #end if
+    
+    return False
 
 
 def set_bookmarks(f, bookmarks):
@@ -20,6 +50,22 @@ def set_bookmarks(f, bookmarks):
         bm_zip.close()
     except:
         pass
+        
+    is_bookmarked = is_file_bookmarked(f)
+    if (bookmarks and not is_bookmarked):
+        try:
+            open(_BM_FILES_LIST, "a").write(f.full_path + "\n")
+        except:
+            pass
+            
+    elif (not bookmarks and is_bookmarked):
+        try:
+            files = open(_BM_FILES_LIST, "r").readlines()
+            files.remove(f.full_path + "\n")
+            open(_BM_FILES_LIST, "w").writelines(files)
+        except:
+            pass
+    #end if
     
     
 def get_bookmarks(f):

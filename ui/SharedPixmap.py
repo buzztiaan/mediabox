@@ -73,6 +73,7 @@ class SharedPixmap(Pixmap):
                 self.__renderers[ident]()
 
             except:
+                print self.__renderers, ident
                 import traceback; traceback.print_exc()
 
             else:                

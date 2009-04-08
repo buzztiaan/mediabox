@@ -5,6 +5,7 @@ import ui
 from ui.Pixmap import Pixmap, text_extents
 from theme import theme
 from utils.Observable import Observable
+from utils import maemo
 
 import gtk
 import gobject
@@ -49,8 +50,9 @@ class VirtualKeyboard(gtk.Window, Component):
         self.connect("expose-event", self.__on_expose)
         self.set_app_paintable(True)
 
-        # try to switch on compositing
-        ui.try_rgba(self)
+        if (not maemo.IS_MAEMO):
+            # try to switch on compositing
+            ui.try_rgba(self)
 
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                         gtk.gdk.BUTTON_RELEASE_MASK |

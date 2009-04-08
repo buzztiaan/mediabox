@@ -151,6 +151,7 @@ class MPlayerBackend(AbstractBackend):
         logging.debug("mplayer command:\n%s" % data)
         try:
             self.__stdin.write(data + "\n")
+            self.__stdin.flush()
         except:
             self.__needs_restart = True
 

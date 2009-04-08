@@ -139,6 +139,16 @@ class ImageWidget(MediaWidget):
         
         self.__image.zoom_out()
        
+       
+    def set_volume(self, vol):
+    
+        if (vol > 50):
+            v = 1.0 + (vol - 50) * 0.2
+        else:
+            v = 1.0 - (50 - vol) * (1 / 51.0)
+
+        self.__image.zoom(0, v)
+       
     
     def __zoom_in(self):
     

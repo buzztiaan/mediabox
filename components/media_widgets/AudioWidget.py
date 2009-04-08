@@ -472,6 +472,13 @@ class AudioWidget(MediaWidget):
         self.send_event(self.EVENT_MEDIA_VOLUME, vol)    
 
 
+    def set_volume(self, vol):
+
+        mb_config.set_volume(vol)        
+        if (self.__player):
+            self.__player.set_volume(vol)
+        self.send_event(self.EVENT_MEDIA_VOLUME, vol)
+
 
     def __find_cover(self, uri):
         

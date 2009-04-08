@@ -427,7 +427,7 @@ class AbstractBackend(Observable):
         @param volume: volume as a value between 0 and 100
         """
 
-        self._ensure_backend()
+        #self._ensure_backend()
         self.__volume = volume
         self._set_volume(volume)    
         

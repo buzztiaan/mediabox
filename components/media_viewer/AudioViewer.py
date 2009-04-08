@@ -1,17 +1,14 @@
-from GenericViewer import GenericViewer
-from storage import Device
+from mediabox.MediaViewer import MediaViewer
+from AudioDevice import AudioDevice
 from theme import theme
 
 
-class AudioViewer(GenericViewer):
+class AudioViewer(MediaViewer):
 
     ICON = theme.mb_viewer_audio
     PRIORITY = 20
 
     def __init__(self):
     
-        GenericViewer.__init__(self)
-        self.accept_device_types(Device.TYPE_AUDIO)
-        self.add_tab("Browser", self._VIEWMODE_BROWSER)
-        self.add_tab("Track", self._VIEWMODE_PLAYER_NORMAL)
+        MediaViewer.__init__(self, AudioDevice(), "Browser", "Track")
 

@@ -34,11 +34,17 @@ class _MessageBus(object):
             if (mediator == src): continue
         
             mediator.set_pass_type(mediator.PASS_TYPE_PASS_ON)
+            handler_name = "handle_" + msgs._id_to_name(event)
             try:
-                mediator.handle_message(event, *args)
+                if (hasattr(mediator, handler_name)):
+                    getattr(mediator, "handle_" + msgs._id_to_name(event))(*args)
+                else:
+                    mediator.handle_message(event, *args)
             except:
                 import traceback; traceback.print_exc()
                 continue
+
+
 
             ptype = mediator.get_pass_type()
             if (ptype == mediator.PASS_TYPE_DROP):

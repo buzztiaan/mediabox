@@ -74,10 +74,11 @@ class AudioGenreStorage(AudioArtistStorage):
         if (len_parts == 0):
             for genre in index.list_genres():
                 f = File(self)
-                f.can_skip = True
                 f.path = path + urlquote.quote(genre, "")
                 f.name = genre
                 f.mimetype = f.DIRECTORY
+                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                                 f.ITEMS_SKIPPABLE
 
                 cb(f, *args)
             #end for
@@ -98,10 +99,11 @@ class AudioGenreStorage(AudioArtistStorage):
                 f = File(self)
                 f.is_local = True
                 f.path = path + urlquote.quote(album, "")
-                f.can_skip = True
                 f.name = album
                 #f.info = artist
                 f.mimetype = "application/x-music-folder"
+                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                                 f.ITEMS_SKIPPABLE
 
                 cb(f, *args)
             #end for

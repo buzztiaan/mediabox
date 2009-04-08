@@ -102,6 +102,14 @@ class MediaWidget(Widget, Component):
         pass
         
         
+    def set_volume(self, vol):
+        """
+        Sets the volume.
+        """
+        
+        pass
+        
+        
     def connect_media_position(self, cb, *args):
     
         self._connect(self.EVENT_MEDIA_POSITION, cb, *args)

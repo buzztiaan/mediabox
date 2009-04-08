@@ -88,13 +88,14 @@ class AudioStorage(Device):
             for album in self.__albums:
                 f = File(self)
                 f.is_local = True
-                f.can_skip = True
                 f.name = album.name
                 f.info = album.info
                 f.mimetype = "application/x-music-folder"
                 f.thumbnail_md5 = album.md5
                 f.path = album.path
                 f.resource = album.resource
+                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                                 f.ITEMS_SKIPPABLE
 
                 cb(f, *args)
             #end for

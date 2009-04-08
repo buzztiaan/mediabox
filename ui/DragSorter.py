@@ -73,7 +73,8 @@ class DragSorter(Observable):
     
         if (px < 40 and self.__is_enabled and not self.__is_dragging):
             self.__drag_index = self.__child.get_index_at(py)
-            if (self.__drag_index >= 0):
+            print self.__drag_index
+            if (self.__drag_index > 0):
                 self.__is_dragging = True
             
                 
@@ -95,10 +96,11 @@ class DragSorter(Observable):
         
     def __on_drag(self, px, py):
 
-        if (self.__is_dragging and self.__drag_index >= 0):
+        if (self.__is_dragging and self.__drag_index > 0):
             idx = self.__child.get_index_at(py)
-            self.__child.float_item(idx, py)
-            if (idx >= 0 and idx != self.__drag_index):
+            if (idx > 0):
+                self.__child.float_item(idx, py)
+            if (idx > 0 and idx != self.__drag_index):
                 # swap
                 self.update_observer(self.OBS_SWAPPED, idx, self.__drag_index)
                 self.__child.swap(idx, self.__drag_index)

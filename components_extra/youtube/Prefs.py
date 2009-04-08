@@ -18,7 +18,7 @@ class Prefs(Configurator):
 
 
     def __init__(self):
-    
+
         Configurator.__init__(self)
         
         self.__vbox = VBox()
@@ -37,13 +37,29 @@ class Prefs(Configurator):
         chbox.connect_changed(self.__on_select_cache_location)
         self.__vbox.add(chbox)
 
-        chk = CheckBox(config.get_hi_quality())
-        chk.connect_checked(self.__on_check_hi_quality)
-        self.__vbox.add(chk)
-        lbl = Label("Retrieve high-quality version of video if available\n"
-                    "(HQ videos don't play well on the Nokia N8x0 devices)",
+        lbl = Label("Some videos are available in a high quality format.\n"
+                    "Select the desired format (only Standard FLV plays fine "
+                    "on the N8x0 tablets):",
                     theme.font_mb_plain, theme.color_mb_listitem_text)        
-        chk.add(lbl)
+        self.__vbox.add(lbl)
+
+
+        chbox_quality = ChoiceBox("Standard FLV", 0,
+                                  "FLV 480x270 mono", 6,
+                                  "MP4 480x270 stereo", 18,
+                                  "FLV 640x360 mono", 35,
+                                  "MP4 1280x720 stereo", 22)
+        chbox_quality.select_by_value(config.get_quality_type())
+        chbox_quality.connect_changed(self.__on_select_quality_type)
+        self.__vbox.add(chbox_quality)
+    
+        #chk = CheckBox(config.get_hi_quality())
+        #chk.connect_checked(self.__on_check_hi_quality)
+        #self.__vbox.add(chk)
+        #lbl = Label("Retrieve high-quality version of video if available\n"
+        #            "(HQ videos don't play well on the Nokia N8x0 devices)",
+        #            theme.font_mb_plain, theme.color_mb_listitem_text)        
+        #chk.add(lbl)
         
 
 
@@ -66,4 +82,9 @@ class Prefs(Configurator):
     def __on_check_hi_quality(self, v):
     
         config.set_hi_quality(v)
+
+
+    def __on_select_quality_type(self, qtype):
+    
+        config.set_quality_type(qtype)
 
