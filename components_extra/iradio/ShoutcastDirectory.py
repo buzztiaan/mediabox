@@ -1,127 +1,79 @@
 from Station import Station
 from io import Downloader
-
+from xml.etree import ElementTree
+from cStringIO import StringIO
+import urllib
 
 _SHOUTCAST_BASE = "http://www.shoutcast.com"
-
 
 class ShoutcastDirectory(object):
 
     def __init__(self):
-    
-        # table: genre_path -> genre_name
-        self.__genres = {}
-        
-        
+
+        # genre list
+        self.__genres = []
+        # station list for each genre
+        self.__stations = {}
+
     def __parse_genres(self, data):
+        print '__parse_genres'
+        #print data
+        self.__genres = []
+        try:
+            dtree = ElementTree.parse(StringIO(data))
+            for i in dtree.getiterator():
+                if i.tag == "genre":
+                    for j,n in i.items():
+                        if j == "name":
+                            self.__genres.append(n)
+                            self.__stations[n] = []
+        except:
+            print 'shoutcast genre listing download failed'
 
-        # find genre list
-        idx = data.find(">Stations by Genre</span>")
-        idx1 = data.find("<li>", idx)
-        idx2 = data.find("setUpRadio")
-        data = data[idx1:idx2]
-
-        # read genre by genre
-        pos = 0
-        self.__genres = {}
-        while (True):
-            pos = data.find("/genre/", pos)
-            if (pos == -1): break
-            
-            pos1 = pos + len("/genre/")
-            pos2 = data.find("'", pos1)
-            genre_path = data[pos1:pos2]
-            
-            pos1 = data.find(">", pos2)
-            pos2 = data.find("<", pos1)
-            genre_name = data[pos1 + 1:pos2].strip()
-            
-            self.__genres[genre_path] = genre_name
-            
-            pos = pos2
-        #end while
-
-
-
-    def __parse_stations(self, data, cb):
-
-        pos = 0
+    def __parse_stations(self, data, genre):
+        print '__parse_stations', genre
         stations = []
-        while (True):
-            pos = data.find("dirTuneMoreDiv", pos)
-            print pos
-            if (pos == -1): break
-            
-            # URL
-            pos = data.find("<a href=", pos)
-            pos1 = data.find("\"", pos)
-            pos2 = data.find("\"", pos1 + 1)
-            pls_url = data[pos1 + 1:pos2]
-            pos = pos2
-            
-            # Name
-            pos = data.find("dirStationCnt", pos)
-            pos = data.find("<a", pos)
-            pos1 = data.find(">", pos)
-            pos2 = data.find("<", pos1)
-            name = data[pos1 + 1:pos2].strip()
-            pos = pos2
-            
-            # Now Playing            
-            pos = data.find("dirNowPlayingCnt", pos)
-            pos = data.find("<span", pos)
-            pos1 = data.find(">", pos)
-            pos2 = data.find("<", pos1)
-            now_playing = data[pos1 + 1:pos2].strip()
-            pos = pos2
+        try:
+            dtree = ElementTree.parse(StringIO(data))
+            for i in dtree.getiterator():
+                if i.tag == "station":
+                    # build station object
+                    station = Station()
+                    for j,n in i.items():
+                        if j == "name":
+                            station.name = n
+                        elif j == "ct":
+                            station.now_playing = n
+                        elif j == "id":
+                            station.resource = _SHOUTCAST_BASE + "/sbin/shoutcast-playlist.pls?rn=%s&file=filename.pls" % n
+                        elif j == "br":
+                            station.bitrate = n
+                    stations.append(station)
+                #cb(True, station)
+        except:
+            print 'shoutcast listing download failed'
 
-            # Bitrate
-            pos = data.find("Bitrate:", pos)
-            pos = data.find("<span", pos)
-            pos1 = data.find(">", pos)
-            pos2 = data.find("<", pos1)
-            bitrate = data[pos1 + 1:pos2].strip()
-            pos = pos2
+        #stations.sort()
+        self.__stations[genre] = stations
 
-            # build station object
-            station = Station()
-            station.name = name
-            station.now_playing = now_playing
-            station.resource = pls_url
-            station.bitrate = bitrate
-            
-            stations.append(station)
-            #cb(True, station)
-        #end while
-    
-        stations.sort()
-        for s in stations:
-            cb(True, s)
-
-        cb(False, None)
-        
-        
-        
     def get_path(self, path, cb):
-    
+
         def on_load(d, amount, total, data):
             if (d):
                 data[0] += d
             else:
                 #open("/tmp/shoutcast-genres.html", "w").write(data[0])
                 self.__parse_genres(data[0])
-                if (self.__genres):
-                    self.__list_path(path, cb)
+                #if (self.__genres):
+                self.__list_path(path, cb)
 
-    
         if (path and path[0] == "/"): path = path[1:]
 
         if (not path and not self.__genres):
             #on_load("", 0, 0, [open("/tmp/shoutcast-genres.html").read()])
-            dl = Downloader(_SHOUTCAST_BASE + "/", on_load, [""])            
+            dl = Downloader(_SHOUTCAST_BASE + "/sbin/newxml.phtml", on_load, [""])
         else:
             self.__list_path(path, cb)
-
 
     def __list_path(self, path, cb):
 
@@ -130,30 +82,32 @@ class ShoutcastDirectory(object):
                 data[0] += d
             else:
                 #open("/tmp/shoutcast-stations.html", "w").write(data[0])
-                self.__parse_stations(data[0], cb)
-
+                self.__parse_stations(data[0], data[1])
+                if self.__stations[data[1]]:
+                    for s in self.__stations[data[1]]:
+                        cb(True, s)
+                cb(False, None)
 
         if (not path):
             # list genres
-            items = self.__genres.items()
-            items.sort(lambda a,b:cmp(a[1],b[1]))
-            for p, n in items:
+            for n in self.__genres:
                 station = Station()
                 station.name = n
-                station.path = p
+                station.path = n
 
                 cb(False, station)
             #end for
             cb(False, None)
-                
+
         else:
             # list stations
             #on_load("", 0, 0, [open("/tmp/shoutcast-stations.html").read()])
             #return
-            name = self.__genres[path]
-            dl = Downloader(_SHOUTCAST_BASE + \
-                "/directory/genreSearchResult.jsp?startIndex=1&numresult=100&" \
-                "mode=listeners&maxbitrate=all&sgenre=%s" % name,
-                #"/genre/%s?numresult=25&startat=0" % name,
-                on_load, [""])
+            if not self.__stations[path]:
+                name = urllib.quote(path)
+                dl = Downloader(_SHOUTCAST_BASE + "/sbin/newxml.phtml?genre=%s" % name, on_load, ["",path])
+            else:
+                for station in self.__stations[path]:
+                    cb(True, station)
+                cb(False, None)
 
