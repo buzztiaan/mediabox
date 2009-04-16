@@ -36,7 +36,7 @@ class VideoDevice(Device):
     def get_root(self):
     
         f = File(self)
-        f.name = "Videos"
+        f.name = self.get_name()
         f.path = "/"
         f.mimetype = f.DIRECTORY
         return f

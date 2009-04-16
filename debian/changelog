@@ -2,13 +2,25 @@ mediabox (0.96.5) unstable; urgency=low
 
   Support for LRC file format for music lyrics
 
+  Slideshow in the image viewer
+
+  Sleep and wake up timer (fall asleep and wake up with music or FM radio)
+  
+  Rewind and fast forward
+
+  Shuffle and repeat modes can be switched by clicking the status bar icons
+
   Improved UI rendering performance and reduced memory footprint
   
   Cleaner user interface
   
   Thumbable scrollbar
   
+  Translucent dialog screens
+  
   Reduced startup time
+  
+  Plugin compatibility API bumped to 1.1
 
   Bugfixes
 

@@ -9,12 +9,18 @@ import time
 import gobject
 
 
+_STATUS_OK = 0
+_STATUS_INCOMPLETE = 1
+_STATUS_INVALID = 2
+
+
 class StorageBrowser(TrackList):
 
     GO_NEW = 0
     GO_CHILD = 1
     GO_PARENT = 2
     
+    EVENT_FOLDER_OPENED = "folder-opened"
     EVENT_FILE_OPENED = "file-opened"
     EVENT_FILE_ENQUEUED = "file-enqueued"
     EVENT_FILE_REMOVED = "file-removed"
@@ -23,7 +29,7 @@ class StorageBrowser(TrackList):
 
     def __init__(self):
     
-        # list of tuples: (path, finished_loading)
+        # list of tuples: (path, status)
         self.__path_stack = []
 
         # timestamp of the last list rendering
@@ -42,6 +48,11 @@ class StorageBrowser(TrackList):
         TrackList.__init__(self, True)
         self.connect_button_clicked(self.__on_item_button)
         self.connect_items_swapped(self.__on_swap_items)
+
+
+    def connect_folder_opened(self, cb, *args):
+    
+        self._connect(self.EVENT_FOLDER_OPENED, cb, *args)
         
         
     def connect_file_opened(self, cb, *args):
@@ -90,7 +101,7 @@ class StorageBrowser(TrackList):
         elif (button == item.BUTTON_REMOVE):
             f = item.get_file()
             print item.get_file()
-            f.delete()
+            self.get_current_folder().delete_file(idx - 1)
             self.reload_current_folder()
             self.send_event(self.EVENT_FILE_REMOVED, f)
 
@@ -129,6 +140,24 @@ class StorageBrowser(TrackList):
     
         self.__thumbnailer = cb
         
+        
+    def invalidate_folder(self, folder):
+        """
+        Marks the given folder as invalid. This forces a complete reload of
+        the folder.
+        
+        @param folder: the folder to invalidate
+        """
+        
+        for entry in self.__path_stack:
+            f, status = entry
+            if (f == folder):
+                entry[1] = _STATUS_INVALID
+        #end for
+        
+        if (self.__path_stack and self.__path_stack[-1][1] == _STATUS_INVALID):
+            self.reload_current_folder()
+    
         
     def get_current_folder(self):
         """
@@ -211,9 +240,11 @@ class StorageBrowser(TrackList):
         
         elif (len(self.__path_stack) > 1):
             self.__path_stack.pop()
-            path, finished = self.__path_stack.pop()
-            self.load_folder(path, self.GO_PARENT)
-
+            path, status = self.__path_stack.pop()
+            if (status == _STATUS_INVALID):
+                self.load_folder(path, self.GO_PARENT, True)
+            else:
+                self.load_folder(path, self.GO_PARENT, False)
 
     def reload_current_folder(self):
         """
@@ -223,40 +254,44 @@ class StorageBrowser(TrackList):
         self.load_folder(self.get_current_folder(), self.GO_NEW)
         
         
-    def load_folder(self, folder, direction):
+    def load_folder(self, folder, direction, force_reload = False):
         """
         Loads the given folder and displays its contents.
 
         @param folder: File object of the folder to load
         @param direction: One of C{GO_NEW}, C{GO_CHILD}, or C{GO_PARENT}
+        @param force_reload: whether to force reloading the folder
         """
 
         self.__close_subfolder()
-                   
-        # update path stack
+
+        # are we just reloading the same folder?
         reload_only = False
         if (self.__path_stack):
-            if (folder == self.__path_stack[-1][0]):
+            if (folder == self.get_current_folder()):
                 reload_only = True
         #end if
 
-        if (not reload_only):
-            self.__path_stack.append([folder, False])
-
-
-        if (direction == self.GO_PARENT):
-            # don't reload list
-            self.clear_items()
-            self.change_image_set(folder.full_path)
-            self.hilight(-1)
-            
-            self.fx_slide_right()
-            
-            finished_loading = self.__path_stack[-1][1]
-            if (not finished_loading):
-                self.complete_current_folder()
-            
+        # is a full reload required?
+        if (reload_only):
+            full_reload = True
+        elif (force_reload):
+            full_reload = True
+        elif (direction == self.GO_NEW):
+            full_reload = True
+        elif (direction == self.GO_CHILD):
+            full_reload = True
+        elif (direction == self.GO_PARENT):
+            full_reload = False
         else:
+            # what else..?
+            full_reload = True
+
+        # update path stack
+        if (not reload_only):
+            self.__path_stack.append([folder, _STATUS_INCOMPLETE])
+
+        if (full_reload):
             # reload list
             self.change_image_set(folder.full_path)
             self.clear_items()
@@ -277,11 +312,26 @@ class StorageBrowser(TrackList):
 
             self.append_item(header)
 
-            if (direction == self.GO_CHILD):
-                self.fx_slide_left()
+        else:
+            # don't reload list
+            self.clear_items()
+            self.change_image_set(folder.full_path)
+            self.hilight(-1)
 
+        # animate
+        if (direction == self.GO_CHILD):
+            self.fx_slide_left()
+        elif (direction == self.GO_PARENT):
+            self.fx_slide_right()
+        else:
+            self.render()
+
+        # load remaining items
+        loading_status = self.__path_stack[-1][1]
+        if (loading_status == _STATUS_INCOMPLETE or full_reload):
             self.complete_current_folder()
-        #end if
+
+        # now is a good time to collect garbage
         import gc; gc.collect()    
 
 
@@ -289,7 +339,7 @@ class StorageBrowser(TrackList):
 
         def on_child(f, path, entries, items_to_thumbnail, insert_at):
             # abort if the user has changed the directory again
-            if (self.__path_stack[-1][0] != path): return False
+            if (self.get_current_folder() != path): return False
 
             if (f):
                 self.__add_file(f, items_to_thumbnail, insert_at + len(entries))
@@ -298,7 +348,8 @@ class StorageBrowser(TrackList):
             else:
                 # finished loading items; now create thumbnails
                 #self.__create_thumbnails(path, items_to_thumbnail)
-                pass
+            
+                self.send_event(self.EVENT_FOLDER_OPENED, folder)
 
             now = time.time()
             self.__subfolder_range = (insert_at, insert_at + len(entries))
@@ -348,7 +399,7 @@ class StorageBrowser(TrackList):
 
         def on_child(f, path, entries, items_to_thumbnail):
             # abort if the user has changed the directory inbetween
-            if (self.__path_stack[-1][0] != path): return False
+            if (self.get_current_folder() != path): return False
             
             if (f):
                 self.get_item(0).set_info("Loading (%d items)..." \
@@ -362,10 +413,13 @@ class StorageBrowser(TrackList):
                 self.invalidate_image(0)
                 
                 # mark folder as complete
-                self.__path_stack[-1][1] = True
+                self.__path_stack[-1][1] = _STATUS_OK
                 
                 # finished loading items; now create thumbnails
                 self.__create_thumbnails(path, items_to_thumbnail)
+                
+                self.send_event(self.EVENT_FOLDER_OPENED,
+                                self.get_current_folder())
 
             now = time.time()
             if (not f or now > self.__last_list_render_time + 1.0):
@@ -378,7 +432,7 @@ class StorageBrowser(TrackList):
 
         cwd = self.get_current_folder()
         num_of_items = len(self.get_files())
-        cwd.get_contents(num_of_items, 0, on_child, cwd, [], [])    
+        cwd.get_contents(num_of_items, 0, on_child, cwd, [], [])
         
         
     def __add_file(self, f, items_to_thumbnail, insert_at):
@@ -419,8 +473,8 @@ class StorageBrowser(TrackList):
             if (cwd.folder_flags & cwd.ITEMS_ENQUEUEABLE):
                 buttons.append((item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
             
-            if (cwd.folder_flags & cwd.ITEMS_DELETABLE):
-                buttons.append((item.BUTTON_REMOVE, theme.mb_item_btn_remove))
+        if (cwd.folder_flags & cwd.ITEMS_DELETABLE):
+            buttons.append((item.BUTTON_REMOVE, theme.mb_item_btn_remove))
         #end if
 
         item.set_buttons(*buttons)
@@ -470,7 +524,7 @@ class StorageBrowser(TrackList):
             
 
         # abort if the user has changed the directory inbetween
-        if (self.__path_stack[-1][0] != folder): return
+        if (self.get_current_folder() != folder): return
         
         if (not self.is_visible()): return
     

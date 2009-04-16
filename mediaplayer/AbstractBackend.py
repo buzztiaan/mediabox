@@ -461,6 +461,35 @@ class AbstractBackend(Observable):
 
 
 
+    def rewind(self):
+        """
+        Rewinds the media.
+        @since: 0.96.5
+        """
+        
+        pos, total = self.__position
+        if (pos > 0):
+            pos = max(0, pos - 10)
+            self.seek(pos)
+            self.__position = self._get_position()
+            self.update_observer(self.OBS_POSITION, self.__context_id,
+                                 *self.__position)
+
+            
+        
+    def forward(self):
+        """
+        Fast forwards the media.
+        @since: 0.96.5
+        """
+
+        pos, total = self.__position
+        if (pos > 0):
+            pos = min(total - 1, pos + 10)
+            self.seek(pos)
+            self.__position = self._get_position()
+            self.update_observer(self.OBS_POSITION, self.__context_id,
+                                 *self.__position)
 
 
     def _get_icon(self):

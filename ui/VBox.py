@@ -1,7 +1,16 @@
-from Widget import Widget
+from HBox import HBox
 
 
-class VBox(Widget):
+class VBox(HBox):
+
+    def __init__(self):
+    
+        HBox.__init__(self)
+        self.set_mode(self.VERTICAL)
+        
+
+"""
+class OLDVBox(Widget):
 
     HALIGN_LEFT = 0
     HALIGN_CENTER = 1
@@ -64,4 +73,4 @@ class VBox(Widget):
                 c.set_pos(w - width, y)
             y += height + self.__spacing
         #end for
-
+"""

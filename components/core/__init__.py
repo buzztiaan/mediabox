@@ -57,8 +57,10 @@ messages = [
     
     # Notifications about adding or removing storage devices.
     #
-    "CORE_EV_DEVICE_ADDED",     # (id, device)
-    "CORE_EV_DEVICE_REMOVED",   # (id)
+    "CORE_EV_DEVICE_ADDED",     # (dev_id, device)
+    "CORE_EV_DEVICE_REMOVED",   # (dev_id)
+   
+    "CORE_EV_FOLDER_INVALIDATED",  # (folder)
    
     "CORE_SVC_LIST_PATH",       # (path)
     "CORE_SVC_GET_FILE",        # (path)
@@ -130,5 +132,8 @@ messages = [
     
     "UI_ACT_SELECT_VIEWER",      # (name)
     "UI_ACT_SELECT_DEVICE",      # (device_id)
+    
+    "UI_ACT_SET_STATUS_ICON",    # (widget)  @since: 0.96.5
+    "UI_ACT_UNSET_STATUS_ICON",  # (widget)  @since: 0.96.5
 ]    
 

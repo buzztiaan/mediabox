@@ -141,12 +141,25 @@ class Device(Component):
         """
     
         raise NotImplementedError
+
+
+    def delete_file(self, folder, idx):
+        """
+        Deletes the file given by its index number from the given folder.
+        @since: 0.96.5
         
+        @param folder: file object of the parent folder
+        @param idx:    index of file to delete
+        """
+        
+        raise NotImplementedError
+
         
     def delete(self, f):
         """
         Can be implemented by devices to support deleting files.
         @since: 096
+        @deprecated: use L{delete_file} instead
         
         @param f: file object to delete
         """
@@ -193,8 +206,10 @@ class Device(Component):
         def cb(f, items, finished):
             if (f):
                 items.append(f)
+                return True
             else:
                 finished[0] = True
+                return False
                 
         finished = [False]
         items = []
@@ -220,12 +235,11 @@ class Device(Component):
             if (files):
                 f = files.pop(0)
                 v = cb(f, *args)            
-                if (not v):
-                    return
-                else:
+                if (v):
                     gobject.timeout_add(0, do_async, files)
+                return v
             else:
-                cb(None, *args)
+                return cb(None, *args)
         
         # override this by your implementation
         files = self.ls(path)
@@ -250,16 +264,19 @@ class Device(Component):
         def on_file(f, counter):
             if (f):
                 if (end_at == 0 and begin_at <= counter[0]):
-                    cb(f, *args)
+                    ret = cb(f, *args)
                 elif (begin_at <= counter[0] < end_at):
-                    cb(f, *args)
+                    ret = cb(f, *args)
+                else:
+                    ret = True
                     
                 counter[0] += 1
+                return ret
                 
             else:
-                cb(None, *args)
+                return cb(None, *args)
 
-        self.ls_async(path, on_file, [0])
+        self.ls_async(path.path, on_file, [0])
 
 
     def load(self, f, maxlen, cb, *args):

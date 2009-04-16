@@ -26,6 +26,15 @@ font_mb_overlay_subtext: Nokia Sans Cn 16
 
 
 #
+# Dialog
+#
+font_mb_dialog_title: Nokia Sans bold 22
+font_mb_dialog_body:  Nokia Sans Cn 18
+color_mb_dialog_text: #ffffff
+color_mb_dialog_side: #a0a0a0a0
+
+
+#
 # Thumbnails
 #
 color_mb_thumbnail_caption: #ffffff
@@ -76,4 +85,10 @@ color_mb_menu_text: #333333
 #
 color_mb_image_background: #ffffff
 color_mb_image_background_fullscreen: #101010
+
+
+#
+# Sleep Timer
+#
+font_mb_clocksetter: Nokia Sans bold 96
 

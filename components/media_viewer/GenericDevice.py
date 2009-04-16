@@ -69,13 +69,18 @@ class GenericDevice(Device):
         cb(None, *args)
         
     
-        
-    def handle_message(self, msg, *args):
     
-        if (msg == msgs.CORE_EV_DEVICE_ADDED):
-            ident, device = args
-            if (device != self and device.TYPE == device.TYPE_GENERIC):
-                self.__devices[ident] = device
+    def handle_CORE_EV_DEVICE_ADDED(self, ident, device):
+
+        if (device != self and device.TYPE == device.TYPE_GENERIC):
+            self.__devices[ident] = device
+            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
 
 
-        
+    def handle_CORE_EV_DEVICE_REMOVED(self, ident):
+
+        device = self.__devices.get(ident)
+        if (device):
+            del self.__devices[ident]
+            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+

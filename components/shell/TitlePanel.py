@@ -2,6 +2,7 @@ from ui.Widget import Widget
 from ui.Image import Image
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from ui.Label import Label
+from ui.HBox import HBox
 from ui import pixbuftools
 from theme import theme
 
@@ -21,6 +22,11 @@ class TitlePanel(Widget):
     
     
         Widget.__init__(self)
+
+        self.__status_box = HBox()
+        self.__status_box.set_spacing(8)
+        self.add(self.__status_box)
+        
 
         self.__title = Label("", theme.font_mb_plain,
                              theme.color_mb_panel_text)
@@ -55,7 +61,8 @@ class TitlePanel(Widget):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        self.__title.set_geometry(0, 5, w - 180, 0)
+        self.__status_box.set_geometry(4, 4, 170, 32)
+        self.__title.set_geometry(180, 5, w - 360, 0)
         self.__speaker.set_pos(w - 110, 4)
         self.__info.set_geometry(w - 140, 5, 130, 0)
         self.__volume.set_geometry(w - 140, 5, 130, 0)
@@ -75,7 +82,7 @@ class TitlePanel(Widget):
 
         if (not self.__bg_pbuf or (w, h) != self.get_size()):
             self.__bg_pbuf = pixbuftools.make_frame(theme.mb_panel, w, h, True,
-                                        pixbuftools.BOTTOM | pixbuftools.RIGHT)
+                      pixbuftools.LEFT | pixbuftools.BOTTOM | pixbuftools.RIGHT)
 
         Widget.set_size(self, w, h)
         
@@ -142,4 +149,32 @@ class TitlePanel(Widget):
         self.__volume.set_visible(True)
         self.__volume.set_text("%d %%" % volume)
         self.__volume_timer = gobject.timeout_add(500, f)
+
+
+    def set_status_icon(self, w):
+    
+        known_icons = self.__status_box.get_children()
+        
+        if (not w in known_icons):
+            self.__status_box.add(w, False)
+            known_icons.append(w)
+            
+        idx = known_icons.index(w)
+        known_icons[idx].set_visible(True)
+        
+        self.render()
+        
+        
+    def unset_status_icon(self, w):
+    
+        known_icons = self.__status_box.get_children()
+        
+        try:
+            idx = known_icons.index(w)
+            known_icons[idx].set_visible(False)
+            print "UNSET", known_icons[idx]
+        except ValueError:
+            pass
+
+        self.render()
 

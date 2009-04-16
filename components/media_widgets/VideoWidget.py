@@ -21,7 +21,6 @@ class VideoWidget(MediaWidget):
     Media widget for viewing videos.
     """
 
-
     def __init__(self):
     
         self.__layout = None
@@ -303,13 +302,25 @@ class VideoWidget(MediaWidget):
     def __show_error(self, errcode):
     
         if (errcode == self.__player.ERR_INVALID):
-            dialogs.error("Invalid Stream", "Cannot load this stream.")
+            self.call_service(msgs.DIALOG_SVC_ERROR,
+                              "Invalid Stream",
+                              "The media stream is invalid and cannot be loaded.")
+            #dialogs.error("Invalid Stream", "Cannot load this stream.")
         elif (errcode == self.__player.ERR_NOT_FOUND):
-            dialogs.error("Not found", "Cannot find a stream to play.")
+            self.call_service(msgs.DIALOG_SVC_ERROR,
+                              "Media Not Found",
+                              "Cannot find a media stream to play.")
+            #dialogs.error("Not found", "Cannot find a stream to play.")
         elif (errcode == self.__player.ERR_CONNECTION_TIMEOUT):
-            dialogs.error("Timeout", "Connection timed out.")       
+            self.call_service(msgs.DIALOG_SVC_ERROR,
+                              "Connection Timeout",
+                              "A connection timeout occured while loading the media stream.")
+            #dialogs.error("Timeout", "Connection timed out.")       
         elif (errcode == self.__player.ERR_NOT_SUPPORTED):
-            dialogs.error("Not supported", "The media format is not supported.")
+            self.call_service(msgs.DIALOG_SVC_ERROR,
+                              "Unsupported Media Format",
+                              "The format of this media stream is not supported.")
+            #dialogs.error("Not supported", "The media format is not supported.")
 
 
     def __on_set_position(self, pos):
@@ -470,10 +481,9 @@ class VideoWidget(MediaWidget):
         mb_config.set_volume(vol)        
         if (self.__player):
             self.__player.set_volume(vol)
-        self.send_event(self.EVENT_MEDIA_VOLUME, vol)
+        self.send_event(self.EVENT_MEDIA_SCALE, vol / 100.0)
 
        
-        
     def decrement(self):
 
         vol = mb_config.volume()
@@ -481,13 +491,26 @@ class VideoWidget(MediaWidget):
         mb_config.set_volume(vol)        
         if (self.__player):
             self.__player.set_volume(vol)
-        self.send_event(self.EVENT_MEDIA_VOLUME, vol)
+        self.send_event(self.EVENT_MEDIA_SCALE, vol / 100.0)
 
 
-    def set_volume(self, vol):
+    def set_scaling(self, v):
 
+        vol = int(v * 100)
         mb_config.set_volume(vol)        
         if (self.__player):
             self.__player.set_volume(vol)
-        self.send_event(self.EVENT_MEDIA_VOLUME, vol)
+        self.send_event(self.EVENT_MEDIA_SCALE, v)
+
+
+    def rewind(self):
+    
+        if (self.__player):
+            self.__player.rewind()
+        
+        
+    def forward(self):
+    
+        if (self.__player):
+            self.__player.forward()
 

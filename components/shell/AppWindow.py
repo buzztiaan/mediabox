@@ -8,13 +8,7 @@ from TitlePanel import TitlePanel
 from ControlPanel import ControlPanel
 from ViewerState import ViewerState
 from ui.Button import Button
-from ui.Image import Image
 from ui.Pixmap import Pixmap
-#from ui.ImageStrip import ImageStrip
-#from ui.KineticScroller import KineticScroller
-from ui.EventBox import EventBox
-from ui import pixbuftools
-from ui import dialogs
 from mediabox import config
 from mediabox import values
 from utils import maemo
@@ -26,6 +20,9 @@ import gobject
 import os
 import time
 
+
+# interval for hw key autorepeater in ms
+_AUTOREPEATER_INTERVAL = 200
 
 
 class AppWindow(Component, RootPane):
@@ -40,6 +37,9 @@ class AppWindow(Component, RootPane):
         self.__current_device_id = ""
         self.__view_mode = viewmodes.TITLE_ONLY
         self.__battery_remaining = 100.0
+        
+        # auto repeat handler for hw keys without auto repeat
+        self.__autorepeater = None
         
         self.__is_fullscreen = True
         
@@ -70,7 +70,7 @@ class AppWindow(Component, RootPane):
         self.__window.connect("delete-event", self.__on_close_window)
         self.__window.connect("expose-event", self.__on_expose)
         self.__window.connect("key-press-event", self.__on_key)
-        self.__window.connect("key-release-event", lambda x, y: True)
+        self.__window.connect("key-release-event", lambda *a:self.__autorepeat_stop())
         self.__window.connect("configure-event", self.__on_resize_window)
         self.__window.set_title("%s %s" % (values.NAME, values.VERSION))
         self.__window.show()
@@ -104,18 +104,12 @@ class AppWindow(Component, RootPane):
         #self.__kscr.add_observer(self.__on_observe_strip)
 
         # title panel
-        self.__title_panel_left = Image(None)
-        self.__title_panel_left.set_visible(False)
-        
         self.__title_panel = TitlePanel()
         self.__title_panel.set_title("Initializing")
         self.__title_panel.set_visible(False)
         self.__title_panel.connect_clicked(self.__on_click_title)
        
         # control panel
-        #self.__panel_left = Image(None)
-        #self.__panel_left.set_visible(False)
-        
         self.__ctrl_panel = ControlPanel()
         self.__ctrl_panel.set_visible(False)
         self.__ctrl_panel.connect_button_pressed(self.__on_menu_button)
@@ -221,11 +215,8 @@ class AppWindow(Component, RootPane):
         Adds the panel components.
         """
     
-        self.add(self.__title_panel_left)
         self.add(self.__title_panel)
-        #self.add(self.__panel_left)
         self.add(self.__ctrl_panel)
-        self.__prepare_collection_caps()
 
 
     def render_this(self):
@@ -235,9 +226,7 @@ class AppWindow(Component, RootPane):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        self.__title_panel_left.set_geometry(0, 0, 170, 40)
-        self.__title_panel.set_geometry(170, 0, w - 170, 40)
-        #self.__panel_left.set_geometry(0, h - 70, 160, 70)
+        self.__title_panel.set_geometry(0, 0, w, 40)
         self.__ctrl_panel.set_geometry(0, h - 70, w, 70)
         #self.__strip.set_geometry(0, 0, 170, h)
         self.__btn_strip.set_geometry(0, 40, 64, h - 110)
@@ -275,9 +264,7 @@ class AppWindow(Component, RootPane):
         w, h = self.get_size()
 
         if (view_mode == viewmodes.NORMAL):
-            self.__title_panel_left.set_visible(True)
             self.__title_panel.set_visible(True)
-            #self.__panel_left.set_visible(True)
             self.__ctrl_panel.set_visible(True)
             self.__btn_strip.set_visible(True)
             #if (self.__current_viewer):
@@ -286,9 +273,7 @@ class AppWindow(Component, RootPane):
                 #self.__get_vstate().collection_visible = True
             
         elif (view_mode == viewmodes.NO_STRIP):
-            self.__title_panel_left.set_visible(True)
             self.__title_panel.set_visible(True)
-            #self.__panel_left.set_visible(True)
             self.__ctrl_panel.set_visible(True)
             self.__btn_strip.set_visible(False)
             #if (self.__current_viewer):
@@ -297,9 +282,7 @@ class AppWindow(Component, RootPane):
                 #self.__get_vstate().collection_visible = False
 
         #elif (view_mode == viewmodes.NO_STRIP_PANEL):
-        #    self.__title_panel_left.set_visible(False)
         #    self.__title_panel.set_visible(True)
-        #    self.__panel_left.set_visible(False)
         #    self.__ctrl_panel.set_visible(True)
         #    self.__btn_strip.set_visible(False)
         #    if (self.__current_viewer):            
@@ -307,18 +290,14 @@ class AppWindow(Component, RootPane):
         #        self.__get_vstate().collection_visible = False
             
         elif (view_mode == viewmodes.FULLSCREEN):
-            self.__title_panel_left.set_visible(False)
             self.__title_panel.set_visible(False)
-            #self.__panel_left.set_visible(False)
             self.__ctrl_panel.set_visible(False)
             self.__btn_strip.set_visible(False)
             if (self.__current_viewer):
                 self.__current_viewer.set_geometry(0, 0, w, h)
 
         #elif (view_mode == viewmodes.TITLE_ONLY):
-        #    self.__title_panel_left.set_visible(True)
         #    self.__title_panel.set_visible(True)
-        #    self.__panel_left.set_visible(False)
         #    self.__ctrl_panel.set_visible(False)
         #    self.__btn_strip.set_visible(False)
         #    if (self.__current_viewer):            
@@ -328,63 +307,6 @@ class AppWindow(Component, RootPane):
         self.__view_mode = view_mode
         if (self.__current_viewer):
             self.__get_vstate().view_mode = view_mode
-
-
-
-
-    def __prepare_collection_caps(self):
-    
-        repeat_mode = config.repeat_mode()
-        shuffle_mode = config.shuffle_mode()
-    
-        left_top = pixbuftools.make_frame(theme.mb_panel, 170, 40, True,
-                                          pixbuftools.LEFT |
-                                          pixbuftools.BOTTOM)
-        #left_bottom = pixbuftools.make_frame(theme.mb_panel, 170, 70, True,
-        #                                  pixbuftools.TOP |
-        #                                  pixbuftools.LEFT)
-
-        x = 10
-
-        if (repeat_mode == config.REPEAT_MODE_ONE):
-            icon = theme.mb_status_repeat_one
-        elif (repeat_mode == config.REPEAT_MODE_ALL):
-            icon = theme.mb_status_repeat_all
-        else:
-            icon = theme.mb_status_repeat_none
-        pixbuftools.draw_pbuf(left_top, icon, x, 4)
-        
-        x += 40
-        
-        if (shuffle_mode == config.SHUFFLE_MODE_ONE):
-            icon = theme.mb_status_shuffle_one
-        elif (shuffle_mode == config.SHUFFLE_MODE_ALL):
-            icon = theme.mb_status_shuffle_none
-        else:
-            icon = theme.mb_status_shuffle_none
-        pixbuftools.draw_pbuf(left_top, icon, x, 4)
-
-        x += 40
-
-        br = self.__battery_remaining
-        if (br > 80.0):
-            icon = theme.mb_status_battery_4
-        elif (br > 60.0):
-            icon = theme.mb_status_battery_3
-        elif (br > 40.0):
-            icon = theme.mb_status_battery_2
-        elif (br > 20.0):
-            icon = theme.mb_status_battery_1
-        else:
-            icon = theme.mb_status_battery_0
-        #pixbuftools.draw_pbuf(left_top, icon, x, 4)
-
-        #pixbuftools.draw_pbuf(left_bottom, theme.mb_btn_turn, 10, 4)
-
-        
-
-        self.__title_panel_left.set_image(left_top)
-        #self.__panel_left.set_image(left_bottom)
 
 
     def __on_click_title(self):
@@ -467,6 +389,24 @@ class AppWindow(Component, RootPane):
         screen.restore(x, y, w, h)
 
 
+    def __autorepeat_start(self, key_msg):
+    
+        def f():
+            self.emit_message(key_msg)
+            return True
+            
+        if (self.__autorepeater):
+            gobject.source_remove(self.__autorepeater)
+        self.__autorepeater = gobject.timeout_add(_AUTOREPEATER_INTERVAL, f)
+        
+        
+    def __autorepeat_stop(self):
+
+        if (self.__autorepeater):
+            gobject.source_remove(self.__autorepeater)
+            self.__autorepeater = None    
+    
+
     def __on_key(self, src, ev):
    
         keyval = ev.keyval
@@ -497,9 +437,11 @@ class AppWindow(Component, RootPane):
             self.emit_event(msgs.HWKEY_EV_F6)
             self.emit_event(msgs.HWKEY_EV_FULLSCREEN)  # deprecated
         elif (key == "F7"):
+            self.__autorepeat_start(msgs.HWKEY_EV_F7)
             self.emit_event(msgs.HWKEY_EV_F7)
             self.emit_event(msgs.HWKEY_EV_INCREMENT)  # deprecated
         elif (key == "F8"):
+            self.__autorepeat_start(msgs.HWKEY_EV_F8)
             self.emit_event(msgs.HWKEY_EV_F8)
             self.emit_event(msgs.HWKEY_EV_DECREMENT)  # deprecated
         elif (key == "F9"):
@@ -775,8 +717,11 @@ class AppWindow(Component, RootPane):
         
     def __try_quit(self):
     
-        self.show_overlay("", "", None)
-        result = dialogs.question("Exit", "Really quit?")
+        self.__window.present()
+        result = self.call_service(msgs.DIALOG_SVC_QUESTION,
+                                   "Exit",
+                                   "Do you want to quit MediaBox?")
+
         if (result == 0):
             config.set_current_viewer(self.__current_viewer)
             config.set_current_device(self.__current_device_id)
@@ -784,7 +729,7 @@ class AppWindow(Component, RootPane):
             self.emit_event(msgs.CORE_EV_APP_SHUTDOWN)
             gtk.main_quit()
         else:
-            self.hide_overlay()
+            pass
 
 
     def handle_COM_EV_COMPONENT_LOADED(self, component):
@@ -817,7 +762,7 @@ class AppWindow(Component, RootPane):
         thumbnail.clear_cache()
         #self.set_frozen(True)
         self.propagate_theme_change()
-        self.__prepare_collection_caps()
+        #self.__prepare_collection_caps()
         #self.__root_pane.render_buffered()            
         self.fx_slide_in()
 
@@ -888,7 +833,7 @@ class AppWindow(Component, RootPane):
     def handle_SYSTEM_EV_BATTERY_REMAINING(self, percent):                
 
         self.__battery_remaining = percent
-        self.__prepare_collection_caps()
+        #self.__prepare_collection_caps()
 
 
     def handle_UI_EV_DEVICE_SELECTED(self, dev_id):    
@@ -904,7 +849,7 @@ class AppWindow(Component, RootPane):
     def handle_UI_ACT_THAW(self):            
 
         self.set_frozen(False)
-        self.__prepare_collection_caps()
+        #self.__prepare_collection_caps()
         self.render_buffered()
 
     
@@ -931,4 +876,14 @@ class AppWindow(Component, RootPane):
     def handle_UI_ACT_VIEW_MODE(self, mode):
 
         self.__set_view_mode(mode)
+
+
+    def handle_UI_ACT_SET_STATUS_ICON(self, w):
+    
+        self.__title_panel.set_status_icon(w)
+        
+
+    def handle_UI_ACT_UNSET_STATUS_ICON(self, w):
+    
+        self.__title_panel.unset_status_icon(w)
 

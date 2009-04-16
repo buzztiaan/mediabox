@@ -42,41 +42,48 @@ class File(object):
 
 
         self.folder_flags = self.NONE
-
+        """@since: 0.96.5"""
+        
         self.can_skip = False
         """
         whether the user may skip files (previous/next) in this folder
         @since: 0.96
+        @deprecated: use L{folder_flags} instead
         """
 
         self.can_add_to_library = False
         """
         whether the user may add this folder to the library
         @since: 0.96
+        @deprecated: use L{folder_flags} instead
         """
 
         self.can_add = False
         """
         whether the user may add items to this folder
         @since: 0.96
+        @deprecated: use L{folder_flags} instead
         """
         
         self.can_delete = False
         """
         whether the user may delete this file
         @since: 0.96
+        @deprecated: use L{folder_flags} instead
         """
 
         self.can_keep = False
         """
         whether the user may keep this non-local file
         @since: 0.96
+        @deprecated: use L{folder_flags} instead
         """
 
         self.can_download = False
         """
         whether the user may download this file
         @since: 0.96
+        @deprecated: use L{folder_flags} instead
         """
 
         self.is_local = False
@@ -131,7 +138,7 @@ class File(object):
         self.icon = ""
         """
         may contain the path of an icon image that can be used instead of a
-        thumbnnail
+        thumbnail. the image should be of a proper size
         @since: 0.96.4
         """
         
@@ -280,13 +287,23 @@ class File(object):
     def new_file(self):
         """
         Creates a new file in this folder. This only works if the storage
-        device implements the new_file method.
+        device implements the C{new_file} method.
         @since: 0.96
         
         @return: the new File object
         """
     
-        return self.__device.new_file(self.path)
+        return self.__device.new_file(self)
+        
+        
+    def delete_file(self, idx):
+        """
+        Deletes the file given by the index number from this folder. This only
+        works if the storage device implements the C{delete_file} method.
+        @since: 0.96.5
+        """
+
+        return self.__device.delete_file(self, idx)    
         
         
     def delete(self):
@@ -294,8 +311,9 @@ class File(object):
         Deletes this file. This only works if the storage device implements
         the delete method.
         @since: 0.96
+        @deprecated: use L{delete_file} instead
         """
-    
+
         return self.__device.delete(self)
         
         
@@ -342,7 +360,7 @@ class File(object):
         @param args: variable list of arguments to the callback handler
         """
         
-        self.__device.get_contents(self.path, begin_at, end_at, cb, *args)
+        self.__device.get_contents(self, begin_at, end_at, cb, *args)
 
 
     def load(self, maxlen, cb, *args):

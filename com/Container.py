@@ -95,6 +95,7 @@ class Container(Component):
         
         if (hasattr(mod, "messages")):
             for msg in mod.messages:
+                logging.debug("registering message: %s", msg)
                 msgs._register(msg)
         #end if        
 

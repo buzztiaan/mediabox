@@ -11,5 +11,5 @@ class VideoViewer(MediaViewer):
 
     def __init__(self):
     
-        MediaViewer.__init__(self, VideoDevice(), "Browser", "Videos")
+        MediaViewer.__init__(self, VideoDevice(), "Browser", "Video")
 

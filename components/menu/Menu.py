@@ -12,6 +12,15 @@ from mediabox import values
 from theme import theme
 
 
+_STATUS_ICONS = {
+    mb_config.REPEAT_MODE_NONE: theme.mb_status_repeat_none,
+    mb_config.REPEAT_MODE_ONE: theme.mb_status_repeat_one,
+    mb_config.REPEAT_MODE_ALL: theme.mb_status_repeat_all,
+    mb_config.SHUFFLE_MODE_NONE: theme.mb_status_shuffle_none,
+    mb_config.SHUFFLE_MODE_ONE: theme.mb_status_shuffle_one
+}
+
+
 class Menu(Widget):
 
     def __init__(self):
@@ -56,25 +65,41 @@ class Menu(Widget):
         repeat_mode = mb_config.repeat_mode()
         shuffle_mode = mb_config.shuffle_mode()
 
-        btn_repeat = SequenceButton(
+        self.__btn_repeat = SequenceButton(
              [(theme.mb_repeat_none, mb_config.REPEAT_MODE_NONE),
               (theme.mb_repeat_one, mb_config.REPEAT_MODE_ONE),
               (theme.mb_repeat_all, mb_config.REPEAT_MODE_ALL)])
-        btn_repeat.connect_changed(mb_config.set_repeat_mode)
-        btn_repeat.set_size(48, 48)
-        btn_repeat.set_value(repeat_mode)
-        self.add(btn_repeat)
+        self.__btn_repeat.connect_changed(self.__on_change_repeat_mode)
+        self.__btn_repeat.set_size(48, 48)
+        self.__btn_repeat.set_value(repeat_mode)
+        self.add(self.__btn_repeat)
         
-        btn_shuffle = SequenceButton(
+        self.__btn_shuffle = SequenceButton(
              [(theme.mb_shuffle_none, mb_config.SHUFFLE_MODE_NONE),
               (theme.mb_shuffle_one, mb_config.SHUFFLE_MODE_ONE)])
-        btn_shuffle.connect_changed(mb_config.set_shuffle_mode)
-        btn_shuffle.set_size(48, 48)
-        btn_shuffle.set_value(shuffle_mode)
-        self.add(btn_shuffle)
-        
-        self.__buttons = [btn_repeat, btn_shuffle]
+        self.__btn_shuffle.connect_changed(self.__on_change_shuffle_mode)
+        self.__btn_shuffle.set_size(48, 48)
+        self.__btn_shuffle.set_value(shuffle_mode)
+        self.add(self.__btn_shuffle)
+               
+        self.__buttons = [self.__btn_repeat, self.__btn_shuffle]
 
+
+        self.__status_btn_repeat = SequenceButton(
+             [(theme.mb_status_repeat_none, mb_config.REPEAT_MODE_NONE),
+              (theme.mb_status_repeat_one, mb_config.REPEAT_MODE_ONE),
+              (theme.mb_status_repeat_all, mb_config.REPEAT_MODE_ALL)])
+        self.__status_btn_repeat.connect_changed(self.__on_change_repeat_mode)
+        self.__status_btn_repeat.set_size(32, 32)
+        self.__status_btn_repeat.set_value(repeat_mode)
+
+        self.__status_btn_shuffle = SequenceButton(
+             [(theme.mb_status_shuffle_none, mb_config.SHUFFLE_MODE_NONE),
+              (theme.mb_status_shuffle_one, mb_config.SHUFFLE_MODE_ONE)])
+        self.__status_btn_shuffle.connect_changed(self.__on_change_shuffle_mode)
+        self.__status_btn_shuffle.set_size(32, 32)
+        self.__status_btn_shuffle.set_value(shuffle_mode)
+        
 
         self.__touch_back_area = EventBox()
         self.__touch_back_area.connect_button_pressed(
@@ -86,6 +111,20 @@ class Menu(Widget):
         self.__window_ctrls = WindowControls()
         self.__window_ctrls.add_observer(self.__on_observe_window_ctrls)
         self.add(self.__window_ctrls)
+
+
+    def __on_change_repeat_mode(self, mode):
+    
+        mb_config.set_repeat_mode(mode)
+        #self.__btn_repeat.set_value(mode)
+        self.__status_btn_repeat.set_value(mode)
+
+
+    def __on_change_shuffle_mode(self, mode):
+    
+        mb_config.set_shuffle_mode(mode)
+        #self.__btn_shuffle.set_value(mode)
+        self.__status_btn_shuffle.set_value(mode)
         
 
     def __on_observe_window_ctrls(self, src, cmd, *args):
@@ -264,6 +303,10 @@ class Menu(Widget):
         self.set_frozen(False)
         self.set_visible(True)
         self.__fx_raise()
+
+        self.__btn_repeat.set_value(mb_config.repeat_mode())
+        self.__btn_shuffle.set_value(mb_config.shuffle_mode())
+            
         self.__window_ctrls.fx_slide_in()
         self.__previous_index = self.__index
         self.emit_message(msgs.INPUT_EV_CONTEXT_MENU)
@@ -280,6 +323,9 @@ class Menu(Widget):
     
         self.set_visible(False)
         self.__window_ctrls.fx_slide_out()
+
+        # update status icons
+        repeat_mode = mb_config.repeat_mode()
 
         if (self.__index == self.__previous_index):
             self.__fx_lower()
@@ -310,6 +356,9 @@ class Menu(Widget):
 
         if (not self.__icons):
             self.__generate_icons()
+
+        self.emit_message(msgs.UI_ACT_SET_STATUS_ICON, self.__status_btn_repeat)
+        self.emit_message(msgs.UI_ACT_SET_STATUS_ICON, self.__status_btn_shuffle)
 
 
     def handle_UI_ACT_SELECT_VIEWER(self, viewer_name):

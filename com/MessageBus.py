@@ -30,14 +30,14 @@ class _MessageBus(object):
             logging.debug("*** %s%s ***" % (msgs._id_to_name(event),
                                             `args`[:30]))
         
+        handler_name = "handle_" + msgs._id_to_name(event)
         for mediator in self.__mediators:
             if (mediator == src): continue
         
             mediator.set_pass_type(mediator.PASS_TYPE_PASS_ON)
-            handler_name = "handle_" + msgs._id_to_name(event)
             try:
                 if (hasattr(mediator, handler_name)):
-                    getattr(mediator, "handle_" + msgs._id_to_name(event))(*args)
+                    getattr(mediator, handler_name)(*args)
                 else:
                     mediator.handle_message(event, *args)
             except:
@@ -59,23 +59,34 @@ class _MessageBus(object):
 
     def call_service(self, svc, *args):
     
-        try:
-            handler = self.__services[svc]
-        except:
+        handler_name = "handle_" + msgs._id_to_name(svc)
+        handler = self.__services.get(svc)
+
+        if (not handler):            
             for mediator in self.__mediators:
                 try:
-                    ret = mediator.handle_message(svc, *args)
+                    if (hasattr(mediator, handler_name)):
+                        ret = getattr(mediator, handler_name)(*args)
+                    else:
+                        ret = mediator.handle_message(svc, *args)
                 except:
                     import traceback; traceback.print_exc()
                     pass
+
                 if (ret != None):
                     self.__services[svc] = mediator
                     return ret
             #end for
-            import msgs
+
             raise ServiceNotAvailableError(msgs._id_to_name(svc))
+
         else:
-            return handler.handle_message(svc, *args)
+            if (hasattr(handler, handler_name)):
+                ret = getattr(handler, handler_name)(*args)
+            else:
+                ret = handler.handle_message(svc, *args)
+
+            return ret
             
         
 _singleton = _MessageBus()

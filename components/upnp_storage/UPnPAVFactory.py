@@ -23,7 +23,7 @@ class UPnPAVFactory(Component):
                 device = AVDevice(descr)
                 dev_id = device.get_device_id()
                 self.__dev_ids[uuid] = dev_id
-                self.emit_event(msgs.CORE_EV_DEVICE_ADDED, uuid, device)
+                self.emit_event(msgs.CORE_EV_DEVICE_ADDED, dev_id, device)
                 
                 self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
                                    u"discovered network storage \xbb%s\xab" \

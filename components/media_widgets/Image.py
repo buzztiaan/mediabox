@@ -119,6 +119,9 @@ class Image(MultiTouchWidget, Observable):
         
         # progress percentage value
         self.__progress = 0
+        
+        # amount by which the image is dragged
+        self.__drag_amount = 0
                 
         
         MultiTouchWidget.__init__(self)
@@ -135,6 +138,28 @@ class Image(MultiTouchWidget, Observable):
                                        gtk.gdk.screen_height())
 
 
+    def __copy_image_buffer(self, buf1, buf2):
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+
+        if (self.__drag_amount >= 0):
+            src_x = x
+            dst_x = x + self.__drag_amount
+            dst_w = w - self.__drag_amount
+            if (self.__drag_amount != 0):
+                buf2.fill_area(x, y, self.__drag_amount, h, self.__bg_color)
+        else:
+            src_x = x - self.__drag_amount
+            dst_x = x
+            dst_w = w + self.__drag_amount
+            buf2.fill_area(x + dst_w, y, abs(self.__drag_amount), h, self.__bg_color)
+
+        buf2.copy_pixmap(buf1, src_x, y, dst_x, y, dst_w, h)
+    
+        
+
+
     def render_this(self):
 
         x, y = self.get_screen_pos()
@@ -144,7 +169,7 @@ class Image(MultiTouchWidget, Observable):
         if (self.__invalidated):
             self._render()
         else:
-            screen.copy_pixmap(self.__offscreen, x, y, x, y, w, h)
+            self.__copy_image_buffer(self.__offscreen, screen)
         
         # render progress bar
         if (self.__progress > 0):
@@ -153,9 +178,10 @@ class Image(MultiTouchWidget, Observable):
             py = y + h
             pw = int(w * p)
             ph = 16
-            TEMPORARY_PIXMAP.copy_pixmap(self.__offscreen, px, py, px, py,
-                                         pw, ph)
-            TEMPORARY_PIXMAP.fill_area(px, py, pw, ph, "#ffffff60")
+            self.__copy_image_buffer(self.__offscreen, TEMPORARY_PIXMAP)
+            #TEMPORARY_PIXMAP.copy_pixmap(self.__offscreen, px, py, px, py,
+            #                             pw, ph)
+            TEMPORARY_PIXMAP.fill_area(px, py, pw, ph, "#80808060")
             screen.copy_pixmap(TEMPORARY_PIXMAP, px, py, px, py, pw, ph)
 
         # render multitouch fingers
@@ -256,6 +282,12 @@ class Image(MultiTouchWidget, Observable):
         self.scroll_by(dx, dy)
 
 
+    def set_drag_amount(self, amount):
+    
+        self.__drag_amount = amount
+        self.render()
+        
+
     def __get_offset(self):
         """
         Returns the required offset coordinates for the
@@ -270,6 +302,18 @@ class Image(MultiTouchWidget, Observable):
         offy = max(0, min(cy - height / 2, vheight - height))
 
         return (int(offx), int(offy))
+
+
+    def is_image_fitting(self):
+        """
+        Returns whether the image fits the screen (True) or has to be
+        scrolled (False).
+        """
+
+        w, h = self.get_size()
+        virtual_w, virtual_h = self.__virtual_size
+        
+        return (virtual_w <= w and virtual_h <= h)
 
 
     def zoom_fit(self, animated = True):
@@ -336,7 +380,7 @@ class Image(MultiTouchWidget, Observable):
         self.scroll_to(cx * self.__zoom_value, cy * self.__zoom_value)
         #gobject.timeout_add(0, self.scroll_to, cx * self.__zoom_value,
         #                                       cy * self.__zoom_value)
-      
+          
       
     def __zoom_animated(self, level):
     
@@ -554,6 +598,7 @@ class Image(MultiTouchWidget, Observable):
             elif (self.__preloaded_pixbuf):
                 logging.debug("using preloaded image %s", f)
                 self.update_observer(self.OBS_BEGIN_LOADING)
+                self.__drag_amount = 0
                 self.__use_pixbuf(self.__preloaded_pixbuf)
                 self.update_observer(self.OBS_END_LOADING)
 
@@ -630,6 +675,7 @@ class Image(MultiTouchWidget, Observable):
                     
                 self.__progress = 0
                 if (not self.__is_preloading):
+                    self.__drag_amount = 0
                     self.render()
                     self.update_observer(self.OBS_END_LOADING)
 
@@ -693,6 +739,7 @@ class Image(MultiTouchWidget, Observable):
             pixbuf = pbuf
 
         del pbuf        
+
 
         return pixbuf
         

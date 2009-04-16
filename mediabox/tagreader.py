@@ -14,7 +14,8 @@ import os
 _TAG_DIR = os.path.join(values.USER_DIR, "idtags")
 _STORE_ON_MEDIUM = config.store_thumbnails_on_medium()
 
-_USE_CACHE = True
+# curiously, it appears to be faster without caching...
+_USE_CACHE = False
 
 
 def _have_tags(f, tagfile):

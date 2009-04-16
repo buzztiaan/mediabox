@@ -2,6 +2,8 @@ from Widget import Widget
 from ui.Pixmap import Pixmap
 from theme import theme
 
+import time
+
 
 class Slider(Widget):
     """
@@ -31,6 +33,9 @@ class Slider(Widget):
         self.__is_dragging = False
         self.__grab_point = 0
         self.__previous_pos = 0
+        
+        # time of last motion
+        self.__last_motion_time = 0
         
     
         Widget.__init__(self)
@@ -149,6 +154,10 @@ class Slider(Widget):
     def __on_motion(self, px, py):
     
         if (self.__is_dragging):
+            now = time.time()
+            if (now - self.__last_motion_time < 0.1): return
+            self.__last_motion_time = now
+        
             w, h = self.get_size()
             sw = self.__button_pbuf.get_width()
             sh = self.__button_pbuf.get_height()

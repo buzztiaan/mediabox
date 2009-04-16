@@ -942,6 +942,9 @@ class ImageStrip(Widget):
         item_y = idx * blocksize - self.__offset
         item_height = self.__itemsize
 
+        if (self.__scrollbar_pmap):
+            w -= self.__scrollbar_pmap.get_size()[0]
+
         #if (not self.__is_scrollable()):
         #    cw, ch = self.__cap_top_size
         #    item_y = idx * blocksize + ch
@@ -993,6 +996,7 @@ class ImageStrip(Widget):
 
             else:
                 # render item normally
+                #print "render", idx, pw, item_remain
                 self.__buffer.copy_pixmap(self.__shared_pmap,
                                           0, item_offset,
                                           offx, item_top,
@@ -1000,6 +1004,7 @@ class ImageStrip(Widget):
 
             # fill the empty space at the sides if the item was centered
             if (offx > 0 and self.__bg_color):
+                print "white"
                 self.__buffer.fill_area(0, item_top,
                                         offx, item_remain,
                                        self.__bg_color)

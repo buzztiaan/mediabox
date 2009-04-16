@@ -35,6 +35,8 @@ class ThumbableList(ItemList):
         # distance from the click position to the top of the slider
         self.__grab_point = 0
 
+        # time of last motion action
+        self.__last_motion_time = 0
 
         # whether the letter is visible
         self.__letter_visible = False
@@ -60,8 +62,9 @@ class ThumbableList(ItemList):
             if (self.__is_holding_slider):
                 return True
             else:
-                self.__fx_slide_out_slider()
-                #self.render()
+                #self.__fx_slide_out_slider()
+                self.__slider_offset = -80
+                self.render()
                 self.__slider_visible = False
                 return False
     
@@ -114,6 +117,11 @@ class ThumbableList(ItemList):
     def __on_drag_slider(self, px, py):
     
         if (self.__is_holding_slider):
+            now = time.time()
+            if (now - self.__last_motion_time < 0.1): return
+            self.__last_motion_time = now
+            
+        
             py -= self.__grab_point
 
             w, h = self.get_size()

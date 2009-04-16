@@ -51,6 +51,7 @@ class MediaViewer(TabbedViewer):
         self.__browser.set_thumbnailer(self.__on_request_thumbnail)
         self.__browser.set_visible(False)
         self.add(self.__browser)
+        self.__browser.connect_folder_opened(self.__on_open_folder)
         self.__browser.connect_file_opened(self.__on_open_file)
         self.__browser.connect_file_enqueued(self.__on_enqueue_file)
 
@@ -118,13 +119,14 @@ class MediaViewer(TabbedViewer):
                 items.append(Image(theme.mb_toolbar_space_1))
                 items.append(self.__btn_add)
         
-            if (self.__media_widget):
-                items += self.__media_widget.get_controls()
+            if (self.__media_box.is_visible()):
+                if (self.__media_widget):
+                    items += self.__media_widget.get_controls()
         
-            if (current_folder.folder_flags & current_folder.ITEMS_SKIPPABLE):            
-                items.append(Image(theme.mb_toolbar_space_1))
-                items.append(self.__btn_prev)
-                items.append(self.__btn_next)
+                if (current_folder.folder_flags & current_folder.ITEMS_SKIPPABLE):            
+                    items.append(Image(theme.mb_toolbar_space_1))
+                    items.append(self.__btn_prev)
+                    items.append(self.__btn_next)
 
         if (self.__browser.is_visible()):
             items.append(Image(theme.mb_toolbar_space_1))
@@ -141,6 +143,7 @@ class MediaViewer(TabbedViewer):
         self.set_title(title)
 
         self.__update_toolbar()
+        self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
         #self.emit_message(msgs.UI_ACT_RENDER)
 
 
@@ -152,6 +155,7 @@ class MediaViewer(TabbedViewer):
             self.set_title("")
         
         self.__update_toolbar()
+        self.emit_message(msgs.INPUT_EV_CONTEXT_PLAYER)
         #self.emit_message(msgs.UI_ACT_RENDER)
         
         w, h = self.get_size()
@@ -161,6 +165,15 @@ class MediaViewer(TabbedViewer):
     def __on_open_file(self, f):
     
         self.__load_file(f, MediaWidget.DIRECTION_NONE)
+
+
+    def __on_open_folder(self, f):
+
+        names = [ p.name for p in self.__browser.get_path() ]
+        title = u" \u00bb ".join(names)
+        self.set_title(title)
+
+        self.__update_toolbar()
 
 
     def __on_enqueue_file(self, f):
@@ -265,20 +278,19 @@ class MediaViewer(TabbedViewer):
             self.__go_next()
 
 
-    def __on_media_volume(self, volume):
+    def __on_media_scaled(self, v):
         """
-        Reacts on changing the sound volume.
+        Reacts on changing the scaling value.
         """
 
-        self.emit_message(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
-        self.__slider.set_value(volume / 100.0)
+        #self.emit_message(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
+        self.__slider.set_value(v)
 
 
     def __on_slider_changed(self, v):
     
         if (self.__media_widget):
-            vol = int(v * 100)
-            self.__media_widget.set_volume(vol)
+            self.__media_widget.set_scaling(v)
 
 
     def __go_previous(self):
@@ -413,7 +425,7 @@ class MediaViewer(TabbedViewer):
         self.__media_widget.set_visible(True)
         self.__media_widget.connect_media_position(self.__on_media_position)
         self.__media_widget.connect_media_eof(self.__on_media_eof)
-        self.__media_widget.connect_media_volume(self.__on_media_volume)
+        self.__media_widget.connect_media_scaled(self.__on_media_scaled)
         self.__media_widget.connect_media_previous(self.__go_previous)
         self.__media_widget.connect_media_next(self.__go_next)
         self.__media_widget.connect_fullscreen_toggled(
@@ -437,8 +449,8 @@ class MediaViewer(TabbedViewer):
         self.__media_widget.load(f, direction)
         self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 
-        playable_files = [ f for f in self.__browser.get_files()
-                           if not f.mimetype.endswith("-folder") ]
+        playable_files = [ fl for fl in self.__browser.get_files()
+                           if not fl.mimetype.endswith("-folder") ]
         try:
             idx = playable_files.index(f)
         except:
@@ -470,6 +482,11 @@ class MediaViewer(TabbedViewer):
             self.__media_widget.close()
 
 
+    def handle_CORE_EV_FOLDER_INVALIDATED(self, folder):
+    
+        self.__browser.invalidate_folder(folder)
+
+
     def handle_CORE_ACT_SEARCH_ITEM(self, key):
     
         if (self.is_active()):
@@ -483,6 +500,12 @@ class MediaViewer(TabbedViewer):
         self.__current_file = None
         self.__may_go_next = False
 
+
+    def handle_MEDIA_ACT_PLAY(self):
+
+        if (self.__media_widget and self.is_visible()):
+            self.__media_widget.stop()
+            self.__media_widget.play_pause()
         
         
     def handle_MEDIA_ACT_STOP(self):
@@ -541,4 +564,16 @@ class MediaViewer(TabbedViewer):
     
         if (self.is_active() and self.__media_widget):
             self.__media_widget.decrement()
+
+
+    def handle_INPUT_EV_REWIND(self):
+    
+        if (self.is_active() and self.__media_widget):
+            self.__media_widget.rewind()
+            
+            
+    def handle_INPUT_EV_FORWARD(self):
+    
+        if (self.is_active() and self.__media_widget):
+            self.__media_widget.forward()
 

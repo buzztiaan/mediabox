@@ -128,6 +128,7 @@ class KineticScroller(Observable):
             
             self.__delta_s = (vx * self.__delta_t, vy * self.__delta_t)
             
+            gtk.main_iteration(False)
             gobject.timeout_add(5, self.__impulse_handler)
                 
         
@@ -193,8 +194,11 @@ class KineticScroller(Observable):
             self.__delta_s = (dsx, dsy)
                 
             self.__delta_t = now - self.__impulse_point
+            if (self.__delta_t < 0.05): return
+            
             self.__impulse_point = now
             self.__drag_pointer = (px, py)
+ 
             
             if (abs(self.__delta_s[0]) > 0.1 or abs(self.__delta_s[1]) > 0.1):
                 

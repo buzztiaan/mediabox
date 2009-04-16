@@ -215,8 +215,7 @@ class AVDevice(Device):
                 pass
             
         return didl
-    
-        
+     
         
     def ls(self, path):
     
@@ -238,7 +237,10 @@ class AVDevice(Device):
                 item = self.__build_file(url_base, entry)
             else:
                 item = None
-            return cb(item, *args)
+            print "f", entry
+            ret = cb(item, *args)
+            print ret
+            return ret
             
         didl = self.__get_didl(path)
         files = []

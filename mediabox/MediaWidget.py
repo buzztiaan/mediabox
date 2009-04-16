@@ -13,6 +13,8 @@ class MediaWidget(Widget, Component):
     EVENT_FULLSCREEN_TOGGLED = "media-fullscreen-toggled"
     EVENT_MEDIA_PREVIOUS = "media-previous"
     EVENT_MEDIA_NEXT = "media-next"
+    EVENT_MEDIA_SCALE = "media-scale"
+    """@since: 0.96.5"""
     
     
     DIRECTION_PREVIOUS = 0
@@ -88,7 +90,7 @@ class MediaWidget(Widget, Component):
 
     def decrement(self):
         """
-        Performs a DECREMENT action.
+        Decrements the scaling value.
         """
         
         pass
@@ -96,7 +98,7 @@ class MediaWidget(Widget, Component):
         
     def increment(self):
         """
-        Performs an INCREMENT action.
+        Increments the scaling value.
         """
         
         pass
@@ -105,11 +107,43 @@ class MediaWidget(Widget, Component):
     def set_volume(self, vol):
         """
         Sets the volume.
+        @deprecated: use L{set_scaling} instead
         """
         
         pass
         
         
+    def set_scaling(self, v):
+        """
+        Sets the scaling value.
+        @since: 0.96.5
+        
+        @param v: a scaling value between 0.0 and 1.0
+        """
+        
+        # stay compatible with media widgets that only implement the
+        # deprecated set_volume method
+        self.set_volume(int(v * 100))
+
+
+    def rewind(self):
+        """
+        Rewinds the media.
+        @since: 0.96.5
+        """
+        
+        pass
+        
+        
+    def forward(self):
+        """
+        Fast forwards the media.
+        @since: 0.96.5
+        """
+        
+        pass
+
+
     def connect_media_position(self, cb, *args):
     
         self._connect(self.EVENT_MEDIA_POSITION, cb, *args)
@@ -138,4 +172,9 @@ class MediaWidget(Widget, Component):
     def connect_media_next(self, cb, *args):
     
         self._connect(self.EVENT_MEDIA_NEXT, cb, *args)
+
+
+    def connect_media_scaled(self, cb, *args):
+    
+        self._connect(self.EVENT_MEDIA_SCALE, cb, *args)
 
