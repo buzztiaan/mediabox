@@ -80,27 +80,41 @@ class FMRadioViewer(Viewer):
     
         if (not self.__stations):
             self.__load_stations()
-        
-        
-    def handle_message(self, msg, *args):
+          
     
-        if (msg == msgs.MEDIA_ACT_STOP):
-            self.__radio_off()
-            
-        elif (msg == msgs.CORE_EV_APP_SHUTDOWN):
-            self.__radio_off()
+    def handle_MEDIA_ACT_PLAY(self):
     
         if (self.is_active()):
-            if (msg == msgs.HWKEY_EV_INCREMENT):
-                self.__set_volume(mb_config.volume() + 5)
+            self.__play()
+    
+    
+    def handle_MEDIA_ACT_STOP(self):
+        
+        self.__radio_off()
+    
+    
+    def handle_CORE_EV_APP_SHUTDOWN(self):
 
-            elif (msg == msgs.HWKEY_EV_DECREMENT):
-                self.__set_volume(mb_config.volume() - 5)
+        self.__radio_off()
 
-            # provide search-as-you-type
-            elif (msg == msgs.CORE_ACT_SEARCH_ITEM):
-                key = args[0]
-                self.__search(key)           
+
+    def handle_INPUT_EV_VOLUME_UP(self):    
+
+        if (self.is_active()):
+            self.__set_volume(mb_config.volume() + 5)
+
+
+    def handle_INPUT_EV_VOLUME_DOWN(self):
+
+        if (self.is_active()):
+            self.__set_volume(mb_config.volume() - 5)
+
+    
+    def handle_CORE_ACT_SEARCH_TERM(self, key):
+    
+        if (self.is_active()):
+            key = args[0]
+            self.__search(key)
 
 
     def __set_region(self, region):

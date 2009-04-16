@@ -56,7 +56,13 @@ class Slider(Widget):
             self.__buffer.fill_area(0, 0, w, h,
                                     theme.color_mb_background)
 
-        
+
+
+    def set_image(self, pbuf):
+    
+        self.__button_pbuf = pbuf
+        self.render()
+
 
     def set_size(self, w, h):
     

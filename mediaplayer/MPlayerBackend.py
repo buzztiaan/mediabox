@@ -16,6 +16,21 @@ _MPLAYER = "/usr/bin/mplayer"
 class MPlayerBackend(AbstractBackend):
     """
     Backend implementation for controlling MPlayer.
+    
+    There are some tweaks to work around issues with mplayer:
+    
+    We do a busy wait while mplayer starts up. Putting load on the CPU during
+    mplayer's startup phase makes video playback smoother (don't ask why...).
+    
+    mplayer is closed and restarted after playing a video. There is no reliable
+    end-of-stream detection in maemo's mplayer port, so we let mplayer die at
+    the end-of-stream. This is easier to detect.
+    Audio streams aren't affected by this.
+    
+    maemo's mplayer port is buggy and reports a wrong total time for FLAC audio.
+    But at startup mplayer reports "ID_LENGTH" with the correct time. Thus if
+    mplayer reported "ID_LENGTH" at startup, it takes precedence over
+    "ANS_LENGTH".
     """
 
     def __init__(self):
@@ -30,6 +45,7 @@ class MPlayerBackend(AbstractBackend):
         self.__stdout = None
         self.__collect_handler = None
     
+        self.__id_length = 0
         self.__media_length = 0
         self.__media_position = 0
         
@@ -337,7 +353,7 @@ class MPlayerBackend(AbstractBackend):
                                     self.__media_length
 
         elif (data.startswith("ANS_LENGTH")):
-            if (self.__media_length == 0):
+            if (self.__id_length == 0):
                 self.__media_length = float(self.__read_ans(data))
 
         elif (data.startswith("ANS_VIDEO_RESOLUTION")):
@@ -371,7 +387,8 @@ class MPlayerBackend(AbstractBackend):
             # ID_LENGTH has precedence over reported length, if available,
             # because mplayer is buggy reporting length of FLAC files
             self.__media_length = float(self.__read_ans(data))
-            #print "MEDIA LENGTH", self.__media_length
+            self.__id_length = float(self.__read_ans(data))
+            print "ID LENGTH", self.__id_length
 
         elif (data.startswith("Name   : ")):
             print "NAME", self.__read_info(data)

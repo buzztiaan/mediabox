@@ -429,6 +429,7 @@ class YouTube(Device):
                 gtk.main_iteration(False)
                 
             else:
+                self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
                 if (self.__keep_video):
                     keep_dir = os.path.dirname(keep_path)
                     if (not os.path.exists(keep_dir)):

@@ -36,6 +36,9 @@ class ProgressBar(Widget):
         # the current progress as a value between 0.0 and 1.0
         self.__progress = 0
         
+        # the current amount, if any
+        self.__amount = 0.0
+        
         # the current message if any
         self.__current_message = ""
        
@@ -193,6 +196,7 @@ class ProgressBar(Widget):
         pmap = TEMPORARY_PIXMAP
         pmap.copy_pixmap(self.__bg_pmap, 0, 0, 0, 0, w, h)
         self.__render_progress(pmap)
+        self.__render_amount(pmap)
         self.__render_bookmarks(pmap)
         self.__render_message(pmap)
         screen.copy_pixmap(pmap, 0, 0, x, y, w, h)
@@ -207,6 +211,18 @@ class ProgressBar(Widget):
             pmap.copy_pixmap(self.__progress_pmap, 0, 0, 0, 0,
                              progress_width, 64)
         #end if
+
+
+    def __render_amount(self, pmap):
+    
+        w, h = self.get_size()
+        
+        amount_width = w * self.__amount
+        print self.__amount, amount_width, w
+        if (1 < amount_width < w):
+            height = 32
+            y = (h - height) / 2
+            pmap.fill_area(0, y, amount_width, height, "#ff000040")
 
 
     def __render_bookmarks(self, pmap):
@@ -251,6 +267,7 @@ class ProgressBar(Widget):
         self.__bookmarks = bookmarks[:]
         self.render()
 
+
     def get_bookmarks(self):
         """
         Returns the list of bookmarks.
@@ -275,7 +292,26 @@ class ProgressBar(Widget):
         if (not self.may_render()): return
         if (total == 0): return
 
-        self.__progress = pos / float(total)
-        self.render()
+        new_progress = pos/float(total)
+        if (abs(self.__progress - new_progress) > 0.001):            
+            self.__progress = new_progress
+            self.render()
         #self.send_event(self.EVENT_CHANGED, self.__progress * 100)
+
+
+    def set_amount(self, amount):
+        """
+        Sets the amount as a value between 0.0 and 1.0.
+        @since: 0.96.5
+        
+        @param amount: the amount value
+        """
+
+        self.set_message("")
+        if (self.__is_dragging and self.__dragged_bookmark == -1): return
+        if (not self.may_render()): return
+        
+        if (abs(amount - self.__amount) > 0.001):
+            self.__amount = amount
+            self.render()
 

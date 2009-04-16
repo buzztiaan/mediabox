@@ -102,8 +102,7 @@ class VideoWidget(MediaWidget):
         elif (msg == msgs.MEDIA_EV_DOWNLOAD_PROGRESS):
             f, amount, total = args
             if (f == self.__current_file and total > 0):
-                percent = int(float(amount) / total * 100)
-                self.__progress.set_message("... loading (%d%%)..." % percent)
+                self.__progress.set_amount(float(amount) / total)
                 
 
     def _visibility_changed(self):
@@ -225,6 +224,7 @@ class VideoWidget(MediaWidget):
         elif (cmd == src.OBS_STARTED):
             #print "Started Player"
             self.__progress.set_message("")
+            self.__progress.set_amount(0)
             #self.__btn_play.set_images(theme.btn_play_1,
             #                           theme.btn_play_2)
             
@@ -232,6 +232,7 @@ class VideoWidget(MediaWidget):
             #print "Killed Player"
             self.__uri = ""
             self.__progress.set_message("")
+            self.__progress.set_amount(0)
             self.__hide_video_screen()
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
@@ -240,6 +241,7 @@ class VideoWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):
                 self.__progress.set_message("... connecting ...")
+                self.__progress.set_amount(0)
 
         elif (cmd == src.OBS_BUFFERING):
             ctx, value = args

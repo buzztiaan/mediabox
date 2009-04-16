@@ -60,7 +60,7 @@ class MediaViewer(TabbedViewer):
         self.add(hbox)
 
         # volume/zoom slider
-        self.__slider = Slider(theme.mb_list_slider)
+        self.__slider = Slider(theme.mb_slider_volume)
         self.__slider.set_mode(self.__slider.VERTICAL)
         self.__slider.set_value(0.5)
         self.__slider.connect_value_changed(self.__on_slider_changed)
@@ -273,9 +273,11 @@ class MediaViewer(TabbedViewer):
         self.emit_message(msgs.MEDIA_EV_EOF)
         self.__browser.hilight_file(None)
 
-        if (self.__may_go_next):
-            logging.debug("going to next item")
-            self.__go_next()
+        folder = self.__browser.get_current_folder()
+        if (folder.folder_flags & folder.ITEMS_SKIPPABLE):
+            if (self.__may_go_next):
+                logging.debug("going to next item")
+                self.__go_next()
 
 
     def __on_media_scaled(self, v):
@@ -396,7 +398,10 @@ class MediaViewer(TabbedViewer):
 
         if (not f.mimetype in mimetypes.get_image_types()):
             self.emit_message(msgs.MEDIA_ACT_STOP)
-
+            self.__slider.set_image(theme.mb_slider_volume)
+        else:
+            self.__slider.set_image(theme.mb_slider_zoom)
+            
         # request media widget
         media_widget = self.call_service(
                         msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
@@ -445,7 +450,7 @@ class MediaViewer(TabbedViewer):
 
         self.__browser.hilight_file(f)
 
-        self.emit_message(msgs.UI_ACT_RENDER)
+        #self.emit_message(msgs.UI_ACT_RENDER)
         self.__media_widget.load(f, direction)
         self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 

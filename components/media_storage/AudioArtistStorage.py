@@ -72,8 +72,8 @@ class AudioArtistStorage(Device):
         media, added, removed = \
                 self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
                                  [File.DIRECTORY])
-        #print "ADDED", added
-        #print "REMOVED", removed
+        print "ADDED", added
+        print "REMOVED", removed
         #finished = threading.Event()
         #gobject.idle_add(f)        
         #threads.wait_for(lambda :finished.isSet())
