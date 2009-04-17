@@ -39,6 +39,9 @@ class Widget(object):
         Be sure to invoke this constructor when deriving from this class.
         """
     
+        # known actors
+        self.__actors_stack = []
+    
         self.__children = []
         self.__parent = None
     
@@ -60,7 +63,46 @@ class Widget(object):
         self.__screen = None
         self.__window = None
         self.__instances.append(self)
+
           
+    def push_actor(self, w):
+        """
+        Pushes an actor widget onto the actors stack. All but the topmost actor
+        on the stack are frozen.
+        @since: 0.96.5
+        
+        @param w: a widget
+        """
+        
+        if (self.__parent):
+            self.__parent.push_actor(w)
+        else:
+            self.__actors_stack.append(w)
+            self.__update_actors()
+        
+        
+    def pop_actor(self):
+        """
+        Pops the topmost actor widget from the actors stack.
+        @since: 0.96.5
+        """
+        
+        if (self.__parent):
+            self.__parent.pop_actor()
+        elif (self.__actors_stack):
+            actor = self.__actors_stack.pop()
+            actor.set_frozen(True)
+            self.__update_actors()
+        
+        
+    def __update_actors(self):
+        
+        if (self.__actors_stack):
+            for actor in self.__actors_stack[:-1]:
+                actor.set_frozen(True)
+
+            self.__actors_stack[-1].set_frozen(False)
+            
           
     def _handle_event(self, ev, px, py, *args):
     

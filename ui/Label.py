@@ -41,6 +41,13 @@ class Label(Widget):
         #self.__create_text_pmap()
 
 
+    def set_size(self, w, h):
+    
+        Widget.set_size(self, w, h)
+        self.__is_new_text = True
+        self.__bg = None
+
+
     def __create_text_pmap(self):
     
         if (not self.__is_new_text): return
@@ -57,8 +64,8 @@ class Label(Widget):
         screen = self.get_screen()
         text_w, text_h = self.__text_pmap.get_size()
 
-        if (not w): w = text_w
-        if (not h): h = text_h
+        if (w <= 0): w = text_w
+        if (h <= 0): h = text_h
         
         self.__bg = Pixmap(None, w, text_h)
         y += (h - text_h) / 2
@@ -175,7 +182,7 @@ class Label(Widget):
             direction = 1
         #end if            
 
-        text_w, text_h = self.__text_pmap.get_size()    
+        text_w, text_h = self.__text_pmap.get_size()
         x, y = self.get_screen_pos()
         w, h = self.get_size()    
         screen = self.get_screen()
@@ -193,10 +200,10 @@ class Label(Widget):
             
         if (self.may_render()):
             text_y = (h - text_h) / 2
-            self.use_clipping(True)
+            #self.use_clipping(True)
             screen.copy_pixmap(self.__text_pmap, pos, 0, x + text_x, y + text_y,
                                min(text_w, w), text_h)
-            self.use_clipping(False)
+            #self.use_clipping(False)
 
         # handle scrolling
         # (only scroll for 10 minutes, then stop to save battery)

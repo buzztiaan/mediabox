@@ -29,7 +29,7 @@ class IdleDetector(Component):
         self.__is_idle = True
         self.__idle_timer = None
         logging.info("no activity: going idle")
-        self.emit_event(msgs.CORE_EV_APP_IDLE_BEGIN)
+        self.emit_message(msgs.CORE_EV_APP_IDLE_BEGIN)
         
         
         
@@ -38,7 +38,7 @@ class IdleDetector(Component):
         if (self.__is_idle):
             self.__is_idle = False
             logging.info("activity: waking up")
-            self.emit_event(msgs.CORE_EV_APP_IDLE_END)
+            self.emit_message(msgs.CORE_EV_APP_IDLE_END)
     
         if (self.__idle_timer):
             gobject.source_remove(self.__idle_timer)

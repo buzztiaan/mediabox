@@ -96,14 +96,14 @@ class Preferences(Viewer):
             
         if (self.is_active()):
             if (event == msgs.INPUT_ACT_REPORT_CONTEXT):
-                self.emit_event(msgs.INPUT_EV_CONTEXT_BROWSER)
+                self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
 
 
     def show(self):
     
         Viewer.show(self)
-        self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)
-        self.emit_event(msgs.INPUT_EV_CONTEXT_BROWSER)
+        self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+        self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
 
 
 

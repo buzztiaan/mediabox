@@ -32,10 +32,10 @@ class Container(Component):
                 self.load_path(p)
 
         for c in self.__components:
-            self.emit_event(msgs.COM_EV_COMPONENT_LOADED, c)
+            self.emit_message(msgs.COM_EV_COMPONENT_LOADED, c)
 
         for dev in self.__devices:
-            self.emit_event(msgs.CORE_EV_DEVICE_ADDED, dev.get_device_id(), dev)
+            self.emit_message(msgs.CORE_EV_DEVICE_ADDED, dev.get_device_id(), dev)
 
 
         
@@ -170,6 +170,6 @@ class Container(Component):
         for mod in mods:
             self.__register_messages(mod)
         for mod in mods:
-            self.emit_event(msgs.COM_EV_LOADING_MODULE, mod.__name__)
+            self.emit_message(msgs.COM_EV_LOADING_MODULE, mod.__name__)
             self.__load_components(mod)
 

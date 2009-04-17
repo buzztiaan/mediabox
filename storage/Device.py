@@ -152,7 +152,10 @@ class Device(Component):
         @param idx:    index of file to delete
         """
         
-        raise NotImplementedError
+        # support legacy plugins
+        logging.warning("DEPRECATED: %s implements 'delete'",
+                        self.__class__.__name__)        
+        self.delete(folder._LEGACY_SUPPORT_file_to_delete)
 
         
     def delete(self, f):

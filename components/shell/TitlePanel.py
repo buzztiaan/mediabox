@@ -13,7 +13,7 @@ class TitlePanel(Widget):
 
     def __init__(self):
 
-        self.__bg_pbuf = None
+        self.__bg_pmap = None
 
         self.__title_text = ""
         self.__title_timer = None
@@ -67,23 +67,25 @@ class TitlePanel(Widget):
         self.__info.set_geometry(w - 140, 5, 130, 0)
         self.__volume.set_geometry(w - 140, 5, 130, 0)
         
-        if (self.__bg_pbuf):
-            screen.draw_pixbuf(self.__bg_pbuf, x, y)
+        if (self.__bg_pmap):
+            screen.draw_pixmap(self.__bg_pmap, x, y)
 
 
     def _reload(self):
     
-        self.__bg_pbuf = None
+        self.__bg_pmap = None
         w, h = self.get_size()
         self.set_size(w, h)
 
 
     def set_size(self, w, h):
 
-        if (not self.__bg_pbuf or (w, h) != self.get_size()):
-            self.__bg_pbuf = pixbuftools.make_frame(theme.mb_panel, w, h, True,
-                      pixbuftools.LEFT | pixbuftools.BOTTOM | pixbuftools.RIGHT)
-
+        if (not self.__bg_pmap or (w, h) != self.get_size()):
+            self.__bg_pmap = Pixmap(None, w, h)
+            self.__bg_pmap.fill_area(0, 0, w, h, theme.color_mb_background)
+            self.__bg_pmap.draw_frame(theme.mb_panel, 0, 0, w, h, True,
+                                     Pixmap.LEFT | Pixmap.BOTTOM | Pixmap.RIGHT)
+    
         Widget.set_size(self, w, h)
         
 
@@ -172,7 +174,6 @@ class TitlePanel(Widget):
         try:
             idx = known_icons.index(w)
             known_icons[idx].set_visible(False)
-            print "UNSET", known_icons[idx]
         except ValueError:
             pass
 

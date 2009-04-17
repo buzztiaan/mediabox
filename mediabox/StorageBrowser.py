@@ -101,7 +101,10 @@ class StorageBrowser(TrackList):
         elif (button == item.BUTTON_REMOVE):
             f = item.get_file()
             print item.get_file()
-            self.get_current_folder().delete_file(idx - 1)
+            folder = self.get_current_folder()
+            # support legacy plugins
+            folder._LEGACY_SUPPORT_file_to_delete = f
+            folder.delete_file(idx - 1)
             self.reload_current_folder()
             self.send_event(self.EVENT_FILE_REMOVED, f)
 
@@ -460,6 +463,8 @@ class StorageBrowser(TrackList):
         buttons = []
         
         cwd = self.get_current_folder()
+        self.__support_legacy_folder_flags(cwd, f)
+
         if (f.mimetype in ("application/x-bookmarks-folder",
                            "application/x-music-folder")):
             buttons.append((item.BUTTON_OPEN, theme.mb_item_btn_open))
@@ -551,4 +556,30 @@ class StorageBrowser(TrackList):
             # load thumbnail
             self.__thumbnailer(f, on_loaded, item, None)
         #end if
+
+
+    def __support_legacy_folder_flags(self, folder, f):
+        """
+        Translates the legacy flags to the new folder flags.
+        """
+        
+        if (folder.can_skip):
+            folder.folder_flags |= folder.ITEMS_SKIPPABLE
+            
+        if (folder.can_add_to_library):
+            folder.folder_flags |= folder.INDEXABLE
+
+        if (folder.can_add):
+            folder.folder_flags |= folder.ITEMS_ADDABLE
+
+        if (not f): return
+        
+        if (f.can_delete):
+            folder.folder_flags |= folder.ITEMS_DELETABLE
+
+        if (f.can_keep):
+            folder.folder_flags |= folder.ITEMS_DOWNLOADABLE
+
+        if (f.can_download):
+            folder.folder_flags |= folder.ITEMS_DOWNLOADABLE
 

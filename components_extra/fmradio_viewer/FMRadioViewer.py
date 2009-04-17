@@ -9,6 +9,7 @@ from ui.ImageButton import ImageButton
 from ui.Image import Image
 from ui.ToggleButton import ToggleButton
 from ui.Dialog import Dialog
+from ui.Slider import Slider
 from ui import dialogs
 from mediabox import viewmodes
 from mediabox import config as mb_config
@@ -32,14 +33,20 @@ class FMRadioViewer(Viewer):
         
 
         Viewer.__init__(self)
+        
+        self.__slider = Slider(theme.mb_slider_volume)
+        self.__slider.set_mode(Slider.VERTICAL)
+        self.__slider.connect_value_changed(self.__on_set_volume)
+        self.add(self.__slider)
+        
         self.__list = TrackList(with_drag_sort = True)
         self.__list.connect_button_clicked(self.__on_item_button)
         self.__list.connect_items_swapped(self.__on_swap)
-        self.__list.set_geometry(10, 0, 680, 370)
+        #self.__list.set_geometry(10, 0, 680, 370)
         self.add(self.__list)
         
         self.__scale = RadioScale()
-        self.__scale.set_geometry(695, 5, 100, 360)
+        self.__scale.set_size(100, 360)
         self.__scale.set_range(87.5, 108.0)
         self.add(self.__scale)
         self.__scale.connect_tuned(self.__on_tune)
@@ -80,7 +87,13 @@ class FMRadioViewer(Viewer):
     
         if (not self.__stations):
             self.__load_stations()
-          
+    
+        w, h = self.get_size()
+    
+        self.__slider.set_geometry(0, 0, 80, h)
+        self.__list.set_geometry(80, 0, w - 80 - 100, h)
+        self.__scale.set_geometry(w - 100, 0, 100, h)
+        
     
     def handle_MEDIA_ACT_PLAY(self):
     
@@ -93,9 +106,15 @@ class FMRadioViewer(Viewer):
         self.__radio_off()
     
     
+    def handle_CORE_EV_APP_STARTED(self):
+    
+        self.emit_message(msgs.SYSTEM_ACT_FORCE_SPEAKER_ON)
+    
+    
     def handle_CORE_EV_APP_SHUTDOWN(self):
 
         self.__radio_off()
+        self.emit_message(msgs.SYSTEM_ACT_FORCE_SPEAKER_OFF)
 
 
     def handle_INPUT_EV_VOLUME_UP(self):    
@@ -248,6 +267,12 @@ class FMRadioViewer(Viewer):
         gtk.main_iteration(False)
 
 
+    def __on_set_volume(self, v):
+    
+        volume = int(100 * v)
+        self.__set_volume(volume)
+
+
     def __on_item_button(self, item, idx, button):
     
         if (button == item.BUTTON_PLAY):
@@ -293,9 +318,9 @@ class FMRadioViewer(Viewer):
     def __toggle_speaker(self, value):
     
         if (value):
-            self.emit_event(msgs.SYSTEM_ACT_FORCE_SPEAKER_ON)
+            self.emit_message(msgs.SYSTEM_ACT_FORCE_SPEAKER_ON)
         else:
-            self.emit_event(msgs.SYSTEM_ACT_FORCE_SPEAKER_OFF)
+            self.emit_message(msgs.SYSTEM_ACT_FORCE_SPEAKER_OFF)
 
 
     def __play(self):
@@ -329,6 +354,7 @@ class FMRadioViewer(Viewer):
         if (self.__radio):
             self.__radio.set_volume(volume)
         mb_config.set_volume(volume)
+        self.__slider.set_value(volume / 100.0)
         self.emit_event(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
 
 

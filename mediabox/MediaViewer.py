@@ -208,7 +208,7 @@ class MediaViewer(TabbedViewer):
             self.set_tabs_visible(True)
             self.__slider.set_visible(True)
             self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)
-            self.emit_event(msgs.UI_ACT_RENDER)
+            self.emit_message(msgs.UI_ACT_RENDER)
 
 
     def __on_btn_back(self):

@@ -16,8 +16,7 @@ class ShoutcastDirectory(object):
         self.__stations = {}
 
     def __parse_genres(self, data):
-        print '__parse_genres'
-        #print data
+
         self.__genres = []
         try:
             dtree = ElementTree.parse(StringIO(data))
@@ -31,7 +30,7 @@ class ShoutcastDirectory(object):
             print 'shoutcast genre listing download failed'
 
     def __parse_stations(self, data, genre):
-        print '__parse_stations', genre
+
         stations = []
         try:
             dtree = ElementTree.parse(StringIO(data))
@@ -53,7 +52,7 @@ class ShoutcastDirectory(object):
         except:
             print 'shoutcast listing download failed'
 
-        #stations.sort()
+        stations.sort()
         self.__stations[genre] = stations
 
     def get_path(self, path, cb):
@@ -74,6 +73,7 @@ class ShoutcastDirectory(object):
             dl = Downloader(_SHOUTCAST_BASE + "/sbin/newxml.phtml", on_load, [""])
         else:
             self.__list_path(path, cb)
+
 
     def __list_path(self, path, cb):
 

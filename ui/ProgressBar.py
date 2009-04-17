@@ -218,7 +218,6 @@ class ProgressBar(Widget):
         w, h = self.get_size()
         
         amount_width = w * self.__amount
-        print self.__amount, amount_width, w
         if (1 < amount_width < w):
             height = 32
             y = (h - height) / 2

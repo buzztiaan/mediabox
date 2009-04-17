@@ -62,8 +62,7 @@ class DialogService(Widget):
         if (not self.__buffer or (w, h) != self.__buffer.get_size()):
             self.__buffer = Pixmap(None, w, h)
     
-        self.emit_message(msgs.UI_ACT_FREEZE)
-        self.set_frozen(False)
+        #self.emit_message(msgs.UI_ACT_FREEZE)
         self.__buffer.copy_buffer(screen, 0, 0, 0, 0, w, h)
         #self.emit_message(msgs.INPUT_EV_CONTEXT_MENU)
         #self.emit_message(msgs.UI_EV_VIEWER_CHANGED, -1)
@@ -71,6 +70,7 @@ class DialogService(Widget):
         
         self.__dialog.set_geometry(0, 0, w, h)
         self.set_visible(True)
+        self.push_actor(self)
 
         self.render()
         gtk.gdk.window_process_all_updates()
@@ -84,7 +84,8 @@ class DialogService(Widget):
     
         screen.draw_pixmap(self.__buffer, x, y)
         self.set_visible(False)
-        self.emit_message(msgs.UI_ACT_THAW)
+        #self.emit_message(msgs.UI_ACT_THAW)
+        self.pop_actor()
         
         
     def __run_dialog(self):

@@ -71,7 +71,7 @@ class Viewer(Component, Widget):
         
         self.__current_tbar_set = widgets
         if (self.__is_active):
-            self.emit_event(msgs.CORE_ACT_SET_TOOLBAR, self.__current_tbar_set)
+            self.emit_message(msgs.CORE_ACT_SET_TOOLBAR, self.__current_tbar_set)
 
 
     def set_title(self, title):
@@ -84,7 +84,7 @@ class Viewer(Component, Widget):
     
         self.__title = title
         if (self.__is_active):
-            self.emit_event(msgs.CORE_ACT_SET_TITLE, title)
+            self.emit_message(msgs.CORE_ACT_SET_TITLE, title)
             
 
     def set_info(self, info):
@@ -97,7 +97,7 @@ class Viewer(Component, Widget):
     
         self.__info = info            
         if (self.__is_active):
-            self.emit_event(msgs.CORE_ACT_SET_INFO, info)
+            self.emit_message(msgs.CORE_ACT_SET_INFO, info)
             
             
     def set_strip(self, collection):
@@ -109,7 +109,7 @@ class Viewer(Component, Widget):
         """
     
         #self.__collection = collection
-        self.emit_event(msgs.UI_ACT_SET_STRIP, self, collection)
+        self.emit_message(msgs.UI_ACT_SET_STRIP, self, collection)
 
 
     def change_strip(self, owner):
@@ -121,7 +121,7 @@ class Viewer(Component, Widget):
         @param owner: owner object
         """
         
-        self.emit_event(msgs.UI_ACT_CHANGE_STRIP, owner)
+        self.emit_message(msgs.UI_ACT_CHANGE_STRIP, owner)
     
 
             
@@ -133,7 +133,7 @@ class Viewer(Component, Widget):
         @param idx: index of the item to hilight
         """
         
-        self.emit_event(msgs.UI_ACT_HILIGHT_STRIP_ITEM, self, idx)
+        self.emit_message(msgs.UI_ACT_HILIGHT_STRIP_ITEM, self, idx)
             
             
     def select_strip_item(self, idx):
@@ -144,7 +144,7 @@ class Viewer(Component, Widget):
         @param idx: index of the item to select
         """
         
-        self.emit_event(msgs.UI_ACT_SELECT_STRIP_ITEM, self, idx)
+        self.emit_message(msgs.UI_ACT_SELECT_STRIP_ITEM, self, idx)
             
             
     def show_strip_item(self, idx):
@@ -155,7 +155,7 @@ class Viewer(Component, Widget):
         @param idx: index of the item to scroll to
         """
         
-        self.emit_event(msgs.UI_ACT_SHOW_STRIP_ITEM, self, idx)
+        self.emit_message(msgs.UI_ACT_SHOW_STRIP_ITEM, self, idx)
         
             
 

@@ -37,8 +37,9 @@ class ControlPanel(Widget):
             self.__bg_pmap.draw_frame(theme.mb_panel, 0, 0, w, h, True,
                                       Pixmap.LEFT | Pixmap.TOP | Pixmap.RIGHT)
     
-            Widget.set_size(self, w, h)
             self.__box.set_size(w - 20, h)
+
+        Widget.set_size(self, w, h)
         
 
         

@@ -44,6 +44,10 @@ class File(object):
         self.folder_flags = self.NONE
         """@since: 0.96.5"""
         
+        
+        self._LEGACY_SUPPORT_file_to_delete = None
+        """ONLY FOR INTERNAL USE: support legacy plugins with delete method"""
+        
         self.can_skip = False
         """
         whether the user may skip files (previous/next) in this folder

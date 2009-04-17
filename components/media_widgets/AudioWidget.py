@@ -4,12 +4,15 @@ from mediabox import media_bookmarks
 from mediabox import tagreader
 from mediabox import config as mb_config
 from ui.Button import Button
+from ui.HBox import HBox
+from ui.VBox import VBox
 from ui.EventBox import EventBox
 from ui.ImageButton import ImageButton
 from ui.Image import Image
 from ui.ProgressBar import ProgressBar
 from ui.Label import Label
 from ui.Pixmap import TEMPORARY_PIXMAP
+from ui.Widget import Widget
 from ui import pixbuftools
 from ui import dialogs
 import mediaplayer
@@ -40,19 +43,13 @@ class AudioWidget(MediaWidget):
 
         self.__cover_pbuf = None
         self.__buffer = TEMPORARY_PIXMAP
-        
+
+
+        # title and lyrics labels
         self.__title = Label("-", theme.font_mb_headline,
                              theme.color_mb_trackinfo_text)
         #self.__title.set_alignment(Label.CENTERED)
         self.add(self.__title)
-
-        self.__album = Label("-", theme.font_mb_plain,
-                             theme.color_mb_trackinfo_text)
-        self.add(self.__album)
-
-        self.__artist = Label("-", theme.font_mb_plain,
-                              theme.color_mb_trackinfo_text)
-        self.add(self.__artist)
 
         self.__lyrics = Label("", theme.font_mb_trackinfo_lyrics,
                               theme.color_mb_trackinfo_text)
@@ -61,17 +58,72 @@ class AudioWidget(MediaWidget):
         self.add(self.__lyrics)
 
 
-        self.__progress_label = Label("", theme.font_mb_headline,
-                                      theme.color_mb_trackinfo_text)
-        self.add(self.__progress_label)
-        self.__progress_label.set_alignment(Label.RIGHT)
-
+        self.__hbox = HBox()
+        self.__hbox.set_spacing(24)
+        self.add(self.__hbox)
+        
+    
+        # car control PLAY/PAUSE / cover art
         self.__cover = ImageButton(theme.mb_btn_play_1,
                                    theme.mb_btn_play_2,
                                    True)
-        self.add(self.__cover)
         self.__cover.connect_clicked(self.__on_play_pause)
+        self.__hbox.add(self.__cover, False)
+          
+          
+        # artist and album labels
+        vbox = VBox()
+        self.__hbox.add(vbox, True)
         
+        hbox = HBox()
+        hbox.set_spacing(24)
+        #hbox.set_size(0, 42)
+        vbox.add(hbox, True)
+        img = Image(theme.mb_music_album)
+        hbox.add(img, False)
+        self.__album = Label("-", theme.font_mb_plain,
+                             theme.color_mb_trackinfo_text)
+        hbox.add(self.__album, True)
+
+        hbox = HBox()
+        hbox.set_spacing(24)
+        #hbox.set_size(0, 42)
+        vbox.add(hbox, True)
+        img = Image(theme.mb_music_artist)
+        hbox.add(img, False)
+        self.__artist = Label("-", theme.font_mb_plain,
+                              theme.color_mb_trackinfo_text)
+        hbox.add(self.__artist, True)
+
+        self.__free_space = Widget()
+        vbox.add(self.__free_space, False)
+
+
+        self.__ctrlbox = VBox()
+        self.__hbox.add(self.__ctrlbox, False)
+
+        # car control PREVIOUS
+        self.__car_btn_prev = ImageButton(theme.mb_btn_car_previous_1,
+                                          theme.mb_btn_car_previous_2)
+        self.__car_btn_prev.connect_clicked(
+                                    self.send_event, self.EVENT_MEDIA_PREVIOUS)
+        self.__ctrlbox.add(self.__car_btn_prev, True)
+
+
+        # car control NEXT        
+        self.__car_btn_next = ImageButton(theme.mb_btn_car_next_1,
+                                          theme.mb_btn_car_next_2)
+        self.__car_btn_next.connect_clicked(
+                                        self.send_event, self.EVENT_MEDIA_NEXT)
+        self.__ctrlbox.add(self.__car_btn_next, True)
+
+
+        # car mode progress label
+        self.__progress_label = Label("", theme.font_mb_headline,
+                                      theme.color_mb_trackinfo_text)
+        self.__progress_label.set_alignment(Label.RIGHT)
+        self.add(self.__progress_label)
+
         
         # controls
         self.__btn_play = ImageButton(theme.mb_btn_play_1,
@@ -93,21 +145,7 @@ class AudioWidget(MediaWidget):
                            Image(theme.mb_toolbar_space_2),
                            btn_bookmark,
                            Image(theme.mb_toolbar_space_1))
-
-        # car controls
-        self.__car_btn_prev = ImageButton(theme.mb_btn_car_previous_1,
-                                          theme.mb_btn_car_previous_2)
-        self.__car_btn_prev.connect_clicked(
-                                    self.send_event, self.EVENT_MEDIA_PREVIOUS)
-        self.add(self.__car_btn_prev)
-
-        self.__car_btn_next = ImageButton(theme.mb_btn_car_next_1,
-                                          theme.mb_btn_car_next_2)
-        self.__car_btn_next.connect_clicked(
-                                        self.send_event, self.EVENT_MEDIA_NEXT)
-        self.add(self.__car_btn_next)
-        
-
+       
 
         
 
@@ -149,18 +187,26 @@ class AudioWidget(MediaWidget):
         screen.fill_area(x, y, w, h, theme.color_mb_trackinfo_background)
         
         if (w < 800):
-            self.__car_btn_prev.set_visible(False)
-            self.__car_btn_next.set_visible(False)
+            self.__ctrlbox.set_visible(False)
+            #self.__car_btn_prev.set_visible(False)
+            #self.__car_btn_next.set_visible(False)
             self.__progress_label.set_visible(False)
+            self.__hbox.set_geometry(0, 64, w, h - 128)
+            self.__free_space.set_size(0, h - 128 - 70)
             border_width = 10
         else:
-            self.__car_btn_prev.set_visible(True)
-            self.__car_btn_next.set_visible(True)
+            self.__ctrlbox.set_visible(True)
+            self.__ctrlbox.set_size(64, h - 128)
+            #self.__car_btn_prev.set_visible(True)
+            #self.__car_btn_next.set_visible(True)
             self.__progress_label.set_visible(True)
-            self.__car_btn_prev.set_geometry(0, 50, 128, h - 100)
-            self.__car_btn_next.set_geometry(w - 128, 50, 128, h - 100)
+            #self.__car_btn_prev.set_size(64, 64)
+            #self.__car_btn_next.set_size(64, 64)
             self.__progress_label.set_geometry(w - 200, h - 90, 190, 0)
-            border_width = 10
+            self.__progress_label.set_size(w / 2 - 100, 0)
+            self.__hbox.set_geometry(0, 64, w, h - 128)
+            self.__free_space.set_size(10, h - 128 - 70)
+            border_width = 100
 
         # top and bottom borders
         screen.fill_area(x, y, w, 50,
@@ -184,22 +230,22 @@ class AudioWidget(MediaWidget):
         lbl_x = w / 2
         lbl_y = 64 #h - 42
         lbl_w = w / 2 - 2 * border_width
-        screen.draw_pixbuf(theme.mb_music_album, x + lbl_x, y + lbl_y)
-        self.__album.set_geometry(lbl_x + 48, lbl_y + 4, lbl_w -48, 0)
+        #screen.draw_pixbuf(theme.mb_music_album, x + lbl_x, y + lbl_y)
+        #self.__album.set_size(w / 2 - 80, 0)
         
         # artist label
         lbl_y = 112
-        screen.draw_pixbuf(theme.mb_music_artist, x + lbl_x, y + lbl_y)
-        self.__artist.set_geometry(lbl_x + 48, lbl_y + 4, lbl_w - 48, 0)
+        #screen.draw_pixbuf(theme.mb_music_artist, x + lbl_x, y + lbl_y)
+        #self.__artist.set_size(w / 2 - 80, 0)
 
         
         # cover art
-        cover_size = min(h - 128, w / 2 - 2 * border_width)
+        cover_size = self.__cover.get_size()[0] #min(h - 128, w / 2 - border_width)
         cover_x = (w / 2 - cover_size) / 2 #20 #(w - cover_size) / 2
-        cover_y = 60
-
-        self.__cover.set_geometry(cover_x, cover_y,
-                                  cover_size + 11, cover_size + 11)
+        cover_y = (h - cover_size) / 2
+        #self.__cover.set_geometry(cover_x, cover_y,
+        #                          cover_size + 11, cover_size + 11)
+        #self.__cover.set_pos(cover_x, cover_y)
                                                
 
 
@@ -209,10 +255,7 @@ class AudioWidget(MediaWidget):
     
         if (w <= 0 or h <= 0): return
     
-        cover_size = h - 128
-        cover_x = (w - cover_size) / 2
-        cover_y = 60
-        
+        cover_size = min(h - 128, w / 2)
 
         pbuf = pixbuftools.make_frame(theme.mb_frame_music,
                                       cover_size + 11, cover_size + 11,
@@ -233,6 +276,7 @@ class AudioWidget(MediaWidget):
                               3 + (cover_size - 120) / 2)
         cover2 = pbuf.copy()
         self.__cover.set_images(cover1, cover2)
+        self.__cover.set_size(cover_size, cover_size)
         del pbuf
         del cover1
         del cover2

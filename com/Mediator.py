@@ -3,6 +3,7 @@ B{Used internally.}
 """
 
 from MessageBus import MessageBus
+from utils import logging
 
 
 class Mediator(object):
@@ -93,6 +94,8 @@ class Mediator(object):
         @param args: variable list of arguments
         """
     
+        logging.warning("DEPRECATED: %s called 'emit_event'",
+                        self.__class__.__name__)
         self.emit_message(event, *args)
         
         

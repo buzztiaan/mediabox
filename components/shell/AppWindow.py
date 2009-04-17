@@ -9,6 +9,7 @@ from ControlPanel import ControlPanel
 from ViewerState import ViewerState
 from ui.Button import Button
 from ui.Pixmap import Pixmap
+from ui.Widget import Widget as UIWidget
 from mediabox import config
 from mediabox import values
 from utils import maemo
@@ -88,11 +89,16 @@ class AppWindow(Component, RootPane):
         self.set_size(w, h)
         self.set_screen(screen)
 
+        self.__box = UIWidget()
+        self.add(self.__box)
+        self.push_actor(self.__box)
+        
+
         # image strip
         self.__btn_strip = Button(">")
         self.__btn_strip.set_visible(False)
         self.__btn_strip.connect_clicked(self.__on_show_side_strip)
-        self.add(self.__btn_strip)
+        self.__box.add(self.__btn_strip)
         
         #self.__strip = ImageStrip(5)
         #self.__strip.set_bg_color(theme.color_mb_background)
@@ -137,7 +143,7 @@ class AppWindow(Component, RootPane):
                    (self.__scan_at_startup, []),
                    (self.hide_overlay, []),
                    (self.__select_initial_viewer, []),
-                   (self.emit_event, [msgs.CORE_EV_APP_STARTED]),
+                   (self.emit_message, [msgs.CORE_EV_APP_STARTED]),
                    ]
                    
         def f():
@@ -178,7 +184,7 @@ class AppWindow(Component, RootPane):
         if (config.scan_at_startup()):
             self.__scan_media(True)
         else:
-            #self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
+            #self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
             self.__scan_media(False)
 
 
@@ -193,8 +199,8 @@ class AppWindow(Component, RootPane):
         current_viewer = config.current_viewer()
         current_device_id = config.current_device()
         self.__select_viewer_by_name(current_viewer)
-        self.emit_event(msgs.UI_ACT_SELECT_VIEWER, current_viewer)
-        #self.emit_event(msgs.UI_ACT_SELECT_DEVICE, current_device_id)
+        self.emit_message(msgs.UI_ACT_SELECT_VIEWER, current_viewer)
+        #self.emit_message(msgs.UI_ACT_SELECT_DEVICE, current_device_id)
 
 
     def __register_viewers(self):
@@ -206,7 +212,7 @@ class AppWindow(Component, RootPane):
 
         for viewer in self.__viewers:
             logging.info("registering viewer [%s]", viewer)
-            self.add(viewer)
+            self.__box.add(viewer)
             viewer.set_visible(False)
 
 
@@ -215,8 +221,8 @@ class AppWindow(Component, RootPane):
         Adds the panel components.
         """
     
-        self.add(self.__title_panel)
-        self.add(self.__ctrl_panel)
+        self.__box.add(self.__title_panel)
+        self.__box.add(self.__ctrl_panel)
 
 
     def render_this(self):
@@ -348,7 +354,7 @@ class AppWindow(Component, RootPane):
 
         #self.show_overlay("Scanning Media", "", theme.mb_viewer_audio)
 
-        self.emit_event(msgs.MEDIASCANNER_ACT_SCAN, mediaroots, force_rebuild)
+        self.emit_message(msgs.MEDIASCANNER_ACT_SCAN, mediaroots, force_rebuild)
         
 
         for v in self.__viewers:
@@ -418,58 +424,58 @@ class AppWindow(Component, RootPane):
         
         if (key == "Escape"):
             print "Escape"
-            self.emit_event(msgs.HWKEY_EV_ESCAPE)
+            self.emit_message(msgs.HWKEY_EV_ESCAPE)
         
         elif (key == "Return"):
-            self.emit_event(msgs.HWKEY_EV_ENTER)
+            self.emit_message(msgs.HWKEY_EV_ENTER)
 
         elif (key == "F1"):
-            self.emit_event(msgs.HWKEY_EV_F1)
+            self.emit_message(msgs.HWKEY_EV_F1)
         elif (key == "F2"):
-            self.emit_event(msgs.HWKEY_EV_F2)
+            self.emit_message(msgs.HWKEY_EV_F2)
         elif (key == "F3"):
-            self.emit_event(msgs.HWKEY_EV_F3)
+            self.emit_message(msgs.HWKEY_EV_F3)
         elif (key == "F4"):
-            self.emit_event(msgs.HWKEY_EV_F4)
+            self.emit_message(msgs.HWKEY_EV_F4)
         elif (key == "F5"):
-            self.emit_event(msgs.HWKEY_EV_F5)
+            self.emit_message(msgs.HWKEY_EV_F5)
         elif (key == "F6"):
-            self.emit_event(msgs.HWKEY_EV_F6)
-            self.emit_event(msgs.HWKEY_EV_FULLSCREEN)  # deprecated
+            self.emit_message(msgs.HWKEY_EV_F6)
+            self.emit_message(msgs.HWKEY_EV_FULLSCREEN)  # deprecated
         elif (key == "F7"):
             self.__autorepeat_start(msgs.HWKEY_EV_F7)
-            self.emit_event(msgs.HWKEY_EV_F7)
-            self.emit_event(msgs.HWKEY_EV_INCREMENT)  # deprecated
+            self.emit_message(msgs.HWKEY_EV_F7)
+            self.emit_message(msgs.HWKEY_EV_INCREMENT)  # deprecated
         elif (key == "F8"):
             self.__autorepeat_start(msgs.HWKEY_EV_F8)
-            self.emit_event(msgs.HWKEY_EV_F8)
-            self.emit_event(msgs.HWKEY_EV_DECREMENT)  # deprecated
+            self.emit_message(msgs.HWKEY_EV_F8)
+            self.emit_message(msgs.HWKEY_EV_DECREMENT)  # deprecated
         elif (key == "F9"):
-            self.emit_event(msgs.HWKEY_EV_F9)
+            self.emit_message(msgs.HWKEY_EV_F9)
         elif (key == "F10"):
-            self.emit_event(msgs.HWKEY_EV_F10)
+            self.emit_message(msgs.HWKEY_EV_F10)
         elif (key == "F11"):
-            self.emit_event(msgs.HWKEY_EV_F11)
+            self.emit_message(msgs.HWKEY_EV_F11)
         elif (key == "F12"):
-            self.emit_event(msgs.HWKEY_EV_F12)
-            self.emit_event(msgs.HWKEY_EV_EJECT)  # deprecated
+            self.emit_message(msgs.HWKEY_EV_F12)
+            self.emit_message(msgs.HWKEY_EV_EJECT)  # deprecated
             
         elif (key == "Up"):
-            self.emit_event(msgs.HWKEY_EV_UP)
+            self.emit_message(msgs.HWKEY_EV_UP)
         elif (key == "Down"):
-            self.emit_event(msgs.HWKEY_EV_DOWN)
+            self.emit_message(msgs.HWKEY_EV_DOWN)
         elif (key == "Left"):
-            self.emit_event(msgs.HWKEY_EV_LEFT)
+            self.emit_message(msgs.HWKEY_EV_LEFT)
         elif (key == "Right"):
-             self.emit_event(msgs.HWKEY_EV_RIGHT)
+             self.emit_message(msgs.HWKEY_EV_RIGHT)
 
             
         elif (key == "XF86Headset"):
-            self.emit_event(msgs.HWKEY_EV_HEADSET)
+            self.emit_message(msgs.HWKEY_EV_HEADSET)
             
         
         elif (key == "BackSpace"):
-            self.emit_event(msgs.HWKEY_EV_BACKSPACE)
+            self.emit_message(msgs.HWKEY_EV_BACKSPACE)
             term = self.__get_search_term()
             if (term):
                 term = term[:-1]
@@ -477,7 +483,7 @@ class AppWindow(Component, RootPane):
        
         elif (len(key) == 1 and ord(key) > 31):
             print "KEY", key
-            self.emit_event(msgs.HWKEY_EV_KEY, key)
+            self.emit_message(msgs.HWKEY_EV_KEY, key)
             term = self.__get_search_term()
             term += key.lower()
             self.__set_search_term(term)
@@ -490,7 +496,7 @@ class AppWindow(Component, RootPane):
         Displays the virtual keyboard.
         """
        
-        self.emit_event(msgs.VKB_ACT_SHOW, self.__window)
+        self.emit_message(msgs.VKB_ACT_SHOW, self.__window)
 
 
 
@@ -530,7 +536,7 @@ class AppWindow(Component, RootPane):
         self.__reset_search_timeout()
         
         if (term):
-            self.emit_event(msgs.CORE_ACT_SEARCH_ITEM, term)
+            self.emit_message(msgs.CORE_ACT_SEARCH_ITEM, term)
             
     """
     def __on_observe_strip(self, src, cmd, *args):
@@ -636,7 +642,7 @@ class AppWindow(Component, RootPane):
         self.__hilight_item(idx)
 
         if (not hilight_only):
-            self.emit_event(msgs.CORE_ACT_LOAD_ITEM, idx)
+            self.emit_message(msgs.CORE_ACT_LOAD_ITEM, idx)
             
         self.__strip.scroll_to_item(idx)
     """
@@ -691,8 +697,8 @@ class AppWindow(Component, RootPane):
         self.fx_slide_in()
         #self.render_buffered()
         
-        self.emit_event(msgs.INPUT_ACT_REPORT_CONTEXT)
-        self.emit_event(msgs.UI_EV_VIEWER_CHANGED, idx)
+        self.emit_message(msgs.INPUT_ACT_REPORT_CONTEXT)
+        self.emit_message(msgs.UI_EV_VIEWER_CHANGED, idx)
 
 
     """
@@ -725,8 +731,8 @@ class AppWindow(Component, RootPane):
         if (result == 0):
             config.set_current_viewer(self.__current_viewer)
             config.set_current_device(self.__current_device_id)
-            self.emit_event(msgs.MEDIA_ACT_STOP)
-            self.emit_event(msgs.CORE_EV_APP_SHUTDOWN)
+            self.emit_message(msgs.MEDIA_ACT_STOP)
+            self.emit_message(msgs.CORE_EV_APP_SHUTDOWN)
             gtk.main_quit()
         else:
             pass
@@ -843,13 +849,12 @@ class AppWindow(Component, RootPane):
 
     def handle_UI_ACT_FREEZE(self):
     
-        self.set_frozen(True)
+        self.__box.set_frozen(True)
 
     
     def handle_UI_ACT_THAW(self):            
 
-        self.set_frozen(False)
-        #self.__prepare_collection_caps()
+        self.__box.set_frozen(False)
         self.render_buffered()
 
     

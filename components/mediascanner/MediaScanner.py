@@ -154,10 +154,10 @@ class MediaScanner(Component):
 
         # don't do anything if there's nothing to scan or remove
         if (not to_scan and not removed_roots):
-            self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
+            self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
             return
         
-        self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_STARTED)
+        self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_STARTED)
 
         # remove from index
         for root in removed_roots:
@@ -174,7 +174,7 @@ class MediaScanner(Component):
             f = self.call_service(msgs.CORE_SVC_GET_FILE, root)
             if (not f or not os.path.exists(f.resource)): continue
         
-            self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_PROGRESS,
+            self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_PROGRESS,
                             root)
             logging.info("scanning [%s] for media", root)
 
@@ -196,7 +196,7 @@ class MediaScanner(Component):
             logging.info("finished scanning [%s]", root)
         #end for            
         
-        self.emit_event(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
+        self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
   
         
     def __process_media(self, mediaroot, mediatypes, f, seen):

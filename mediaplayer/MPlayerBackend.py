@@ -28,9 +28,8 @@ class MPlayerBackend(AbstractBackend):
     Audio streams aren't affected by this.
     
     maemo's mplayer port is buggy and reports a wrong total time for FLAC audio.
-    But at startup mplayer reports "ID_LENGTH" with the correct time. Thus if
-    mplayer reported "ID_LENGTH" at startup, it takes precedence over
-    "ANS_LENGTH".
+    But at startup mplayer reports "ID_LENGTH" with the correct time. From this
+    we compute a correction factor applied to time values.
     """
 
     def __init__(self):
@@ -48,6 +47,9 @@ class MPlayerBackend(AbstractBackend):
         self.__id_length = 0
         self.__media_length = 0
         self.__media_position = 0
+        
+        # mplayer is buggy and time values need to be scaled sometimes
+        self.__correction_factor = 1.0
         
         self.__video_width = 0
         self.__video_height = 0
@@ -246,6 +248,7 @@ class MPlayerBackend(AbstractBackend):
         self.__video_width = 0
         self.__video_height = 0
         self.__maybe_eof = 0
+        self.__correction_factor = 1.0
         self.__filename = uri
         
         if (self._get_mode() == self.MODE_AUDIO):
@@ -275,7 +278,7 @@ class MPlayerBackend(AbstractBackend):
         
     def _seek(self, pos):
     
-        self.__send_cmd("seek %d 2" % pos)
+        self.__send_cmd("seek %d 2" % (pos * self.__correction_factor))
         
         
     def _set_volume(self, vol):
@@ -299,6 +302,9 @@ class MPlayerBackend(AbstractBackend):
         #end if
 
         self.__media_position = -1
+        #if (self.__media_length > 0):
+        #    self.__send_cmd("get_percent_pos")
+        #else:
         self.__send_cmd("get_time_pos")
         timeout = time.time() + 1.0
         while (self.__media_position == -1 and time.time() < timeout):
@@ -346,6 +352,8 @@ class MPlayerBackend(AbstractBackend):
             
         if (data.startswith("ANS_TIME_POSITION")):
             self.__media_position = float(self.__read_ans(data))
+            print "ANS POS", self.__media_position
+            self.__media_position /= self.__correction_factor
 
         elif (data.startswith("ANS_PERCENT_POSITION")):
             print "PERCENT POSITION", self.__read_ans(data)
@@ -353,8 +361,14 @@ class MPlayerBackend(AbstractBackend):
                                     self.__media_length
 
         elif (data.startswith("ANS_LENGTH")):
-            if (self.__id_length == 0):
-                self.__media_length = float(self.__read_ans(data))
+            l = float(self.__read_ans(data))
+            print "ANS LENGTH", l
+            if (self.__id_length > 0 and l > self.__id_length * 1.1):
+                self.__correction_factor = l / self.__id_length
+
+            l /= self.__correction_factor
+            print "MPLAYER TIME CORRECTION FACTOR", self.__correction_factor
+            self.__media_length = l
 
         elif (data.startswith("ANS_VIDEO_RESOLUTION")):
             res = self.__read_ans(data)
@@ -386,7 +400,7 @@ class MPlayerBackend(AbstractBackend):
         elif (data.startswith("ID_LENGTH")):
             # ID_LENGTH has precedence over reported length, if available,
             # because mplayer is buggy reporting length of FLAC files
-            self.__media_length = float(self.__read_ans(data))
+            #self.__media_length = float(self.__read_ans(data))
             self.__id_length = float(self.__read_ans(data))
             print "ID LENGTH", self.__id_length
 

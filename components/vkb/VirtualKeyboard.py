@@ -262,7 +262,7 @@ class VirtualKeyboard(gtk.Window, Component):
             self.__render_keyboard(self.__current_layout)
 
         else:
-            self.emit_event(msgs.HWKEY_EV_KEY, keychar)
+            self.emit_message(msgs.HWKEY_EV_KEY, keychar)
 
 
     def __on_press(self, src, ev):

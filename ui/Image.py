@@ -11,7 +11,7 @@ class Image(Widget):
         if (self.__pbuf):
             self.set_image(self.__pbuf)
 
-        
+       
     def set_image(self, pbuf):        
     
         self.__pbuf = pbuf

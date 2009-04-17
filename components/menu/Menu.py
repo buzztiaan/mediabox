@@ -299,9 +299,10 @@ class Menu(Widget):
         
     def __show_menu(self):
     
-        self.emit_message(msgs.UI_ACT_FREEZE)
-        self.set_frozen(False)
+        #self.emit_message(msgs.UI_ACT_FREEZE)
+        #self.set_frozen(False)
         self.set_visible(True)
+        self.push_actor(self)
         self.__fx_raise()
 
         self.__btn_repeat.set_value(mb_config.repeat_mode())
@@ -333,7 +334,9 @@ class Menu(Widget):
         else:
             self.emit_message(msgs.UI_ACT_SELECT_VIEWER,
                               `self.__viewers[self.__index]`)
-        self.emit_message(msgs.UI_ACT_THAW)
+        # self.emit_message(msgs.UI_ACT_THAW)
+        self.pop_actor()
+        self.emit_message(msgs.UI_ACT_RENDER)
         self.emit_message(msgs.INPUT_ACT_REPORT_CONTEXT)
 
 

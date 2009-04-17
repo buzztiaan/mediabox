@@ -115,7 +115,7 @@ class FolderViewer(MediaViewer):
         MediaViewer.show(self)
         
         # search for UPnP devices
-        self.emit_event(msgs.SSDP_ACT_SEARCH_DEVICES)
+        self.emit_message(msgs.SSDP_ACT_SEARCH_DEVICES)
 
 
     def hide(self):
