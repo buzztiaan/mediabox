@@ -245,6 +245,7 @@ class MPlayerBackend(AbstractBackend):
 
         self.__media_length = 0
         self.__media_position = 0
+        self.__id_length = 0
         self.__video_width = 0
         self.__video_height = 0
         self.__maybe_eof = 0
@@ -299,7 +300,11 @@ class MPlayerBackend(AbstractBackend):
                 gtk.main_iteration(False)
             if (time.time() >= timeout):
                 logging.warning("timeout reached for mplayer.get_time_length")
+
+        elif (self.__media_length == -1 and self.__id_length > 0):
+            self.__media_length = self.__id_length
         #end if
+
 
         self.__media_position = -1
         #if (self.__media_length > 0):

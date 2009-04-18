@@ -322,7 +322,7 @@ class AbstractBackend(Observable):
         """
         The subclass calls this to report the video aspect ratio.
         
-        @ratio: the aspect ratio
+        @param ratio: the aspect ratio
         """
         
         self.update_observer(self.OBS_ASPECT, self.__context_id, ratio)

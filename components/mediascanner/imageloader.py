@@ -27,6 +27,7 @@ def load_data(data, cb, *args):
             #end if
         except:
             logging.error("error\n%s", logging.stacktrace())
+            cb(None, *args)
             
             
     def on_size_available(loader, width, height):

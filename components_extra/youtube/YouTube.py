@@ -423,8 +423,8 @@ class YouTube(Device):
         def on_dload(d, a, t, flv_path, keep_path):
             if (d):
                 self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
-                print "%d / %d         " % (a, t)
-                print gobject.main_depth()
+                #print "%d / %d         " % (a, t)
+                #print gobject.main_depth()
                 #if (gobject.main_depth() < 3): 
                 gtk.main_iteration(False)
                 
