@@ -9,14 +9,46 @@ import video
 import audio
 import image
 
-import gtk
-import gobject
 import os
 import time
-import threading
 
 
 class MediaScanner(Component):
+    """
+    Component for scanning the filesystem for media files.
+    
+    How scanning works:
+    
+    The user specifies several media root directories which subtrees contain
+    media files.
+    
+    First, we check for new media roots and for media roots that have been gone,
+    either by removing from the filesystem, or by removing the media root from
+    the list of media roots. All files that are registered under such a media
+    root have to be removed from the index.
+    
+    Next, we look for new media roots. The new roots and the unchanged roots
+    get scanned recursively for media files.
+    
+    If we discover a media file during scanning, it can be
+    
+     * not indexed yet, so we add it as new
+     
+     * already indexed, but the mtime changed, so we add it as new/updated
+     
+     * already indexed and up to date, so we just mark it as unchanged
+     
+    The indexed media files that have not been found by scanning get removed
+    from the index, afterwards, because they are no longer there.
+    
+    Storage devices query for three sets of files containing their media types:
+    
+     * the files that have not changed
+     
+     * the files that are new
+     
+     * the files that have been removed
+    """
 
     MEDIA_VIDEO = 1
     MEDIA_AUDIO = 2

@@ -3,9 +3,10 @@ A scrollable strip of images.
 """
 
 from Widget import Widget
-from Pixmap import Pixmap, TEMPORARY_PIXMAP
+from Pixmap import Pixmap, TEMPORARY_PIXMAP, text_extents
 from SharedPixmap import SharedPixmap
 from utils import logging
+from theme import theme
 
 import gtk
 import gobject
@@ -46,6 +47,9 @@ class ImageStrip(Widget):
         self.__cap_top_size = (0, 0)
         self.__cap_bottom = None
         self.__cap_bottom_size = (0, 0)
+    
+        # a text message for the user
+        self.__message = ""
     
         # index and position of a floating item
         # index = -1 means that no item is currently floating
@@ -298,6 +302,17 @@ class ImageStrip(Widget):
             h = max(2, h)
             self.__scrollbar_pmap = Pixmap(None, w, h)            
             self.__scrollbar_pmap.draw_pixbuf(pbuf, 0, 0, w, h, scale = True)
+
+
+    def set_message(self, message):
+        """
+        Sets a message to display.
+        @since: 0.96.5
+        
+        @param message: the message to display
+        """
+    
+        self.__message = message
 
 
     def float_item(self, idx, pos = 0):
@@ -820,6 +835,18 @@ class ImageStrip(Widget):
         self.__buffer.draw_pixmap(self.__shared_pmap, fx, fy)
 
 
+    def _render_message(self, screen, message):
+    
+        w, h = self.get_size()
+            
+        tw, th = text_extents(message, theme.font_mb_tiny)
+        tx = (w - tw) / 2
+        ty = 3
+
+        screen.fill_area(0, 0, w, th + 6, "#000000a0")
+        screen.draw_text(message, theme.font_mb_tiny, tx, ty,
+                                  "#e0e0e0")
+
 
     def __render_buffered(self, screen, offset, height):
         """
@@ -836,9 +863,12 @@ class ImageStrip(Widget):
 
         #if (self.__arrows[0]):
         #    self.__render_arrows()
-                    
+
         if (self.__floating_index >= 0):
             self._render_floating_item(self.__buffer)
+
+        if (self.__message):
+            self._render_message(self.__buffer, self.__message)
 
         if (self.__scrollbar_pmap):
             self._render_scrollbar(self.__buffer)

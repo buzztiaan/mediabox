@@ -332,6 +332,7 @@ class StorageBrowser(TrackList):
         # load remaining items
         loading_status = self.__path_stack[-1][1]
         if (loading_status == _STATUS_INCOMPLETE or full_reload):
+            self.set_message("Loading")
             self.complete_current_folder()
 
         # now is a good time to collect garbage
@@ -414,12 +415,15 @@ class StorageBrowser(TrackList):
             else:
                 self.get_item(0).set_info("%d items" % len(self.get_files()))
                 self.invalidate_image(0)
+                self.set_message("")
                 
                 # mark folder as complete
                 self.__path_stack[-1][1] = _STATUS_OK
                 
                 # finished loading items; now create thumbnails
-                self.__create_thumbnails(path, items_to_thumbnail)
+                if (items_to_thumbnail):
+                    self.set_message("Creating thumbnails")
+                    self.__create_thumbnails(path, items_to_thumbnail)
                 
                 self.send_event(self.EVENT_FOLDER_OPENED,
                                 self.get_current_folder())
@@ -555,6 +559,10 @@ class StorageBrowser(TrackList):
 
             # load thumbnail
             self.__thumbnailer(f, on_loaded, item, None)
+            
+        else:
+            self.set_message("")
+            self.render()
         #end if
 
 

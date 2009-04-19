@@ -193,8 +193,8 @@ class VideoWidget(MediaWidget):
         if (self.__player):
             handled = self.__player.send_key(self.__player.KEY_SELECT)
             
-        if (not handled):
-            self.send_event(self.EVENT_FULLSCREEN_TOGGLED)
+            if (not handled):
+                self.send_event(self.EVENT_FULLSCREEN_TOGGLED)
 
         
 
