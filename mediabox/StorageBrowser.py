@@ -74,6 +74,13 @@ class StorageBrowser(TrackList):
     
         self._connect(self.EVENT_FILE_ADDED_TO_LIBRARY, cb, *args)
 
+
+    def trigger_item_button(self, idx):
+    
+        item = self.get_items()[idx]
+        button = item.BUTTON_PLAY
+        self.__on_item_button(item, idx, button)
+
         
     def __on_item_button(self, item, idx, button):
 
@@ -105,8 +112,14 @@ class StorageBrowser(TrackList):
             # support legacy plugins
             folder._LEGACY_SUPPORT_file_to_delete = f
             folder.delete_file(idx - 1)
-            self.reload_current_folder()
+            #self.reload_current_folder()
             self.send_event(self.EVENT_FILE_REMOVED, f)
+
+        #elif (button == item.BUTTON_REMOVE_PRECEDING):
+        #    pass
+
+        #elif (button == item.BUTTON_REMOVE_SUCCEEDING):
+        #    pass
 
         elif (button == item.BUTTON_ADD_TO_LIBRARY):
             f = self.get_current_folder()
@@ -152,13 +165,17 @@ class StorageBrowser(TrackList):
         @param folder: the folder to invalidate
         """
         
+        found = False
         for entry in self.__path_stack:
             f, status = entry
             if (f == folder):
                 entry[1] = _STATUS_INVALID
+                found = True
         #end for
         
-        if (self.__path_stack and self.__path_stack[-1][1] == _STATUS_INVALID):
+        #if (self.__path_stack and self.__path_stack[-1][1] == _STATUS_INVALID):
+        #    self.reload_current_folder()
+        if (found):
             self.reload_current_folder()
     
         
@@ -197,23 +214,46 @@ class StorageBrowser(TrackList):
         return [ i.get_file() for i in self.get_items()[1:] ]
 
 
-    def search(self, key):
+    def search(self, key, direction):
         """
-        Searches for an item containing the given key, and scrolls to that item,
-        if available.
+        Searches for an item containing the given key, and returns its index,
+        if available, or -1.
         
         @param key: string to search for
+        @param direction: search direction,
+                          -1 for backward search, 1 for forward search
+        @return: index of the item
         """
     
-        idx = 0
-        for f in self.get_files():
-            if (key in f.name.lower()):
-                self.scroll_to_item(idx + 1)
-                logging.info("search: found '%s' for '%s'" % (f.name, key))
-                break
+        idx = self.get_cursor() - 1
+        if (idx < 1): idx = 1
+        current_idx = idx
+        if (direction == -1):
+            idx -= 1
+        else:
             idx += 1
-        #end for
 
+        files = self.get_files()
+        l = len(files)
+        while (idx != current_idx):
+            if (idx >= l):
+                idx = 0
+            elif (idx < 0):
+                idx = l - 1
+                
+            f = files[idx]
+            #print idx, key, f
+            if (key in f.name.lower()):
+                logging.info("search: found '%s' for '%s'" % (f.name, key))
+                return idx + 1
+
+            if (direction == -1):
+                idx -= 1
+            else:
+                idx += 1
+        #end while
+        
+        return -1
         
         
     def hilight_file(self, f):
@@ -254,7 +294,7 @@ class StorageBrowser(TrackList):
         Reloads the current folder.
         """
         
-        self.load_folder(self.get_current_folder(), self.GO_NEW)
+        self.load_folder(self.get_current_folder(), self.GO_NEW)  
         
         
     def load_folder(self, folder, direction, force_reload = False):
@@ -433,6 +473,9 @@ class StorageBrowser(TrackList):
                 self.__last_list_render_time = now
                 #self.invalidate_buffer()
                 self.render()
+                
+                if (not f):
+                    return False
             
             return True
 
@@ -474,17 +517,22 @@ class StorageBrowser(TrackList):
             buttons.append((item.BUTTON_OPEN, theme.mb_item_btn_open))
             
         elif (f.mimetype.endswith("-folder")):
-            buttons.append((item.BUTTON_PLAY, theme.mb_item_btn_play))
+            buttons.append((item.BUTTON_PLAY, theme.mb_item_btn_open))
             
         else:
             buttons.append((item.BUTTON_PLAY, theme.mb_item_btn_play))
             
             if (cwd.folder_flags & cwd.ITEMS_ENQUEUEABLE):
                 buttons.append((item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
+        #end if
             
         if (cwd.folder_flags & cwd.ITEMS_DELETABLE):
             buttons.append((item.BUTTON_REMOVE, theme.mb_item_btn_remove))
-        #end if
+
+        if (cwd.folder_flags & cwd.ITEMS_BULK_DELETABLE):
+            buttons.append((item.BUTTON_REMOVE_PRECEDING, theme.mb_item_btn_remove_up))
+            buttons.append((item.BUTTON_REMOVE_SUCCEEDING, theme.mb_item_btn_remove_down))
+
 
         item.set_buttons(*buttons)
 

@@ -76,6 +76,7 @@ class AudioGenreStorage(AudioArtistStorage):
                 f = File(self)
                 f.path = path + urlquote.quote(genre, "")
                 f.name = genre
+                f.acoustic_name = genre
                 f.mimetype = f.DIRECTORY
                 f.folder_flags = f.ITEMS_ENQUEUEABLE | \
                                  f.ITEMS_SKIPPABLE
@@ -100,6 +101,7 @@ class AudioGenreStorage(AudioArtistStorage):
                 f.is_local = True
                 f.path = path + urlquote.quote(album, "")
                 f.name = album
+                f.acoustic_name = f.name
                 #f.info = artist
                 f.mimetype = "application/x-music-folder"
                 f.folder_flags = f.ITEMS_ENQUEUEABLE | \
@@ -120,6 +122,7 @@ class AudioGenreStorage(AudioArtistStorage):
                 
                 tags = tagreader.get_tags(f)
                 f.name = tags.get("TITLE") or f.name
+                f.acoustic_name = f.name
                 f.info = tags.get("ARTIST") or "unknown"
                 al = tags.get("ALBUM")
                 

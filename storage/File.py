@@ -14,13 +14,14 @@ class File(object):
     """
 
     NONE =         0
-    ITEMS_ENQUEUEABLE =  1 << 0
-    ITEMS_SKIPPABLE =    1 << 1
-    ITEMS_DELETABLE =    1 << 2
-    INDEXABLE =          1 << 3
-    ITEMS_DOWNLOADABLE = 1 << 4
-    ITEMS_ADDABLE =      1 << 5
-    ITEMS_SORTABLE =     1 << 6
+    ITEMS_ENQUEUEABLE =    1 << 0
+    ITEMS_SKIPPABLE =      1 << 1
+    ITEMS_DELETABLE =      1 << 2
+    ITEMS_BULK_DELETABLE = 1 << 3
+    INDEXABLE =            1 << 4
+    ITEMS_DOWNLOADABLE =   1 << 5
+    ITEMS_ADDABLE =        1 << 6
+    ITEMS_SORTABLE =       1 << 7
     
 
 
@@ -107,6 +108,12 @@ class File(object):
         """
         name of the file presented to the user
         @since: 0.96
+        """
+        
+        self.acoustic_name = ""
+        """
+        name of the file when read to the user
+        @since: 0.96.5
         """
 
         self.info = ""

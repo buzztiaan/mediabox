@@ -108,6 +108,7 @@ class DialogService(Widget):
                                   ("No", self.__on_btn_no))
     
         self.__show_dialog()
+        self.emit_message(msgs.UI_ACT_TALK, "Question: " + text)
         return self.__run_dialog()
                 
 
@@ -120,6 +121,7 @@ class DialogService(Widget):
         self.__dialog.set_buttons(("OK", self.__on_btn_ok))
     
         self.__show_dialog()
+        self.emit_message(msgs.UI_ACT_TALK, "Error: " + text)
         return self.__run_dialog()
         
         
@@ -132,6 +134,7 @@ class DialogService(Widget):
         self.__dialog.set_buttons(("OK", self.__on_btn_ok))
     
         self.__show_dialog()
+        self.emit_message(msgs.UI_ACT_TALK, "Warning: " + text)
         return self.__run_dialog()
         
         
@@ -144,6 +147,7 @@ class DialogService(Widget):
         self.__dialog.set_buttons(("OK", self.__on_btn_ok))
     
         self.__show_dialog()
+        self.emit_message(msgs.UI_ACT_TALK, text)
         return self.__run_dialog()
 
 
@@ -172,3 +176,8 @@ class DialogService(Widget):
         self.__show_dialog()
         return self.__run_dialog()
 
+
+    def handle_INPUT_EV_ENTER(self):
+    
+        if (self.is_visible()):
+            self.__dialog.trigger_button(0)

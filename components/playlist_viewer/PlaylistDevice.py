@@ -51,6 +51,7 @@ class PlaylistDevice(Device):
         f.name = self.get_name()
         f.path = "/"
         f.mimetype = f.DIRECTORY
+        f.folder_flags = f.ITEMS_DELETABLE
 
         return f
 
@@ -255,6 +256,7 @@ class PlaylistDevice(Device):
             f.mimetype = f.DIRECTORY
             f.icon = theme.mb_viewer_playlist.get_path()
             f.folder_flags = f.ITEMS_DELETABLE | \
+                             f.ITEMS_BULK_DELETABLE | \
                              f.ITEMS_SKIPPABLE | \
                              f.ITEMS_SORTABLE
 

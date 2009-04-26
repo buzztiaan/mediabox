@@ -2,11 +2,11 @@ from com import Component, Viewer, Widget, msgs
 import components
 from utils import logging
 
-from MainWindow import MainWindow
 from RootPane import RootPane
 from TitlePanel import TitlePanel
 from ControlPanel import ControlPanel
 from ViewerState import ViewerState
+from ui.Window import Window
 from ui.Button import Button
 from ui.Pixmap import Pixmap
 from ui.Widget import Widget as UIWidget
@@ -66,28 +66,27 @@ class AppWindow(Component, RootPane):
     
 
         # window
-        self.__window = MainWindow()
-        self.__window.set_app_paintable(True)
-        self.__window.connect("delete-event", self.__on_close_window)
-        self.__window.connect("expose-event", self.__on_expose)
-        self.__window.connect("key-press-event", self.__on_key)
-        self.__window.connect("key-release-event", lambda *a:self.__autorepeat_stop())
-        self.__window.connect("configure-event", self.__on_resize_window)
-        self.__window.set_title("%s %s" % (values.NAME, values.VERSION))
-        self.__window.show()
-        w, h = self.__window.get_size()
+        self.__window = Window(True)
+        self.__window.set_visible(True)
 
         if (maemo.IS_MAEMO):
-            self.__program.add_window(self.__window)
+            self.__program.add_window(self.__window.get_gtk_window())
+
+        self.__window.connect_key_pressed(self.__on_key)
+        self.__window.connect_key_released(lambda *a:self.__autorepeat_stop())
+        self.__window.connect_closed(self.__on_close_window)
 
         # screen pixmap
-        screen = Pixmap(self.__window.window)
+        #screen = Pixmap(self.__window.window)
         
         Component.__init__(self)
         RootPane.__init__(self)
-        self.set_window(self.__window)
+        self.__window.add(self)
+        w, h = self.__window.get_size()
+        
+        #self.set_window(self.__window)
         self.set_size(w, h)
-        self.set_screen(screen)
+        #self.set_screen(screen)
 
         self.__box = UIWidget()
         self.add(self.__box)
@@ -134,6 +133,7 @@ class AppWindow(Component, RootPane):
                    (self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
                                         "",
                                         theme.mb_viewer_audio]),
+                   (self.__window.set_visible, [True]),
                    #(time.sleep, [5]),
                    (self.__register_viewers, []),
                    #(self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
@@ -372,27 +372,10 @@ class AppWindow(Component, RootPane):
         self.emit_message(msgs.UI_ACT_SHOW_STRIP)
 
                         
-    def __on_close_window(self, src, ev):
+    def __on_close_window(self):
     
         self.__try_quit()
         return True
-        
-        
-    def __on_resize_window(self, src, ev):
-            
-        w, h = src.get_size()
-        if (src.get_size() != self.get_size()):
-            logging.debug("resizing window to (%d, %d)" % (w, h))
-            screen = Pixmap(self.__window.window)
-            self.set_screen(screen)
-            self.set_size(w, h)
-            self.render_buffered()
-
-    def __on_expose(self, src, ev):
-    
-        x, y, w, h = ev.area
-        screen = self.get_screen()
-        screen.restore(x, y, w, h)
 
 
     def __autorepeat_start(self, key_msg):
@@ -413,17 +396,16 @@ class AppWindow(Component, RootPane):
             self.__autorepeater = None    
     
 
-    def __on_key(self, src, ev):
+    def __on_key(self, key):
    
-        keyval = ev.keyval
-        key = gtk.gdk.keyval_name(keyval)
+        #keyval = ev.keyval
+        #key = gtk.gdk.keyval_name(keyval)
 
         logging.debug("key pressed: [%s]", key)
         
         if (key == "space"): key = " "
         
         if (key == "Escape"):
-            print "Escape"
             self.emit_message(msgs.HWKEY_EV_ESCAPE)
         
         elif (key == "Return"):
@@ -461,8 +443,10 @@ class AppWindow(Component, RootPane):
             self.emit_message(msgs.HWKEY_EV_EJECT)  # deprecated
             
         elif (key == "Up"):
+            self.__reset_search_timeout()
             self.emit_message(msgs.HWKEY_EV_UP)
         elif (key == "Down"):
+            self.__reset_search_timeout()
             self.emit_message(msgs.HWKEY_EV_DOWN)
         elif (key == "Left"):
             self.emit_message(msgs.HWKEY_EV_LEFT)
@@ -482,7 +466,7 @@ class AppWindow(Component, RootPane):
                 self.__set_search_term(term)
        
         elif (len(key) == 1 and ord(key) > 31):
-            print "KEY", key
+            #print "KEY", key
             self.emit_message(msgs.HWKEY_EV_KEY, key)
             term = self.__get_search_term()
             term += key.lower()
@@ -508,6 +492,7 @@ class AppWindow(Component, RootPane):
         def f():
             self.__keyboard_search_string = ""
             self.__keyboard_search_reset_timer = None
+            self.emit_message(msgs.CORE_EV_SEARCH_CLOSED)
 
         if (self.__keyboard_search_reset_timer):
             gobject.source_remove(self.__keyboard_search_reset_timer)
@@ -532,7 +517,7 @@ class AppWindow(Component, RootPane):
 
         #if (not term): return
         
-        self.__title_panel.set_title_with_timeout("Search: " + term, 2000)
+        #self.__title_panel.set_title_with_timeout("Search: " + term, 2000)
         self.__reset_search_timeout()
         
         if (term):

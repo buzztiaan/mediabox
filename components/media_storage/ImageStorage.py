@@ -103,6 +103,7 @@ class ImageStorage(Device):
                 f.mimetype = "application/x-image-folder"
                 f.resource = ""
                 f.name = folder
+                f.acoustic_name = "Folder: " + f.name
                 f.info = "%d items" % len(self.__folders.get(folder, []))
                 f.thumbnail = self.__find_image_in_folder(folder)
                 f.folder_flags = f.ITEMS_ENQUEUEABLE | \

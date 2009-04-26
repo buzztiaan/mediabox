@@ -17,6 +17,8 @@ class Widget(object):
     EVENT_BUTTON_PRESS = "button-pressed"
     EVENT_BUTTON_RELEASE = "button-released"
     EVENT_MOTION = "motion"
+    EVENT_KEY_PRESS = "key-pressed"
+    EVENT_KEY_RELEASE = "key-released"
     
     
     # static lock for blocking event handling
@@ -28,9 +30,9 @@ class Widget(object):
     # all widget instances
     __instances = []
 
-   
-    # event zones; table: ident -> (x, y, w, h, tstamp, cb)
+    # event zones; table: ident -> (window, x, y, w, h, tstamp, cb)
     _zones = {}
+
         
 
     def __init__(self):
@@ -63,6 +65,7 @@ class Widget(object):
         self.__screen = None
         self.__window = None
         self.__instances.append(self)
+
 
           
     def push_actor(self, w):
@@ -114,7 +117,10 @@ class Widget(object):
             for w in self._zones:
                 if (w.is_frozen()):
                     continue
-                x, y, w, h, tstamp, cb = self._zones[w]
+                #print self._zones[w]
+                window, x, y, w, h, tstamp, cb = self._zones[w]
+                if (window != self.get_window()):
+                    continue
             #for x, y, w, h, tstamp, cb in self._zones.values():
                 if (x <= px <= x + w and y <= py <= y + h and tstamp > zone_tstamp):
                     zone = cb
@@ -318,8 +324,8 @@ class Widget(object):
         coordinates are updated.
         """
     
-        #print "ZONE", x, y, w, h, ident
-        self._zones[ident] = (x, y, w, h, time.time(), self.__on_action)
+        #print "ZONE", x, y, w, h, ident, self.get_window()
+        self._zones[ident] = (self.get_window(), x, y, w, h, time.time(), self.__on_action)
         
         #if (self.__event_sensor):
         #    self.__event_sensor.set_zone(ident, x, y, w, h, time.time(),
@@ -566,8 +572,32 @@ class Widget(object):
         self._connect(self.EVENT_MOTION,
                       lambda x,y,*a:cb(x, y, *a),
                       *args)
-    
 
+
+    def connect_key_pressed(self, cb, *args):
+        """
+        Connects a callback to pressing a key.
+        
+        @param cb: the callback function
+        @param *args: variable list of user arguments
+        """
+    
+        self._connect(self.EVENT_KEY_PRESS,
+                      lambda key,*a:cb(key, *a),
+                      *args)
+                      
+
+    def connect_key_released(self, cb, *args):
+        """
+        Connects a callback to releasing a key.
+        
+        @param cb: the callback function
+        @param *args: variable list of user arguments
+        """
+    
+        self._connect(self.EVENT_KEY_RELEASE,
+                      lambda key,*a:cb(key, *a),
+                      *args)
 
     def set_pos(self, x, y):
         """
@@ -798,6 +828,7 @@ class Widget(object):
         self.__window = win
         try:
             win.set_widget_for_events(self)
+            self.__need_to_check_zones = True
         except:
             logging.error("window object %s must implement method " \
                           "set_widget_for_events" % win)

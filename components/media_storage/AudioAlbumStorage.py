@@ -57,6 +57,7 @@ class AudioAlbumStorage(AudioArtistStorage):
         f.resource = ""
         f.name = self.get_name()
         f.info = "Browse your music library by album"
+        f.folder_flags = f.ITEMS_ENQUEUEABLE
         
         return f
           
@@ -85,6 +86,7 @@ class AudioAlbumStorage(AudioArtistStorage):
                 f.is_local = True
                 f.path = path + urlquote.quote(album, "")
                 f.name = album
+                f.acoustic_name = f.name
                 #f.info = artist
                 f.mimetype = "application/x-music-folder"
                 f.folder_flags = f.ITEMS_ENQUEUEABLE | \
@@ -106,6 +108,7 @@ class AudioAlbumStorage(AudioArtistStorage):
                 tags = tagreader.get_tags(f)
                 f.name = tags.get("TITLE") or f.name
                 f.info = tags.get("ARTIST") or "unknown"
+                f.acoustic_name = f.name + ", by " + f.info
                 al = tags.get("ALBUM")
 
                 try:

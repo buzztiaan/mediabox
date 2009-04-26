@@ -2,7 +2,8 @@
 
     F1              PREVIOUS_VIEWER -
     F2              NEXT_VIEWER     -
-
+    F4              MENU            -
+    F6              FULLSCREEN      -
     F7              VOLUME_UP       -
     F8              VOLUME_DOWN     -
     F12             EJECT           -
@@ -13,35 +14,27 @@
     RIGHT           RIGHT           -
     UP              UP              -
     DOWN            DOWN            -
-    ESCAPE          MENU            -
     ENTER           ENTER           -
 
 
 [BROWSER]
     UP              UP              -
     DOWN            DOWN            -
-    F6              FULLSCREEN      -
-    ENTER           -               CUSTOM_0
-    ESCAPE          MENU            -
-
-
-[CUSTOM_0]
-    ENTER           PLAY            -
-    ESCAPE          -               BROWSER
-    UP              PREVIOUS        -
-    DOWN            NEXT            -
-    LEFT            REWIND          -
-    RIGHT           FORWARD         -
+    LEFT            GO_PARENT       -
+    RIGHT           ENTER           -
+    ENTER           ENTER           -
+    ESCAPE          SWITCH_TAB      -
+    MENU            SWITCH_TAB      -
 
 
 [PLAYER]
-    UP              PREVIOUS        -
-    DOWN            NEXT            -
-    LEFT            REWIND          -
-    RIGHT           FORWARD         -
-    ESCAPE          MENU            -
+    UP              VOLUME_UP       -
+    DOWN            VOLUME_DOWN     -
+    LEFT            PREVIOUS        -
+    RIGHT           NEXT            -
     ENTER           PLAY            -
-    F6              FULLSCREEN      -
+    ESCAPE          SWITCH_TAB      -
+    MENU            SWITCH_TAB      -
 
 
 [FULLSCREEN]
@@ -49,20 +42,7 @@
     DOWN            NAV_DOWN        -
     LEFT            NAV_LEFT        -
     RIGHT           NAV_RIGHT       -
-    F6              FULLSCREEN      -
-    ESCAPE          NAV_MENU        -
+#    ESCAPE          NAV_MENU        -
     ENTER           NAV_ENTER       -
-    MENU            MENU            -
-    F5              MENU            -
-
-
-# alternative controls for DVD menu
-[CUSTOM_1]
-    UP              NAV_UP          -
-    DOWN            NAV_DOWN        -
-    LEFT            NAV_LEFT        -
-    RIGHT           NAV_RIGHT       -
-    ENTER           NAV_ENTER       -
-    ESCAPE          NAV_MENU        -
-    MENU            -               FULLSCREEN
-
+    ESCAPE          SWITCH_TAB      -
+    MENU            SWITCH_TAB      -

@@ -29,7 +29,7 @@ class VolumeMount(Component):
         device = arg[11]
         self.__mounts[ident] = (device, path)
         logging.info("device mounted: %s at %s", device, path)
-        self.emit_event(msgs.SYSTEM_EV_DRIVE_MOUNTED, path)
+        self.emit_message(msgs.SYSTEM_EV_DRIVE_MOUNTED, path)
 
 
 
@@ -38,7 +38,7 @@ class VolumeMount(Component):
         dev, path = self.__mounts.get(ident, (None, None))
         if (dev and path):
             logging.info("device unmounted: %s", dev)
-            self.emit_event(msgs.SYSTEM_EV_DRIVE_UNMOUNTED, path)
+            self.emit_message(msgs.SYSTEM_EV_DRIVE_UNMOUNTED, path)
         else:
             logging.info("unspecified device unmounted: %s", ident)
-            self.emit_event(msgs.SYSTEM_EV_DRIVE_UNMOUNTED, path)
+            self.emit_message(msgs.SYSTEM_EV_DRIVE_UNMOUNTED, path)

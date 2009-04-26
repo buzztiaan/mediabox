@@ -20,6 +20,7 @@ class StripItem(object):
         self.__height = 0
         self.__canvas = None
         self.__is_hilighted = False
+        self.__is_marked = False
         self.__selection_frame = None
 
         self.__background = None
@@ -109,6 +110,12 @@ class StripItem(object):
             #                  self.__width, self.__height, True)
 
 
+        if (self.__is_marked):
+            w, h = self.get_size()
+            canvas.fill_area(0, 0, w, h, "#40000040")
+
+
+
     def render_this(self, canvas):
     
         raise NotImplementedError
@@ -123,5 +130,17 @@ class StripItem(object):
     
         if (value != self.__is_hilighted):
             self.__is_hilighted = value
+            self.invalidate()
+
+
+    def is_marked(self):
+    
+        return self.__is_marked
+        
+        
+    def set_marked(self, value):
+    
+        if (value != self.__is_marked):
+            self.__is_marked = value
             self.invalidate()
 

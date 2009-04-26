@@ -53,6 +53,15 @@ class TabbedViewer(Viewer):
         """
         
         self.__side_tabs.select_tab(idx)
+
+
+    def switch_tab(self):
+        """
+        Switches tabs.
+        @since: 0.96.5
+        """
+    
+        self.__side_tabs.switch_tab()
         
 
     def set_tabs_visible(self, v):
@@ -74,6 +83,7 @@ class TabbedViewer(Viewer):
             if (self.__current_tab_element):
                 self.__current_tab_element.set_geometry(0, 0, w, h)
        
+        #screen.fill_area(x, y, w, h, theme.color_mb_background)
         
 
 

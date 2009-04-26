@@ -99,7 +99,9 @@ messages = [
     "CORE_ACT_SET_TITLE",       # (title)
     "CORE_ACT_SET_INFO",        # (info)
     "CORE_ACT_SET_TOOLBAR",     # (toolbar_set)
+
     "CORE_ACT_SEARCH_ITEM",     # (key)
+    "CORE_EV_SEARCH_CLOSED",
     
     "CORE_EV_THEME_CHANGED",
 
@@ -115,6 +117,8 @@ messages = [
     "UI_ACT_FREEZE",
     "UI_ACT_THAW",
     "UI_ACT_RENDER",
+    
+    "UI_ACT_TALK",               # (text_to_say)
 
     "UI_ACT_VIEW_MODE",          # (mode)
     "UI_ACT_SHOW_MESSAGE",       # (text, subtext, icon)

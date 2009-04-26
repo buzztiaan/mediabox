@@ -111,14 +111,12 @@ class YouTube(Device):
 
     def __extract_t(self, html):
     
-        open("/tmp/yt.html", "w").write(html)
+        #open("/tmp/yt.html", "w").write(html)
     
         # normalize
         html = "".join(html.split())
         
         pos = html.find("\",\"t\":\"")
-        if (pos == -1):
-            pos = html.find("\", \"t\":\"")
         if (pos != -1):
             pos2 = html.find("\"", pos + 7)
             t = html[pos + 7:pos2]
@@ -555,7 +553,7 @@ class YouTube(Device):
                               "You are not allowed to view this!",
                               "You became a victim of internet censorship.\n\n"
                               "MediaBox cannot load this video in your country.")
-            return
+            return ""
         
         self.emit_message(msgs.UI_ACT_SHOW_MESSAGE,
                         "Requesting Video",

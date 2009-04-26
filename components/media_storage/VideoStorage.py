@@ -97,6 +97,7 @@ class VideoStorage(Device):
                 f.mimetype = f.DIRECTORY
                 f.resource = ""
                 f.name = folder
+                f.acoustic_name = f.name + ", Folder"
                 f.info = "%d items" % len(self.__folders.get(folder, []))
                 f.folder_flags = f.ITEMS_ENQUEUEABLE | \
                                  f.ITEMS_SKIPPABLE

@@ -22,7 +22,7 @@ class ThemeListItem(ButtonListItem):
         self.set_colors(theme.color_mb_listitem_text, theme.color_mb_listitem_subtext)
         self.set_font(theme.font_mb_tiny)
 
-        self.set_buttons((self.BUTTON_PLAY, theme.mb_item_btn_play))
+        self.set_buttons((self.BUTTON_PLAY, theme.mb_item_btn_open))
 
 
     def get_preview(self):

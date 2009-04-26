@@ -143,14 +143,15 @@ class VideoWidget(MediaWidget):
         self.__ebox.set_geometry(0, 0, w, h)
 
         fx, fy, fw, fh = x, y, w, h
-        vx, vy, vw, vh = x + 2, y + 2, w - 4, h - 4
+        vx, vy, vw, vh = x + 1, y + 1, w - 2, h - 2
+        #vx, vy, vw, vh = x, y, w, h
 
         if (w < 800):
-            screen.draw_rect(fx, fy, fw, fh, "#000000")
-            self.__render_overlay_frame(screen, vx, vy, vw, vh)
+            self.__render_overlay_frame(screen, fx, fy, fw, fh)
+            screen.draw_rect(vx, vy, vw, vh, theme.color_mb_background)
             #screen.fill_area(vx, vy, vw, vh, "#000000")
         else:
-            self.__render_overlay_frame(screen, x, y, w, h)
+            self.__render_overlay_frame(screen, fx, fy, fw, fh)
         #    screen.fill_area(x, y, w, h, "#000000")
 
         gobject.idle_add(self.__show_video_screen)
@@ -159,6 +160,8 @@ class VideoWidget(MediaWidget):
     def __render_overlay_frame(self, screen, x, y, w, h):
     
         vx, vy, vw, vh = self.__overlay_coords
+        screen.fill_area(x, y, w, h, "#000000")
+        return
         
         w1 = vx - x
         h1 = vy - y
@@ -449,13 +452,16 @@ class VideoWidget(MediaWidget):
         self.__show_video_screen()
 
         if (not self.__layout):
+            x, y = self.get_screen_pos()
             self.__layout = self.get_window()
-            self.__layout.put(self.__screen, 0, 0)
+            self.__layout.put(self.__screen, x, y)
+            self.__screen.set_size_request(100, 100)
 
         if (self.__load_handler):
             gobject.source_remove(self.__load_handler)
-            
-        self.__load_handler = gobject.idle_add(f)                
+
+        #self.__load_handler = gobject.timeout_add(500, f)
+        f()
 
 
     def play_pause(self):

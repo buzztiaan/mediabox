@@ -20,6 +20,7 @@ class _ImageSet(object):
         self.totalsize = 0
         self.offset = 0
         self.hilighted = -1
+        self.cursor_index = -1
 
 
 class ImageStrip(Widget):
@@ -62,6 +63,9 @@ class ImageStrip(Widget):
 
         # the currently hilighted image    
         self.__hilighted_image = -1
+        
+        # the current cursor position
+        self.__cursor_index = -1
     
         # shared pixmap for storing the items
         self.__shared_pmap = None
@@ -347,6 +351,7 @@ class ImageStrip(Widget):
             self.__current_image_set.offset = self.__offset
             self.__current_image_set.totalsize = self.__totalsize
             self.__current_image_set.hilighted = self.__hilighted_image
+            self.__current_image_set.cursor_index = self.__cursor_index
         
         imgset = self.__image_sets.get(owner, _ImageSet())
         self.__image_sets[owner] = imgset
@@ -355,6 +360,7 @@ class ImageStrip(Widget):
         self.__offset = imgset.offset
         self.__totalsize = imgset.totalsize
         self.__hilighted_image = imgset.hilighted
+        self.__cursor_index = imgset.cursor_index
         self.__current_image_set = imgset
         self.__invalidates_images = []
 
@@ -400,6 +406,7 @@ class ImageStrip(Widget):
             
 
         self.__hilighted_image = -1
+        self.__cursor_index = -1
         
         import gc; gc.collect()
         
@@ -557,6 +564,42 @@ class ImageStrip(Widget):
             #print "render hilighted", idx, self.__invalidated_images
             self.render()
 
+
+    def set_cursor(self, idx):
+        """
+        Places the cursor on the given item.
+        @since: 0.96.5
+        
+        @param idx: index number of the item
+        """
+        
+        if (self.__cursor_index >= 0):
+            self.invalidate_image(self.__cursor_index)
+            try:
+                item = self.get_image(self.__cursor_index)
+                item.set_marked(False)
+            except:
+                pass
+                
+        if (idx >= 0 and idx < len(self.__images)):
+            item = self.get_image(idx)
+            self.invalidate_image(idx)
+            item.set_marked(True)
+            self.__cursor_index = idx
+            #print "render hilighted", idx, self.__invalidated_images
+            self.render()
+            self.scroll_to_item(self.__cursor_index)
+        
+             
+    def get_cursor(self):
+        """
+        Returns the current cursor position, or -1 if there is no cursor.
+        @since: 0.96.5
+        
+        @return: index number of the item
+        """
+        
+        return self.__cursor_index
 
         
     def set_wrap_around(self, value):

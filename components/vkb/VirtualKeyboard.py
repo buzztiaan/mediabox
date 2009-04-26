@@ -142,7 +142,7 @@ class VirtualKeyboard(gtk.Window, Component):
     
         self.__parent = parent
         w, h = self.__size
-        px, py = parent.window.get_position()
+        px, py = parent.get_pos()
         pw, ph = parent.get_size()
         #self.move(px, py + ph)
         self.move(px, py + ph - h)
@@ -231,7 +231,7 @@ class VirtualKeyboard(gtk.Window, Component):
         
         elif (k == vkblayout.HIDE):
             w, h = self.__size
-            px, py = self.__parent.window.get_position()
+            px, py = self.__parent.get_pos()
             pw, ph = self.__parent.get_size()
         
             #self.fx_slide(px, py + ph - h, py + ph)

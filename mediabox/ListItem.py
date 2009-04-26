@@ -12,6 +12,8 @@ class ListItem(ButtonListItem):
     BUTTON_ENQUEUE = "enqueue"
     BUTTON_ADD_TO_LIBRARY = "add-to-library"
     BUTTON_REMOVE = "remove"
+    BUTTON_REMOVE_PRECEDING = "remove-preceding"
+    BUTTON_REMOVE_SUCCEEDING = "remove-succeeding"
     BUTTON_OPEN = "open"
     BUTTON_CLOSE = "close"
 

@@ -188,22 +188,19 @@ class AudioWidget(MediaWidget):
         
         if (w < 800):
             self.__ctrlbox.set_visible(False)
-            #self.__car_btn_prev.set_visible(False)
-            #self.__car_btn_next.set_visible(False)
             self.__progress_label.set_visible(False)
             self.__hbox.set_geometry(0, 64, w, h - 128)
+            self.__title.set_geometry(10, 6, w - 2 * 20, 0)
+            self.__lyrics.set_geometry(10, h - 42, w - 2 * 20, 0)
             self.__free_space.set_size(0, h - 128 - 70)
             border_width = 10
         else:
             self.__ctrlbox.set_visible(True)
             self.__ctrlbox.set_size(64, h - 128)
-            #self.__car_btn_prev.set_visible(True)
-            #self.__car_btn_next.set_visible(True)
+            self.__title.set_geometry(10, 6, w - 200 - 2 * 20, 0)
             self.__progress_label.set_visible(True)
-            #self.__car_btn_prev.set_size(64, 64)
-            #self.__car_btn_next.set_size(64, 64)
-            self.__progress_label.set_geometry(w - 200, h - 90, 190, 0)
-            self.__progress_label.set_size(w / 2 - 100, 0)
+            self.__progress_label.set_geometry(w - 20 - 200, 6, 200, 0)
+            self.__lyrics.set_geometry(10, h - 42, w - 2 * 20, 0)
             self.__hbox.set_geometry(0, 64, w, h - 128)
             self.__free_space.set_size(10, h - 128 - 70)
             border_width = 100
@@ -214,38 +211,6 @@ class AudioWidget(MediaWidget):
         screen.fill_area(x, y + h - 50, w, 50,
                          theme.color_mb_trackinfo_background_2)
                 
-        # title label
-        lbl_x = 10
-        lbl_y = 6
-        lbl_w = w - 2 * 20
-        self.__title.set_geometry(lbl_x, lbl_y, lbl_w, 0)       
-
-        # lyrics label
-        lbl_x = 10
-        lbl_y = h - 42
-        lbl_w = w - 20
-        self.__lyrics.set_geometry(lbl_x, lbl_y, lbl_w, 0)
-
-        # album label
-        lbl_x = w / 2
-        lbl_y = 64 #h - 42
-        lbl_w = w / 2 - 2 * border_width
-        #screen.draw_pixbuf(theme.mb_music_album, x + lbl_x, y + lbl_y)
-        #self.__album.set_size(w / 2 - 80, 0)
-        
-        # artist label
-        lbl_y = 112
-        #screen.draw_pixbuf(theme.mb_music_artist, x + lbl_x, y + lbl_y)
-        #self.__artist.set_size(w / 2 - 80, 0)
-
-        
-        # cover art
-        cover_size = self.__cover.get_size()[0] #min(h - 128, w / 2 - border_width)
-        cover_x = (w / 2 - cover_size) / 2 #20 #(w - cover_size) / 2
-        cover_y = (h - cover_size) / 2
-        #self.__cover.set_geometry(cover_x, cover_y,
-        #                          cover_size + 11, cover_size + 11)
-        #self.__cover.set_pos(cover_x, cover_y)
                                                
 
 

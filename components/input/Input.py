@@ -33,7 +33,8 @@ class Input(Component):
             self.__schema.send_key(msg)
             event = self.__schema.get_event()
             if (event):
-                self.emit_event(event)
+                self.emit_message(event)
 
         elif (msg in _CONTEXTS):
+            print "CONTEXT", msgs._id_to_name(msg)
             self.__schema.set_context(msg)

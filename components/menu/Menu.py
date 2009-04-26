@@ -141,6 +141,19 @@ class Menu(Widget):
         self.__is_prepared = False
         self.__panel.set_hilighting_box(
               pixbuftools.make_frame(theme.mb_selection_frame, 120, 120, True))
+
+
+    def __check_for_resize(self):
+    
+        if (not self.get_parent()):
+            return
+            
+        pw, ph = self.get_parent().get_size()       
+        w, h = self.get_size()
+        
+        if ((pw, ph) != (w, h)):
+            self.__is_prepared = False
+        
         
 
     def render_this(self):
@@ -154,7 +167,7 @@ class Menu(Widget):
        
         screen.fill_area(x, y, w - 80, h, theme.color_mb_menu)
         screen.fill_area(w - 80, y, 80, h, theme.color_mb_menu_side)
-        screen.fill_area(0, y, w, 2, "#000000")
+        #screen.fill_area(0, y, w, 2, "#000000")
         self.__label.set_geometry(8, h - 16, w - 16, 0)
         
         b_y = y + 10
@@ -298,6 +311,8 @@ class Menu(Widget):
         
         
     def __show_menu(self):
+    
+        self.__check_for_resize()
     
         #self.emit_message(msgs.UI_ACT_FREEZE)
         #self.set_frozen(False)

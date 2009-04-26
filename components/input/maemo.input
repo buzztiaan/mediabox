@@ -1,5 +1,7 @@
 # Maemo Input Schema
 
+    F4              SWITCH_TAB      -
+    F6              FULLSCREEN      -
     F7              VOLUME_UP       -
     F8              VOLUME_DOWN     -
 
@@ -19,18 +21,10 @@
 [BROWSER]
     UP              UP              -
     DOWN            DOWN            -
-    F6              FULLSCREEN      -
-    ENTER           -               CUSTOM_0
+    LEFT            GO_PARENT       -
+    RIGHT           ENTER           -
+    ENTER           ENTER           -
     ESCAPE          MENU            -
-
-
-[CUSTOM_0]
-    ENTER           PLAY            -
-    ESCAPE          -               BROWSER
-    UP              PREVIOUS        -
-    DOWN            NEXT            -
-    LEFT            REWIND          -
-    RIGHT           FORWARD         -
 
 
 [PLAYER]
@@ -40,15 +34,13 @@
     RIGHT           FORWARD         -
     ESCAPE          MENU            -
     ENTER           PLAY            -
-    F6              FULLSCREEN      -
 
 
 [FULLSCREEN]
-    UP              UP              -
-    DOWN            DOWN            -
-    LEFT            LEFT            -
-    RIGHT           RIGHT           -
-    F6              FULLSCREEN      -
+    UP              PREVIOUS        -
+    DOWN            NEXT            -
+    LEFT            REWIND          -
+    RIGHT           FORWARD         -
     ESCAPE          FULLSCREEN      -
-    ENTER           ENTER           -
+    ENTER           PLAY            -
 

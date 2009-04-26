@@ -89,6 +89,7 @@ class AudioStorage(Device):
                 f = File(self)
                 f.is_local = True
                 f.name = album.name
+                f.acoustic_name = f.name
                 f.info = album.info
                 f.mimetype = "application/x-music-folder"
                 f.thumbnail_md5 = album.md5

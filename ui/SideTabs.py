@@ -45,6 +45,8 @@ class SideTabs(HilightingWidget):
 
         if (need_prepare and self.__tabs):
             self.__prepare_tabs()
+            self.select_tab(self.__current_tab)
+
 
 
     def render_this(self):
@@ -152,4 +154,16 @@ class SideTabs(HilightingWidget):
         except:
             pass
         self.__current_tab = idx
+
+
+    def switch_tab(self):
+        """
+        Switches tabs.
+        @since: 0.96.5
+        """
+        
+        idx = self.__current_tab + 1
+        if (idx == len(self.__tabs)):
+            idx = 0
+        self.select_tab(idx)
 

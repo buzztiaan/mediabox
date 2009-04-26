@@ -42,6 +42,9 @@ class MediaViewer(TabbedViewer):
         
         # list for choosing random files from when in shuffle mode
         self.__random_files = []
+        
+        self.__is_searching = False
+        self.__search_term = ""
 
     
         TabbedViewer.__init__(self)
@@ -171,7 +174,10 @@ class MediaViewer(TabbedViewer):
 
         names = [ p.name for p in self.__browser.get_path() ]
         title = u" \u00bb ".join(names)
+        names.reverse()
+        acoustic_title = "Entering " + " in ".join(names)
         self.set_title(title)
+        self.emit_message(msgs.UI_ACT_TALK, acoustic_title)
 
         self.__update_toolbar()
 
@@ -210,6 +216,8 @@ class MediaViewer(TabbedViewer):
             self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)
             self.emit_message(msgs.UI_ACT_RENDER)
 
+        self.handle_INPUT_ACT_REPORT_CONTEXT()
+
 
     def __on_btn_back(self):
         """
@@ -228,8 +236,8 @@ class MediaViewer(TabbedViewer):
         folder = self.__browser.get_current_folder()
         if (folder):
             f = folder.new_file()
-            if (f):
-                self.__browser.reload_current_folder()
+        #    if (f):
+        #        self.__browser.reload_current_folder()
         
         """
         if (self.__path_stack):
@@ -285,7 +293,7 @@ class MediaViewer(TabbedViewer):
         Reacts on changing the scaling value.
         """
 
-        #self.emit_message(msgs.MEDIA_EV_VOLUME_CHANGED, volume)
+        self.emit_message(msgs.MEDIA_EV_VOLUME_CHANGED, int(v * 100))
         self.__slider.set_value(v)
 
 
@@ -495,8 +503,24 @@ class MediaViewer(TabbedViewer):
     def handle_CORE_ACT_SEARCH_ITEM(self, key):
     
         if (self.is_active()):
-            self.__browser.search(key)
+            self.__browser.set_message("Search: " + key)
+            if (key != self.__search_term):
+                self.__browser.set_cursor(1)
+            idx = self.__browser.search(key, 1)
+            if (idx != -1):
+                self.__browser.set_cursor(idx)
+                self.__browser.scroll_to_item(idx)
+            self.__is_searching = True
+            self.__search_term = key
         #end if
+
+
+    def handle_CORE_EV_SEARCH_CLOSED(self):
+    
+        self.__browser.set_message("")
+        self.__browser.render()
+        self.__is_searching = False
+        self.__search_term = ""
 
     
     def handle_MEDIA_EV_LOADED(self, viewer, f):
@@ -521,36 +545,110 @@ class MediaViewer(TabbedViewer):
 
     def handle_INPUT_ACT_REPORT_CONTEXT(self):
     
-        if (self.__browser.is_visible()):
-            self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
+        if (self.is_active()):
+            if (self.__browser.is_visible()):
+                self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
 
-        elif (self.__media_box.is_visible()):
-            if (self.__is_fullscreen):
-                self.emit_message(msgs.INPUT_EV_CONTEXT_FULLSCREEN)
-            else:
-                self.emit_message(msgs.INPUT_EV_CONTEXT_PLAYER)
+            elif (self.__media_box.is_visible()):
+                if (self.__is_fullscreen):
+                    self.emit_message(msgs.INPUT_EV_CONTEXT_FULLSCREEN)
+                else:
+                    self.emit_message(msgs.INPUT_EV_CONTEXT_PLAYER)
 
 
     def handle_INPUT_EV_UP(self):
+
+        if (not self.is_active()): return
+       
+        if (self.__is_searching):
+            idx = self.__browser.search(self.__search_term, -1)
+            if (idx != -1):
+                self.__browser.set_cursor(idx)
+                self.__browser.scroll_to_item(idx)
+            
+        else:
+            cursor = self.__browser.get_cursor()
+            if (cursor == -1): cursor = 1
+            if (cursor > 0):
+                cursor -= 1
+            self.__browser.set_cursor(cursor)
+
+            f = self.__browser.get_item(cursor).get_file()
+            self.emit_message(msgs.UI_ACT_TALK, f.acoustic_name or f.name)
+            
+
+    def handle_INPUT_EV_PAGE_UP(self):
 
         if (self.is_active()):        
             idx = self.__browser.get_index_at(0)
             if (idx != -1):
                 new_idx = max(0, idx - 2)
                 self.__browser.scroll_to_item(new_idx)
-        #end if
 
 
     def handle_INPUT_EV_DOWN(self):
 
-        if (self.is_active()):        
+        if (not self.is_active()): return
+        
+        if (self.__is_searching):
+            idx = self.__browser.search(self.__search_term, 1)
+            if (idx != -1):            
+                self.__browser.set_cursor(idx)
+                self.__browser.scroll_to_item(idx)
+            
+        else:
+            cursor = self.__browser.get_cursor()
+            if (cursor == -1): cursor = 0
+            if (cursor + 1 < len(self.__browser.get_items())):
+                cursor += 1
+            self.__browser.set_cursor(cursor)            
+
+            f = self.__browser.get_item(cursor).get_file()
+            self.emit_message(msgs.UI_ACT_TALK, f.acoustic_name or f.name)
+
+
+
+    def handle_INPUT_EV_PAGE_DOWN(self):
+    
+        if (self.is_active()):
             w, h = self.__browser.get_size()
             idx = self.__browser.get_index_at(h)
             if (idx != -1):
                 items = self.__browser.get_items()
                 new_idx = min(len(items), idx + 2)
                 self.__browser.scroll_to_item(new_idx)
-        #end if
+
+
+    def handle_INPUT_EV_RIGHT(self):
+    
+        if (self.is_active() and self.__browser.is_visible()):
+            self.select_tab(1)
+
+
+    def handle_INPUT_EV_ENTER(self):
+    
+        if (self.is_active() and self.__browser.is_visible()):
+            cursor = self.__browser.get_cursor()
+            if (cursor != -1):
+                self.__browser.trigger_item_button(cursor)
+
+    
+    def handle_INPUT_EV_GO_PARENT(self):
+    
+        if (self.is_active()):
+            if (self.__browser.is_visible()):
+                self.__browser.go_parent()
+
+    def handle_INPUT_EV_SWITCH_TAB(self):
+    
+        if (self.is_active()):
+            self.switch_tab()
+
+
+    def handle_INPUT_EV_PLAY(self):
+    
+        if (self.is_active() and self.__media_widget):
+            self.__media_widget.play_pause()
 
 
     def handle_INPUT_EV_FULLSCREEN(self):
@@ -569,6 +667,18 @@ class MediaViewer(TabbedViewer):
     
         if (self.is_active() and self.__media_widget):
             self.__media_widget.decrement()
+
+
+    def handle_INPUT_EV_PREVIOUS(self):
+    
+        if (self.is_active()):
+            self.__go_previous()
+
+
+    def handle_INPUT_EV_NEXT(self):
+    
+        if (self.is_active()):
+            self.__go_next()
 
 
     def handle_INPUT_EV_REWIND(self):

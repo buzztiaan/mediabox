@@ -159,8 +159,13 @@ class Dialog(Widget):
         
 
     def __on_btn_click(self, i):
+
+        self.trigger_button(i)    
+
+
+    def trigger_button(self, idx):
     
-        cb = self.__button_callbacks[i]
+        cb = self.__button_callbacks[idx]
         if (cb):
             cb()
 

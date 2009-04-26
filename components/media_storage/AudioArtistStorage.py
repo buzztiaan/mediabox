@@ -156,6 +156,7 @@ class AudioArtistStorage(Device):
                 f = File(self)
                 f.path = path + urlquote.quote(artist, "")
                 f.name = artist
+                f.acoustic_name = f.name
                 f.mimetype = f.DIRECTORY
                 f.icon = theme.mb_device_artists.get_path()
                 f.folder_flags = f.ITEMS_ENQUEUEABLE | \
@@ -173,6 +174,7 @@ class AudioArtistStorage(Device):
                 f.is_local = True
                 f.path = path + urlquote.quote(album, "")
                 f.name = album
+                f.acoustic_name = f.name
                 f.info = artist
                 f.mimetype = "application/x-music-folder"
                 f.folder_flags = f.ITEMS_ENQUEUEABLE | \
@@ -191,6 +193,7 @@ class AudioArtistStorage(Device):
             for f in self._list_files(artist, album):
                 tags = tagreader.get_tags(f)
                 f.name = tags.get("TITLE") or f.name
+                f.acoustic_name = f.name
                 f.info = tags.get("ARTIST") or "unknown"
                 al = tags.get("ALBUM") or "unknown"
                 
