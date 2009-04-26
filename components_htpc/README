@@ -1,0 +1,16 @@
+This directory contains plugins for building a HTPC with the MediaBox framework.
+These plugins are not intended for the maemo platform.
+
+Start MediaBox like this to load the HTPC plugins:
+
+  ./MediaBox.py --plugin-dir=components_htpc --blacklist-plugins=menu,media_viewer
+
+
+Goals:
+
+ - Remote control-driven UI (e.g. using AppleRemote or Nintendo Wiimote)
+ - No keyboard or mouse ever required (those don't belong into a living-room)
+ - DVD playback with navigatable DVD menus (using libxine)
+ - Themable translucent OSD with compiz compositing
+ - Fullscreen HD compatbility
+
