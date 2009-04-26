@@ -12,6 +12,8 @@ mediabox (0.96.5) unstable; urgency=low
 
   Improved UI rendering performance and reduced memory footprint
   
+  Improved search feature with skipping to next and previous results
+  
   Cleaner user interface
   
   Thumbable scrollbar
