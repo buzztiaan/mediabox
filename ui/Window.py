@@ -28,7 +28,7 @@ class Window(Widget):
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             
             #self.set_size(800, 480)
-            self.__window.set_resizable(False)
+            #self.__window.set_resizable(False)
         else:
             self.__window = gtk.Window(gtk.WINDOW_POPUP)
 

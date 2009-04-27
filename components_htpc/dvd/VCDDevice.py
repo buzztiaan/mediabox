@@ -1,8 +1,6 @@
 from storage import Device, File
 from theme import theme
 
-import os
-
 
 class VCDDevice(Device):
 
@@ -10,9 +8,9 @@ class VCDDevice(Device):
     TYPE = Device.TYPE_VIDEO
     
 
-    def __init__(self, path):
+    def __init__(self, label, path):
             
-        self.__name = os.path.basename(path)
+        self.__name = "VCD: " + label
         self.__path = path
     
         Device.__init__(self)

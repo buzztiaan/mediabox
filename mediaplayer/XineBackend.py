@@ -91,7 +91,11 @@ class XineBackend(AbstractBackend):
     
         if (self._get_mode() == self.MODE_VIDEO):
             if (self.__window_id != 0):
-                self.__player.set_window(self.__window_id)
+                try:
+                    self.__player.set_window(self.__window_id)
+                except:
+                    self.__start_xine()
+                    return
                 self.__window_id = 0
 
         self.__player.open(uri)

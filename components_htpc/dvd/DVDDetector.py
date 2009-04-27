@@ -5,6 +5,7 @@ from utils import logging
 
 import time
 import os
+import commands
 
 
 class DVDDetector(Component):
@@ -21,11 +22,13 @@ class DVDDetector(Component):
     
         for line in open("/etc/mtab", "r").readlines():
             parts = line.split()
+            device = parts[0]
             mountpoint = parts[1]
             filesystem = parts[2]
             
             if (filesystem == "udf" and self.__is_dvd(mountpoint)):
-                return mountpoint
+                label = commands.getoutput("volname %s" % device)
+                return label, mountpoint
         #end for
         
         return ""
@@ -44,10 +47,10 @@ class DVDDetector(Component):
         return os.path.exists(vcd)       
 
 
-    def __load_dvd(self, path):
+    def __load_dvd(self, label, path):
 
         uuid = "dvd:%s" % `time.time()`
-        device = DVDDevice(path)
+        device = DVDDevice(label, path)
         self.__devices[path] = uuid
         
         self.emit_message(msgs.CORE_EV_DEVICE_ADDED, uuid, device)
@@ -56,10 +59,10 @@ class DVDDetector(Component):
         #self.emit_message(msgs.UI_ACT_SELECT_DEVICE, uuid)
     
     
-    def __load_vcd(self, path):
+    def __load_vcd(self, label, path):
 
         uuid = "vcd:%s" % `time.time()`
-        device = VCDDevice(path)
+        device = VCDDevice(label, path)
         self.__devices[path] = uuid
 
         self.emit_message(msgs.CORE_EV_DEVICE_ADDED, uuid, device)
@@ -74,25 +77,30 @@ class DVDDetector(Component):
     def handle_message(self, msg, *args):
     
         if (msg == msgs.CORE_EV_APP_STARTED):
-            path = self.__find_dvd()
-            if (path):
-                self.__load_dvd(path)
-    
-        elif (msg == msgs.SYSTEM_EV_DRIVE_MOUNTED):
-            path = args[0]
+            label, path = self.__find_dvd()
             if (self.__is_dvd(path)):
-                self.__load_dvd(path)
+                self.__load_dvd(label, path)
 
             elif (self.__is_vcd(path)):
-                self.__load_vcd(path)
+                self.__load_vcd(label, path)
+    
+        elif (msg == msgs.SYSTEM_EV_DRIVE_MOUNTED):
+            label, path = args
+            if (self.__is_dvd(path)):
+                self.__load_dvd(label, path)
+
+            elif (self.__is_vcd(path)):
+                self.__load_vcd(label, path)
 
         elif (msg == msgs.SYSTEM_EV_DRIVE_UNMOUNTED):
-            path = args[0]
-            
-            if (path in self.__devices):
-                uuid = self.__devices[path]
-                del self.__devices[path]
-                self.emit_message(msgs.CORE_EV_DEVICE_REMOVED, uuid)
+            for path in self.__devices.keys():
+                if (not self.__is_dvd(path) and not self.__is_vcd(path)):
+                    print "REMOVED", path
+                    uuid = self.__devices[path]
+                    del self.__devices[path]
+                    self.emit_message(msgs.CORE_EV_DEVICE_REMOVED, uuid)
+                #end if
+            #end for
    
         elif (msg == msgs.INPUT_EV_EJECT):
             if (self.__devices):

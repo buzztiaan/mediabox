@@ -78,7 +78,6 @@ class VideoWidget(MediaWidget):
                            Image(theme.mb_toolbar_space_1))        
 
 
-
     def handle_message(self, msg, *args):
     
         if (msg == msgs.INPUT_EV_NAV_UP):
@@ -425,8 +424,6 @@ class VideoWidget(MediaWidget):
             #end if
             
             if (self.__screen.window.xid):
-                #if (uri == self.__uri): return
-                
                 self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
                 
                 self.__player.set_window(self.__screen.window.xid)
@@ -441,26 +438,25 @@ class VideoWidget(MediaWidget):
                 self.__player.set_volume(mb_config.volume())
                 bookmarks = media_bookmarks.get_bookmarks(item)
                 self.__progress.set_bookmarks(bookmarks)
-                #self.__player.show_text(os.path.basename(uri), 2000)
-                #self.set_title(os.path.basename(uri))                
                 self.__uri = uri
                 self.__current_file = item
                 
-                #self.update_observer(self.OBS_SHOW_PANEL)
-
-
-        self.__show_video_screen()
 
         if (not self.__layout):
             x, y = self.get_screen_pos()
             self.__layout = self.get_window()
             self.__layout.put(self.__screen, x, y)
-            self.__screen.set_size_request(100, 100)
+            self.__screen.set_size_request(1, 1)
+            gtk.gdk.window_process_all_updates()
+
+        self.__show_video_screen()
 
         if (self.__load_handler):
             gobject.source_remove(self.__load_handler)
 
         #self.__load_handler = gobject.timeout_add(500, f)
+        #gobject.idle_add(f)
+        
         f()
 
 

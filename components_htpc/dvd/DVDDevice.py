@@ -1,8 +1,6 @@
 from storage import Device, File
 from theme import theme
 
-import os
-
 
 class DVDDevice(Device):
 
@@ -10,9 +8,9 @@ class DVDDevice(Device):
     TYPE = Device.TYPE_VIDEO
     
 
-    def __init__(self, path):
+    def __init__(self, label, path):
             
-        self.__name = os.path.basename(path)
+        self.__name = "DVD: " + label
         self.__path = path
     
         Device.__init__(self)
@@ -47,6 +45,5 @@ class DVDDevice(Device):
 
     def ls(self, path):
     
-        print "HO"
         return [self.get_root()]
 
