@@ -122,7 +122,7 @@ class LocalDevice(Device):
         item = File(self)
         item.is_local = True
         item.path = path
-        item.name = os.path.basename(path)
+        item.name = os.path.splitext(os.path.basename(path))[0]
         item.resource = path
         item.parent = os.path.basename(os.path.dirname(path))
         if (os.path.isdir(item.resource)):
@@ -143,6 +143,7 @@ class LocalDevice(Device):
             item.acoustic_name = os.path.splitext(item.name)[0]
             ext = os.path.splitext(path)[-1].lower()
             item.mimetype = mimetypes.lookup_ext(ext)
+            item.info = mimetypes.mimetype_to_name(item.mimetype)
         
         return item
     

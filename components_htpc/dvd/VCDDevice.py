@@ -10,7 +10,7 @@ class VCDDevice(Device):
 
     def __init__(self, label, path):
             
-        self.__name = "VCD: " + label
+        self.__name = "[VCD] " + label
         self.__path = path
     
         Device.__init__(self)

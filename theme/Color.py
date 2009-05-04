@@ -4,7 +4,7 @@ B{Used internally}
 
 class Color(object):
     """
-    Class for color theme elements.
+    Wrapper class for color theme elements.
     @since: 0.96
     """
     

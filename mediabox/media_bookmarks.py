@@ -7,41 +7,18 @@ import values
 import os
 
 
-#_BM_DIR = os.path.join(values.USER_DIR, "bookmarks")
 _BM_ZIP = os.path.join(values.USER_DIR, "media_bookmarks.zip")
-_BM_FILES_LIST = os.path.join(values.USER_DIR, "media_bookmarks_files")
 
-
-
-def get_bookmarked_files():
-    """
-    @since: 0.96.5
-    """
-    
-    try:
-        files = open(_BM_FILES_LIST, "r").read().splitlines()
-    except:
-        files = []
-        
-    return files
-
-
-
-def is_file_bookmarked(f):
-    """
-    @since: 0.96.5
-    """
-    
-    if (os.path.isfile(_BM_FILES_LIST)):
-        if (f.full_path + "\n" in open(_BM_FILES_LIST).readlines()):
-            return True
-        #end if
-    #end if
-    
-    return False
 
 
 def set_bookmarks(f, bookmarks):
+    """
+    Sets bookmarks in the given file. Pass an empty list of bookmarks to
+    clear all bookmarks in that file.
+    
+    @param f: file object
+    @param bookmarks: list of bookmarks
+    """
 
     out = " ".join([ `b` for b in bookmarks ])
     try:
@@ -51,24 +28,14 @@ def set_bookmarks(f, bookmarks):
     except:
         pass
         
-    is_bookmarked = is_file_bookmarked(f)
-    if (bookmarks and not is_bookmarked):
-        try:
-            open(_BM_FILES_LIST, "a").write(f.full_path + "\n")
-        except:
-            pass
-            
-    elif (not bookmarks and is_bookmarked):
-        try:
-            files = open(_BM_FILES_LIST, "r").readlines()
-            files.remove(f.full_path + "\n")
-            open(_BM_FILES_LIST, "w").writelines(files)
-        except:
-            pass
-    #end if
-    
     
 def get_bookmarks(f):
+    """
+    Returns the bookmarks set in the given file.
+    
+    @param f: file object
+    @return: list of bookmarks
+    """
 
     try:
         bm_zip = ZipFile(_BM_ZIP, "r")
@@ -79,42 +46,11 @@ def get_bookmarks(f):
         return []
 
 
+def clear_all():
+    """
+    Clears all bookmarks.
+    @since: 0.96.5
+    """
 
-"""
-def _ensure_bm_dir():
-
-    if (not os.path.exists(_BM_DIR)):
-        try:
-            os.makedirs(_BM_DIR)
-        except:
-            pass
-
-
-def set_bookmarks(f, bookmarks):
-
-    _ensure_bm_dir()
-    bm_file = os.path.join(_BM_DIR, f.md5)
-    out = " ".join([ `b` for b in bookmarks ])
-    if (not bookmarks):
-        try:            
-            os.unlink(bm_file)
-        except:
-            pass
-    else:
-        try:
-            open(bm_file, "w").write(out)
-        except:
-            pass
-    
-    
-def get_bookmarks(f):
-
-    _ensure_bm_dir()
-    bm_file = os.path.join(_BM_DIR, f.md5)
-    try:
-        data = open(bm_file, "r").read()
-        return [ float(b) for b in data.split() ]
-    except:
-        return []
-"""
+    os.unlink(_BM_ZIP)
 

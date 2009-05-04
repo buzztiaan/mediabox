@@ -7,7 +7,7 @@ import gtk
 
 class Pixbuf(gtk.gdk.Pixbuf):
     """
-    Class for pixbuf theme elements.
+    Wrapper class for pixbuf theme elements.
     @since: 0.96.3
     """
 

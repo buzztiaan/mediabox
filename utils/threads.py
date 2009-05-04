@@ -14,6 +14,9 @@ not in use.
 
 Threads must invoke keep_alive() regularly.
 
+B{Anyway, better avoid threads at all costs unless there's a really compelling
+reason for using threads.}
+
 @since: 0.96
 """
 

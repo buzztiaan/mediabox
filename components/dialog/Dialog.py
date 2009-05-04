@@ -124,6 +124,7 @@ class Dialog(Widget):
     
         self.set_body(text)
         self.__text_input.set_visible(True)
+        self.__text_input.grab_focus()
 
 
     def get_text_input(self):

@@ -1,12 +1,11 @@
 from com import msgs
 from TabbedViewer import TabbedViewer
 from StorageBrowser import StorageBrowser
-from ui.BoxLayout import BoxLayout
 from ui.HBox import HBox
 from ui.ImageButton import ImageButton
 from ui.Image import Image
 from ui.Slider import Slider
-from ui import dialogs
+from ui.Widget import Widget
 from utils import mimetypes
 from utils import logging
 from mediabox.MediaWidget import MediaWidget
@@ -15,6 +14,25 @@ from mediabox import config as mb_config
 from theme import theme
 
 import random
+
+
+class _NotLoadedMessage(Widget):
+
+    def __init__(self):
+    
+        Widget.__init__(self)
+        
+        
+    def render_this(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        screen.fill_area(x, y, w, h, theme.color_mb_background)
+        screen.draw_centered_text("No File Loaded", theme.font_mb_plain,
+                                  x, y, w, h, theme.color_mb_text)
+
 
 
 class MediaViewer(TabbedViewer):
@@ -48,15 +66,26 @@ class MediaViewer(TabbedViewer):
 
     
         TabbedViewer.__init__(self)
+
+        browser_hbox = HBox()
+        browser_hbox.set_visible(False)
+        self.add(browser_hbox)
+
+        # browser list slider
+        self.__browser_slider = Slider(theme.mb_list_slider)
+        self.__browser_slider.set_mode(self.__browser_slider.VERTICAL)
+        browser_hbox.add(self.__browser_slider, False)
         
         # file browser
         self.__browser = StorageBrowser()
+        self.__browser.set_thumb_slider(self.__browser_slider)
         self.__browser.set_thumbnailer(self.__on_request_thumbnail)
-        self.__browser.set_visible(False)
-        self.add(self.__browser)
+        browser_hbox.add(self.__browser, True)
         self.__browser.connect_folder_opened(self.__on_open_folder)
         self.__browser.connect_file_opened(self.__on_open_file)
         self.__browser.connect_file_enqueued(self.__on_enqueue_file)
+        self.__browser_slider.connect_button_pressed(
+                                    lambda a,b:self.__browser.stop_scrolling())
 
         hbox = HBox()
         hbox.set_visible(False)
@@ -71,10 +100,12 @@ class MediaViewer(TabbedViewer):
         hbox.add(self.__slider, False)
 
         # media widget box
-        self.__media_box = BoxLayout()
+        self.__media_box = HBox()
         #self.__media_box.set_visible(False)
         hbox.add(self.__media_box, True)
 
+        self.__not_loaded_msg = _NotLoadedMessage()
+        self.__media_box.add(self.__not_loaded_msg, True)
 
         # toolbar
         self.__btn_back = ImageButton(theme.mb_btn_dir_up_1,
@@ -100,7 +131,7 @@ class MediaViewer(TabbedViewer):
 
         
         self.__browser.set_root_device(root_device)
-        self.add_tab(tab_label_1, self.__browser, self.__on_browser_tab)
+        self.add_tab(tab_label_1, browser_hbox, self.__on_browser_tab)
         self.add_tab(tab_label_2, hbox, self.__on_player_tab)
 
 
@@ -147,8 +178,7 @@ class MediaViewer(TabbedViewer):
 
         self.__update_toolbar()
         self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
-        #self.emit_message(msgs.UI_ACT_RENDER)
-
+        
 
     def __on_player_tab(self):
     
@@ -158,12 +188,20 @@ class MediaViewer(TabbedViewer):
             self.set_title("")
         
         self.__update_toolbar()
-        self.emit_message(msgs.INPUT_EV_CONTEXT_PLAYER)
-        #self.emit_message(msgs.UI_ACT_RENDER)
+        if (self.__is_fullscreen):
+            self.emit_message(msgs.INPUT_EV_CONTEXT_FULLSCREEN)
+        else:
+            self.emit_message(msgs.INPUT_EV_CONTEXT_PLAYER)
+        
+
+    def render_this(self):
+    
+        TabbedViewer.render_this(self)
         
         w, h = self.get_size()
+        self.__browser_slider.set_geometry(0, 0, 80, h)
         self.__slider.set_geometry(0, 0, 80, h)
-        
+
         
     def __on_open_file(self, f):
     
@@ -172,14 +210,16 @@ class MediaViewer(TabbedViewer):
 
     def __on_open_folder(self, f):
 
-        names = [ p.name for p in self.__browser.get_path() ]
-        title = u" \u00bb ".join(names)
-        names.reverse()
-        acoustic_title = "Entering " + " in ".join(names)
-        self.set_title(title)
-        self.emit_message(msgs.UI_ACT_TALK, acoustic_title)
+        if (self.__browser.is_visible()):
+            names = [ p.name for p in self.__browser.get_path() ]
+            title = u" \u00bb ".join(names)
+            names.reverse()
+            acoustic_title = "Entering " + " in ".join(names)
+            self.set_title(title)
+            self.emit_message(msgs.UI_ACT_TALK, acoustic_title)
 
-        self.__update_toolbar()
+            self.__update_toolbar()
+        #end if
 
 
     def __on_enqueue_file(self, f):
@@ -239,16 +279,6 @@ class MediaViewer(TabbedViewer):
         #    if (f):
         #        self.__browser.reload_current_folder()
         
-        """
-        if (self.__path_stack):
-            path, nil = self.__path_stack[-1]
-            f = path.new_file()
-            if (f):
-                self.__add_file(f, [], -1)
-                #self._load_folder(path, None)
-                #self.__list.invalidate_buffer()
-                self.__list.render()
-        """
 
 
     def __on_btn_keep(self):
@@ -334,7 +364,10 @@ class MediaViewer(TabbedViewer):
                 self.__play_shuffled(True)
             
         elif (repeat_mode == mb_config.REPEAT_MODE_ONE):
-            self.__play_same()
+            if (self.__current_file):
+                self.__play_same()
+            else:
+                self.__play_next(True)
 
         elif (repeat_mode == mb_config.REPEAT_MODE_ALL):
             if (shuffle_mode == mb_config.SHUFFLE_MODE_NONE):
@@ -403,6 +436,7 @@ class MediaViewer(TabbedViewer):
         """
 
         self.__current_file = f
+        self.__browser.hilight_file(f)
 
         if (not f.mimetype in mimetypes.get_image_types()):
             self.emit_message(msgs.MEDIA_ACT_STOP)
@@ -432,9 +466,8 @@ class MediaViewer(TabbedViewer):
                 self.__media_box.remove(self.__media_widget)
             self.__media_widget = media_widget                
                         
-        #self.__update_toolbar()
-        #self.__update_title()
         
+        self.__not_loaded_msg.set_visible(False)
         self.__media_widget.set_visible(True)
         self.__media_widget.connect_media_position(self.__on_media_position)
         self.__media_widget.connect_media_eof(self.__on_media_eof)
@@ -446,7 +479,8 @@ class MediaViewer(TabbedViewer):
         logging.debug("using media widget [%s] for MIME type %s" \
                         % (str(self.__media_widget), f.mimetype))
         if (not self.__media_widget in self.__media_box.get_children()):
-            self.__media_box.add(self.__media_widget)
+            self.__media_box.add(self.__media_widget, True)
+            self.__media_box.render()
 
         if (not self.__media_box.is_visible()):
             self.select_tab(1)
@@ -456,9 +490,7 @@ class MediaViewer(TabbedViewer):
         volume = mb_config.volume()
         self.__slider.set_value(volume / 100.0)
 
-        self.__browser.hilight_file(f)
 
-        #self.emit_message(msgs.UI_ACT_RENDER)
         self.__media_widget.load(f, direction)
         self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 
@@ -503,7 +535,7 @@ class MediaViewer(TabbedViewer):
     def handle_CORE_ACT_SEARCH_ITEM(self, key):
     
         if (self.is_active()):
-            self.__browser.set_message("Search: " + key)
+            #self.__browser.set_message("Search: " + key)
             if (key != self.__search_term):
                 self.__browser.set_cursor(1)
             idx = self.__browser.search(key, 1)
@@ -517,7 +549,8 @@ class MediaViewer(TabbedViewer):
 
     def handle_CORE_EV_SEARCH_CLOSED(self):
     
-        self.__browser.set_message("")
+        #self.__browser.set_message("")
+        self.__browser.search("", 1)
         self.__browser.render()
         self.__is_searching = False
         self.__search_term = ""

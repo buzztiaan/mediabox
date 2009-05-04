@@ -9,6 +9,9 @@ class BoxLayout(Widget):
     """
     Layouter for holding exactly one child widget. The child is stretched across
     the box.
+    
+    @deprecated: use a L{HBox} or L{VBox} with a single dynamically sized
+                 child instead
     """
 
     def __init__(self):

@@ -27,9 +27,6 @@ class Viewer(Component, Widget):
           
               Viewer.__init__(self)
               
-          def handle_message(self, msg, *args):
-          
-              ...
 
     @since: 0.96
     """
@@ -104,6 +101,7 @@ class Viewer(Component, Widget):
         """
         Sets the collection of media items that is shown in the side strip.
         @since: 0.96
+        @deprecated: there is no side strip since 0.96.5
         
         @param collection: list of items (derived from L{ui.StripItem})
         """
@@ -117,6 +115,7 @@ class Viewer(Component, Widget):
         Switches the contents of the side strip to the items of the given
         owner.
         @since: 0.96
+        @deprecated: there is no side strip since 0.96.5
         
         @param owner: owner object
         """
@@ -129,6 +128,7 @@ class Viewer(Component, Widget):
         """
         Hilights the given item in the side strip.
         @since: 0.96
+        @deprecated: there is no side strip since 0.96.5
         
         @param idx: index of the item to hilight
         """
@@ -140,6 +140,7 @@ class Viewer(Component, Widget):
         """
         Selects the given item in the side strip.
         @since: 0.96
+        @deprecated: there is no side strip since 0.96.5
         
         @param idx: index of the item to select
         """
@@ -151,6 +152,7 @@ class Viewer(Component, Widget):
         """
         Scrolls to the given item in the side strip.
         @since: 0.96
+        @deprecated: there is no side strip since 0.96.5
         
         @param idx: index of the item to scroll to
         """

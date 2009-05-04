@@ -6,6 +6,9 @@ import time
 
 
 class Dialog(gtk.Dialog):
+    """
+    @deprecated: use the dialog service component for displaying dialogs
+    """
 
     def __init__(self):
     

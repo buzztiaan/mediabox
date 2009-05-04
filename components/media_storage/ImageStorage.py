@@ -115,7 +115,7 @@ class ImageStorage(Device):
             images = self.__folders.get(path[1:], [])
             images.sort()
             for img in images:
-                img.name = self.__get_name(img.path)
+                #img.name = self.__get_name(img.path)
                 cb(img, *args)
             #end for
         

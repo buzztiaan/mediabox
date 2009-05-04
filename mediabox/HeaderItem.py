@@ -12,6 +12,8 @@ class HeaderItem(ButtonListItem):
     BUTTON_ENQUEUE = "enqueue"
     BUTTON_ADD_TO_LIBRARY = "add-to-library"
     BUTTON_REMOVE = "remove"
+    BUTTON_REMOVE_PRECEDING = "remove-preceding"
+    BUTTON_REMOVE_SUCCEEDING = "remove-succeeding"
     BUTTON_OPEN = "open"
 
     def __init__(self, title):
@@ -21,7 +23,6 @@ class HeaderItem(ButtonListItem):
 
         ButtonListItem.__init__(self)
         self.set_colors(theme.color_mb_listitem_text, theme.color_mb_listitem_subtext)
-        self.set_font(theme.font_mb_plain)
 
 
 

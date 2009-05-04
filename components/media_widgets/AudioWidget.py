@@ -395,6 +395,8 @@ class AudioWidget(MediaWidget):
         if (self.__current_file):
             bookmarks = self.__progress.get_bookmarks()
             media_bookmarks.set_bookmarks(self.__current_file, bookmarks)
+            self.emit_message(msgs.MEDIA_EV_BOOKMARKED,
+                              self.__current_file, bookmarks)
 
 
     def __show_info(self, item):

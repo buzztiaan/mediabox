@@ -45,7 +45,12 @@ class TrackList(ThumbableList):
         if (self.__with_drag_sort):
             self.__kscr.set_touch_area(80, w - 100)
         else:
-            self.__kscr.set_touch_area(80, w - 100)
+            self.__kscr.set_touch_area(0, w - 100)
+
+
+    def stop_scrolling(self):
+    
+        self.__kscr.stop_scrolling()
 
 
     def set_size(self, w, h):

@@ -160,6 +160,7 @@ class DialogService(Widget):
                                   ("Cancel", self.__on_btn_cancel))
 
         self.__show_dialog()
+        self.emit_message(msgs.VKB_ACT_SHOW, self.get_window())
         resp = self.__run_dialog()
         return (resp, self.__dialog.get_text_input())
         

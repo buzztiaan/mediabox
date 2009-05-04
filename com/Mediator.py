@@ -65,7 +65,7 @@ class Mediator(object):
         Override this method in subclasses to listen for messages.
         @since: 0.96
         @deprecated: implement C{handle_<MESSAGE>} instead for the messages
-                     you're interested in, e.g. C{handle_CORE_AV_SHUTDOWN}
+                     you're interested in, e.g. C{handle_CORE_EV_APP_STARTED}
         
         @param msg: message
         @param args: variable list of arguments

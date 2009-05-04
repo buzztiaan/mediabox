@@ -114,6 +114,7 @@ def load(path, cb, *args):
         fd = open(path, "r")
     except:
         cb(None, *args)
+        return
     
     aborted = [False]
     loader = gtk.gdk.PixbufLoader()

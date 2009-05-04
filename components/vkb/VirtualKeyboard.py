@@ -7,6 +7,18 @@ from theme import theme
 from utils.Observable import Observable
 from utils import maemo
 
+try:
+    # GNOME
+    import gconf
+except:
+    try:
+        # Maemo    
+        import gnome.gconf as gconf
+    except:
+        # last resort...
+        from utils import gconftool as gconf
+
+
 import gtk
 import gobject
 import time
@@ -17,6 +29,16 @@ import threading
 _MOD_NONE = 0
 _MOD_SHIFT = 1
 _MOD_ALT = 2
+
+
+def _is_slide_open():
+    """
+    Returns whether the keyboard slide is open on the N810.
+    """
+    
+    client = gconf.client_get_default()
+    slide_open = client.get_bool("/system/osso/af/slide-open")
+    return slide_open
 
 
 class VirtualKeyboard(gtk.Window, Component):  
@@ -117,25 +139,6 @@ class VirtualKeyboard(gtk.Window, Component):
     
         x, y, w, h = ev.area
         self.__screen.restore(x, y, w, h)
-        
-        
-    def handle_message(self, msg, *args):
-    
-        if (msg == msgs.VKB_ACT_SHOW):
-            parent = args[0]
-            if (self.__invalidated):
-                self.__key_cache.clear()
-                self.__clear_keyboard()
-                self.__render_keyboard(self.__current_layout)
-                self.__invalidated = False
-            self.__is_showing = True
-            self.__popup(parent)
-            
-        elif (msg == msgs.CORE_EV_THEME_CHANGED):
-            self.__invalidated = True
-            #self.__key_cache.clear()
-            #self.__clear_keyboard()
-            #self.__render_keyboard(self.__current_layout)
         
         
     def __popup(self, parent):
@@ -245,7 +248,8 @@ class VirtualKeyboard(gtk.Window, Component):
             self.__render_keyboard(selector_layout)
             
         elif (k == vkblayout.BACKSPACE):
-            self.emit_event(msgs.HWKEY_EV_BACKSPACE)
+            #self.emit_event(msgs.HWKEY_EV_BACKSPACE)
+            self.__parent.send_event(self.__parent.EVENT_KEY_PRESS, "BackSpace")
 
         elif (k == vkblayout.SHIFT):
             if (self.__modifier == _MOD_SHIFT):
@@ -262,7 +266,8 @@ class VirtualKeyboard(gtk.Window, Component):
             self.__render_keyboard(self.__current_layout)
 
         else:
-            self.emit_message(msgs.HWKEY_EV_KEY, keychar)
+            #self.emit_message(msgs.HWKEY_EV_KEY, keychar)
+            self.__parent.send_event(self.__parent.EVENT_KEY_PRESS, keychar)
 
 
     def __on_press(self, src, ev):
@@ -331,6 +336,24 @@ class VirtualKeyboard(gtk.Window, Component):
                                                 self.__check_key_motion, key, px, py)
         #end if
 
+
+    def handle_VKB_ACT_SHOW(self, parent):
+
+        # don't show virtual keyboard if the hw keyboard slide is open
+        if (_is_slide_open()): return
+    
+        if (self.__invalidated):
+            self.__key_cache.clear()
+            self.__clear_keyboard()
+            self.__render_keyboard(self.__current_layout)
+            self.__invalidated = False
+        self.__is_showing = True
+        self.__popup(parent)
+
+
+    def handle_CORE_EV_THEME_CHANGED(self):            
+
+        self.__invalidated = True
 
 
     def fx_slide(self, x, from_y, to_y, wait = True):

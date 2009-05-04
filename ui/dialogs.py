@@ -1,3 +1,7 @@
+"""
+@deprecated: use the dialog service component for displaying dialogs
+"""
+
 from theme import theme
 
 import gtk

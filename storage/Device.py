@@ -9,18 +9,36 @@ class Device(Component):
     """
     Base class of all storage devices.
     Storage devices provide virtual file systems for use by MediaBox.
-    New virtual file systems can be added by subclassing the Device base class.
+    New virtual file systems can be added by subclassing this base class.
     
-    Storage devices belong to one of the categories L{CATEGORY_CORE},
-    L{CATEGORY_LOCAL}, L{CATEGORY_LAN}, L{CATEGORY_WAN}, or L{CATEGORY_OTHER}.
+    Storage devices belong to one of the categories
+     - L{CATEGORY_CORE} - belonging to the core
+     - L{CATEGORY_LOCAL} - file system for accessing local files
+     - L{CATEGORY_LAN} - file system for accessing stuff on the LAN, e.g. UPnP devices
+     - L{CATEGORY_WAN} - file system for accessing stuff on the internet
+     - L{CATEGORY_OTHER} - file system for accessing other stuff, e.g. mobile phones
+
     The category determines the position where the device will appear in the
     user interface. The list of devices is sorted first by category, then
     alphabetically.
     
-    Storage devices are of type L{TYPE_GENERIC}, L{TYPE_AUDIO}, L{TYPE_VIDEO},
-    or L{TYPE_IMAGE}. Viewers list devices of certain types. The video viewer
-    e.g. only lists devices of type L{TYPE_VIDEO}, while the devices of type
-    L{TYPE_GENERIC} are listed by the folder viewer.
+    Storage devices are of type
+     - L{TYPE_GENERIC}
+     - L{TYPE_AUDIO}
+     - L{TYPE_VIDEO}
+     - L{TYPE_IMAGE}
+     
+    Viewers list devices of certain types. The video viewer e.g. only lists
+    devices of type L{TYPE_VIDEO}, while the devices of type L{TYPE_GENERIC}
+    are listed by the folder viewer.
+
+    Every instance of a device has a unique device ID string that is returned by
+    L{get_device_id}. This is ID is used by MediaBox to keep track of devices
+    being added or removed. In most cases, the device ID maybe the same as the
+    device prefix.
+
+    The device prefix is a unique string used for addressing the storage device.
+    See method L{get_prefix} for details.
 
     @since: 0.96
     """
@@ -121,7 +139,7 @@ class Device(Component):
         
     def get_file(self, path):
         """
-        Returns the File object representing the given path.
+        Returns the File object represented by the given path string.
         The specified path does not contain the device prefix.
         @since: 0.96
         

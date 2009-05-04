@@ -128,22 +128,34 @@ class Window(Widget):
     def __on_key_pressed(self, src, ev):
     
         keyval = ev.keyval
-        key = gtk.gdk.keyval_name(keyval)
-        self.send_event(self.EVENT_KEY_PRESS, key)
+        c = gtk.gdk.keyval_to_unicode(keyval)
+        if (c > 31):
+            key = unichr(c)
+        else:
+            key = gtk.gdk.keyval_name(keyval)
 
-        # kill queued events
-        while (True):
-            e = gtk.gdk.event_get()
-            if (not e): break
+        self.send_event(self.EVENT_KEY_PRESS, key)        
         
+        # kill queued events
+        if (key in ["Up", "Down", "Left", "Right"]):
+            while (True):
+                e = gtk.gdk.event_get()
+                if (not e): break
+
         return True
 
 
     def __on_key_released(self, src, ev):
-    
+
         keyval = ev.keyval
-        key = gtk.gdk.keyval_name(keyval)
+        c = gtk.gdk.keyval_to_unicode(keyval)
+        if (c > 31):
+            key = unichr(c)
+        else:
+            key = gtk.gdk.keyval_name(keyval)
+
         self.send_event(self.EVENT_KEY_RELEASE, key)
+                
         return True
 
 
@@ -209,4 +221,14 @@ class Window(Widget):
     def present(self):
     
         self.__window.present()
+
+
+    def iconify(self):
+    
+        self.__window.iconify()
+
+
+    def set_title(self, title):
+    
+        self.__window.set_title(title)
 

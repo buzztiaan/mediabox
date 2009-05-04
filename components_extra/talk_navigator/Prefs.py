@@ -55,7 +55,8 @@ class Prefs(Configurator):
                     theme.font_mb_plain, theme.color_mb_listitem_text)
         self.__vbox.add(self.__lbl_pitch)
         
-        slider = Slider(theme.mb_list_slider)
+        slider = Slider(theme.mb_slider_gauge)
+        slider.set_background_color(theme.color_mb_gauge)
         slider.connect_value_changed(self.__on_set_pitch)
         slider.set_value(pitch / 99.0)
         slider.set_size(600, 40)
@@ -67,7 +68,8 @@ class Prefs(Configurator):
                     theme.font_mb_plain, theme.color_mb_listitem_text)
         self.__vbox.add(self.__lbl_speed)
         
-        slider = Slider(theme.mb_list_slider)
+        slider = Slider(theme.mb_slider_gauge)
+        slider.set_background_color(theme.color_mb_gauge)
         slider.connect_value_changed(self.__on_set_speed)
         slider.set_value((speed - 80) / 290.0)
         slider.set_size(600, 40)

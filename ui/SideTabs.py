@@ -65,10 +65,7 @@ class SideTabs(HilightingWidget):
             offset += pmap.get_size()[1]
         #end for
 
-        #if (self.__current_tab == -1):
-        #    self.select_tab(0)
-            
-        
+
     def __on_click(self, px, py):
         
         h, w = self.get_size()
@@ -106,7 +103,8 @@ class SideTabs(HilightingWidget):
             w, h = self.__tab_pmaps[0].get_size()
             self.__tab_size = (w, h)
             self.set_hilighting_box(
-                  pixbuftools.make_frame(theme.mb_selection_frame, w, h, True))
+                  pixbuftools.make_frame(theme.mb_selection_frame, w, h, True,
+                     pixbuftools.LEFT | pixbuftools.BOTTOM | pixbuftools.TOP))
         #end if
         self.__is_prepared = True
 
@@ -146,14 +144,16 @@ class SideTabs(HilightingWidget):
         Selects the given tab.
         """
     
-        tab_w, tab_h = self.__tab_size
-        cb, args = self.__tab_callbacks[idx]
-        self.move_hilighting_box(0, idx * tab_h)
-        try:
-            cb(*args)
-        except:
-            pass
-        self.__current_tab = idx
+        if (idx != self.__current_tab):
+            tab_w, tab_h = self.__tab_size
+            cb, args = self.__tab_callbacks[idx]
+            self.move_hilighting_box(0, idx * tab_h)
+            try:
+                cb(*args)
+            except:
+                pass
+            self.__current_tab = idx
+        #end if
 
 
     def switch_tab(self):

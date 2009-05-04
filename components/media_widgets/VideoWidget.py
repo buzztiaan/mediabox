@@ -39,7 +39,6 @@ class VideoWidget(MediaWidget):
       
         # video screen
         self.__screen = gtk.DrawingArea()
-        self.__screen.hide()
         self.__screen.set_double_buffered(False)
         self.__screen.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
         self.__screen.connect("expose-event", self.__on_expose)
@@ -122,8 +121,8 @@ class VideoWidget(MediaWidget):
     def __show_video_screen(self):
     
         if (not self.get_screen().is_offscreen() and
-            self.may_render() and
-            self.__player):
+              self.may_render() and
+              self.__player):
             self.__screen.show()
             
     
@@ -350,6 +349,8 @@ class VideoWidget(MediaWidget):
         if (self.__current_file):
             bookmarks = self.__progress.get_bookmarks()
             media_bookmarks.set_bookmarks(self.__current_file, bookmarks)
+            self.emit_message(msgs.MEDIA_EV_BOOKMARKED,
+                              self.__current_file, bookmarks)
 
 
     def __scale_video(self):
@@ -401,8 +402,8 @@ class VideoWidget(MediaWidget):
         if (self.__layout):
             self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
             self.__overlay_coords = (x + (w - w2) / 2, y + (h - h2) / 2, w2, h2)
-            print "MOVED"
-        print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
+
+        #print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
         
         cnt = 0
         #while (gtk.events_pending() and cnt < 10):
@@ -425,7 +426,6 @@ class VideoWidget(MediaWidget):
             
             if (self.__screen.window.xid):
                 self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
-                
                 self.__player.set_window(self.__screen.window.xid)
                 try:
                     self.__context_id = self.__player.load_video(uri)
@@ -446,15 +446,19 @@ class VideoWidget(MediaWidget):
             x, y = self.get_screen_pos()
             self.__layout = self.get_window()
             self.__layout.put(self.__screen, x, y)
-            self.__screen.set_size_request(1, 1)
-            gtk.gdk.window_process_all_updates()
+            #self.__screen.set_size_request(10, 10)
+            self.__screen.show()
+            #gtk.gdk.window_process_all_updates()
 
-        self.__show_video_screen()
+        cnt = 0
+        while (gtk.events_pending() and cnt < 10):
+            gtk.main_iteration(False)
+            cnt += 1
 
-        if (self.__load_handler):
-            gobject.source_remove(self.__load_handler)
+        #if (self.__load_handler):
+        #    gobject.source_remove(self.__load_handler)
 
-        #self.__load_handler = gobject.timeout_add(500, f)
+        #self.__load_handler = gobject.timeout_add(1500, f)
         #gobject.idle_add(f)
         
         f()

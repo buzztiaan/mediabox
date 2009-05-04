@@ -172,7 +172,7 @@ class Image(MultiTouchWidget, Observable):
             self.__copy_image_buffer(self.__offscreen, screen)
         
         # render progress bar
-        if (self.__progress > 0):
+        if (self.__progress > 0 and w > 0):
             p = self.__progress / 100.0
             px = x
             py = y + h
@@ -452,13 +452,13 @@ class Image(MultiTouchWidget, Observable):
             areas = [(0, 0, width, height)]
             self.__invalidated = False
             
-            if (vwidth < width):
+            if (vwidth + 1 < width):
                 bw = (width - vwidth) / 2
                 self.__offscreen.fill_area(x, y, bw, height, self.__bg_color)
                 self.__offscreen.fill_area(x + width - bw - 1, y, bw + 1, height,
                                            self.__bg_color)
             
-            if (vheight < height):
+            if (vheight + 1 < height):
                 bh = (height - vheight) / 2
                 self.__offscreen.fill_area(x, y, width, bh, self.__bg_color)
                 self.__offscreen.fill_area(x, y + height - bh - 1, width, bh + 1,
@@ -467,7 +467,7 @@ class Image(MultiTouchWidget, Observable):
         else:
             # copy on the server-side (this is our simple trick for
             # fast scrolling!)
-            self.__offscreen.copy_pixmap(self.__offscreen, #screen,
+            self.__offscreen.copy_pixmap(self.__offscreen,
                                          x + src_x, y + src_y,
                                          x + dest_x, y + dest_y,
                                          src_w, src_h)

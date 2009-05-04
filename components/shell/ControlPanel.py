@@ -60,6 +60,8 @@ class ControlPanel(Widget):
         Sets the given toolbar on this panel.
         """
     
+        print tbset
+    
         for c in self.__box.get_children():
             self.__box.remove(c)
         

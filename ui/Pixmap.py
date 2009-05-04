@@ -109,7 +109,6 @@ class Pixmap(object):
         @param w: width
         @param h: height
         """
-
         self.__layout = _get_pango_layout()
 
         if (pmap):
@@ -346,6 +345,7 @@ class Pixmap(object):
         @param x y w h: area to fill
         @param color: fill color
         """
+        assert (w > 0 and h > 0)
 
         _reload(color)
         if (len(str(color)) == 9):
@@ -487,11 +487,10 @@ class Pixmap(object):
         @param w h: size
         @param scale: scale to given size or simply crop to size
         """
-    
+
         _reload(pbuf)
         if (scale):
             pbuf = pbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
-    
         self.__pixmap.draw_pixbuf(self.__gc, pbuf,
                                   0, 0, x, y, w, h)
 

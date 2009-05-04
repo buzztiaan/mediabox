@@ -7,7 +7,7 @@ import pango
 
 class Font(pango.FontDescription):
     """
-    Class for font theme elements.
+    Wrapper class for font theme elements.
     @since: 0.96
     """
 

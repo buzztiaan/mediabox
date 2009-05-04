@@ -10,7 +10,7 @@ class DVDDevice(Device):
 
     def __init__(self, label, path):
             
-        self.__name = "DVD: " + label
+        self.__name = "[DVD] " + label
         self.__path = path
     
         Device.__init__(self)

@@ -4,6 +4,8 @@ mediabox (0.96.5) unstable; urgency=low
 
   Slideshow in the image viewer
 
+  Special lists "50 Recently Played" and "Bookmarked Files"
+
   Sleep and wake up timer (fall asleep and wake up with music or FM radio)
   
   Rewind and fast forward
@@ -21,6 +23,8 @@ mediabox (0.96.5) unstable; urgency=low
   Translucent dialog screens
   
   Reduced startup time
+  
+  mplayer backend doesn't intercept key presses anymore
   
   Plugin compatibility API bumped to 1.1
 

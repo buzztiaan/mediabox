@@ -12,6 +12,8 @@ font_mb_list_letter: Nokia Sans bold 42
 #
 color_mb_background: #eef0ff
 
+color_mb_gauge: #aaaaaf
+
 color_mb_text: #000000
 
 
@@ -53,6 +55,9 @@ color_mb_listitem_text: #000000
 color_mb_listitem_subtext: #888888
 color_mb_list_letter: #eeeeee
 color_mb_list_letter_background: #000000a0
+font_mb_list_item: Nokia Sans Cn 15
+
+font_mb_search_term: Nokia Sans Cn 26
 
 
 #

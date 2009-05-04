@@ -520,8 +520,7 @@ class AppWindow(Component, RootPane):
         #self.__title_panel.set_title_with_timeout("Search: " + term, 2000)
         self.__reset_search_timeout()
         
-        if (term):
-            self.emit_message(msgs.CORE_ACT_SEARCH_ITEM, term)
+        self.emit_message(msgs.CORE_ACT_SEARCH_ITEM, term)
             
     """
     def __on_observe_strip(self, src, cmd, *args):
@@ -761,6 +760,7 @@ class AppWindow(Component, RootPane):
     def handle_CORE_ACT_SET_TITLE(self, title):
 
         self.__title_panel.set_title(title)
+        self.__window.set_title("[MediaBox] " + title)
 
 
     def handle_CORE_ACT_SET_INFO(self, info):
@@ -798,11 +798,6 @@ class AppWindow(Component, RootPane):
         idx = self.__viewers.index(self.__current_viewer)
         if (idx < len(self.__viewers) - 1):
             self.__select_viewer(idx + 1)
-
-
-    def handle_MEDIA_EV_VOLUME_CHANGED(self, percent):
-
-        self.__title_panel.set_volume(percent)
 
 
     def handle_MEDIASCANNER_EV_SCANNING_STARTED(self):

@@ -15,6 +15,10 @@ class MediaWidgetFactory(Component):
     The MediaWidgetRegistry queries all registered MediaWidgetFactories to find
     one that handles a certain MIME type. This factory will then produce the
     appropriate MediaWidget.
+    
+    A MediaWidgetFactory must implement the two methods
+     - L{get_mimetypes}
+     - L{get_widget_class}
 
     @since: 0.96
     """
@@ -26,8 +30,7 @@ class MediaWidgetFactory(Component):
     
     def get_mimetypes(self):
         """
-        Returns a list of supported mimetypes. 'C{*}' can be used as a wildcard
-        in the form: C{image/*}
+        Returns a list of supported mimetypes.
         @since: 0.96
         
         @return: list of supported mimetypes
@@ -39,6 +42,8 @@ class MediaWidgetFactory(Component):
     def get_widget_class(self, mimetype):
         """
         Returns the class of a MediaWidget handling the given MIME type.
+        'C{*}' can be used as a wildcard in the form: C{image/*}
+        
         @since: 0.96
         
         @param mimetype: MIME type

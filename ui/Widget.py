@@ -57,6 +57,8 @@ class Widget(object):
         self.__can_be_visible = True
         self.__skip_next_render = False
         
+        self._input_focus_widget = None
+        
         self.__position = (0, 0)
         self.__size = (0, 0)
         
@@ -106,6 +108,15 @@ class Widget(object):
 
             self.__actors_stack[-1].set_frozen(False)
             
+            
+    def grab_focus(self):
+        """
+        Grabs the focus for keyboard input.
+        """
+        
+        win = self.get_window()
+        win._input_focus_widget = self
+        
           
     def _handle_event(self, ev, px, py, *args):
     
@@ -131,7 +142,7 @@ class Widget(object):
                 self.__locked_zone = zone
             else:
                 self.__locked_zone = None
- 
+
         else:
             zone = self.__locked_zone
             
@@ -158,14 +169,21 @@ class Widget(object):
 
         if (self.__events_lock.isSet()): return
         
-        handlers = self.__event_handlers.get(ev, [])
-        for cb, user_args in handlers:
-            try:
-                cb(*(args + user_args))
-            except:
-                import traceback; traceback.print_exc()
-        #end for
-    
+        if (ev in (self.EVENT_KEY_PRESS, self.EVENT_KEY_RELEASE) and
+              self._input_focus_widget and
+              self._input_focus_widget.is_visible()):
+            self._input_focus_widget.send_event(ev, *args)
+        
+        else:
+            handlers = self.__event_handlers.get(ev, [])
+            for cb, user_args in handlers:
+                try:
+                    cb(*(args + user_args))
+                except:
+                    import traceback; traceback.print_exc()
+            #end for
+        
+        #end if    
         
         
     def __on_action(self, etype, px, py):
@@ -826,12 +844,12 @@ class Widget(object):
     def set_window(self, win):
     
         self.__window = win
-        try:
-            win.set_widget_for_events(self)
-            self.__need_to_check_zones = True
-        except:
-            logging.error("window object %s must implement method " \
-                          "set_widget_for_events" % win)
+        #try:
+        #win.set_widget_for_events(self)
+        self.__need_to_check_zones = True
+        #except:
+        #    logging.error("window object %s must implement method " \
+        #                  "set_widget_for_events" % win)
         
         
     def get_window(self):

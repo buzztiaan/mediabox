@@ -12,11 +12,10 @@ Import this module to get access to all known message types::
           Component.__init__(self)
           
       
-      def handle_message(self, msg, *args):
+      def handle_CORE_EV_APP_STARTED(self):
       
-          if (msg == msgs.CORE_EV_APP_STARTED):
-              self.call_service(msgs.NOTIFY_SVC_SHOW_MESSAGE,
-                                "Application started")
+          self.call_service(msgs.NOTIFY_SVC_SHOW_MESSAGE,
+                            "Application started")
 
   
 """

@@ -15,7 +15,7 @@ class ListItem(StripItem):
 
         self.__color_1 = theme.color_mb_listitem_text
         self.__color_2 = theme.color_mb_listitem_subtext
-        self.__font = theme.font_mb_plain
+        self.__font = theme.font_mb_list_item
         self.__grip = None
         
         StripItem.__init__(self)
@@ -70,8 +70,10 @@ class ListItem(StripItem):
         if (num_of_lines < 3):
             text = "\n" + text
             
-        canvas.draw_text(text, self.__font, x, 8,
+        canvas.set_clip_rect(0, 0, w - 100, h)
+        canvas.draw_text(text, self.__font, x, 4,
                          self.__color_1, use_markup = True)
+        canvas.set_clip_rect(None)
         #canvas.draw_pixbuf(theme.mb_listitem_end, w - 128, 0, 128, h - 8,
         #                   scale = True)
     

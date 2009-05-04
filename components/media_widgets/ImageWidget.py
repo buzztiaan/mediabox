@@ -48,8 +48,6 @@ class ImageWidget(MediaWidget):
 
         self.__scaling = 1.0
 
-        self.__uri = ""
-        
         self.__is_dragging = False
         self.__grab_point = 0
     
@@ -99,10 +97,10 @@ class ImageWidget(MediaWidget):
         self.__slideshow_timer_box.add(self.__slideshow_timer_lbl, False)
 
         v = 2 / float(_SLIDESHOW_MAX_TIMEOUT)
-        self.__slideshow_timer_slider = Slider(theme.mb_panel)
+        self.__slideshow_timer_slider = Slider(theme.mb_slider_gauge)
         self.__slideshow_timer_slider.set_mode(Slider.HORIZONTAL)
         self.__slideshow_timer_slider.set_value(v)
-        self.__slideshow_timer_slider.set_size(500, 64)
+        self.__slideshow_timer_slider.set_size(600, 40)
         self.__on_change_slideshow_timer(v)
         self.__slideshow_timer_slider.connect_value_changed(
                                              self.__on_change_slideshow_timer)
@@ -112,7 +110,7 @@ class ImageWidget(MediaWidget):
     def __on_change_slideshow_timer(self, v):
     
         secs = v * float(_SLIDESHOW_MAX_TIMEOUT - 1) + 1.0
-        self.__slideshow_timer_lbl.set_text("Time between slides:" \
+        self.__slideshow_timer_lbl.set_text("Interval between slides:" \
                                             " %0.1f seconds" % secs)
         self.__slideshow_timeout = int(secs * 1000)
 
@@ -291,7 +289,8 @@ class ImageWidget(MediaWidget):
             self.__btn_slideshow.set_images(theme.mb_btn_pause2_1,
                                             theme.mb_btn_pause2_2)
 
-            self.call_service(msgs.DIALOG_SVC_CUSTOM, None, "Slideshow",
+            self.call_service(msgs.DIALOG_SVC_CUSTOM, theme.mb_viewer_image,
+                              "Slideshow",
                               self.__slideshow_timer_box)
 
             self.emit_message(msgs.MEDIA_EV_PLAY)

@@ -15,13 +15,27 @@ except:
         from utils import gconftool as gconf
 
 
+def is_slide_open():
+    """
+    Returns whether the keyboard slide is open on the N810.
+    """
+    
+    client = gconf.client_get_default()
+    slide_open = client.get_bool("/system/osso/af/slide-open")
+    return slide_open
+
+
 def get_default_layout():
     """
     Returns the default layout for the user's keyboard settings.
     """
     
     client = gconf.client_get_default()
-    name = client.get_string("/apps/osso/inputmethod/int_kb_layout") or "C"
+    #name = client.get_string("/apps/osso/inputmethod/int_kb_layout") or "C"
+    name = client.get_string("/apps/osso/inputmethod/hildon-im-languages/language-0") or "C"
+    if ("_" in name):
+        name = name.split("_")[0]
+    
     logging.debug("vkb layout is [%s]", name)
     
     layout = globals().get(name.upper(), C)

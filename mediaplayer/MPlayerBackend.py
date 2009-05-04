@@ -11,6 +11,7 @@ import time
 
 
 _MPLAYER = "/usr/bin/mplayer"
+_INPUT_CONF = os.path.join(os.path.dirname(__file__), "mplayer_ignore.conf")
 
 
 class MPlayerBackend(AbstractBackend):
@@ -78,10 +79,11 @@ class MPlayerBackend(AbstractBackend):
         if (self._get_mode() == self.MODE_AUDIO):
             cmd = "LANG=C %s -quiet -slave " \
                   "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
+                  "-input conf=\"%s\" "\
                   "-idle -osdlevel 0 -idx " \
                   "-cache 256 -cache-min 50 " \
                   "-identify -novideo 2>&1 3>/dev/null" \
-                  % _MPLAYER
+                  % (_MPLAYER, _INPUT_CONF)
         else:
             product = maemo.get_product_code()
             if (product == "?"):
@@ -100,10 +102,12 @@ class MPlayerBackend(AbstractBackend):
         
             cmd = "LANG=C %s -quiet -slave " \
                   "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
+                  "-input conf=\"%s\" "\
                   "-nomenu -osdlevel 0 -idx " \
                   "-cache 256 -cache-min 50 " \
                   "-identify -wid %d %s \"%s\" 2>&1 3>/dev/null" \
-                  % (_MPLAYER, self.__window_id, vo_opts, self.__uri)
+                  % (_MPLAYER, _INPUT_CONF,
+                     self.__window_id, vo_opts, self.__uri)
 
         
         p = subprocess.Popen([cmd],

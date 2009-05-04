@@ -1,6 +1,7 @@
 from com import msgs
 from Playlist import Playlist
 from storage import Device, File
+from mediabox import media_bookmarks
 from mediabox import values
 from utils import urlquote
 from utils import logging
@@ -10,6 +11,13 @@ import os
 
 _PLAYLIST_DIR = os.path.join(values.USER_DIR, "playlists")
 
+_PLAYLIST_DEFAULT = "Playlist"
+_PLAYLIST_RECENT_50 = "50 Recently Played"
+_PLAYLIST_BOOKMARKS = "Bookmarked Files"
+_SPECIAL_PLAYLISTS = [_PLAYLIST_DEFAULT,
+                      _PLAYLIST_RECENT_50,
+                      _PLAYLIST_BOOKMARKS]
+
 
 class PlaylistDevice(Device):
 
@@ -18,18 +26,23 @@ class PlaylistDevice(Device):
 
 
     def __init__(self):
-    
-        # table: name -> playlist
-        self.__lists = {}
-        self.__current_list = None
-        self.__current_items = []
 
+        # list of (name, playlist) tuples
+        self.__lists = []
+        
+        # the currently selected playlist
+        self.__current_list = None
+        
+        # the folder of the currently selected playlist
+        self.__current_folder = None
+        
+        # whether the playlists need to be reloaded from files
         self.__needs_playlist_reload = True
-    
+               
+
         Device.__init__(self)
-        
-        
-        
+
+
     def get_prefix(self):
         
         return "playlist://"
@@ -37,23 +50,18 @@ class PlaylistDevice(Device):
         
     def get_name(self):
     
-        return "Playlists"
+        return "Lists"
         
         
     def get_icon(self):
     
         return theme.mb_viewer_playlist
-        
-        
-    def get_root(self):
-    
-        f = File(self)
-        f.name = self.get_name()
-        f.path = "/"
-        f.mimetype = f.DIRECTORY
-        f.folder_flags = f.ITEMS_DELETABLE
 
-        return f
+
+    def swap(self, f, idx1, idx2):
+    
+        self.__current_list.swap(idx1, idx2)
+        self.__current_list.save()
 
 
     def new_file(self, f):
@@ -62,17 +70,12 @@ class PlaylistDevice(Device):
         """
         
         resp, name = self.call_service(msgs.DIALOG_SVC_TEXT_INPUT,
-                                       "Create New Playlist",
-                                       "Enter name of playlist:")
-        #dlg = Dialog()
-        #dlg.add_entry("Name of Playlist:")
-        #dlg.set_title("New Playlist")
-        #values = dlg.wait_for_values()
+                                       "Create New List",
+                                       "Enter name of list:")
 
+        names = [ n for n, pl in self.__lists ]
         if (resp == 0 and name):
-        #if (values):
-        #    name = values[0]
-            if (self.__lists.has_key(name)):
+            if (name in names):
                 self.call_service(msgs.DIALOG_SVC_ERROR,
                                   "Error",
                                   u"There is already a playlist with name " \
@@ -91,33 +94,51 @@ class PlaylistDevice(Device):
 
 
     def delete_file(self, folder, idx):
+        """
+        Removes a playlist or a file from a playlist.
+        """
     
-        f = self.__current_items[idx]
-        is_playlist = (f.mimetype == f.DIRECTORY)
+        if (folder.path == "/"):
+            playlists = [ pl for n, pl in self.__lists ]
+            pl = playlists[idx]
 
-        if (is_playlist):
-            pl = self.__lists[f.name]
             ret = self.call_service(msgs.DIALOG_SVC_QUESTION,
-                                    "Delete Playlist",
-                            u"Delete the playlist \xbb%s\xab?" % pl.get_name())
+                                    "Delete List",
+                            u"Delete the list \xbb%s\xab?" % pl.get_name())
             if (ret == 0):
+                if (pl.get_name() == _PLAYLIST_BOOKMARKS):
+                    media_bookmarks.clear_all()
+                    
+                self.__lists = [ (n, p) for n, p in self.__lists
+                                 if (p != pl) ]
                 pl.delete_playlist()
-                del self.__lists[f.name]
+                self.__ensure_special_playlists()
                 self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
             #end if
-            
+
         else:
             pl = self.__current_list
+            if (pl.get_name() == _PLAYLIST_BOOKMARKS):
+                 self.__remove_bookmarks(pl.get_files()[idx])
+            
             pl.remove(idx)
             pl.save()
             self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
-        #end if
-        
+            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
 
-    def swap(self, f, idx1, idx2):
-    
-        self.__current_list.swap(idx1, idx2)
-        self.__current_list.save()
+        #end if
+
+
+    def __ensure_special_playlists(self):
+        """
+        Creates the special playlists that are currently missing.
+        """
+
+        # create special playlists
+        for name in _SPECIAL_PLAYLISTS:
+            if (not self.__lookup_playlist(name)):
+                self.__create_playlist(name)
+        #end for
 
 
     def __create_playlist(self, name):
@@ -125,24 +146,16 @@ class PlaylistDevice(Device):
         Creates a new playlist with the given name.
         Returns the file object representing the list.
         """
-
+        
+        name = name.encode("utf-8")
         pl_path = os.path.join(_PLAYLIST_DIR,
-                                urlquote.quote(name, safe = "") + ".m3u")
+                               urlquote.quote(name, safe = "") + ".m3u")
         logging.info("creating playlist '%s'" % pl_path)
         pl = Playlist()
         pl.set_name(name)
         pl.save_as(pl_path)
-        self.__lists[name] = pl
-        
-        f = File(self)
-        f.path = "/" + name.replace("/", "_")
-        f.name = name
-        f.info = "%d items" % 0
-        f.mimetype = f.DIRECTORY
-        f.folder_flags = f.ITEMS_DELETABLE | f.ITEMS_SKIPPABLE
-        
-        return f
-        
+        self.__lists.append((name, pl))
+
 
     def __load_playlists(self):
         """
@@ -152,13 +165,14 @@ class PlaylistDevice(Device):
         def cb(pl, name, location):
             f = self.call_service(msgs.CORE_SVC_GET_FILE, location)
             if (f):
-                pl.append(None, None, f)
-                #self.__add_item(pl, f)
+                pl.append(f)
             else:
                 # insert a placeholder for files that are currently
                 # not available
-                pl.append(None, None, f)
-                #self.__add_item(pl, None)
+                f = File(self)
+                f.name = name
+                f.info = location
+                pl.append(f)
 
 
         # create playlist folder if it does not yet exist
@@ -168,14 +182,6 @@ class PlaylistDevice(Device):
             except:
                 pass
 
-        # initialize playqueue
-        #if (self.__lists):
-        #    queue = self.__lists["Queue"]
-        #else:
-        #    queue = Playlist()
-        #    queue.set_name("Queue")
-            
-        #self.__lists["Queue"] = queue
 
         # load playlists
         files = [ f for f in os.listdir(_PLAYLIST_DIR)
@@ -185,15 +191,14 @@ class PlaylistDevice(Device):
             pl = Playlist()
             pl.load_from_file(path, cb)
 
-            self.__lists[pl.get_name()] = pl
+            self.__lists.append((pl.get_name(), pl))
         #end for
         
-        if (not self.__lists):
-            self.__create_playlist("Playlist")
-        
-        names = self.__lists.keys()
-        names.sort()
-        self.__current_list = self.__lists[names[0]]
+        self.__ensure_special_playlists()            
+
+        # sort by name        
+        self.__lists.sort(lambda a,b:cmp(a[0],b[0]))
+        self.__current_list = self.__lists[0][1]
 
         
     def __save_playlists(self):
@@ -201,72 +206,89 @@ class PlaylistDevice(Device):
         Saves all playlists.
         """
         
-        for pl in self.__lists.values():
+        for n, pl in self.__lists:
             pl.save()
+
+
+    def __lookup_playlist(self, name):
+    
+        for n, pl in self.__lists:
+            if (n == name):
+                return pl
+        #end for
+        
+        return None
+        
+        
+    def get_root(self):
+    
+        f = File(self)
+        f.name = self.get_name()
+        f.path = "/"
+        f.mimetype = f.DIRECTORY
+        f.folder_flags = f.ITEMS_DELETABLE
+
+        return f
 
 
     def get_contents(self, folder, begin_at, end_at, cb, *args):
 
-        path = folder.path
         if (self.__needs_playlist_reload):
             self.__load_playlists()
             self.__needs_playlist_reload = False
-    
-        if (path == "/"):
+
+        if (folder.path == "/"):
             folder.folder_flags = folder.ITEMS_ADDABLE
             if (len(self.__lists) > 1):
                 folder.folder_flags |= folder.ITEMS_DELETABLE
-
-            self.__ls_playlists(begin_at, end_at, cb, *args)
-    
-        else:
-            pl_name = path.replace("/", "")
-            pl = self.__lists[pl_name]
-            self.__current_list = pl
-
-            if (end_at == 0):
-                entries = pl.get_files()[begin_at:]
-            else:
-                entries = pl.get_files()[begin_at:end_at]
                 
-            self.__current_items = []
-            for f in entries:
-                self.__current_items.append(f)
+            self.__ls_playlists(begin_at, end_at, cb, *args)
+            
+        else:
+            pl = self.__lookup_playlist(folder.name)
+            self.__current_list = pl
+            self.__current_folder = folder
+            
+            if (end_at == 0):
+                files = pl.get_files()[begin_at:]
+            else:
+                files = pl.get_files()[begin_at:end_at]
+                
+            for f in files:
                 cb(f, *args)
-            #end for
-            
             cb(None, *args)
-            
-    
-    
+
+
     def __ls_playlists(self, begin_at, end_at, cb, *args):
     
+        self.__lists.sort(lambda a,b:cmp(a[0],b[0]))
+        playlists = [ pl for n, pl in self.__lists ]
         if (end_at == 0):
-            entries = self.__lists.values()[begin_at:]
+            playlists = playlists[begin_at:]
         else:
-            entries = self.__lists.values()[begin_at:end_at]
-            
-        self.__current_items = []
-        for playlist in entries:
+            playlists = playlists[begin_at:end_at]
+
+
+        for pl in playlists:
             f = File(self)
-            # TODO: use urlquote
-            f.path = "/" + playlist.get_name().replace("/", "_")
-            f.name = playlist.get_name()
-            f.info = "%d items" % len(playlist.get_files())
+            f.name = pl.get_name()
+            f.info = "%d items" % pl.get_size()
+            f.path = "/" + urlquote.quote(f.name)
             f.mimetype = f.DIRECTORY
             f.icon = theme.mb_viewer_playlist.get_path()
-            f.folder_flags = f.ITEMS_DELETABLE | \
-                             f.ITEMS_BULK_DELETABLE | \
-                             f.ITEMS_SKIPPABLE | \
-                             f.ITEMS_SORTABLE
+            f.folder_flags = f.ITEMS_SKIPPABLE
 
-            self.__current_items.append(f)
+            if (pl.get_name() != _PLAYLIST_RECENT_50):
+                f.folder_flags |= f.ITEMS_SORTABLE
+                f.folder_flags |= f.ITEMS_DELETABLE | \
+                                  f.ITEMS_BULK_DELETABLE
             cb(f, *args)
         #end for
-        cb(None, *args)
         
+        cb(None, *args)
 
-    def __add_item(self, pl, f, count = [0]):
+
+    def __add_item_to_playlist(self, pl, f, count = [0]):
         """
         Adds the given item to the playlist.
         """
@@ -274,35 +296,83 @@ class PlaylistDevice(Device):
         if (count[0] >= 500): return
         
         if (f):
+            # recurse into subfolders
             if (f.mimetype.endswith("-folder")):
                 items = [ c for c in f.get_children() ]
-                          #if not c.mimetype.endswith("-folder") ]
+
                 for item in items:
                     count[0] += 1
-                    self.__add_item(pl, item, count)
+                    self.__add_item_to_playlist(pl, item, count)
                 return
             #end if
         #end if
 
-        pl.append(None, None, f)
+        pl.append(f)
         
+        
+    def __remove_bookmarks(self, *files):
+    
+        for f in files:
+            media_bookmarks.set_bookmarks(f, [])
 
+
+        
     def handle_PLAYLIST_ACT_APPEND(self, f):        
 
         pl = self.__current_list
-        pl_name = pl.get_name()
+        if (pl.get_name() in _SPECIAL_PLAYLISTS):
+            pl = self.__lookup_playlist(_PLAYLIST_DEFAULT)
         
-        #if (len(files) == 1):
+        pl_name = pl.get_name()
+                
         self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
                           u"adding \xbb%s\xab to %s" % (f.name, pl_name))
-        #else:
-        #    self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
-        #                    u"adding %d items to %s" % (len(files), pl_name))
-                            
-        #for f in files:
-        #    logging.info("adding '%s' to %s" % (f.name, pl_name))
-        self.__add_item(pl, f)
-        pl.save()
-        #self.__update_playlist_thumbnail()
+        self.__add_item_to_playlist(pl, f)
 
+        pl.save()
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.__current_folder)
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+
+
+    def handle_MEDIA_EV_LOADED(self, viewer, f):
+    
+        pl = self.__lookup_playlist(_PLAYLIST_RECENT_50)
+        if (not pl): return
+        
+        #files = pl.get_files()
+        paths = [ fl.full_path for fl in pl.get_files() ]
+        if (not f.full_path in paths):
+            if (len(paths) == 50):
+                pl.remove(49)
+        else:
+            idx = paths.index(f.full_path)
+            pl.remove(idx)
+        #end if
+        pl.prepend(f)
+        pl.save()
+        
+        if (self.__current_list == pl):
+            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED,
+                              self.__current_folder)
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+
+
+    def handle_MEDIA_EV_BOOKMARKED(self, f, bookmarks):
+    
+        pl = self.__lookup_playlist(_PLAYLIST_BOOKMARKS)
+        if (not pl): return
+
+        paths = [ fl.full_path for fl in pl.get_files() ]
+        if (bookmarks and not f.full_path in paths):
+            pl.append(f)
+        elif (not bookmarks and f.full_path in paths):
+            idx = paths.index(f.full_path)
+            pl.remove(idx)
+        #end if
+        pl.save()
+        
+        if (self.__current_list == pl):
+            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED,
+                              self.__current_folder)
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
 

@@ -12,8 +12,6 @@ class Playlist(object):
         self.__name = "playlist"
         self.__path = ""
     
-        self.__items = []
-        self.__thumbnails = []
         self.__files = []
     
         self.__is_modified = False
@@ -39,49 +37,32 @@ class Playlist(object):
         self.__name = name
         # TODO: remove file of previous name
         self.__is_modified = True
-        
-        
-    def get_items(self):
-    
-        return self.__items[:]
-        
-        
-    def get_thumbnails(self):
-    
-        return self.__thumbnails[:]
-        
+              
         
     def get_files(self):
     
         return self.__files[:]
-        
-        
-    def append(self, item, tn, f):
+
+    def prepend(self, f):
     
-        self.__items.append(item)
-        self.__thumbnails.append(tn)
+        self.__files = [f] + self.__files
+        self.__is_modified = True
+        
+        
+    def append(self, f):
+    
         self.__files.append(f)
         self.__is_modified = True
         
         
     def remove(self, idx):
 
-        del self.__items[idx]
-        del self.__thumbnails[idx]
         del self.__files[idx]
         self.__is_modified = True
 
 
     def swap(self, idx1, idx2):
     
-        temp = self.__items[idx1]
-        self.__items[idx1] = self.__items[idx2]
-        self.__items[idx2] = temp
-
-        temp = self.__thumbnails[idx1]
-        self.__thumbnails[idx1] = self.__thumbnails[idx2]
-        self.__thumbnails[idx2] = temp
-
         temp = self.__files[idx1]
         self.__files[idx1] = self.__files[idx2]
         self.__files[idx2] = temp
@@ -106,7 +87,7 @@ class Playlist(object):
 
     def get_size(self):
     
-        return len(self.__items)
+        return len(self.__files)
 
 
     def load_from_file(self, path, cb):
@@ -114,8 +95,6 @@ class Playlist(object):
         Loads the playlist from the given file.
         """
 
-        self.__items = []
-        self.__thumbnails = []
         self.__files = []
 
         for location, name in m3u.load(path):
@@ -160,7 +139,5 @@ class Playlist(object):
 
         self.__current_pos = -1
         self.__path = ""
-        self.__items = []
-        self.__thumbnails = []
         self.__files = []
 

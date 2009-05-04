@@ -175,11 +175,12 @@ class Menu(Widget):
             b_w, b_h = btn.get_size()
             btn.set_pos(w - 80 + (80 - b_w) / 2, b_y)
             b_y += 70
-        
+
         if (self.__currently_playing >= 0):
             icon = self.__icons[self.__currently_playing]
             i_x, i_y = icon.get_screen_pos()
             i_w, i_h = icon.get_size()
+            print self.__currently_playing, i_x, i_y
             screen.draw_frame(theme.mb_active_frame,
                               i_x, i_y, i_w, i_h, True)
 
@@ -322,7 +323,7 @@ class Menu(Widget):
 
         self.__btn_repeat.set_value(mb_config.repeat_mode())
         self.__btn_shuffle.set_value(mb_config.shuffle_mode())
-            
+
         self.__window_ctrls.fx_slide_in()
         self.__previous_index = self.__index
         self.emit_message(msgs.INPUT_EV_CONTEXT_MENU)
@@ -392,7 +393,8 @@ class Menu(Widget):
 
     def handle_MEDIA_EV_LOADED(self, viewer, f):    
 
-        self.__currently_playing = self.__viewers.index(viewer)
+        #self.__currently_playing = self.__viewers.index(viewer)
+        pass
 
 
     def handle_INPUT_EV_MENU(self):    

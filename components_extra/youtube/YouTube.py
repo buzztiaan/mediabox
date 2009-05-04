@@ -283,7 +283,7 @@ class YouTube(Device):
                 f = File(self)
                 f.path = entry.video_id
                 f.mimetype = "video/x-flash-video"
-                f.name = "[%s] %s" % (entry.category, entry.title)
+                f.name = "%s" % entry.title
                 f.resource = entry.video_id
                 duration = entry.duration
                 secs = duration % 60

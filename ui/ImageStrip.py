@@ -48,10 +48,7 @@ class ImageStrip(Widget):
         self.__cap_top_size = (0, 0)
         self.__cap_bottom = None
         self.__cap_bottom_size = (0, 0)
-    
-        # a text message for the user
-        self.__message = ""
-    
+
         # index and position of a floating item
         # index = -1 means that no item is currently floating
         self.__floating_index = -1
@@ -76,6 +73,9 @@ class ImageStrip(Widget):
     
         # indices of images that have been invalidated
         self.__invalidated_images = []
+        
+        # rendering handlers for overlays
+        self.__overlay_renderers = []
     
         Widget.__init__(self)
 
@@ -308,15 +308,9 @@ class ImageStrip(Widget):
             self.__scrollbar_pmap.draw_pixbuf(pbuf, 0, 0, w, h, scale = True)
 
 
-    def set_message(self, message):
-        """
-        Sets a message to display.
-        @since: 0.96.5
-        
-        @param message: the message to display
-        """
+    def add_overlay_renderer(self, renderer):
     
-        self.__message = message
+        self.__overlay_renderers.append(renderer)
 
 
     def float_item(self, idx, pos = 0):
@@ -878,18 +872,6 @@ class ImageStrip(Widget):
         self.__buffer.draw_pixmap(self.__shared_pmap, fx, fy)
 
 
-    def _render_message(self, screen, message):
-    
-        w, h = self.get_size()
-            
-        tw, th = text_extents(message, theme.font_mb_tiny)
-        tx = (w - tw) / 2
-        ty = 3
-
-        screen.fill_area(0, 0, w, th + 6, "#000000a0")
-        screen.draw_text(message, theme.font_mb_tiny, tx, ty,
-                                  "#e0e0e0")
-
 
     def __render_buffered(self, screen, offset, height):
         """
@@ -910,9 +892,6 @@ class ImageStrip(Widget):
         if (self.__floating_index >= 0):
             self._render_floating_item(self.__buffer)
 
-        if (self.__message):
-            self._render_message(self.__buffer, self.__message)
-
         if (self.__scrollbar_pmap):
             self._render_scrollbar(self.__buffer)
 
@@ -922,6 +901,9 @@ class ImageStrip(Widget):
         if (self.__cap_bottom):
             cw, ch = self.__cap_bottom_size
             self.__buffer.draw_pixbuf(self.__cap_bottom, 0, h - ch)
+
+        for renderer in self.__overlay_renderers:
+            renderer(self.__buffer)
 
         screen.copy_pixmap(self.__buffer, 0, offset, x, y + offset, w, height)
         #print "COPY BUFFER"
@@ -1077,7 +1059,6 @@ class ImageStrip(Widget):
 
             # fill the empty space at the sides if the item was centered
             if (offx > 0 and self.__bg_color):
-                print "white"
                 self.__buffer.fill_area(0, item_top,
                                         offx, item_remain,
                                        self.__bg_color)

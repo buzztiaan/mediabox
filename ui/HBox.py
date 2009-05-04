@@ -91,7 +91,7 @@ class _Box(Widget):
                     width = dynamic_width
                     height = h
                     c.set_size(width, height)
-                    print c, width, height
+                    #print c, width, height
 
                 if (self.__valign == self.VALIGN_TOP):
                     c.set_pos(x, 0)

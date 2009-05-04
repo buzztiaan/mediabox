@@ -2,8 +2,6 @@ from Widget import Widget
 from ui.Pixmap import Pixmap
 from theme import theme
 
-import time
-
 
 class Slider(Widget):
     """
@@ -25,6 +23,7 @@ class Slider(Widget):
         """
 
         self.__buffer = None
+        self.__bg_color = theme.color_mb_background
 
         self.__mode = self.HORIZONTAL
         self.__value = 0.0
@@ -54,8 +53,7 @@ class Slider(Widget):
         w, h = self.get_size()
         if (self.__buffer):
             self.__buffer.fill_area(0, 0, w, h,
-                                    theme.color_mb_background)
-
+                                    self.__bg_color)
 
 
     def set_image(self, pbuf):
@@ -64,13 +62,21 @@ class Slider(Widget):
         self.render()
 
 
+    def set_background_color(self, color):
+    
+        self.__bg_color = color
+        self.render()
+
+
     def set_size(self, w, h):
     
         Widget.set_size(self, w, h)
         
+        if (w == 0 or h == 0): return
+        
         if (not self.__buffer or (w, h) != self.__buffer.get_size()):
             self.__buffer = Pixmap(None, w, h)
-            self.__buffer.fill_area(0, 0, w, h, theme.color_mb_background)
+            self.__buffer.fill_area(0, 0, w, h, self.__bg_color)
         
         
     def set_mode(self, mode):
@@ -96,7 +102,7 @@ class Slider(Widget):
             v = 1.0 - v
         if (abs(v - self.__value) > 0.01):
             self.__value = v
-            self.render()
+            self.move(v)
         
         
     def render_this(self):
@@ -106,37 +112,72 @@ class Slider(Widget):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-        
-        
+
         sw = self.__button_pbuf.get_width()
         sh = self.__button_pbuf.get_height()
         
+        self.__buffer.fill_area(0, 0, w, h, self.__bg_color)
         if (self.__mode == self.HORIZONTAL):
-            pos = (w - sw) * self.__value
-            sx = pos
-            sy = 0
-            render_from = min(pos, self.__previous_pos)
-            render_to = min(w, max(pos + sw, self.__previous_pos + sw))
-        
-            self.__buffer.fill_area(render_from, 0, render_to - render_from + 1, h,
-                                    theme.color_mb_background)
-            self.__buffer.draw_pixbuf(self.__button_pbuf, sx, sy)
-            
+            pos = int((w - sw) * self.__value)
+            self.__buffer.draw_pixbuf(self.__button_pbuf, pos, 0)
         else:
-            pos = (h - sh) * self.__value
-            sx = 0
-            sy = pos
-            render_from = min(pos, self.__previous_pos)
-            render_to = min(h, max(pos + sh, self.__previous_pos + sh))
-
-            self.__buffer.fill_area(0, render_from, w, render_to - render_from + 1,
-                                    theme.color_mb_background)
-            self.__buffer.draw_pixbuf(self.__button_pbuf, sx, sy)
-
-            
-        screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
+            pos = int((h - sh) * self.__value)
+            self.__buffer.draw_pixbuf(self.__button_pbuf, 0, pos)
         self.__previous_pos = pos
 
+        screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
+        
+
+    def move(self, v):
+
+        if (not self.__buffer): return
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        btn_w = self.__button_pbuf.get_width()
+        btn_h = self.__button_pbuf.get_height()
+        
+        if (self.__mode == self.HORIZONTAL):
+            new_pos = int((w - btn_w) * v)
+        else:
+            new_pos = int((h - btn_h) * v)
+        
+        pos = self.__previous_pos
+        min_pos = min(new_pos, pos)
+        delta = new_pos - pos
+        
+        if (self.__mode == self.HORIZONTAL):
+            self.__buffer.move_area(pos, 0, btn_w, btn_h, delta, 0)
+            if (delta > 0):
+                self.__buffer.fill_area(min_pos, 0, abs(delta), btn_h,
+                                        self.__bg_color)
+            else:
+                self.__buffer.fill_area(min_pos + btn_w, 0, abs(delta), btn_h,
+                                        self.__bg_color)
+            
+            if (self.may_render()):
+                screen.copy_buffer(self.__buffer,
+                                   min_pos, 0, x + min_pos, y,
+                                   btn_w + abs(delta), btn_h)
+            
+        else:
+            self.__buffer.move_area(0, pos, btn_w, btn_h, 0, delta)
+            if (delta > 0):
+                self.__buffer.fill_area(0, min_pos, btn_w, abs(delta),
+                                        self.__bg_color)
+            else:
+                self.__buffer.fill_area(0, min_pos + btn_h, btn_w, abs(delta),
+                                        self.__bg_color)
+
+            if (self.may_render()):
+                screen.copy_buffer(self.__buffer,
+                                   0, min_pos, x, y + min_pos,
+                                   btn_w, btn_h + abs(delta))
+
+        #if (self.may_render()):
+        #    screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
+        self.__previous_pos = new_pos
         
         
     def __on_press(self, px, py):
@@ -144,12 +185,16 @@ class Slider(Widget):
         self.__is_dragging = True
         
         w, h = self.get_size()
+        sw = self.__button_pbuf.get_width()
+        sh = self.__button_pbuf.get_height()
+
         if (self.__mode == self.HORIZONTAL):
-            pos = (w - self.__button_pbuf.get_width()) * self.__value
-            self.__grab_point = px - pos
+            pos = (w - sw) * self.__value
+            self.__grab_point = max(0, min(px - pos, sw))
         else:
-            pos = (h - self.__button_pbuf.get_height()) * self.__value
-            self.__grab_point = py - pos
+            pos = (h - sh) * self.__value
+            self.__grab_point = max(0, min(py - pos, sh))
+        self.__on_motion(px, py)
 
 
     def __on_release(self, px, py):
@@ -160,9 +205,9 @@ class Slider(Widget):
     def __on_motion(self, px, py):
     
         if (self.__is_dragging):
-            now = time.time()
-            if (now - self.__last_motion_time < 0.1): return
-            self.__last_motion_time = now
+            #now = time.time()
+            #if (now - self.__last_motion_time < 0.1): return
+            #self.__last_motion_time = now
         
             w, h = self.get_size()
             sw = self.__button_pbuf.get_width()
@@ -171,14 +216,14 @@ class Slider(Widget):
             if (self.__mode == self.HORIZONTAL):
                 px -= self.__grab_point
                 px = min(w - sw, max(0, px))
-                self.__value = px / float(w - sw)
-                value = self.__value
+                v = px / float(w - sw)
             else:
                 py -= self.__grab_point
                 py = min(h - sh, max(0, py))
-                self.__value = py / float(h - sh)
-                value = 1.0 - self.__value
-            
-            self.render()
-            self.send_event(self.EVENT_VALUE_CHANGED, value)
+                v = 1.0 - py / float(h - sh)
 
+            self.set_value(v)
+            
+            #self.render()
+            self.send_event(self.EVENT_VALUE_CHANGED, v)
+        #end if
