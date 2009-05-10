@@ -180,9 +180,9 @@ class Thumbnailer(Component):
         else:
             thumburi = thumb
 
-        # if there is no local resource, consider the thumbnail being up to date,
+        # if there is no local resource, consider the thumbnail being outdated,
         # because we can't check
-        if (not f.resource.startswith("/")): return True
+        if (not f.resource.startswith("/")): return False
         
         try:
             mtime1 = os.path.getmtime(f.resource)

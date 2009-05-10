@@ -450,9 +450,10 @@ class MediaViewer(TabbedViewer):
                         self, f.mimetype)
 
         if (not media_widget):
-            dialogs.error("Unhandled Type",
-                            "There is no handler for\n"
-                            "MIME type '%s'" % f.mimetype)
+            self.call_service(msgs.DIALOG_SVC_ERROR,
+                              "Unhandled Type",
+                              "There is no handler for MIME type\n"
+                              "'%s'" % f.mimetype)
             return
             
         # don't load video if the viewer is not visible

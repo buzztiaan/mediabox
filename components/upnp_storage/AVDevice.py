@@ -138,10 +138,11 @@ class AVDevice(Device):
         f.resource = res
         f.name = title
         f.info = artist
-        f.path = path
+        f.path = "/" + path
 
         if (f.mimetype == f.DIRECTORY):
             f.resource = ident
+            f.folder_flags = f.ITEMS_SKIPPABLE | f.ITEMS_ENQUEUEABLE
         else:
             f.resource = urlparse.urljoin(url_base, res)
         f.child_count = child_count
@@ -161,6 +162,7 @@ class AVDevice(Device):
 
         if (f.mimetype == f.DIRECTORY):
             f.path = "/" + ident
+            f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_SKIPPABLE
         else:
             f.path = "/" + ident
 
@@ -216,36 +218,33 @@ class AVDevice(Device):
             
         return didl
      
-        
-    def ls(self, path):
+   
+    def get_contents(self, path, begin_at, end_at, cb, *args):
     
-        didl = self.__get_didl(path)
-        files = []
-        url_base = self.__description.get_url_base()
-        for entry in didl_lite.parse(didl):
-            f = self.__build_file(url_base, entry)
-            files.append(f)
-            
-        return files
-        
-        
-    def ls_async(self, path, cb, *args):
-
-        #path = "/11"
-        def f(entry):
+        def f(entry, counter):
             if (entry):
-                item = self.__build_file(url_base, entry)
+                if (begin_at <= counter[0] <= end_at):
+                    item = self.__build_file(url_base, entry)
+                    ret = cb(item, *args)
+                    counter[0] += 1
+                    return ret
+
+                else:
+                    counter[0] += 1
+                    return True
+                #end if
+
             else:
-                item = None
-            print "f", entry
-            ret = cb(item, *args)
-            print ret
-            return ret
-            
-        didl = self.__get_didl(path)
-        files = []
+                cb(None, *args)
+                return False
+            #end if
+
+
+        if (end_at == 0):
+            end_at = 999999999
+        didl = self.__get_didl(path.path)
         url_base = self.__description.get_url_base()
-        didl_lite.parse_async(didl, f)
+        didl_lite.parse_async(didl, f, [0])
 
 
     def load(self, resource, maxlen, cb, *args):

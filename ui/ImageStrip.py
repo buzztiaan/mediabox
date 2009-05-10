@@ -1254,10 +1254,12 @@ class ImageStrip(Widget):
             #self.set_events_blocked(True)
             #self.set_events_blocked(False)
 
+            """
             # kill queued events
             while (True):
                 e = gtk.gdk.event_get()
                 if (not e): break
+            """
 
 
     def fx_cycle_item(self, idx):

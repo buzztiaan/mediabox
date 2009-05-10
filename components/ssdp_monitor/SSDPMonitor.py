@@ -33,21 +33,24 @@ class SSDPMonitor(Component):
         Component.__init__(self)
 
 
-    def handle_message(self, event, *args):
+    def handle_CORE_EV_APP_STARTED(self):
+    
+        self.handle_ACT_SEARCH_DEVICES()
+        
 
-        if (event == msgs.SSDP_ACT_SEARCH_DEVICES or
-            event == msgs.CORE_EV_APP_STARTED):
-            # initialize monitor if needed
-            if (not self.__monitoring):
-                logging.info("SSDP Monitor waking up")
-                nsock, dsock = ssdp.open_sockets()
-                gobject.timeout_add(0, self.__discovery_chain, dsock, 0)
-                gobject.io_add_watch(nsock, gobject.IO_IN, self.__check_ssdp)
-                self.__discovery_monitor = gobject.io_add_watch(dsock, gobject.IO_IN, self.__check_ssdp)            
-                self.__monitoring = True
-            
-            else:
-                ssdp.discover_devices()
+    def handle_ACT_SEARCH_DEVICES(self):
+    
+        # initialize monitor if needed
+        if (not self.__monitoring):
+            logging.info("SSDP Monitor waking up")
+            nsock, dsock = ssdp.open_sockets()
+            gobject.timeout_add(0, self.__discovery_chain, dsock, 0)
+            gobject.io_add_watch(nsock, gobject.IO_IN, self.__check_ssdp)
+            self.__discovery_monitor = gobject.io_add_watch(dsock, gobject.IO_IN, self.__check_ssdp)            
+            self.__monitoring = True
+        
+        else:
+            ssdp.discover_devices()
 
             
 
@@ -101,7 +104,7 @@ class SSDPMonitor(Component):
                 logging.info("discovered UPnP device [%s] of type [%s]" \
                              % (descr.get_friendly_name(), descr.get_device_type()))
                 logging.debug("propagating availability of device [%s]" % uuid)
-                self.emit_event(msgs.SSDP_EV_DEVICE_DISCOVERED, uuid, descr)
+                self.emit_message(msgs.SSDP_EV_DEVICE_DISCOVERED, uuid, descr)
             #end if
         #end if
         
@@ -156,5 +159,5 @@ class SSDPMonitor(Component):
             del self.__servers[uuid]
             if (uuid in self.__processing):
                 del self.__processing[uuid]
-            self.emit_event(msgs.SSDP_EV_DEVICE_GONE, uuid)
+            self.emit_message(msgs.SSDP_EV_DEVICE_GONE, uuid)
 

@@ -6,6 +6,7 @@ from RootPane import RootPane
 from TitlePanel import TitlePanel
 from ControlPanel import ControlPanel
 from ViewerState import ViewerState
+from ui.Image import Image
 from ui.Window import Window
 from ui.Button import Button
 from ui.Pixmap import Pixmap
@@ -119,6 +120,8 @@ class AppWindow(Component, RootPane):
         self.__ctrl_panel.set_visible(False)
         self.__ctrl_panel.connect_button_pressed(self.__on_menu_button)
 
+        self.__status_current_viewer = Image(None)
+
         gobject.timeout_add(0, self.__startup)
 
         
@@ -223,6 +226,7 @@ class AppWindow(Component, RootPane):
     
         self.__box.add(self.__title_panel)
         self.__box.add(self.__ctrl_panel)
+        self.__title_panel.set_status_icon(self.__status_current_viewer)
 
 
     def render_this(self):
@@ -522,89 +526,6 @@ class AppWindow(Component, RootPane):
         
         self.emit_message(msgs.CORE_ACT_SEARCH_ITEM, term)
             
-    """
-    def __on_observe_strip(self, src, cmd, *args):
-    
-        w, h = self.get_size()
-        handled = False
-        if (cmd == src.OBS_SCROLLING):
-            # invalidate ticket
-            self.__ticket = 0
-    
-        elif (cmd == src.OBS_CLICKED):
-            px, py = args
-            if (30 <= py < h - 60 and px > 108):
-                idx = self.__strip.get_index_at(py)
-                vstate = self.__get_vstate()
-                vstate.selected_item = idx
-                self.__select_item(idx)
-                handled = True
-            elif (0 <= px <= 80 and py >= h - 60):
-                self.emit_message(msgs.INPUT_EV_MENU)
-                handled = True
-
-        return handled        
-    """
-
-
-    def handle_message(self, event, *args):
-
-        return
-               
-        """
-        elif (event == msgs.UI_ACT_SET_STRIP):
-            viewer, items = args
-            vstate = self.__get_vstate(viewer)
-            vstate.items = items
-            vstate.selected_item = -1
-            vstate.item_offset = 0
-            if (viewer == self.__current_viewer):
-                self.__set_collection(items)
-                
-        elif (event == msgs.UI_ACT_CHANGE_STRIP):
-            owner = args[0]
-            self.__strip.change_image_set(owner)
-               
-        elif (event == msgs.UI_ACT_HILIGHT_STRIP_ITEM):
-            viewer, idx = args
-            vstate = self.__get_vstate(viewer)
-            vstate.selected_item = idx
-            if (viewer == self.__current_viewer):
-                self.__select_item(idx, hilight_only = True)
-               
-        elif (event == msgs.UI_ACT_SELECT_STRIP_ITEM):
-            viewer, idx = args
-            vstate = self.__get_vstate(viewer)
-            vstate.selected_item = idx
-            if (viewer == self.__current_viewer):
-                self.__select_item(idx)
-
-        elif (event == msgs.UI_ACT_SHOW_STRIP_ITEM):
-            viewer, idx = args
-            if (viewer == self.__current_viewer):
-                self.__strip.scroll_to_item(idx)
-        """
-               
-        """
-        elif (event == msgs.CORE_ACT_SCROLL_UP):
-            w, h = self.__strip.get_size()
-            idx = self.__strip.get_index_at(h)
-            if (idx != -1):
-                new_idx = min(len(self.__strip.get_images()), idx + 2)
-                self.__strip.scroll_to_item(new_idx)
-
-        elif (event == msgs.CORE_ACT_SCROLL_DOWN):
-            idx = self.__strip.get_index_at(0)
-            if (idx != -1):
-                new_idx = max(0, idx - 2)
-                self.__strip.scroll_to_item(new_idx)
-
-            
-        elif (event == msgs.CORE_ACT_RENDER_ITEMS):
-            self.__strip.invalidate_buffer()
-            self.__strip.render()
-        """
-
 
 
     def __get_vstate(self, viewer = None):
@@ -619,25 +540,6 @@ class AppWindow(Component, RootPane):
         return self.__viewer_states[viewer]
                 
             
-            
-    """
-    def __select_item(self, idx, hilight_only = False):
-
-        self.__hilight_item(idx)
-
-        if (not hilight_only):
-            self.emit_message(msgs.CORE_ACT_LOAD_ITEM, idx)
-            
-        self.__strip.scroll_to_item(idx)
-    """
-
-
-    """
-    def __hilight_item(self, idx):
-    
-        self.__strip.hilight(idx)
-    """
- 
  
     def __select_viewer_by_name(self, name):
         """
@@ -676,6 +578,10 @@ class AppWindow(Component, RootPane):
         #self.__strip.set_offset(vstate.item_offset)
         #if (vstate.selected_item >= 0):
         #    self.__hilight_item(vstate.selected_item)
+
+        icon = viewer.ICON.scale_simple(32, 32, gtk.gdk.INTERP_TILES)
+        self.__status_current_viewer.set_image(icon)
+        self.__title_panel.set_status_icon(self.__status_current_viewer)
         
         self.set_frozen(False)
         self.fx_slide_in()
@@ -683,27 +589,7 @@ class AppWindow(Component, RootPane):
         
         self.emit_message(msgs.INPUT_ACT_REPORT_CONTEXT)
         self.emit_message(msgs.UI_EV_VIEWER_CHANGED, idx)
-
-
-    """
-    def __set_collection(self, collection):
-        ""
-        Loads the given collection into the item strip.
-        ""
-
-        self.__hilight_item(-1)
-        thumbnails = collection        
-        self.__strip.set_images(thumbnails)
-        self.__strip.render()
-
-        # if the collection is empty, tell the user that she can add items
-        #if (not collection and self.__view_mode == viewmodes.NORMAL):
-        #    gobject.idle_add(dialogs.info, "No items found!",
-        #              "There are no items.\n"
-        #              "Please go to Media Collection in the Preferences view\n"
-        #              "to tell MediaBox where to look for your files.")
-    """
-        
+      
         
     def __try_quit(self):
     

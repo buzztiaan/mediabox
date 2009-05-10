@@ -37,6 +37,9 @@ class ImageWidget(MediaWidget):
         self.__is_fullscreen = False
         self.__click_pos = (0, 0)
 
+        # the currently loaded file
+        self.__current_file = None
+
         # whether the slideshow is playing
         self.__is_playing = False
         
@@ -70,20 +73,26 @@ class ImageWidget(MediaWidget):
 
         # controls
         ctrls = []
-        self.__btn_slideshow = ImageButton(theme.mb_btn_play2_1,
-                                           theme.mb_btn_play2_2)
+        self.__btn_slideshow = ImageButton(theme.mb_btn_play_1,
+                                           theme.mb_btn_play_2)
         self.__btn_slideshow.connect_clicked(self.__toggle_slideshow)
         ctrls.append(self.__btn_slideshow)
-        ctrls.append(UIImage(theme.mb_toolbar_space_1))
 
         for icon1, icon2, action in [
-          (theme.mb_btn_zoom_out_1, theme.mb_btn_zoom_out_2, self.__zoom_out),
+          #(theme.mb_btn_zoom_out_1, theme.mb_btn_zoom_out_2, self.__zoom_out),
           (theme.mb_btn_zoom_fit_1, theme.mb_btn_zoom_fit_2, self.__zoom_fit),
-          (theme.mb_btn_zoom_100_1, theme.mb_btn_zoom_100_2, self.__zoom_100),
-          (theme.mb_btn_zoom_in_1, theme.mb_btn_zoom_in_2, self.__zoom_in)]:
+          (theme.mb_btn_zoom_100_1, theme.mb_btn_zoom_100_2, self.__zoom_100)]:
+          #(theme.mb_btn_zoom_in_1, theme.mb_btn_zoom_in_2, self.__zoom_in)]:
             btn = ImageButton(icon1, icon2)
             btn.connect_clicked(action)
             ctrls.append(btn)
+        #end for            
+            
+        self.__btn_bookmark = ImageButton(theme.mb_btn_bookmark_1,
+                                           theme.mb_btn_bookmark_2)
+        self.__btn_bookmark.connect_clicked(self.__on_btn_bookmark)
+        ctrls.append(self.__btn_bookmark)
+            
             
         self._set_controls(*ctrls)
 
@@ -113,6 +122,11 @@ class ImageWidget(MediaWidget):
         self.__slideshow_timer_lbl.set_text("Interval between slides:" \
                                             " %0.1f seconds" % secs)
         self.__slideshow_timeout = int(secs * 1000)
+
+
+    def __on_btn_bookmark(self):
+    
+        self.call_service(msgs.BOOKMARK_SVC_ADD, self.__current_file)
 
 
     def render_this(self):
@@ -220,6 +234,7 @@ class ImageWidget(MediaWidget):
         else:
             self.__image.slide_from_right()
         self.__image.load(item)
+        self.__current_file = item
         #self.__label.set_text(self.__get_name(uri))
         #self.__current_item = self.__items.index(item)
         #self.set_title(self.__get_name(uri))
@@ -286,8 +301,8 @@ class ImageWidget(MediaWidget):
     
         self.__is_playing = not self.__is_playing
         if (self.__is_playing):        
-            self.__btn_slideshow.set_images(theme.mb_btn_pause2_1,
-                                            theme.mb_btn_pause2_2)
+            self.__btn_slideshow.set_images(theme.mb_btn_pause_1,
+                                            theme.mb_btn_pause_2)
 
             self.call_service(msgs.DIALOG_SVC_CUSTOM, theme.mb_viewer_image,
                               "Slideshow",
@@ -302,8 +317,8 @@ class ImageWidget(MediaWidget):
                                                       self.__slideshow_timer)
 
         else:
-            self.__btn_slideshow.set_images(theme.mb_btn_play2_1,
-                                            theme.mb_btn_play2_2)
+            self.__btn_slideshow.set_images(theme.mb_btn_play_1,
+                                            theme.mb_btn_play_2)
 
 
     def __slideshow_timer(self):
@@ -316,8 +331,8 @@ class ImageWidget(MediaWidget):
             return True
             
         else:
-            self.__btn_slideshow.set_images(theme.mb_btn_play2_1,
-                                            theme.mb_btn_play2_2)
+            self.__btn_slideshow.set_images(theme.mb_btn_play_1,
+                                            theme.mb_btn_play_2)
             self.__slideshow_handler = None
             self.__is_playing = False
             self.emit_message(msgs.MEDIA_EV_PAUSE)

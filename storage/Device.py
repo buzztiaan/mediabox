@@ -276,6 +276,7 @@ class Device(Component):
         Pass C{0} for C{begin_at} and C{end_at} to get the whole result set.
         @since: 0.96.5
         
+        @param path: file object to list
         @param begin_at: first element of the result set
         @param end_at: last element of the result set, or C{0} for no limit
         @param cb: callback handler

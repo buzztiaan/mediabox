@@ -66,7 +66,7 @@ class TalkNavigator(Component):
                 
         lang = self.__find_language_speaker(text)
         os.system("killall espeak 2>/dev/null")
-        os.system("aoss espeak -a200 -v%s+%s -p%d -s%d \"%s\" &" \
+        os.system("padsp espeak -a200 -v%s+%s -p%d -s%d \"%s\" &" \
                     % (lang, config.get_voice(),
                         config.get_pitch(),
                         config.get_speed(),

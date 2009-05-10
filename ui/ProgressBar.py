@@ -133,6 +133,7 @@ class ProgressBar(Widget):
                 del self.__bookmarks[self.__dragged_bookmark]
                 self.render()
                 print "DELETED BOOKMARK"
+                self.__dragged_bookmark = -1
                 self.send_event(self.EVENT_BOOKMARK_CHANGED)
             
             # has the bookmark been selected?
@@ -228,11 +229,12 @@ class ProgressBar(Widget):
     
         w, h = self.get_size()
         for bm in self.__bookmarks:
-            bm_pos = w * bm
-            #pmap.fill_area(bm_pos - 1, 0, 2, 32, "#ff0000")
-            pmap.draw_pixbuf(theme.mb_progress_bookmark,
-                        bm_pos - theme.mb_progress_bookmark.get_width() / 2,
-                        (h - theme.mb_progress_bookmark.get_height()) / 2)
+            if (bm > 0):
+                bm_pos = w * bm
+                #pmap.fill_area(bm_pos - 1, 0, 2, 32, "#ff0000")
+                pmap.draw_pixbuf(theme.mb_progress_bookmark,
+                            bm_pos - theme.mb_progress_bookmark.get_width() / 2,
+                            (h - theme.mb_progress_bookmark.get_height()) / 2)
         #end for
         
         

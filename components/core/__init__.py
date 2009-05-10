@@ -2,12 +2,14 @@ def get_classes():
 
     from Initialiser import Initialiser
     from IdleDetector import IdleDetector
+    from BookmarkService import BookmarkService
     from DirectoryService import DirectoryService
     from MediaWidgetRegistry import MediaWidgetRegistry
     from NotificationService import NotificationService
 
     return [Initialiser,
             IdleDetector,
+            BookmarkService,
             DirectoryService,
             MediaWidgetRegistry,
             NotificationService]
@@ -105,6 +107,13 @@ messages = [
     "CORE_EV_SEARCH_CLOSED",
     
     "CORE_EV_THEME_CHANGED",
+
+
+    "BOOKMARK_SVC_LIST",        # (mimetypes: files)  @since: 0.96.5
+    "BOOKMARK_SVC_ADD",         # (f)                 @since: 0.96.5
+    "BOOKMARK_SVC_DELETE",      # (f)                 @since: 0.96.5
+    "BOOKMARK_EV_INVALIDATED",  #                     @since: 0.96.5
+    
 
     # The media widget registry provides widgets for displaying media of a
     # certain MIME type.

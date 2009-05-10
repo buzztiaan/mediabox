@@ -1,7 +1,6 @@
 from com import msgs
 from Playlist import Playlist
 from storage import Device, File
-from mediabox import media_bookmarks
 from mediabox import values
 from utils import urlquote
 from utils import logging
@@ -13,10 +12,8 @@ _PLAYLIST_DIR = os.path.join(values.USER_DIR, "playlists")
 
 _PLAYLIST_DEFAULT = "Playlist"
 _PLAYLIST_RECENT_50 = "50 Recently Played"
-_PLAYLIST_BOOKMARKS = "Bookmarked Files"
 _SPECIAL_PLAYLISTS = [_PLAYLIST_DEFAULT,
-                      _PLAYLIST_RECENT_50,
-                      _PLAYLIST_BOOKMARKS]
+                      _PLAYLIST_RECENT_50]
 
 
 class PlaylistDevice(Device):
@@ -106,9 +103,6 @@ class PlaylistDevice(Device):
                                     "Delete List",
                             u"Delete the list \xbb%s\xab?" % pl.get_name())
             if (ret == 0):
-                if (pl.get_name() == _PLAYLIST_BOOKMARKS):
-                    media_bookmarks.clear_all()
-                    
                 self.__lists = [ (n, p) for n, p in self.__lists
                                  if (p != pl) ]
                 pl.delete_playlist()
@@ -118,9 +112,6 @@ class PlaylistDevice(Device):
 
         else:
             pl = self.__current_list
-            if (pl.get_name() == _PLAYLIST_BOOKMARKS):
-                 self.__remove_bookmarks(pl.get_files()[idx])
-            
             pl.remove(idx)
             pl.save()
             self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
@@ -184,6 +175,7 @@ class PlaylistDevice(Device):
 
 
         # load playlists
+        self.__lists = []
         files = [ f for f in os.listdir(_PLAYLIST_DIR)
                   if f.endswith(".m3u") ]
         for f in files:
@@ -199,6 +191,7 @@ class PlaylistDevice(Device):
         # sort by name        
         self.__lists.sort(lambda a,b:cmp(a[0],b[0]))
         self.__current_list = self.__lists[0][1]
+        self.__current_folder = None
 
         
     def __save_playlists(self):
@@ -253,7 +246,8 @@ class PlaylistDevice(Device):
                 files = pl.get_files()[begin_at:]
             else:
                 files = pl.get_files()[begin_at:end_at]
-                
+              
+            print "FILES", files  
             for f in files:
                 cb(f, *args)
             cb(None, *args)
@@ -309,14 +303,7 @@ class PlaylistDevice(Device):
 
         pl.append(f)
         
-        
-    def __remove_bookmarks(self, *files):
-    
-        for f in files:
-            media_bookmarks.set_bookmarks(f, [])
 
-
-        
     def handle_PLAYLIST_ACT_APPEND(self, f):        
 
         pl = self.__current_list
@@ -332,6 +319,7 @@ class PlaylistDevice(Device):
         pl.save()
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.__current_folder)
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+
 
 
     def handle_MEDIA_EV_LOADED(self, viewer, f):
@@ -357,22 +345,8 @@ class PlaylistDevice(Device):
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
 
 
-    def handle_MEDIA_EV_BOOKMARKED(self, f, bookmarks):
-    
-        pl = self.__lookup_playlist(_PLAYLIST_BOOKMARKS)
-        if (not pl): return
-
-        paths = [ fl.full_path for fl in pl.get_files() ]
-        if (bookmarks and not f.full_path in paths):
-            pl.append(f)
-        elif (not bookmarks and f.full_path in paths):
-            idx = paths.index(f.full_path)
-            pl.remove(idx)
-        #end if
-        pl.save()
+    def handle_CORE_EV_DEVICE_ADDED(self, dev_id, device):
         
-        if (self.__current_list == pl):
-            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED,
-                              self.__current_folder)
-        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+        self.__needs_playlist_reload = True
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.__current_folder)
 

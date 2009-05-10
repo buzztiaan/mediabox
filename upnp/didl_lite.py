@@ -92,8 +92,13 @@ def _parse_item(node):
         artist = node.get_pcdata("{%s}artist" % _XMLNS_UPNP)
     except:
         artist = ""
-    
-    return (ident, clss, 0, res, title, artist, mimetype)
+
+    try:
+        ref_id = node.get_attr("{%s}refID" % _XMLNS_DIDL)
+    except:
+        ref_id = ""
+        
+    return (ref_id or ident, clss, 0, res, title, artist, mimetype)
     
         
 def _parse_container(node):
@@ -113,7 +118,12 @@ def _parse_container(node):
         import traceback; traceback.print_exc()
         return None
 
-    return (ident, clss, child_count, "", title, "", "application/x-folder")
+    try:
+        ref_id = node.get_attr("{%s}refID" % _XMLNS_DIDL)
+    except:
+        ref_id = ""
+
+    return (ref_id or ident, clss, child_count, "", title, "", "application/x-folder")
 
     
     

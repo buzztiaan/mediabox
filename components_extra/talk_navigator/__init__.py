@@ -3,7 +3,7 @@ import commands
 
 def _have_flite():
 
-    fail, out = commands.getstatusoutput("aoss espeak -h")
+    fail, out = commands.getstatusoutput("padsp espeak -h")
     if (fail):
         return False
     else:

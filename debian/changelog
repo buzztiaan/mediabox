@@ -27,6 +27,8 @@ mediabox (0.96.5) unstable; urgency=low
   mplayer backend doesn't intercept key presses anymore
   
   Plugin compatibility API bumped to 1.1
+  
+  Support for reference nodes in UPnP content directories
 
   Bugfixes
 
