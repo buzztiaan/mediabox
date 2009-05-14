@@ -102,10 +102,12 @@ class TrackList(ThumbableList):
 
             if (self.__open_item >= 0):
                 open_item = self.get_item(self.__open_item)                
-                open_item.close_menu()
-                self.invalidate_image(self.__open_item)
-                self.__open_item = -1
-                need_render = True
+                if (open_item):
+                    open_item.close_menu()
+                    self.invalidate_image(self.__open_item)
+                    self.__open_item = -1
+                    need_render = True
+                #end if
 
             if (button == item.BUTTON_MENU):
                 item.open_menu()

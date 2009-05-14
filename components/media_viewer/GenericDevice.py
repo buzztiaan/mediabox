@@ -61,7 +61,7 @@ class GenericDevice(Device):
             f = device.get_root()
             f.mimetype = "application/x-device-folder"
             try:
-                f.icon = device.get_icon().get_path()
+                f.icon = device.get_icon()
             except:
                 pass
             cb(f, *args)

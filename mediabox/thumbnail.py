@@ -100,17 +100,21 @@ def _make_frame(mimetype):
 
 
 
-def _make_thumbnail(thumbfile, mimetype):
+def _make_thumbnail(thumbnail, mimetype):
     """
     Loads and returns the thumbnail image.
     """
 
     # render thumbnail
-    try:
-        thumb_pbuf = gtk.gdk.pixbuf_new_from_file(thumbfile)
-        cachable = True
-    except:
-        thumb_pbuf = _get_fallback_thumbnail(mimetype)
+    if (type(thumbnail) == type("")):
+        try:
+            thumb_pbuf = gtk.gdk.pixbuf_new_from_file(thumbnail)
+            cachable = True
+        except:
+            thumb_pbuf = _get_fallback_thumbnail(mimetype)
+            cachable = False
+    else:
+        thumb_pbuf = thumbnail
         cachable = False
         
     return (thumb_pbuf, cachable)

@@ -11,7 +11,7 @@ class ImageViewer(MediaViewer):
     def __init__(self):
     
         MediaViewer.__init__(self, ImageDevice(), "Browser", "Image")
-        self.add_tab("EXIF", None, self.__on_tab_exif)
+        #self.add_tab("EXIF", None, self.__on_tab_exif)
         
         
         

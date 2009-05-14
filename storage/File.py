@@ -148,11 +148,11 @@ class File(object):
         
         self.icon = ""
         """
-        may contain the path of an icon image that can be used instead of a
-        thumbnail. the image should be of a proper size
+        may contain the path of an icon image (deprecated) or a pixbuf that can
+        be used instead of a thumbnail. the image should be of a proper size
         @since: 0.96.4
         """
-        
+
         self.mimetype = self.FILE
         """
         MIME type of the file
@@ -165,6 +165,11 @@ class File(object):
         @since: 0.96
         """
 
+        self.mtime = 0
+        """
+        Modification time of this file.
+        @since: 0.96.5
+        """
         
         self.__medium = None
         
@@ -337,7 +342,21 @@ class File(object):
         @return: list of File objects
         """
     
-        return self.__device.ls(self.path)
+        def collector(f):
+            if (f):
+                collection.append(f)
+            else:
+                finished[0] = True
+            return True
+    
+        finished = [False]
+        collection = []
+        self.get_children_async(collector)
+        while (not finished[0]):
+            import gtk
+            gtk.main_iteration(False)
+    
+        return collection
 
 
     def get_children_async(self, cb, *args):
@@ -351,7 +370,7 @@ class File(object):
         @param args: variable list of arguments to the callback handler
         """
         
-        self.__device.ls_async(self.path, cb, *args)
+        self.__device.get_contents(self, 0, 0, cb, *args)
         
         
     def get_contents(self, begin_at, end_at, cb, *args):

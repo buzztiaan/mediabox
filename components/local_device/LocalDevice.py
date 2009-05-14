@@ -85,7 +85,6 @@ class LocalDevice(Device):
             item.name = name
             item.acoustic_name = item.name
             item.mimetype = mimetype
-            item.emblem = emblem
             item.folder_flags = item.ITEMS_ENQUEUEABLE | \
                                 item.INDEXABLE
 
@@ -104,6 +103,7 @@ class LocalDevice(Device):
             item.is_local = True
             item.path = path
             item.resource = path
+            item.mtime = os.path.getmtime(path)
             #item.child_count = self.__get_child_count(path)            
             item.name = mmc.get_label(path)
             item.acoustic_name = item.name + ", Volume"
@@ -124,6 +124,7 @@ class LocalDevice(Device):
         item.path = path
         item.name = os.path.splitext(os.path.basename(path))[0]
         item.resource = path
+        item.mtime = os.path.getmtime(path)
         item.parent = os.path.basename(os.path.dirname(path))
         if (os.path.isdir(item.resource)):
             item.acoustic_name = item.name + ", Folder"

@@ -5,6 +5,11 @@ from ui.Label import Label
 from theme import theme
 
 
+# TODO: are these unicode chars supported on pre-Diablo maemo OS?
+_UP_ARROW = u"\u21e7"
+_DOWN_ARROW = u"\u21e9"
+
+
 class ClockSetter(HBox):
 
     def __init__(self):
@@ -28,7 +33,7 @@ class ClockSetter(HBox):
                 vbox.set_spacing(12)
                 self.add(vbox, True)
 
-                btn = Button("/\\")
+                btn = Button(_UP_ARROW)
                 btn.set_size(80, 80)
                 btn.connect_clicked(self.__on_btn_down, item)
                 vbox.add(btn, False)
@@ -39,7 +44,7 @@ class ClockSetter(HBox):
                 vbox.add(lbl, True)
                 self.__labels.append(lbl)
                 
-                btn = Button("\\/")
+                btn = Button(_DOWN_ARROW)
                 btn.set_size(80, 80)
                 btn.connect_clicked(self.__on_btn_up, item)
                 vbox.add(btn, False)

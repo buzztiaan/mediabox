@@ -262,6 +262,7 @@ class Device(Component):
             else:
                 return cb(None, *args)
         
+        raise SyntaxError
         # override this by your implementation
         files = self.ls(path)
         import gobject        

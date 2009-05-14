@@ -266,11 +266,11 @@ class AudioWidget(MediaWidget):
                     info = "%d:%02d" % (pos_m, pos_s)
                     total = 0
 
-                self.send_event(self.EVENT_MEDIA_POSITION, info)
                 self.emit_message(msgs.MEDIA_EV_POSITION,
                                   pos * 1000, total * 1000)
                 self.__progress.set_position(pos, total)
                 self.__progress_label.set_text(info)
+                self.send_event(self.EVENT_MEDIA_POSITION, info)
 
         elif (cmd == src.OBS_STARTED):
             print "Started Player"
@@ -338,8 +338,8 @@ class AudioWidget(MediaWidget):
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
                 self.__cover.set_active(True)
-                self.send_event(self.EVENT_MEDIA_EOF)
                 self.emit_message(msgs.MEDIA_EV_PAUSE)
+                self.send_event(self.EVENT_MEDIA_EOF)
 
         elif (cmd == src.OBS_TAG_INFO):
             ctx, tags = args

@@ -215,8 +215,8 @@ class VideoWidget(MediaWidget):
                 else:
                     info = "%d:%02d" % (pos_m, pos_s)            
 
-                self.send_event(self.EVENT_MEDIA_POSITION, info)
                 self.__progress.set_position(pos, total)
+                self.send_event(self.EVENT_MEDIA_POSITION, info)
 
             # bad mplayer shows its screen even when not asked for...
             #if (not self.may_render()):
@@ -290,8 +290,8 @@ class VideoWidget(MediaWidget):
                 
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)                
-                self.send_event(self.EVENT_MEDIA_EOF)
                 self.emit_message(msgs.MEDIA_EV_PAUSE)
+                self.send_event(self.EVENT_MEDIA_EOF)
 
 
         elif (cmd == src.OBS_ASPECT):

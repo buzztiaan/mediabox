@@ -1,8 +1,61 @@
 from com import Widget, msgs
 from utils import maemo
 from ui import dialogs
+from ui.Label import Label
+from ui.Window import Window
+from theme import theme
 
-import gtk
+import gobject
+
+
+class _Notifier(Window):
+
+    def __init__(self, parent):
+    
+        self.__parent = parent
+        self.__timeout_handler = None
+        
+        Window.__init__(self, False)
+        
+        self.__lbl_message = Label("", theme.font_mb_notification,
+                                   theme.color_mb_notification_text)
+        self.__lbl_message.set_pos(10, 0)
+        self.add(self.__lbl_message)
+        
+        
+    def render_this(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        screen.fill_area(0, 0, w, h, theme.color_mb_notification_background)
+
+        
+    def show_message(self, message):
+    
+        def on_timeout():
+            self.set_visible(False)
+            self.__timeout_handler = None
+            
+    
+        self.__lbl_message.set_text(message)
+        
+        if (not self.is_visible()):
+            win = self.__parent.get_window()
+            x, y = win.get_pos()
+            w, h = win.get_size()
+
+            self.set_pos(x, y)
+            self.set_size(w, 40)
+            self.__lbl_message.set_size(w - 20, 0)
+            self.set_visible(True)
+        #end if
+
+        if (self.__timeout_handler):
+            gobject.source_remove(self.__timeout_handler)
+        self.__timeout_handler = gobject.timeout_add(1500, on_timeout)
+    
 
 
 class NotificationService(Widget):
@@ -13,22 +66,16 @@ class NotificationService(Widget):
     def __init__(self):
     
         self.__progress_banner = None
+        self.__notify_window = _Notifier(self)
        
         Widget.__init__(self)
+      
         
-        
-    def handle_message(self, msg, *args):
+    def handle_NOTIFY_SVC_SHOW_INFO(self, text):
     
-        if (msg == msgs.NOTIFY_SVC_SHOW_INFO):
-            text = args[0]
-            try:
-                img = gtk.Image()
-                img.set_from_stock(gtk.STOCK_DIALOG_INFO, gtk.ICON_SIZE_DIALOG)
-                self.__show_banner(gtk.STOCK_DIALOG_INFO, text)
-            except:
-                pass
+        self.__notify_window.show_message(text)
 
-            return 0
+        return 0
 
         #elif (msg == msgs.NOTIFY_SVC_SHOW_PROGRESS):
         #    amount, total, text = args

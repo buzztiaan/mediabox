@@ -183,7 +183,7 @@ class Window(Widget):
     def set_size(self, w, h):
     
         Widget.set_size(self, w, h)
-        self.__window.resize(w, h)
+        self.__window.set_size_request(w, h)
 
 
     def get_size(self):

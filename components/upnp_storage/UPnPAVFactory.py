@@ -30,7 +30,6 @@ class UPnPAVFactory(Component):
 
     def handle_SSDP_EV_DEVICE_GONE(self, uuid):
 
-        uuid = args[0]
         dev_id = self.__dev_ids.get(uuid)
         if (dev_id):
             self.emit_message(msgs.CORE_EV_DEVICE_REMOVED, dev_id)

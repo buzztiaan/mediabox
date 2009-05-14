@@ -306,6 +306,7 @@ class AbstractBackend(Observable):
         self._load(uri)
         self._set_volume(self.__volume)
         
+        print "DELAY PLAY"
         gobject.timeout_add(0, self.play)
 
         if (ctx_id != -1):
@@ -377,6 +378,7 @@ class AbstractBackend(Observable):
             self._play()
 
         self.__playing = True
+        print "PLAY"
         self.update_observer(self.OBS_PLAYING, self.__context_id)
         self.__watch_progress()
         

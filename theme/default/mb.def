@@ -37,6 +37,13 @@ color_mb_dialog_side: #a0a0a0a0
 
 
 #
+# Notification
+#
+font_mb_notification: Nokia Sans Cn 18
+color_mb_notification_background: #000000
+color_mb_notification_text: #ffffff
+
+#
 # Thumbnails
 #
 color_mb_thumbnail_caption: #ffffff
