@@ -1,7 +1,8 @@
 def get_classes():
 
     from Prefs import Prefs
-    return [Prefs]
+    from PrefsComponents import PrefsComponents
+    return [Prefs, PrefsComponents]
 
 
 def get_devices():

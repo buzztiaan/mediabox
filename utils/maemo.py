@@ -11,6 +11,12 @@ this constant is C{True} when running on a maemo system
 @since: 0.96
 """
 
+IS_MER = False
+"""
+this constant is C{True} when running on a mer system
+@since: 0.96.5
+"""
+
 try:
     import hildon
     IS_MAEMO = True
@@ -18,6 +24,9 @@ except:
     IS_MAEMO = False
 
 import os
+
+IS_MER = os.system("dpkg -l | grep maemo-launcher | grep mer") == 0
+
 
 
 def set_osso_context(ctx):

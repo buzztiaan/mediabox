@@ -6,10 +6,7 @@ def get_classes():
     return [SSDPMonitor]
 
 
-messages = [
-    "SSDP_ACT_SEARCH_DEVICES",
-    
-    "SSDP_EV_DEVICE_DISCOVERED",   # (uuid, DeviceDescription)
-    "SSDP_EV_DEVICE_GONE",         # (uuid)
-]
+
+import __messages__
+messages = [ m for m in dir(__messages__) if not m.startswith("__") ]
 

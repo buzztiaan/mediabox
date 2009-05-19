@@ -533,6 +533,14 @@ class MediaViewer(TabbedViewer):
         self.__browser.invalidate_folder(folder)
 
 
+    def handle_CORE_EV_DEVICE_REMOVED(self, dev_id):
+    
+        folder = self.__browser.get_current_folder()
+        if (folder.device_id == dev_id):
+            self.__browser.go_root()
+        
+
+
     def handle_CORE_ACT_SEARCH_ITEM(self, key):
     
         if (self.is_active()):

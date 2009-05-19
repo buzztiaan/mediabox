@@ -3,10 +3,6 @@ This package contains the media player backends.
 """
 
 from DummyBackend import DummyBackend
-from GstBackend import GstBackend
-from MPlayerBackend import MPlayerBackend
-from OSSOBackend import OSSOBackend
-from XineBackend import XineBackend
 from utils import maemo
 from mediabox import values
 from utils import mimetypes
@@ -15,20 +11,33 @@ from utils import logging
 import os
 
 
-_GST = GstBackend()
-_MPLAYER = MPlayerBackend()
-_OMS = OSSOBackend()
-_XINE = XineBackend()
 _DUMMY = DummyBackend()
 
-if (maemo.IS_MAEMO):
+if (maemo.IS_MER):
+    from XineBackend import XineBackend
+    _XINE = XineBackend()
+    _PLAYERS = {"xine": _XINE}
+    
+elif (maemo.IS_MAEMO):
+    from GstBackend import GstBackend
+    from MPlayerBackend import MPlayerBackend
+    from OSSOBackend import OSSOBackend
+    _GST = GstBackend()
+    _MPLAYER = MPlayerBackend()
+    _OMS = OSSOBackend()
     _PLAYERS = {"gst": _GST,
                 "mplayer": _MPLAYER,
                 "oms": _OMS}
+                
 else:
+    from GstBackend import GstBackend
+    from MPlayerBackend import MPlayerBackend
+    from XineBackend import XineBackend
+    _GST = GstBackend()
+    _MPLAYER = MPlayerBackend()
+    _XINE = XineBackend()
     _PLAYERS = {"gst": _GST,
                 "mplayer": _MPLAYER,
-                "oms": _OMS,
                 "xine": _XINE}
 
 

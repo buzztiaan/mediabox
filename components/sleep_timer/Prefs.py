@@ -14,6 +14,9 @@ import time
 
 
 class Prefs(Configurator):
+    """
+    Configurator for setting sleep and wake up times.
+    """
 
     ICON = theme.prefs_sleep_timer
     TITLE = "Sleep Timer"

@@ -10,6 +10,9 @@ _BOOKMARK_FILE = os.path.join(values.USER_DIR, "bookmarks")
 
 
 class BookmarkService(Component):
+    """
+    Service for persisting bookmarks.
+    """
 
     def __init__(self):
     
@@ -34,7 +37,7 @@ class BookmarkService(Component):
         try:
             lines = open(_BOOKMARK_FILE, "r").readlines()
         except:
-            logging.error("could not load bookmarks\n%s", logging.stacktrace())
+            #logging.error("could not load bookmarks\n%s", logging.stacktrace())
             return
         
         for line in lines:

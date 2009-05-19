@@ -374,6 +374,16 @@ class StorageBrowser(TrackList):
         
         
         
+    def go_root(self):
+        """
+        Goes all the way up to the root folder.
+        """
+        
+        while (len(self.__path_stack) > 1):
+            self.__path_stack.pop()
+            self.reload_current_folder()
+
+        
     def go_parent(self):
     
         if (self.__subfolder_range):

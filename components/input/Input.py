@@ -18,6 +18,10 @@ _CONTEXTS = [ getattr(msgs, key) for key in dir(msgs)
 
 
 class Input(Component):
+    """
+    Component for mapping hardware keys to input events according to a given
+    input schema.
+    """
 
     def __init__(self):
     

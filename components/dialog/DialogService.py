@@ -8,6 +8,9 @@ import gtk
 
 
 class DialogService(Widget):
+    """
+    Service for showing dialog windows to the user.
+    """
 
     def __init__(self):
 

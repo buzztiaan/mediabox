@@ -22,6 +22,9 @@ _STATUS_ICONS = {
 
 
 class Menu(Widget):
+    """
+    Provides a menu panel for switching between the viewers.
+    """
 
     def __init__(self):
     

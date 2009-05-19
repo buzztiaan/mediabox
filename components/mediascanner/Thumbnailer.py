@@ -14,7 +14,7 @@ import image
 
 class Thumbnailer(Component):
     """
-    Class for retrieving thumbnails.
+    Component for creating and looking up thumbnail previews.
     """
 
     def __init__(self):

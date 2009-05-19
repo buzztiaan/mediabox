@@ -4,10 +4,16 @@ from AVDevice import AVDevice
 
 
 class UPnPAVFactory(Component):
+    """
+    Factory component for creating UPnP AV storage devices.
+    This component monitors SSDP events and creates or removes storage devices
+    accordingly.
+    """
 
     def __init__(self):
     
         self.__dev_ids = {}
+        self.__dev_names = {}
         Component.__init__(self)
        
         
@@ -20,8 +26,8 @@ class UPnPAVFactory(Component):
             device = AVDevice(descr)
             dev_id = device.get_device_id()
             self.__dev_ids[uuid] = dev_id
+            self.__dev_names[uuid] = descr.get_friendly_name()
             self.emit_message(msgs.CORE_EV_DEVICE_ADDED, dev_id, device)
-            print "ADDED", dev_id
             
             self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
                                 u"discovered network storage \xbb%s\xab" \
@@ -32,6 +38,12 @@ class UPnPAVFactory(Component):
 
         dev_id = self.__dev_ids.get(uuid)
         if (dev_id):
+            name = self.__dev_names[uuid]
             self.emit_message(msgs.CORE_EV_DEVICE_REMOVED, dev_id)
             del self.__dev_ids[uuid]
+            del self.__dev_names[uuid]
+
+            self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
+                                u"network storage \xbb%s\xab is gone" \
+                                % name)
 

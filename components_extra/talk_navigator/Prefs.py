@@ -10,6 +10,9 @@ from theme import theme
 
 
 class Prefs(Configurator):
+    """
+    Configurator for the TalkNavigator.
+    """
 
     ICON = theme.youtube_device
     TITLE = "Talk Navigation"

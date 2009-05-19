@@ -10,6 +10,9 @@ import gobject
 
 
 class ConfigTheme(Configurator):
+    """
+    Configurator for selecting the UI theme.
+    """
 
     ICON = theme.prefs_theme
     TITLE = "Themes"

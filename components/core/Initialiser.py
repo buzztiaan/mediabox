@@ -4,6 +4,9 @@ from theme import theme
 
 
 class Initialiser(Component):
+    """
+    Performs initialisation tasks such as setting the theme.
+    """
 
     def __init__(self):
     

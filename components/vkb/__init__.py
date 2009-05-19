@@ -5,7 +5,6 @@ def get_classes():
     
     
     
-messages = [
-    "VKB_ACT_SHOW",  # (parent)
-]
+import __messages__
+messages = [ m for m in dir(__messages__) if not m.startswith("__") ]
 

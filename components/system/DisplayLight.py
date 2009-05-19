@@ -47,7 +47,7 @@ class DisplayLight(Component):
 
     def __enable_light(self):
 
-        print "enabling light"
+        #print "enabling light"
         if (not self.__timeout_handler):
             self.__timeout_handler = gobject.timeout_add(29000,
                                                          self.__keep_display_on)
@@ -55,7 +55,7 @@ class DisplayLight(Component):
                                                          
     def __disable_light(self):
 
-        print "disabling light"
+        #print "disabling light"
         if (self.__timeout_handler):
             gobject.source_remove(self.__timeout_handler)
             self.__timeout_handler = None

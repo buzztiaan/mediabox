@@ -4,6 +4,9 @@ from theme import theme
 
 
 class PlaylistViewer(MediaViewer):
+    """
+    Viewer for playlists.
+    """
 
     ICON = theme.mb_viewer_playlist
     PRIORITY = 5

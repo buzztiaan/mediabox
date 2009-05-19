@@ -13,14 +13,7 @@ def get_classes():
     return classes
 
 
-messages = [
-    "SYSTEM_EV_DRIVE_MOUNTED",
-    "SYSTEM_EV_DRIVE_UNMOUNTED",
-    "SYSTEM_EV_HEADPHONES_INSERTED",
-    "SYSTEM_EV_HEADPHONES_REMOVED",
-    
-    "SYSTEM_ACT_FORCE_SPEAKER_ON",
-    "SYSTEM_ACT_FORCE_SPEAKER_OFF",
-    
-    "SYSTEM_EV_BATTERY_REMAINING", # (percent)
-]
+
+import __messages__
+messages = [ m for m in dir(__messages__) if not m.startswith("__") ]
+

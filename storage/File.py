@@ -41,6 +41,11 @@ class File(object):
     
         self.__device = device
 
+        self.device_id = device.get_device_id()
+        """
+        ID of this file's device
+        @since: 0.96.5
+        """
 
         self.folder_flags = self.NONE
         """@since: 0.96.5"""

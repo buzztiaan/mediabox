@@ -4,8 +4,7 @@ def get_classes():
     return [PlaylistViewer]
 
 
-messages = [
-    # Appends the given File object(s) to the playlist
-    "PLAYLIST_ACT_APPEND",  # (*f)
-]
+
+import __messages__
+messages = [ m for m in dir(__messages__) if not m.startswith("__") ]
 

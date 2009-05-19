@@ -10,6 +10,9 @@ import os
 
 
 class ConfigBackend(Configurator):
+    """
+    Configurator for mapping media backends to media file types.
+    """
 
     ICON = theme.mb_viewer_audio
     TITLE = "Media Formats"

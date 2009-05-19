@@ -8,6 +8,9 @@ from theme import theme
 
 
 class Preferences(Viewer):
+    """
+    Viewer for displaying the Configurator components.
+    """
 
     PRIORITY = 9999
     ICON = theme.mb_viewer_prefs

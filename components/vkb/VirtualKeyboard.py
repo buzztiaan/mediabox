@@ -41,7 +41,12 @@ def _is_slide_open():
     return slide_open
 
 
-class VirtualKeyboard(gtk.Window, Component):  
+class VirtualKeyboard(gtk.Window, Component):
+    """
+    Component for providing a somewhat finger-friendly keyboard on Maemo.
+    The hildon on-screen keyboard is not finger-friendly, will be removed in
+    Maemo 5, and causes trouble with MediaBox. So we use our own virtual keyboard.
+    """
 
     def __init__(self):
     

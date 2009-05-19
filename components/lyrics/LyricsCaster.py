@@ -7,7 +7,8 @@ import gobject
 
 class LyricsCaster(Component):
     """
-    Component for casting lyrics from LRC files.
+    Component for casting lyrics from LRC files. Other components may catch
+    the lyrics and display them.
     """
 
     def __init__(self):

@@ -6,6 +6,9 @@ import dbus
 
 
 class VolumeMount(Component):
+    """
+    Component for monitoring mounting and unmounting of volumes.
+    """
 
     def __init__(self):
     

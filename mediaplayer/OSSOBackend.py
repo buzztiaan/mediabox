@@ -162,7 +162,8 @@ class OSSOBackend(AbstractBackend):
 
     def _set_volume(self, volume):
 
-        self.__current_player.set_volume(volume / 100.0)
+        if (self.__current_player):
+            self.__current_player.set_volume(volume / 100.0)
 
 
     def _play(self):

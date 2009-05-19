@@ -65,5 +65,13 @@ doc:
 	epydoc -n ${NAME} --parse-only -o ../www/apidoc -v \
 	       --no-sourcecode --show-private --inheritance=included \
 	       --parse-only \
-	       com io mediaplayer storage theme ui upnp utils # idtags io mediabox storage theme ui
+	       com io mediaplayer storage theme ui upnp utils \
+	       components/vkb/__messages__.py \
+           components/mediascanner/__messages__.py \
+           components/core/__messages__.py \
+           components/input/__messages__.py \
+           components/playlist_viewer/__messages__.py \
+           components/ssdp_monitor/__messages__.py \
+           components/dialog/__messages__.py \
+           components/system/__messages__.py # idtags io mediabox storage theme ui
 
