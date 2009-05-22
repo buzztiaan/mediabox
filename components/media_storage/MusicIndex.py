@@ -178,6 +178,10 @@ class _MusicIndex(object):
         tracks = self.__list_index(selector, 1)
         return tracks
 
+
+    def clear(self):
+        
+        self.__index = []
         
 
     def add_album(self, folder):

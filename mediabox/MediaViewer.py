@@ -220,6 +220,8 @@ class MediaViewer(TabbedViewer):
 
             self.__update_toolbar()
         #end if
+        
+        self.__random_files = []
 
 
     def __on_enqueue_file(self, f):

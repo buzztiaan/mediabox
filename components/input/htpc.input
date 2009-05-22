@@ -38,11 +38,20 @@
 
 
 [FULLSCREEN]
-    UP              NAV_UP          -
-    DOWN            NAV_DOWN        -
-    LEFT            NAV_LEFT        -
-    RIGHT           NAV_RIGHT       -
-#    ESCAPE          NAV_MENU        -
-    ENTER           NAV_ENTER       -
+    UP              VOLUME_UP       -
+    DOWN            VOLUME_DOWN     -
+    LEFT            PREVIOUS        -
+    RIGHT           NEXT            -
+    ENTER           PLAY            -
     ESCAPE          SWITCH_TAB      -
     MENU            SWITCH_TAB      -
+
+#    UP              NAV_UP          -
+#    DOWN            NAV_DOWN        -
+#    LEFT            NAV_LEFT        -
+#    RIGHT           NAV_RIGHT       -
+#    ESCAPE          NAV_MENU        -
+#    ENTER           NAV_ENTER       -
+#    ESCAPE          SWITCH_TAB      -
+#    MENU            SWITCH_TAB      -
+

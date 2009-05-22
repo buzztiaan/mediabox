@@ -23,6 +23,7 @@ audio/*                               -                   Unknown-Audio  A
 audio/mp2                             .mp2                MP2-Audio      A
 audio/mpeg                            .mp3                MP3-Audio      A
 audio/mp4                             .aac,.m4a           MP4-Audio      A
+audio/ogg                             -                   Ogg-Vorbis     A
 audio/x-flac                          .flac               FLAC           A
 audio/x-ms-wma                        .wma                WMA            A
 audio/x-unknown                       -                   Unknown-Audio  A      # used by MediaBox for unguessable audio types

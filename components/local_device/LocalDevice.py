@@ -138,7 +138,8 @@ class LocalDevice(Device):
             ##end for
             #item.child_count = len(children)
             item.folder_flags = item.ITEMS_ENQUEUEABLE | \
-                                item.INDEXABLE
+                                item.INDEXABLE | \
+                                item.ITEMS_SKIPPABLE
             
         else:
             item.acoustic_name = os.path.splitext(item.name)[0]
@@ -180,7 +181,10 @@ class LocalDevice(Device):
             
         items = []
         for f in files:
-            item = self.get_file(os.path.join(path, f))
+            try:
+                item = self.get_file(os.path.join(path, f))
+            except:
+                continue
             #item = File(self)
             #item.is_local = True
             #item.can_add_to_library = True

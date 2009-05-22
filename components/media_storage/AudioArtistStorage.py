@@ -74,6 +74,8 @@ class AudioArtistStorage(Device):
                                  [File.DIRECTORY])
         print "ADDED", added
         print "REMOVED", removed
+        if (not media):
+            self.__index.clear()
         #finished = threading.Event()
         #gobject.idle_add(f)        
         #threads.wait_for(lambda :finished.isSet())

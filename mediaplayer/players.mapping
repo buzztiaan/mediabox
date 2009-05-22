@@ -11,6 +11,7 @@
 #  - mplayer: MPlayer backend
 #  - oms:     OSSO-Media-Server backend
 #  - gst:     GStreamer backend
+#  - xine:    D-Bus-Xine backend
 #  - dummy:   Dummy backend which does nothing
 #
 
@@ -18,27 +19,27 @@
 # media type                   player
 #-----------------------------------------------------
 
-FLAC                           mplayer
-MP2-Audio                      oms
-MP4-Audio                      oms
-MP3-Audio                      oms
-Ogg-Vorbis                     mplayer
-Realmedia                      oms
-Unknown-Audio                  mplayer
-WMA                            oms
-WAV                            oms
+FLAC                           gst
+MP2-Audio                      gst
+MP4-Audio                      gst
+MP3-Audio                      gst
+Ogg-Vorbis                     gst
+Realmedia                      gst
+Unknown-Audio                  gst
+WMA                            gst
+WAV                            gst
 
-3GPP                           oms
-AVI                            mplayer
-ASF                            mplayer
-DVD-Image                      dummy
-VCD-Image                      dummy
-Flash-Video                    mplayer
-MP4-Video                      oms
-MPEG                           oms
-Ogg-Theora                     mplayer
-Quicktime                      mplayer
-Real-Video                     oms
-Unknown-Video                  mplayer
-WMV                            mplayer
+3GPP                           gst
+AVI                            gst
+ASF                            gst
+DVD-Image                      xine
+VCD-Image                      xine
+Flash-Video                    gst
+MP4-Video                      gst
+MPEG                           gst
+Ogg-Theora                     gst
+Quicktime                      gst
+Real-Video                     gst
+Unknown-Video                  gst
+WMV                            gst
 

@@ -78,7 +78,7 @@ class Prefs(Configurator):
         btn.connect_clicked(self.__on_set_wakeup, btn)
         hbox.add(btn, False)
 
-        lbl = Label("MediaBox will start playing the media that is selected " \
+        lbl = Label("MediaBox will start playing the file that is selected " \
                     "at the moment of waking up.",
                     theme.font_mb_plain, theme.color_mb_listitem_text)        
         self.__vbox.add(lbl, True)

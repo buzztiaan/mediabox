@@ -70,9 +70,9 @@ class VideoWidget(MediaWidget):
         
         self._set_controls(Image(theme.mb_toolbar_space_1),
                            self.__btn_play,
-                           Image(theme.mb_toolbar_space_2),
+                           Image(theme.mb_progress_left),
                            self.__progress,
-                           Image(theme.mb_toolbar_space_2),
+                           Image(theme.mb_progress_right),
                            btn_bookmark,
                            Image(theme.mb_toolbar_space_1))        
 

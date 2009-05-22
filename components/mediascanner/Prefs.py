@@ -53,7 +53,7 @@ class Prefs(Configurator):
         chk = CheckBox(mb_config.store_thumbnails_on_medium())
         chk.connect_checked(self.__on_check_store_thumbs)
         self.__vbox.add(chk)
-        lbl = Label("Store thumbnails and caches on the same medium as the\n"
+        lbl = Label("Store thumbnails on the same medium as the\n"
                     "associated files (restart MediaBox for this)",
                     theme.font_mb_plain, theme.color_mb_listitem_text)        
         chk.add(lbl)

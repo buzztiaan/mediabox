@@ -1,0 +1,45 @@
+# Table for mapping media types to player backends.
+#
+# You can override parts of this table by editing the file
+# '~/.mediabox/players.mapping'.
+#
+# Media types are the names of the media types defined in the mimetypes.mapping
+# table.
+#
+# Player specifies which player backend to use. Available values are:
+#
+#  - mplayer: MPlayer backend
+#  - oms:     OSSO-Media-Server backend
+#  - gst:     GStreamer backend
+#  - xine:    D-Bus-Xine backend
+#  - dummy:   Dummy backend which does nothing
+#
+
+
+# media type                   player
+#-----------------------------------------------------
+
+FLAC                           xine
+MP2-Audio                      xine
+MP4-Audio                      xine
+MP3-Audio                      xine
+Ogg-Vorbis                     xine
+Realmedia                      xine
+Unknown-Audio                  xine
+WMA                            xine
+WAV                            xine
+
+3GPP                           xine
+AVI                            xine
+ASF                            xine
+DVD-Image                      dummy
+VCD-Image                      dummy
+Flash-Video                    xine
+MP4-Video                      xine
+MPEG                           xine
+Ogg-Theora                     xine
+Quicktime                      xine
+Real-Video                     xine
+Unknown-Video                  xine
+WMV                            xine
+

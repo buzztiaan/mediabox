@@ -17,6 +17,7 @@ if (maemo.IS_MER):
     from XineBackend import XineBackend
     _XINE = XineBackend()
     _PLAYERS = {"xine": _XINE}
+    _SUFFIX = ".mer"
     
 elif (maemo.IS_MAEMO):
     from GstBackend import GstBackend
@@ -28,6 +29,7 @@ elif (maemo.IS_MAEMO):
     _PLAYERS = {"gst": _GST,
                 "mplayer": _MPLAYER,
                 "oms": _OMS}
+    _SUFFIX = ".maemo"
                 
 else:
     from GstBackend import GstBackend
@@ -39,6 +41,7 @@ else:
     _PLAYERS = {"gst": _GST,
                 "mplayer": _MPLAYER,
                 "xine": _XINE}
+    _SUFFIX = ""
 
 
 _current_player = _DUMMY
@@ -46,7 +49,7 @@ _current_player = _DUMMY
 # table: mediatype -> backend name
 _MAPPING_TABLE = {}
 
-_PLAYERS_MAPPING_FILE1 = os.path.join(os.path.dirname(__file__), "players.mapping")
+_PLAYERS_MAPPING_FILE1 = os.path.join(os.path.dirname(__file__), "players.mapping" + _SUFFIX)
 _PLAYERS_MAPPING_FILE2 = os.path.join(values.USER_DIR, "players.mapping")
 
 

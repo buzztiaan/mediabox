@@ -185,3 +185,9 @@ class DialogService(Widget):
     
         if (self.is_visible()):
             self.__dialog.trigger_button(0)
+            
+            
+    def handle_INPUT_EV_PLAY(self):
+    
+        if (self.is_visible()):
+            self.__dialog.trigger_button(0)
