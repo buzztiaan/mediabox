@@ -23,6 +23,7 @@ class Device(Component):
     alphabetically.
     
     Storage devices are of type
+     - L{TYPE_PRIVATE}
      - L{TYPE_GENERIC}
      - L{TYPE_AUDIO}
      - L{TYPE_VIDEO}
@@ -30,7 +31,8 @@ class Device(Component):
      
     Viewers list devices of certain types. The video viewer e.g. only lists
     devices of type L{TYPE_VIDEO}, while the devices of type L{TYPE_GENERIC}
-    are listed by the folder viewer.
+    are listed by the folder viewer. Devices of L{TYPE_PRIVATE} are not listed
+    automatically.
 
     Every instance of a device has a unique device ID string that is returned by
     L{get_device_id}. This is ID is used by MediaBox to keep track of devices
@@ -51,10 +53,11 @@ class Device(Component):
     CATEGORY_WAN = 4
     CATEGORY_OTHER = 5
     
-    TYPE_GENERIC = 0
-    TYPE_AUDIO = 1
-    TYPE_VIDEO = 2
-    TYPE_IMAGE = 3
+    TYPE_PRIVATE = 0
+    TYPE_GENERIC = 1
+    TYPE_AUDIO = 2
+    TYPE_VIDEO = 3
+    TYPE_IMAGE = 4
 
 
     CATEGORY = CATEGORY_OTHER

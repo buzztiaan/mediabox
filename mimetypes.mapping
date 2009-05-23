@@ -20,6 +20,7 @@ application/ogg                       -                   Ogg-Vorbis     A      
 application/vnd.rn-realmedia          .ram,.ra            Realmedia      A
 application/vorbis                    -                   Ogg-Vorbis     A
 audio/*                               -                   Unknown-Audio  A
+audio/aacp                            .aac                MP4-Audio      A      # used by SHOUTcast
 audio/mp2                             .mp2                MP2-Audio      A
 audio/mpeg                            .mp3                MP3-Audio      A
 audio/mp4                             .aac,.m4a           MP4-Audio      A

@@ -1,4 +1,5 @@
 from com import Component, msgs
+from storage import Device
 
 
 class DirectoryService(Component):
@@ -41,16 +42,16 @@ class DirectoryService(Component):
         idx = path.find("/", idx + 3)
         prefix = path[:idx]
         path = path[idx:]
-        #print "PREFIX", prefix, "PATH", path
+        print "PREFIX", prefix, "PATH", path
         
         try:
-            #print self.__prefixes, prefix, path
+            print self.__prefixes, prefix, path
             return self.__prefixes[prefix].get_file(path)
         except:
             return 0
 
 
-    def handle_CORE_EV_DEVICE_ADDED(self, ident, device):            
+    def handle_CORE_EV_DEVICE_ADDED(self, ident, device):
             
         self.__prefixes[device.get_prefix()] = device
 

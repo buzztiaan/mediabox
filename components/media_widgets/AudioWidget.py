@@ -452,6 +452,7 @@ class AudioWidget(MediaWidget):
         if (self.__load_handler):
             gobject.source_remove(self.__load_handler)
             
+        print item, item.resource, item.mimetype
         self.__load_handler = gobject.idle_add(f)
 
 

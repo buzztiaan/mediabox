@@ -53,7 +53,6 @@ class LocalDevice(Device):
     
         f = File(self)
         f.is_local = True
-        f.can_add_to_library = True
         f.path = "MENU"
         f.mimetype = f.DIRECTORY
         f.resource = ""

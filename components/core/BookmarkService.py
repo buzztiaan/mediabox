@@ -42,13 +42,8 @@ class BookmarkService(Component):
         
         for line in lines:
             f = self.call_service(msgs.CORE_SVC_GET_FILE, line.strip())
-            if (not f):
-                f = File(self)
-                f.name = "Not available"
-                f.info = line.strip()
-            #end if
-
-            self.__items.append(f)
+            if (f):
+                self.__items.append(f)
         #end for
         
         self.__is_dirty = False
