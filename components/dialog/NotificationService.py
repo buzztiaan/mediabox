@@ -3,6 +3,7 @@ from utils import maemo
 from ui import dialogs
 from ui.Label import Label
 from ui.Window import Window
+from ui.Pixmap import text_extents
 from theme import theme
 
 import gobject
@@ -38,16 +39,16 @@ class _Notifier(Window):
             self.set_visible(False)
             self.__timeout_handler = None
             
-    
+
+        win = self.__parent.get_window()
+        w, h = win.get_size()
+        x, y = win.get_pos()
+        tw, th = text_extents(message, theme.font_mb_notification)
         self.__lbl_message.set_text(message)
         
+        self.set_size(w, th)
         if (not self.is_visible()):
-            win = self.__parent.get_window()
-            x, y = win.get_pos()
-            w, h = win.get_size()
-
             self.set_pos(x, y)
-            self.set_size(w, 40)
             self.__lbl_message.set_size(w - 20, 0)
             self.set_visible(True)
         #end if

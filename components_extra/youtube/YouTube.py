@@ -97,6 +97,9 @@ class YouTube(Device):
         
         self.__keep_video = False
         
+        self.__items = []
+        self.__current_folder = None
+        
         Device.__init__(self)
 
 
@@ -479,6 +482,7 @@ class YouTube(Device):
         #end for
         
         videos.sort()
+        self.__items = []
         for video in videos:
             f = File(self)
             f.can_delete = True
@@ -490,6 +494,7 @@ class YouTube(Device):
             #f.thumbnail = thumbnail
             
             cb(f, *args)
+            self.__items.append(f)
         #end for
         cb(None, *args)
         
@@ -504,6 +509,7 @@ class YouTube(Device):
         if (self.__flv_downloader):
             self.__flv_downloader.cancel()
    
+        self.__current_folder = folder
         if (path == "/"):
             self.__ls_menu(cb, *args)
 
@@ -599,11 +605,12 @@ class YouTube(Device):
         return self.__fileserver.get_location() + "/" + f.resource + ".flv"
 
 
-    def delete(self, f):
+    def delete_file(self, folder, idx):
         """
         Deletes the given file.
         """
 
+        f = self.__items[idx]
         response = dialogs.question("Remove",
                                     u"Remove video\n\xbb%s\xab?" % f.name)
         if (response == 0):
@@ -611,6 +618,8 @@ class YouTube(Device):
                 os.unlink(f.resource)
             except:
                 pass
+        
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.__current_folder)
 
 
     def keep(self, f):

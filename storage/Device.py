@@ -3,6 +3,7 @@ Base class of all storage devices.
 """
 
 from com import Component
+from utils import logging
 
 
 class Device(Component):

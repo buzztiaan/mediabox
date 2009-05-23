@@ -4,6 +4,7 @@ from io import Downloader
 from utils import logging
 
 import os
+import shutil
 import gtk
 
 # these modules handle the particular media types
