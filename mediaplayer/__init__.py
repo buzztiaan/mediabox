@@ -16,7 +16,9 @@ _DUMMY = DummyBackend()
 if (maemo.IS_MER):
     from XineBackend import XineBackend
     _XINE = XineBackend()
-    _PLAYERS = {"xine": _XINE}
+    _PLAYERS = {"gst": _GST,
+                "mplayer": _MPLAYER,
+                "xine": _XINE}
     _SUFFIX = ".mer"
     
 elif (maemo.IS_MAEMO):

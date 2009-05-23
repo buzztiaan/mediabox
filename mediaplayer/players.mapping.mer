@@ -19,27 +19,27 @@
 # media type                   player
 #-----------------------------------------------------
 
-FLAC                           xine
-MP2-Audio                      xine
-MP4-Audio                      xine
-MP3-Audio                      xine
-Ogg-Vorbis                     xine
-Realmedia                      xine
-Unknown-Audio                  xine
-WMA                            xine
-WAV                            xine
+FLAC                           gst
+MP2-Audio                      gst
+MP4-Audio                      gst
+MP3-Audio                      gst
+Ogg-Vorbis                     gst
+Realmedia                      gst
+Unknown-Audio                  gst
+WMA                            gst
+WAV                            gst
 
-3GPP                           xine
-AVI                            xine
-ASF                            xine
+3GPP                           gst
+AVI                            gst
+ASF                            gst
 DVD-Image                      dummy
 VCD-Image                      dummy
-Flash-Video                    xine
-MP4-Video                      xine
-MPEG                           xine
-Ogg-Theora                     xine
-Quicktime                      xine
-Real-Video                     xine
-Unknown-Video                  xine
-WMV                            xine
+Flash-Video                    gst
+MP4-Video                      gst
+MPEG                           gst
+Ogg-Theora                     gst
+Quicktime                      gst
+Real-Video                     gst
+Unknown-Video                  gst
+WMV                            gst
 
