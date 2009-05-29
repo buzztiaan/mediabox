@@ -8,6 +8,7 @@ from ui.CheckBox import CheckBox
 from ui.Button import Button
 from theme import theme
 from utils import logging
+import config
 
 import gobject
 import time
@@ -28,8 +29,8 @@ class Prefs(Configurator):
         self.__sleep_handler = None
         self.__wakeup_handler = None
         
-        self.__sleep_time = (0, 0)
-        self.__wakeup_time = (0, 0)
+        self.__sleep_time = config.get_sleep_time()
+        self.__wakeup_time = config.get_wakeup_time()
         
     
         Configurator.__init__(self)
@@ -47,14 +48,14 @@ class Prefs(Configurator):
         img = Image(theme.mb_sleep_timer_sleep)
         hbox.add(img, False)
         
-        chk = CheckBox(False)
+        chk = CheckBox(config.get_sleep())
         chk.connect_checked(self.__on_check_sleep)
         hbox.add(chk, True)
         lbl = Label("Fall asleep and stop playing at",
                     theme.font_mb_plain, theme.color_mb_listitem_text)        
         chk.add(lbl)
 
-        btn = Button("00:00")
+        btn = Button("%02d:%02d" % self.__sleep_time)
         btn.set_size(160, 80)
         btn.connect_clicked(self.__on_set_sleep, btn)
         hbox.add(btn, False)
@@ -66,14 +67,14 @@ class Prefs(Configurator):
         img = Image(theme.mb_sleep_timer_wakeup)
         hbox.add(img, False)
 
-        chk = CheckBox(False)
+        chk = CheckBox(config.get_wakeup())
         chk.connect_checked(self.__on_check_wakeup)
         hbox.add(chk, True)
         lbl = Label("Wake up and start playing at",
                     theme.font_mb_plain, theme.color_mb_listitem_text)        
         chk.add(lbl)
 
-        btn = Button("00:00")
+        btn = Button("%02d:%02d" % self.__wakeup_time)
         btn.set_size(160, 80)
         btn.connect_clicked(self.__on_set_wakeup, btn)
         hbox.add(btn, False)
@@ -97,7 +98,6 @@ class Prefs(Configurator):
         
         self.__vbox.set_geometry(32, 32, w - 64, h - 64)
         screen.fill_area(x, y, w, h, theme.color_mb_background)
-
 
 
     def __update_status_icons(self):
@@ -140,6 +140,7 @@ class Prefs(Configurator):
             delta = int((then - now) * 1000)
             self.__sleep_handler = gobject.timeout_add(delta, self.__fall_asleep)
         
+        config.set_sleep(value)
         self.__update_status_icons()    
         
         
@@ -155,6 +156,7 @@ class Prefs(Configurator):
             delta = int((then - now) * 1000)
             self.__wakeup_handler = gobject.timeout_add(delta, self.__wakeup)
 
+        config.set_wakeup(value)
         self.__update_status_icons()
 
 
@@ -164,6 +166,7 @@ class Prefs(Configurator):
         self.call_service(msgs.DIALOG_SVC_CUSTOM, theme.mb_sleep_timer_sleep,
                           "Set Sleep Time", self.__clock_setter)
         self.__sleep_time = self.__clock_setter.get_time()
+        config.set_sleep_time(*self.__sleep_time)
         btn.set_text("%02d:%02d" % self.__sleep_time)
         if (self.__sleep_handler):
             self.__on_check_sleep(True)
@@ -175,6 +178,7 @@ class Prefs(Configurator):
         self.call_service(msgs.DIALOG_SVC_CUSTOM, theme.mb_sleep_timer_wakeup,
                           "Set Wake Up Time", self.__clock_setter)
         self.__wakeup_time = self.__clock_setter.get_time()
+        config.set_wakeup_time(*self.__wakeup_time)
         btn.set_text("%02d:%02d" % self.__wakeup_time)
         if (self.__wakeup_handler):
             self.__on_check_wakeup(True)
@@ -214,4 +218,6 @@ class Prefs(Configurator):
     def handle_CORE_EV_APP_STARTED(self):
     
         self.__update_status_icons()
+        self.__on_check_sleep(config.get_sleep())
+        self.__on_check_wakeup(config.get_wakeup())
 
