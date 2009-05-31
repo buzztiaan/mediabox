@@ -646,7 +646,7 @@ class AppWindow(Component, RootPane):
     def handle_CORE_ACT_SET_TITLE(self, title):
 
         self.__title_panel.set_title(title)
-        self.__window.set_title("[MediaBox] " + title)
+        self.__window.set_title(title)
 
 
     def handle_CORE_ACT_SET_INFO(self, info):

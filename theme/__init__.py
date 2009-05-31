@@ -151,35 +151,36 @@ class _Theme(object):
                 name, description, author = _get_info(theme_dir)
                 break
         #end for
+        
+        self.__load_recursively(theme_dir)
+        
 
-        items = [ f for f in os.listdir(theme_dir)
-                  if f.endswith(".png") or f.endswith(".jpg") ]
-        for i in items:
+    def __load_recursively(self, theme_dir):
+    
+        for i in os.listdir(theme_dir):
             name = os.path.splitext(i)[0]
             path = os.path.join(theme_dir, i)
 
-            if (name in self.__objects):
-                nil, nil, obj = self.__objects[name]
-            else:
-                obj = None
+            if (os.path.isdir(path)):
+                self.__load_recursively(path)
 
-            self.__objects[name] = (_TYPE_PBUF, path, obj)
-            if (obj): obj.set_objdef(path)
-        #end for
-        
-        self.__read_definitions(theme_dir)
+            elif (i.endswith(".def")):
+                self.__read_def_file(path)
+                
+            elif (i.endswith(".png") or i.endswith(".jpg")):
+                self.__read_image(name, path)
+        #end for                
 
 
-    def __read_definitions(self, themepath):
+    def __read_image(self, name, path):
+    
+        if (name in self.__objects):
+            nil, nil, obj = self.__objects[name]
+        else:
+            obj = None
 
-        def_files = [ f for f in os.listdir(themepath) if f.endswith(".def") ]
-        for f in def_files:
-            try:
-                self.__read_def_file(os.path.join(themepath, f))
-            except:
-                pass
-        #end for
-
+        self.__objects[name] = (_TYPE_PBUF, path, obj)
+        if (obj): obj.set_objdef(path)
 
 
     def __read_def_file(self, f):

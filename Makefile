@@ -36,19 +36,22 @@ _ICONDIR=${DESTDIR}/usr/share/icons/hicolor/scalable/apps
 
 clean:
 	find . -name "*.pyc" -exec rm "{}" \;
+	find . -name "*.pyo" -exec rm "{}" \;
 	find . -name "*~" -exec rm "{}" \;
 	@true
 
 all:
 	@true
-    
-    
+
+py-compile:
+	python2.5 -OO pycompile/compileall.py -x MediaBox.py ${_LIBDIR}; true
+	find ${_LIBDIR} -name "*.py" | grep -v MediaBox.py | xargs rm; true
+
 install-lib:
 	mkdir -p ${_LIBDIR}
 	cp -r ${COPY_FILES} ${_LIBDIR}
 	find ${_LIBDIR} -name ".svn" -exec rm -rf "{}" \; ; true
 	find ${_LIBDIR} -name "*~" -exec rm -f "{}" \; ; true
-	find ${_LIBDIR} -name "*.pyc" -exec rm -f "{}" \; ; true
 	find ${_LIBDIR} -name "*.xcf" -exec rm -f "{}" \; ; true
 	chmod a+x ${_LIBDIR}/${EXEC_FILE}
 	
@@ -58,7 +61,7 @@ install-maemo:
 	cp ${SERVICE_FILE} ${_SERVICEDIR}
 	cp ${DESKTOP_FILE} ${_DESKTOPDIR}
 
-install: install-lib install-maemo
+install: install-lib install-maemo py-compile
 	@true
 
 doc:

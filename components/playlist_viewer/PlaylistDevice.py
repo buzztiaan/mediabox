@@ -76,7 +76,7 @@ class PlaylistDevice(Device):
                 self.call_service(msgs.DIALOG_SVC_ERROR,
                                   "Error",
                                   u"There is already a playlist with name " \
-                                  "\302\273%s\302\253." % name)
+                                  u"\xbb%s\xab." % name)
 
                 return None
 
@@ -247,7 +247,7 @@ class PlaylistDevice(Device):
             else:
                 files = pl.get_files()[begin_at:end_at]
               
-            print "FILES", files  
+            #print "FILES", files  
             for f in files:
                 cb(f, *args)
             cb(None, *args)

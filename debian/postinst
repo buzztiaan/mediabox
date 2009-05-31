@@ -3,7 +3,7 @@
 /usr/bin/gtk-update-icon-cache -f /usr/share/icons/hicolor
 
 oldversion="$2"
-if [ -z "$oldversion" ]; then
+if [ -e /usr/bin/maemo-select-menu-location && -z "$oldversion" ]; then
   maemo-select-menu-location mediabox-mc.desktop
 fi
 
