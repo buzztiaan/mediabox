@@ -22,11 +22,10 @@ class ImageStorage(Device):
         Device.__init__(self)
         
         
-    def handle_message(self, msg, *args):
+    def handle_MEDIASCANNER_EV_SCANNING_FINISHED(self):
     
-        if (msg == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
-            #self.__update_media()
-            self.__media_was_updated = True
+        #self.__update_media()
+        self.__media_was_updated = True
 
 
     def __update_media(self):

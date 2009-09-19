@@ -14,5 +14,5 @@ from View import View
 from Player import Player
 from Widget import Widget
 from Configurator import Configurator
-from MediaWidgetFactory import MediaWidgetFactory
+#from MediaWidgetFactory import MediaWidgetFactory
 from Container import Container

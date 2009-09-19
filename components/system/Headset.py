@@ -117,11 +117,12 @@ class Headset(Component):
             self.__speaker.force_loudspeaker_off()
 
 
-    def handle_message(self, msg, *args):
+    def handle_SYSTEM_ACT_FORCE_SPEAKER_ON(self):
     
-        if (msg == msgs.SYSTEM_ACT_FORCE_SPEAKER_ON):
-            self.__set_force_speaker(True)
-            
-        elif (msg == msgs.SYSTEM_ACT_FORCE_SPEAKER_OFF):
-            self.__set_force_speaker(False)
+        self.__set_force_speaker(True)
+
+
+    def handle_SYSTEM_ACT_FORCE_SPEAKER_OFF(self):            
+
+        self.__set_force_speaker(False)
 

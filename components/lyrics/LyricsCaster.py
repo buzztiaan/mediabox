@@ -29,26 +29,30 @@ class LyricsCaster(Component):
         
         
         
-    def handle_message(self, msg, *args):
+    def handle_MEDIA_EV_LOADED(self, v, f):
     
-        if (msg == msgs.MEDIA_EV_LOADED):
-            v, f = args
-            self.__clear_lyrics()
-            self.__find_lyrics(f)
-            
-        elif (msg == msgs.MEDIA_EV_PLAY and self.__lyrics):
+        self.__clear_lyrics()
+        self.__find_lyrics(f)
+
+
+    def handle_MEDIA_EV_PLAY(self):            
+
+        if (self.__lyrics):
             if (self.__position_handler):
                 gobject.source_remove(self.__position_handler)
             self.__position_handler = gobject.timeout_add(
                                                     100, self.__check_position)
             self.__position = 0
             
-        elif (msg == msgs.MEDIA_EV_PAUSE):
-            if (self.__position_handler):
-                gobject.source_remove(self.__position_handler)
+    def handle_MEDIA_EV_PAUSE(self):
 
-        elif (msg == msgs.MEDIA_EV_POSITION and self.__lyrics):
-            pos, total = args
+        if (self.__position_handler):
+            gobject.source_remove(self.__position_handler)
+
+
+    def handle_MEDIA_EV_POSITION(self, pos, total):
+        
+        if (self.__lyrics):
             self.__position = pos
 
 

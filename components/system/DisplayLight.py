@@ -15,33 +15,40 @@ class DisplayLight(Component):
         self.__timeout_handler = None
 
 
-    def handle_message(self, msg, *args):
+    def handle_MEDIA_EV_PLAY(self):
     
-        if (msg == msgs.MEDIA_EV_PLAY):
-            lit = config.get_display_lit()
-            if (lit == "playing"):
+        lit = config.get_display_lit()
+        if (lit == "playing"):
+            self.__enable_light()
+
+
+    def handle_MEDIA_EV_PAUSE(self):
+
+        lit = config.get_display_lit()
+        if (lit == "playing"):
+            self.__disable_light()
+    
+    
+    def handle_MEDIA_EV_EOF(self):        
+
+        lit = config.get_display_lit()
+        if (lit == "playing"):
+            self.__disable_light()
+
+
+    def handle_UI_EV_VIEWER_CHANGED(self, idx):    
+
+        lit = config.get_display_lit()
+        if (lit == "yes"):
+            if (idx != -1):
+                # viewer; may keep display on
                 self.__enable_light()
-
-        
-        elif (msg in (msgs.MEDIA_EV_PAUSE, msgs.MEDIA_EV_EOF)):
-            lit = config.get_display_lit()
-            if (lit == "playing"):
+            else:
+                # main menu; may not keep display on
                 self.__disable_light()
-
-    
-        elif (msg == msgs.UI_EV_VIEWER_CHANGED):
-            idx = args[0]
-            lit = config.get_display_lit()
-            if (lit == "yes"):
-                if (idx != -1):
-                    # viewer; may keep display on
-                    self.__enable_light()
-                else:
-                    # main menu; may not keep display on
-                    self.__disable_light()
-                    
-            elif (lit == "no"):
-                self.__disable_light()
+                
+        elif (lit == "no"):
+            self.__disable_light()
       
 
 

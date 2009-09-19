@@ -33,28 +33,37 @@ class FileWatcher(Component, ProcessEvent):
         self.__scanner = gobject.timeout_add(1000, self.__scanning_handler)
 
 
-    def handle_message(self, ev, *args):
+    def handle_CORE_EV_APP_IDLE_BEGIN(self):
 
-        if (ev == msgs.CORE_EV_APP_IDLE_BEGIN):
-            gobject.source_remove(self.__scanner)
-            
-        elif (ev == msgs.CORE_EV_APP_IDLE_END):
-            self.__scanner = gobject.timeout_add(1000, self.__scanning_handler)
-    
-        elif (ev == msgs.MEDIASCANNER_EV_SCANNING_STARTED):
-            self.__currently_scanning = True
-            #self.__setup_watches()
+        gobject.source_remove(self.__scanner)
 
-        elif (ev == msgs.MEDIASCANNER_EV_SCANNING_FINISHED):
-            self.__currently_scanning = False
 
-        elif (ev == msgs.SYSTEM_EV_DRIVE_MOUNTED):
-            logging.info("scanning because device was mounted")
-            self.__requires_rescan = True
+    def handle_CORE_EV_APP_IDLE_END(self):            
 
-        elif (ev == msgs.SYSTEM_EV_DRIVE_UNMOUNTED):
-            logging.info("scanning because device was unmounted")
-            self.__requires_rescan = True
+        self.__scanner = gobject.timeout_add(1000, self.__scanning_handler)
+
+
+    def handle_MEDIASCANNER_EV_SCANNING_STARTED(self):    
+
+        self.__currently_scanning = True
+        #self.__setup_watches()
+
+
+    def handle_MEDIASCANNER_EV_SCANNING_FINISHED(self):
+
+        self.__currently_scanning = False
+
+
+    def handle_SYSTEM_EV_DRIVE_MOUNTED(self, path):
+
+        logging.info("scanning because device was mounted")
+        self.__requires_rescan = True
+
+
+    def handle_SYSTEM_EV_DRIVE_UNMOUNTED(self, path):
+
+        logging.info("scanning because device was unmounted")
+        self.__requires_rescan = True
 
            
     def __setup_watches(self):

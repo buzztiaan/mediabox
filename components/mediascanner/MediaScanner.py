@@ -77,31 +77,31 @@ class MediaScanner(Component):
         
         
         
-    def handle_message(self, ev, *args):
+    def handle_MEDIASCANNER_ACT_SCAN(self, mediaroots, rebuild_index):
     
-        if (ev == msgs.MEDIASCANNER_ACT_SCAN):
-            mediaroots, rebuild_index = args
-            #self.__scan(mediaroots, rebuild_index)
-            self.__scan_roots(mediaroots, rebuild_index)
+        self.__scan_roots(mediaroots, rebuild_index)
 
-        elif (ev == msgs.MEDIASCANNER_SVC_GET_MEDIA):
-            mime_types = args[0]
-            return self.__get_media(mime_types)
-            
-        elif (ev == msgs.MEDIASCANNER_SVC_GET_THUMBNAIL):
-            logging.warning("MEDIASCANNER_SVC_GET_THUMBNAIL is deprecated")
-            f = args[0]
-            path = self.__thumbnailer.get_thumbnail_path(f)
-            uptodate = self.__thumbnailer.is_thumbnail_up_to_date(f)
-            return (path, uptodate)
 
-        elif (ev == msgs.MEDIASCANNER_SVC_SET_THUMBNAIL):
-            logging.warning("MEDIASCANNER_SVC_SET_THUMBNAIL is deprecated")
-            f, pbuf = args
-            thumbpath = self.__thumbnailer.get_thumbnail_path(f)
-            pbuf.save(thumbpath, "jpeg")
-            print "saving thumbnail for %s as %s" % (f.name, thumbpath)
-            return thumbpath
+    def handle_MEDIASCANNER_SVC_GET_MEDIA(self, mime_types):
+
+        return self.__get_media(mime_types)
+
+
+    def handle_MEDIASCANNER_SVC_GET_THUMBNAIL(self, f):
+
+        logging.warning("MEDIASCANNER_SVC_GET_THUMBNAIL is deprecated")
+        path = self.__thumbnailer.get_thumbnail_path(f)
+        uptodate = self.__thumbnailer.is_thumbnail_up_to_date(f)
+        return (path, uptodate)
+
+
+    def handle_MEDIASCANNER_SVC_SET_THUMBNAIL(self, f, pbuf):
+
+        logging.warning("MEDIASCANNER_SVC_SET_THUMBNAIL is deprecated")
+        thumbpath = self.__thumbnailer.get_thumbnail_path(f)
+        pbuf.save(thumbpath, "jpeg")
+        print "saving thumbnail for %s as %s" % (f.name, thumbpath)
+        return thumbpath
 
 
     def __file_exists(self, fp):

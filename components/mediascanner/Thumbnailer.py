@@ -33,33 +33,32 @@ class Thumbnailer(Component):
             pass
 
 
-    def handle_message(self, msg, *args):
+    def handle_MEDIASCANNER_SVC_LOOKUP_THUMBNAIL(self, f):
 
-        if (msg == msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL):
-            f = args[0]
-            if (self.has_thumbnail(f)):
-                return self.get_thumbnail_path(f)
-            else:
-                return ""
+        if (self.has_thumbnail(f)):
+            return self.get_thumbnail_path(f)
+        else:
+            return ""
 
-        elif (msg == msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL):
-            f = args[0]
-            cb = args[1]
-            cb_args = args[2:]
-            self.__load_thumbnail(f, cb, *cb_args)
-            return 0
 
-        elif (msg == msgs.MEDIASCANNER_SVC_COPY_THUMBNAIL):
-            f1, f2 = args
-            self.__copy_thumbnail(f1, f2)
-            return 0
+    def handle_MEDIASCANNER_SVC_LOAD_THUMBNAIL(self, f, cb, *cb_args):
 
-        elif (msg == msgs.MEDIASCANNER_SVC_SET_THUMBNAIL):
-            f, pbuf = args
-            thumbpath = self.__thumbnailer.get_thumbnail_path(f)
-            pbuf.save(thumbpath, "jpeg")
-            print "saving thumbnail for %s as %s" % (f.name, thumbpath)
-            return thumbpath
+        self.__load_thumbnail(f, cb, *cb_args)
+        return 0
+
+
+    def handle_MEDIASCANNER_SVC_COPY_THUMBNAIL(self, f1, f2):
+
+        self.__copy_thumbnail(f1, f2)
+        return 0
+
+
+    def handle_MEDIASCANNER_SVC_SET_THUMBNAIL(self, f, pbuf):
+
+        thumbpath = self.__thumbnailer.get_thumbnail_path(f)
+        pbuf.save(thumbpath, "jpeg")
+        print "saving thumbnail for %s as %s" % (f.name, thumbpath)
+        return thumbpath
         
         
         

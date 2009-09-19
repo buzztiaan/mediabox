@@ -300,17 +300,17 @@ class AbstractBackend(EventEmitter):
                 pos = beginpos + (time.time() - timestamp)
                 
             self.__position = (pos, total)
-            if (pos != 0 or total != 0):
+            if (pos != 0 or total > 0):
                 if (pos >= 0):
                     self.emit_event(self.EVENT_POSITION_CHANGED,
                                     self.__context_id, pos, total)
                     #self.update_observer(self.OBS_POSITION, self.__context_id,
                     #                     pos, total)
 
-            if (total != 0 and total - pos < 1):
+            if (total > 0 and total - pos < 1):
                 delay = 200
             else:
-                delay = 600
+                delay = 500
             self.__position_handler = \
                   gobject.timeout_add(delay, self.__update_position,
                                       beginpos, timestamp)
