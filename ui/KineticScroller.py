@@ -162,7 +162,9 @@ class KineticScroller(EventEmitter, Observable):
             
             self.__delta_s = (vx * self.__delta_t, vy * self.__delta_t)
             
-            gtk.main_iteration(False)
+            # do not call main_iteration from inside a main_iteration call,
+            # it will block
+            #gtk.main_iteration(False)
             gobject.timeout_add(0, self.__impulse_handler)
 
 

@@ -49,6 +49,21 @@ def _id_to_name(ident):
     """
 
 
+def _name_to_id(name):
+    """
+    Returns the ID of a registered message given by name, or C{-1} if the
+    message name is unknown.
+    
+    @param ident: name of the message, e.g. "C{CORE_APPLICATION_SHUTDOWN}"
+    @return: ID of the message, e.g. L{msgs.CORE_APPLICATION_SHUTDOWN}
+    """
+    try:
+        return _names.index(name)
+    except:
+        return -1
+
+
+
 def _register(name):
     """
     Registers a new message. This method is only used internally by

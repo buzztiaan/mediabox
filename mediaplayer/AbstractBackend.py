@@ -228,7 +228,6 @@ class AbstractBackend(EventEmitter):
         #self.__suspension_point = (self.__uri, 0)
         self.emit_event(self.EVENT_STATUS_CHANGED,
                         self.__context_id, self.STATUS_EOF)
-        #self.update_observer(self.OBS_EOF, self.__context_id)
 
 
     def __on_idle_timeout(self):
@@ -304,8 +303,6 @@ class AbstractBackend(EventEmitter):
                 if (pos >= 0):
                     self.emit_event(self.EVENT_POSITION_CHANGED,
                                     self.__context_id, pos, total)
-                    #self.update_observer(self.OBS_POSITION, self.__context_id,
-                    #                     pos, total)
 
             if (total > 0 and total - pos < 1):
                 delay = 200
@@ -401,7 +398,6 @@ class AbstractBackend(EventEmitter):
         """
         
         self.emit_event(self.EVENT_ASPECT_CHANGED, self.__context_id, ratio)
-        #self.update_observer(self.OBS_ASPECT, self.__context_id, ratio)
 
 
     def _report_tag(self, tag, value):
@@ -412,7 +408,6 @@ class AbstractBackend(EventEmitter):
         self.__tags[tag] = value
         self.emit_event(self.EVENT_TAG_DISCOVERED,
                         self.__context_id, self.__tags)
-        #self.update_observer(self.OBS_TAG_INFO, self.__context_id, self.__tags)
     
     
     def _report_connecting(self):
@@ -422,7 +417,6 @@ class AbstractBackend(EventEmitter):
         
         self.emit_event(self.EVENT_STATUS_CHANGED,
                         self.__context_id, self.STATUS_CONNECTING)
-        #self.update_observer(self.OBS_CONNECTING, self.__context_id)
         
     
     def _report_buffering(self, value):
@@ -432,7 +426,6 @@ class AbstractBackend(EventEmitter):
         
         self.emit_event(self.EVENT_STATUS_CHANGED,
                         self.__context_id, self.STATUS_BUFFERING)
-        #self.update_observer(self.OBS_BUFFERING, self.__context_id, value)
         
         
     def _report_error(self, err, message):
@@ -444,7 +437,7 @@ class AbstractBackend(EventEmitter):
         
         self.stop()
         self.emit_event(self.EVENT_ERROR, self.__context_id, err)
-        #self.update_observer(self.OBS_ERROR, self.__context_id, err)
+        self.__eof_reached = True
        
         
         
@@ -463,7 +456,6 @@ class AbstractBackend(EventEmitter):
         print "PLAY"
         self.emit_event(self.EVENT_STATUS_CHANGED,
                         self.__context_id, self.STATUS_PLAYING)
-        #self.update_observer(self.OBS_PLAYING, self.__context_id)
         self.__watch_progress()
         
         
@@ -479,13 +471,11 @@ class AbstractBackend(EventEmitter):
             self.__playing = False
             self.emit_event(self.EVENT_STATUS_CHANGED,
                             self.__context_id, self.STATUS_STOPPED)
-            #self.update_observer(self.OBS_STOPPED, self.__context_id)
         else:
             self._play()
             self.__playing = True
             self.emit_event(self.EVENT_STATUS_CHANGED,
                             self.__context_id, self.STATUS_PLAYING)
-            #self.update_observer(self.OBS_PLAYING, self.__context_id)
             self.__watch_progress()
         
         
@@ -536,7 +526,6 @@ class AbstractBackend(EventEmitter):
         self.__playing = True
         self.emit_event(self.EVENT_STATUS_CHANGED,
                         self.__context_id, self.STATUS_PLAYING)
-        #self.update_observer(self.OBS_PLAYING, self.__context_id)
         self.__watch_progress()
         
         
@@ -569,9 +558,6 @@ class AbstractBackend(EventEmitter):
             print pos, self.__position
             self.emit_event(self.EVENT_POSITION_CHANGED,
                             self.__context_id, *self.__position)
-            #self.update_observer(self.OBS_POSITION, self.__context_id,
-            #                     *self.__position)
-
             
         
     def forward(self):
@@ -590,8 +576,6 @@ class AbstractBackend(EventEmitter):
             print pos, self.__position
             self.emit_event(self.EVENT_POSITION_CHANGED,
                             self.__context_id, *self.__position)
-            #self.update_observer(self.OBS_POSITION, self.__context_id,
-            #                     *self.__position)
 
 
     def _get_icon(self):
