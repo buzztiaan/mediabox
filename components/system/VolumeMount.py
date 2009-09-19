@@ -24,7 +24,7 @@ class VolumeMount(Component):
         iface.connect_to_signal("VolumeMountedSignal", self.__on_mount_volume)
         iface.connect_to_signal("VolumeUnmountedSignal", self.__on_unmount_volume)
         
-        
+
     def __on_mount_volume(self, arg):
     
         ident = arg[0]
@@ -46,3 +46,4 @@ class VolumeMount(Component):
         else:
             logging.info("unspecified device unmounted: %s", ident)
             self.emit_message(msgs.SYSTEM_EV_DRIVE_UNMOUNTED, path)
+

@@ -10,6 +10,7 @@ from io import Downloader
 from io import FileDownloader
 from io import FileServer
 from mediabox import values
+import formats
 import config
 from theme import theme
 
@@ -107,18 +108,19 @@ class YouTube(Device):
     def __get_flv(self, ident):
 
         data = urllib.urlopen(_VIDEO_WATCH % ident).read()
+        # normalize
+        data = "".join(data.split())
+        
         t = self.__extract_t(data)
+        formats = self.__find_formats(data)
         fullid = "%s&t=%s" % (ident, t)
-        return _VIDEO_FLV % fullid
+        return (_VIDEO_FLV % fullid, formats)
         
 
     def __extract_t(self, html):
     
         #open("/tmp/yt.html", "w").write(html)
     
-        # normalize
-        html = "".join(html.split())
-        
         pos = html.find("\",\"t\":\"")
         if (pos != -1):
             pos2 = html.find("\"", pos + 7)
@@ -133,8 +135,19 @@ class YouTube(Device):
             print "T", t
             return t
         
-        return ""        
+        return ""
         
+        
+    def __find_formats(self, html):
+    
+        pos = html.find("\",\"fmt_map\":\"")
+        if (pos != -1):
+            pos2 = html.find("\"", pos + 13)
+            fmt_map = html[pos + 13:pos2]
+            print "Formats:", [ part.split("/")[0] for part in fmt_map.split(",") ]
+            return [ int(part.split("/")[0]) for part in fmt_map.split(",") ]
+
+        return []
         
     def get_icon(self):
     
@@ -242,7 +255,7 @@ class YouTube(Device):
         xml[0] += data
         if (not data):
             # finished loading
-            print xml[0]
+            #print xml[0]
             #self.__cache_search_result(url, xml[0])
             if (is_toc):
                 self.__parse_toc_xml(xml[0], query, cb, *args)
@@ -313,7 +326,7 @@ class YouTube(Device):
             
             return True
             
-    
+        #open("/tmp/youtube.xml", "w").write(xml)
         MiniXML(xml, callback = on_receive_node)
 
 
@@ -475,7 +488,7 @@ class YouTube(Device):
                      os.path.join("/media/mmc2", _VIDEO_FOLDER)]:
             if (os.path.exists(path) and os.path.isdir(path)):
                 for filename in os.listdir(path):
-                    if (filename.lower().endswith(".flv")):
+                    if (os.path.splitext(filename.lower())[1] in formats.get_extensions()):
                         videos.append(os.path.join(path, filename))
                 #end for
             #end if
@@ -565,32 +578,33 @@ class YouTube(Device):
                         "Requesting Video",
                         "- %s -" % f.name,
                         theme.youtube_device)
-
-        # download high-quality version, if desired
-        qtype = config.get_quality_type()
-        if (qtype != 0):
-            url = f.resource + "&fmt=%d" % qtype
-        else:
-            url = f.resource
-        print url
             
         try:
-            flv = self.__get_flv(url)
+            flv, fmts = self.__get_flv(f.resource)
         except:
             logging.error("could not retrieve video\n%s", logging.stacktrace())
             self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
             return ""
+
+        # download high-quality version, if desired
+        qtype = config.get_quality_type()
+        print "QType:", qtype, fmts, qtype in fmts
+        if (qtype in fmts):
+            flv = flv + "&fmt=%d" % qtype
+            ext = "." + formats.get_container(qtype)
+        else:
+            ext = ".flv"
             
         self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
         logging.info("found FLV: %s", flv)
 
         if (self.__flv_downloader):
             self.__flv_downloader.cancel()
-            
+
         cache_folder = config.get_cache_folder()
         flv_path = os.path.join(cache_folder, ".tube.flv")
         keep_path = os.path.join(cache_folder, _VIDEO_FOLDER,
-                                 self.__make_filename(f.name))
+                                 self.__make_filename(f.name, ext))
         self.__keep_video = False
         self.__flv_downloader = FileDownloader(flv, flv_path, on_dload,
                                                flv_path, keep_path)
@@ -630,11 +644,11 @@ class YouTube(Device):
         self.__keep_video = True
         self.emit_event(msgs.NOTIFY_SVC_SHOW_INFO,
                         u"video will be saved as\n\xbb%s\xab" \
-                        % self.__make_filename(f.name))
+                        % self.__make_filename(f.name, ""))
 
 
 
-    def __make_filename(self, name):
+    def __make_filename(self, name, ext):
         """
         Creates a (hopefully) valid filename from the given name.
         """
@@ -648,7 +662,7 @@ class YouTube(Device):
             name = name.replace(a, b)
 
         #return urlquote.quote(name, " ") + ".flv"
-        return name + ".flv"
+        return name + ext
 
 
     def __copy_thumbnail(self, f1, path):

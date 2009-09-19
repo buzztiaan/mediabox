@@ -1,7 +1,7 @@
 from ui.Widget import Widget
 from ui.Pixmap import Pixmap
 from ui.Label import Label
-from ui.VBox import VBox
+from ui.layout import VBox
 
 import gtk
 import time

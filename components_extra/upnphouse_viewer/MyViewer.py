@@ -4,8 +4,8 @@ from mediabox import viewmodes
 #from SunClock import SunClock
 
 #from ui.Image import Image
-#from ui.VBox import VBox
-#from ui.HBox import HBox
+#from ui.layout import VBox
+#from ui.layout import HBox
 #from ui.ImageButton import ImageButton
 #from ui.EventBox import EventBox
 from GridList import GridList
@@ -118,7 +118,7 @@ class MyViewer(Viewer):
     def show(self):
 
         Viewer.show(self)    
-        self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+        self.emit_event(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
 
 
 

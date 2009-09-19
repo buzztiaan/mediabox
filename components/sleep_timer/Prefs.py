@@ -1,7 +1,7 @@
 from com import Configurator, msgs
 from ClockSetter import ClockSetter
-from ui.HBox import HBox
-from ui.VBox import VBox
+from ui.layout import HBox
+from ui.layout import VBox
 from ui.Image import Image
 from ui.Label import Label
 from ui.CheckBox import CheckBox

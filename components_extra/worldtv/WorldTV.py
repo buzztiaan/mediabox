@@ -1,5 +1,6 @@
 from storage import Device, File
 from utils.MiniXML import MiniXML
+from mediabox import values
 from ui import dialogs
 from theme import theme
 
@@ -20,6 +21,7 @@ except:
 
 
 _GCONF_KEY = "/apps/maemo/kmplayer/lists/WorldTV99"
+_WORLDTV_XML = os.path.join(values.USER_DIR, "WorldTV99.xml")
 
 # these don't work with MediaBox yet
 _BLACKLISTED = ["USA-VCURLs72"]
@@ -38,7 +40,10 @@ class WorldTV(Device):
     
         Device.__init__(self)
 
-        xmlfile = gconf.client_get_default().get_string(_GCONF_KEY)
+        if (os.path.exists(_WORLDTV_XML)):
+            xmlfile = _WORLDTV_XML
+        else:
+            xmlfile = gconf.client_get_default().get_string(_GCONF_KEY)
 
         if (xmlfile and os.path.exists(xmlfile)):
             try:
@@ -87,10 +92,11 @@ class WorldTV(Device):
     def ls_async(self, path, cb, *args):
 
         if (not self.__tv_dom):
-            dialogs.error("No stations available",
-                          "Please install the package 'worldtv99'\n" \
-                          "from the maemo-extras repository.\n"
-                          "Then restart MediaBox.")
+            self.call_service(msgs.DIALOG_SVC_ERROR,
+                              "No stations available",
+                              "Please install the package 'worldtv99'\n" \
+                              "from the maemo-extras repository.\n"
+                              "Then restart MediaBox.")
 
         if (path[-1] == "/"): path = path[:-1]
 

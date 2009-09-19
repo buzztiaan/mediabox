@@ -71,6 +71,14 @@ to be reloaded.
 @param folder: file object representing the folder
 """
 
+def CORE_EV_FOLDER_VISITED(folder): pass
+"""
+Gets emitted when a folder gets visited by the user.
+@since: 0.97
+
+@param folder: file object representing the folder
+"""
+
 def CORE_SVC_LIST_PATH(path): pass
 """
 @deprecated: do not use; it will be removed
@@ -128,6 +136,7 @@ Sets the title bar info text.
 def CORE_ACT_SET_TOOLBAR(toolbar_set): pass
 """
 Sets the toolbar widgets.
+@deprecated: this is not used anymore
 
 @param toolbar_set: list of widgets
 """
@@ -150,6 +159,13 @@ Gets emitted when the theme has changed.
 """
 
 
+def MEDIA_ACT_LOAD(f): pass
+"""
+Instructs the current media player to load the given file.
+@since: 0.97
+
+@param f: file object to load
+"""
 
 def MEDIA_ACT_PLAY(): pass
 """
@@ -164,6 +180,12 @@ Instructs the current media player to pause.
 def MEDIA_ACT_STOP(): pass
 """
 Instructs the current media player to stop.
+"""
+
+def MEDIA_ACT_SEEK(seconds): pass
+"""
+Instructs the current media player to seek for the given position.
+@since: 0.97
 """
 
 def MEDIA_ACT_PREVIOUS(): pass
@@ -249,7 +271,8 @@ given in seconds.
 
 def BOOKMARK_SVC_LIST(mimetypes): pass
 """
-Lists the bookmarks of the given MIME types.
+Lists the bookmarks of the given MIME types. Pass an empty list of MIME types
+to get the bookmarks for all mimetypes.
 @since: 0.96.5
 
 @param mimetypes: list of MIME types
@@ -277,17 +300,6 @@ def BOOKMARK_EV_INVALIDATED(): pass
 Gets emitted when the list of bookmarks changes.
 @since: 0.96.5
 """
-
-
-
-def MEDIAWIDGETREGISTRY_SVC_GET_WIDGET(caller_id, mimetype): pass
-"""
-Looks up and returns a media widget for handling the given MIME type.
-
-@param caller_id: ID for identifying the calling component; simply pass the component itself
-@param mimetype: MIME type string
-"""
-
 
 
 def UI_ACT_FREEZE(): pass

@@ -37,7 +37,7 @@ video/avi                             -                   AVI            V      
 application/x-rmvb                    .rmvb               Real-Video     V
 application/x-flash-video             -                   Flash-Video    V      # used by Fuppes
 video/mp4                             .m4v,.mp4           MP4-Video      V
-video/mpeg                            .mpg,.mpeg          MPEG           V
+video/mpeg                            .mpg,.mpeg,.vob     MPEG           V
 video/ogg                             .ogv                Ogg-Theora     V
 video/quicktime                       .mov,.qt            Quicktime      V
 video/x-realvideo                     .rm                 Real-Video     V

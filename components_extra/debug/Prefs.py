@@ -2,7 +2,7 @@ from com import Configurator, msgs
 from ui.Label import Label
 from ui.ChoiceBox import ChoiceBox
 from ui.CheckBox import CheckBox
-from ui.VBox import VBox
+from ui.layout import VBox
 from utils import maemo
 from utils import logging
 from mediabox import config

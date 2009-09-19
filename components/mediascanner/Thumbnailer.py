@@ -40,7 +40,7 @@ class Thumbnailer(Component):
             if (self.has_thumbnail(f)):
                 return self.get_thumbnail_path(f)
             else:
-                return 0
+                return ""
 
         elif (msg == msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL):
             f = args[0]

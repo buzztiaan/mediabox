@@ -1,5 +1,6 @@
 from com import Component, msgs
 from InputSchema import InputSchema
+import keymap
 from utils import maemo
 
 import os
@@ -29,6 +30,29 @@ class Input(Component):
     
     
         Component.__init__(self)
+
+
+    def handle_INPUT_SVC_SEND_KEY(self, keycode, pressed):
+        """
+        Accepts a key code and emits the appropriate INPUT event according to
+        the current context. This is the preferred method of handling hardware
+        keys.
+        @since: 0.97
+        
+        @param keycode: key code string
+        @param pressed: (reserved for future use; must be C{True} for now)
+        """
+        
+        hwkey = keymap.get(keycode)
+        if (pressed):
+            if (hwkey):
+                self.__schema.send_key(hwkey)
+                event = self.__schema.get_event()
+                if (event):
+                    self.emit_message(event)
+            elif (len(keycode) == 1 and ord(keycode) > 31):      
+                self.emit_message(msgs.HWKEY_EV_KEY, keycode)
+        #end if
 
         
     def handle_message(self, msg, *args):

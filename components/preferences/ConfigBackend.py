@@ -1,6 +1,6 @@
 from com import Configurator, msgs
 from ui.Label import Label
-from ui.VBox import VBox
+from ui.layout import VBox
 from mediabox.TrackList import TrackList
 from BackendListItem import BackendListItem
 from theme import theme
@@ -27,7 +27,7 @@ class ConfigBackend(Configurator):
         self.add(self.__vbox)
 
         self.__list = TrackList()
-        self.__list.connect_button_clicked(self.__on_item_button)
+        self.__list.connect_item_activated(self.__on_item_clicked)
         self.__vbox.add(self.__list)
 
         lbl = Label("Be careful when changing these settings!",
@@ -50,31 +50,35 @@ class ConfigBackend(Configurator):
 
 
 
-    def __on_item_button(self, item, idx, btn):
+    def __on_item_clicked(self, idx, px):
 
-        backends = mediaplayer.get_backends()
-        backends.sort()
+        item = self.__list.get_items()[idx]
+        button = item.get_button_at(px)
 
-        mediatype = item.get_media_type()
-        backend = item.get_backend()
-        try:
-            i = backends.index(backend)
-        except:
-            i = 0
-        i += 1
-        i %= len(backends)
-        item.set_backend(backends[i])
-        item.set_backend_icon(mediaplayer.get_backend_icon(backends[i]))
+        if (button):
+            backends = mediaplayer.get_backends()
+            backends.sort()
 
-        item.invalidate()
-        self.__list.fx_cycle_item(idx)
-        
-        #self.__list.invalidate_buffer()
-        #self.__list.render()
+            mediatype = item.get_media_type()
+            backend = item.get_backend()
+            try:
+                i = backends.index(backend)
+            except:
+                i = 0
+            i += 1
+            i %= len(backends)
+            item.set_backend(backends[i])
+            item.set_backend_icon(mediaplayer.get_backend_icon(backends[i]))
 
-        mediaplayer.set_backend_for(mediatype, backends[i])
-        mediaplayer.write_user_mapping()        
+            item.invalidate()
+            self.__list.fx_cycle_item(idx)
+            
+            #self.__list.invalidate_buffer()
+            #self.__list.render()
 
+            mediaplayer.set_backend_for(mediatype, backends[i])
+            mediaplayer.write_user_mapping()        
+        #end if
 
     def __update_list(self):
     

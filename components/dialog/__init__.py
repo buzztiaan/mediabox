@@ -1,6 +1,11 @@
+import platforms
+
 def get_classes():
 
-    from DialogService import DialogService
+    if (platforms.PLATFORM in (platforms.MAEMO5, platforms.MER)):
+        from DialogServiceMaemo5 import DialogService
+    else:
+        from DialogService import DialogService
     from NotificationService import NotificationService
     return [DialogService,
             NotificationService]

@@ -147,6 +147,8 @@ class Slider(Widget):
         min_pos = min(new_pos, pos)
         delta = new_pos - pos
         
+        if (delta == 0): return
+        
         if (self.__mode == self.HORIZONTAL):
             self.__buffer.move_area(pos, 0, btn_w, btn_h, delta, 0)
             if (delta > 0):

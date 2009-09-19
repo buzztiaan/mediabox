@@ -147,7 +147,10 @@ class SSDPMonitor(Component):
         # set up expiration handler
         if (uuid in self.__expiration_handlers):
             logging.debug("UPnP device [%s] is still ALIVE", uuid)
+            print "got ALIVE from", uuid
             gobject.source_remove(self.__expiration_handlers[uuid])
+            
+        print uuid, "will expire in", max_age, "seconds"
         self.__expiration_handlers[uuid] = gobject.timeout_add(
                     max_age * 1000, self.__on_expire, uuid)
 

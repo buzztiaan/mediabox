@@ -1,7 +1,7 @@
 def get_classes():
 
     from PlaylistViewer import PlaylistViewer
-    return [PlaylistViewer]
+    return [] #PlaylistViewer]
 
 
 

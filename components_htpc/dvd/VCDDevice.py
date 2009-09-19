@@ -43,7 +43,8 @@ class VCDDevice(Device):
         return f
 
 
-    def ls(self, path):
+    def get_contents(self, path, begin_at, end_at, cb, *args):
     
-        return [self.get_root()]
+        cb(self.get_root(), *args)
+        cb(None, *args)
 

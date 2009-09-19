@@ -1,9 +1,8 @@
-from mediabox.TrackList import TrackList
-from HeaderItem import HeaderItem
 from MediaItem import MediaItem
-from SubItem import SubItem
+from ui.itemview.ThumbableGridView import ThumbableGridView
 from ui.Pixmap import text_extents
 from theme import theme
+from utils.ItemScheduler import ItemScheduler
 from utils import logging
 
 import time
@@ -15,7 +14,7 @@ _STATUS_INCOMPLETE = 1
 _STATUS_INVALID = 2
 
 
-class StorageBrowser(TrackList):
+class StorageBrowser(ThumbableGridView):
 
     GO_NEW = 0
     GO_CHILD = 1
@@ -53,12 +52,22 @@ class StorageBrowser(TrackList):
         
         self.__search_term = ""
         
+        self.__tn_scheduler = ItemScheduler()
+        
     
-        TrackList.__init__(self, True)
+        ThumbableGridView.__init__(self)
         self.add_overlay_renderer(self.__render_message)
         self.add_overlay_renderer(self.__render_search_box)
-        self.connect_button_clicked(self.__on_item_button)
-        self.connect_items_swapped(self.__on_swap_items)
+
+        #self.connect_item_clicked(self.__on_item_clicked)
+        #self.connect_button_clicked(self.__on_item_button)
+
+
+    def set_size(self, w, h):
+    
+        ThumbableGridView.set_size(self, w, h)
+        for item in self.get_items():
+            item.set_size(w, 100)
 
 
     def connect_folder_opened(self, cb, *args):
@@ -84,6 +93,14 @@ class StorageBrowser(TrackList):
     def connect_file_added_to_library(self, cb, *args):
     
         self._connect(self.EVENT_FILE_ADDED_TO_LIBRARY, cb, *args)
+
+
+    def _visibility_changed(self):
+    
+        if (self.is_visible()):
+            self.__tn_scheduler.resume()
+        else:
+            self.__tn_scheduler.halt()
 
 
     def set_message(self, message):
@@ -139,6 +156,49 @@ class StorageBrowser(TrackList):
         button = item.BUTTON_PLAY
         self.__on_item_button(item, idx, button)
 
+
+    def __on_item_clicked(self, item):
+    
+        idx = self.get_items().index(item)
+    
+        self.set_cursor(idx)
+        self.set_hilight(idx)
+        #self.invalidate_item(idx)
+        self.invalidate()
+        self.render()
+
+        f = item.get_file()
+        
+        def open_file():
+            if (f.mimetype.endswith("-folder")):
+                self.load_folder(f, self.GO_CHILD)
+            else:
+                self.send_event(self.EVENT_FILE_OPENED, f)
+
+        gobject.timeout_add(0, open_file)
+        
+
+    """
+    def __on_item_button_pressed(self, button, item):
+    
+        idx = self.get_items().index(item)
+
+        print "BUTTON", button, idx
+        if (button == item.BUTTON_PLAY):
+            f = item.get_file()
+            self.set_hilight(idx)
+            self.render()
+            if (f.mimetype.endswith("-folder")):
+                self.load_folder(f, self.GO_CHILD)
+            else:
+                self.send_event(self.EVENT_FILE_OPENED, f)
+
+        elif (button == item.BUTTON_OPEN):
+            print "OPEN"
+            f = item.get_file()
+            self.insert_folder(f)
+
+
         
     def __on_item_button(self, item, idx, button):
 
@@ -146,7 +206,7 @@ class StorageBrowser(TrackList):
         
         if (button == item.BUTTON_PLAY):
             f = item.get_file()
-            self.hilight(idx)
+            self.set_hilight(idx)
             self.render()
             if (f.mimetype.endswith("-folder")):
                 self.load_folder(f, self.GO_CHILD)
@@ -187,7 +247,7 @@ class StorageBrowser(TrackList):
         elif (button == item.BUTTON_ADD_TO_LIBRARY):
             f = self.get_current_folder()
             self.send_event(self.EVENT_FILE_ADDED_TO_LIBRARY, f)
-
+    """
 
     def __remove_item(self, idx):
 
@@ -201,13 +261,15 @@ class StorageBrowser(TrackList):
         #self.send_event(self.EVENT_FILE_REMOVED, f)
 
 
+    """
     def __on_swap_items(self, idx1, idx2):
     
         folder = self.get_current_folder()
         if (folder):
             # -1 because there's a header item
             folder.swap(idx1 - 1, idx2 - 1)
-        
+    """
+
         
     def set_root_device(self, device):
         """
@@ -305,7 +367,7 @@ class StorageBrowser(TrackList):
         @return: list of File objects
         """
     
-        return [ i.get_file() for i in self.get_items()[1:] ]
+        return [ i.get_file() for i in self.get_items() ]
 
 
     def search(self, key, direction):
@@ -368,9 +430,45 @@ class StorageBrowser(TrackList):
         else:
             idx = -1
         
-        self.hilight(idx)
+        self.set_hilight(idx)
         if (idx != -1):
             self.scroll_to_item(idx)
+        
+        
+    def move_cursor(self, direction, skip_letter):
+        """
+        Moves the cursor by one in the given direction. If C{skip_letter} is
+        C{True}, the cursor skips to the next or previous letter, depending
+        on C{direction}.
+        @since: 0.97
+        
+        @param direction: C{-1} for moving backward or C{1} for moving forward
+        @param skip_letter: whether to skip the current letter
+        """
+        
+        cursor = self.get_cursor()
+        letter = self.get_item(cursor).get_letter()
+        l = len(self.get_items())
+        while (self.get_item(cursor).get_letter() == letter):
+            if (direction == -1):
+                if (cursor > 0):
+                    cursor -= 1
+                else:
+                    break
+            elif (direction == 1):
+                if (cursor + 1 < l):
+                    cursor += 1
+                else:
+                    break
+            #end if
+            
+            if (not skip_letter):
+                break
+            else:
+                self.show_letter()
+        #end while
+
+        self.set_cursor(cursor)
         
         
         
@@ -381,7 +479,7 @@ class StorageBrowser(TrackList):
         
         while (len(self.__path_stack) > 1):
             self.__path_stack.pop()
-            self.reload_current_folder()
+        self.reload_current_folder()
 
         
     def go_parent(self):
@@ -396,6 +494,7 @@ class StorageBrowser(TrackList):
                 self.load_folder(path, self.GO_PARENT, True)
             else:
                 self.load_folder(path, self.GO_PARENT, False)
+
 
     def reload_current_folder(self):
         """
@@ -415,6 +514,8 @@ class StorageBrowser(TrackList):
         """
 
         self.__close_subfolder()
+        self.__tn_scheduler.new_schedule(5, self.__on_load_thumbnail)
+        self.__tn_scheduler.halt()
 
         # are we just reloading the same folder?
         reload_only = False
@@ -434,6 +535,7 @@ class StorageBrowser(TrackList):
             full_reload = True
         elif (direction == self.GO_PARENT):
             full_reload = False
+            #self.__path_stack[-1][1] = _STATUS_INVALID
         else:
             # what else..?
             full_reload = True
@@ -444,30 +546,34 @@ class StorageBrowser(TrackList):
 
         if (full_reload):
             # reload list
-            self.change_image_set(folder.full_path)
+            self.switch_item_set(folder.full_path)
             self.clear_items()
 
-            header = HeaderItem(folder.name)
-            header.set_info("Retrieving...")
-            buttons = []
-            if (folder.folder_flags & folder.ITEMS_ENQUEUEABLE):
-                buttons.append((header.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
-            if (folder.folder_flags & folder.INDEXABLE):
-                buttons.append((header.BUTTON_ADD_TO_LIBRARY, theme.mb_item_btn_add))
-            header.set_buttons(*buttons)
+            #header = HeaderItem(folder.name)
+            #header.set_info("Retrieving...")
+            #buttons = []
+            #if (folder.folder_flags & folder.ITEMS_ENQUEUEABLE):
+            #    buttons.append((header.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
+            #if (folder.folder_flags & folder.INDEXABLE):
+            #    buttons.append((header.BUTTON_ADD_TO_LIBRARY, theme.mb_item_btn_add))
+            #header.set_buttons(*buttons)
             
             if (folder.folder_flags & folder.ITEMS_SORTABLE):
                 self.set_drag_sort_enabled(True)
             else:
                 self.set_drag_sort_enabled(False)
 
-            self.append_item(header)
+            #self.append_item(header)
 
         else:
             # don't reload list
-            self.clear_items()
-            self.change_image_set(folder.full_path)
-            self.hilight(-1)
+            #self.clear_items()
+            self.switch_item_set(folder.full_path)
+            self.set_hilight(-1)
+            
+        w, h = self.get_size()
+        for item in self.get_items():
+            item.set_size(w, 100)
 
         # animate
         if (direction == self.GO_CHILD):
@@ -489,12 +595,12 @@ class StorageBrowser(TrackList):
 
     def insert_folder(self, folder):
 
-        def on_child(f, path, entries, items_to_thumbnail, insert_at):
+        def on_child(f, path, entries, insert_at):
             # abort if the user has changed the directory again
             if (self.get_current_folder() != path): return False
 
             if (f):
-                self.__add_file(f, items_to_thumbnail, insert_at + len(entries))
+                self.__add_file(f, insert_at + len(entries))
                 entries.append(f)
 
             else:
@@ -518,11 +624,11 @@ class StorageBrowser(TrackList):
     
         # change item button
         item = self.get_item(idx + 1)
-        if (folder.folder_flags & folder.ITEMS_ENQUEUEABLE):
-            item.set_buttons(#(item.BUTTON_CLOSE, theme.mb_item_btn_close),
-                             (item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
+        #if (folder.folder_flags & folder.ITEMS_ENQUEUEABLE):
+        #    item.set_buttons(#(item.BUTTON_CLOSE, theme.mb_item_btn_close),
+        #                     (item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
 
-        folder.get_contents(0, 0, on_child, self.get_current_folder(), [], [],
+        folder.get_contents(0, 0, on_child, self.get_current_folder(), [],
                             idx + 1)
         
         
@@ -537,7 +643,7 @@ class StorageBrowser(TrackList):
         #end for
         
         item = self.get_item(idx1)
-        item.set_buttons((item.BUTTON_OPEN, theme.mb_item_btn_open))
+        #item.set_buttons((item.BUTTON_OPEN, theme.mb_item_btn_open))
         
         self.__subfolder_range = None
         self.render()
@@ -549,31 +655,34 @@ class StorageBrowser(TrackList):
         current file list.
         """
 
-        def on_child(f, path, entries, items_to_thumbnail):
+        def on_child(f, path, entries):
             # abort if the user has changed the directory inbetween
             if (self.get_current_folder() != path): return False
             
             if (f):
-                self.get_item(0).set_info("%d items" \
-                                          % len(self.get_files()))
+                #self.get_item(0).set_info("%d items" \
+                #                          % len(self.get_files()))
                 self.set_message("Loading (%d items)" % len(self.get_files()))
-                self.invalidate_image(0)
+                #self.invalidate_item(0)
                 entries.append(f)
-                self.__add_file(f, items_to_thumbnail, -1)
+                try:
+                    self.__add_file(f, -1)
+                except:
+                    print logging.stacktrace()
 
             else:
-                self.get_item(0).set_info("%d items" % len(self.get_files()))
-                self.invalidate_image(0)
+                #self.get_item(0).set_info("%d items" % len(self.get_files()))
+                #self.invalidate_item(0)
                 self.set_message("")
                 
                 # mark folder as complete
                 self.__path_stack[-1][1] = _STATUS_OK
                 
                 # finished loading items; now create thumbnails
-                if (items_to_thumbnail):
-                    self.__create_thumbnails(path, items_to_thumbnail,
-                                             len(items_to_thumbnail))
+                self.__tn_scheduler.resume()
                 
+                self.invalidate()
+                self.render()
                 self.send_event(self.EVENT_FOLDER_OPENED,
                                 self.get_current_folder())
 
@@ -591,29 +700,33 @@ class StorageBrowser(TrackList):
 
         cwd = self.get_current_folder()
         num_of_items = len(self.get_files())
-        cwd.get_contents(num_of_items, 0, on_child, cwd, [], [])
+        cwd.get_contents(num_of_items, 0, on_child, cwd, [])
         
         
-    def __add_file(self, f, items_to_thumbnail, insert_at):
+    def __add_file(self, f, insert_at):
 
         """
         Adds the given file item to the list.
         """
 
-        if (insert_at == -1):
+        if (True): #insert_at == -1):
             # look if there's a thumbnail available
             if (f.icon):
                 thumbnail = f.icon
             else:
                 thumbnail = self.__thumbnailer(f, None)
 
-            item = MediaItem(f, thumbnail)
+            item = MediaItem(f, thumbnail or "")
             # remember for thumbnailing if no thumbnail was found
             if (not thumbnail and f.mimetype != f.DIRECTORY):
-                items_to_thumbnail.append((item, None, f))
+                self.__tn_scheduler.add(item, f)
 
-        else:
-            item = SubItem(f)
+        #else:
+        #    item = SubItem(f)
+
+        w, h = self.get_size()
+        item.set_size(w, 100)
+        item.connect_activated(self.__on_item_clicked, item)
 
         # determine available item buttons
         buttons = []
@@ -621,6 +734,7 @@ class StorageBrowser(TrackList):
         cwd = self.get_current_folder()
         self.__support_legacy_folder_flags(cwd, f)
 
+        """
         if (f.mimetype in ("application/x-bookmarks-folder",
                            "application/x-music-folder")):
             buttons.append((item.BUTTON_OPEN, theme.mb_item_btn_open))
@@ -641,9 +755,10 @@ class StorageBrowser(TrackList):
         if (cwd.folder_flags & cwd.ITEMS_BULK_DELETABLE):
             buttons.append((item.BUTTON_REMOVE_PRECEDING, theme.mb_item_btn_remove_up))
             buttons.append((item.BUTTON_REMOVE_SUCCEEDING, theme.mb_item_btn_remove_down))
+        """
 
-
-        item.set_buttons(*buttons)
+        #item.set_buttons(*buttons)
+        #item.connect_button_pressed(self.__on_item_button_pressed, item)
 
         if (insert_at == -1):
             if (cwd.folder_flags & cwd.ITEMS_SORTABLE):
@@ -655,11 +770,17 @@ class StorageBrowser(TrackList):
 
         else:
             self.insert_item(item, insert_at)
-            
+
+        idx = len(self.get_items()) - 1
+
+        #if (not cwd.folder_flags & cwd.ITEMS_SORTED_ALPHA):
+        #    item.set_letter(`idx + 1`)
+
         # hilight currently selected file
         if (self.__hilighted_file == f):
-            idx = len(self.get_items())
-            self.hilight(idx - 1)
+            self.set_hilight(idx)
+        self.invalidate_item(idx)
+        self.render()            
 
         import gtk
         cnt = 0
@@ -668,65 +789,26 @@ class StorageBrowser(TrackList):
             cnt += 1
 
 
-    def __create_thumbnails(self, folder, items_to_thumbnail, total):
-        """
-        Creates thumbnails for the given items.
-        """
+    def __on_load_thumbnail(self, item, f):
 
-        def on_loaded(thumbpath, item, tn):
-            if (item):
-                item.set_icon(thumbpath)
-                item.invalidate()
-                self.invalidate_buffer()
-                self.render()
-            
-            if (tn):
-                tn.set_thumbnail(thumbpath)
-                tn.invalidate()
-            
-            # proceed to next thumbnail
-            gobject.idle_add(self.__create_thumbnails, folder,
-                             items_to_thumbnail, total)
-            
-
-        # abort if the user has changed the directory inbetween
-        if (self.get_current_folder() != folder):
-            self.set_message("")
-            return
-        
-        if (not self.is_visible()):
-            self.set_message("")
-            return
-    
-        if (items_to_thumbnail):
-            # hmm, may we want to reorder a bit?
-            if (len(items_to_thumbnail) % 10 == 0 and \
-                  len(items_to_thumbnail) > 5):
-                idx_in_list = self.get_index_at(0) - 1
-                item_in_view = self.get_files()[idx_in_list]
-                cnt = 0
-                for i in items_to_thumbnail:
-                    if (i[2] == item_in_view):
-                        items_to_thumbnail = \
-                                items_to_thumbnail[cnt:cnt + 5] + \
-                                items_to_thumbnail[:cnt] + \
-                                items_to_thumbnail[cnt + 5:]
-                        break
-                    cnt += 1 
-                #end for
-            #end if            
-        
-            item, tn, f = items_to_thumbnail.pop(0)
-
-            # load thumbnail
-            self.set_message("Creating preview (%d of %d)" \
-                             % (total - len(items_to_thumbnail), total))
-            self.__thumbnailer(f, on_loaded, item, None)
-            
-        else:
-            self.set_message("")
+        def on_loaded(thumbpath, item):
+            item.set_icon(thumbpath)
+            idx = self.get_items().index(item)
+            self.invalidate_item(idx)
             self.render()
-        #end if
+            
+            if (self.is_visible()):
+                self.__tn_scheduler.resume()
+    
+        # load thumbnail
+        #self.set_message("Creating preview (%d of %d)" \
+        #                    % (total - len(items_to_thumbnail), total))
+        
+        self.__tn_scheduler.halt()
+        self.__thumbnailer(f, on_loaded, item)
+
+        w, h = self.get_size()
+        #self.__tn_scheduler.priorize(self.get_items()[self.get_index_at(0)])
 
 
     def __support_legacy_folder_flags(self, folder, f):

@@ -1,4 +1,4 @@
-from utils.Observable import Observable
+from utils.EventEmitter import EventEmitter
 from utils import logging
 
 import gobject
@@ -11,7 +11,7 @@ import time
 _IDLE_TIMEOUT = 1000 * 60 * 3
 
 
-class AbstractBackend(Observable):
+class AbstractBackend(EventEmitter):
     """
     Abstract base class for media player backend implementations.
     Backends deriving from this class only have to implement a minimal set of
@@ -19,6 +19,32 @@ class AbstractBackend(Observable):
     This way, backend implementation becomes easy and straight-forward.
     """
 
+    # player states
+    STATUS_CONNECTING = 0
+    STATUS_BUFFERING = 1
+    STATUS_PLAYING = 2
+    STATUS_STOPPED = 3
+    STATUS_EOF = 4
+
+    # error codes
+    ERR_INVALID = 0
+    ERR_NOT_FOUND = 1
+    ERR_CONNECTION_TIMEOUT = 2
+    ERR_NOT_SUPPORTED = 3
+    ERR_SERVER_FULL = 4
+
+    EVENT_STARTED = "event-started"
+    EVENT_KILLED = "event-killed"
+    EVENT_SUSPENDED = "event-suspended"
+    EVENT_ERROR = "event-error"
+    
+    EVENT_STATUS_CHANGED = "event-status-changed"
+    
+    EVENT_POSITION_CHANGED = "event-position-changed"
+    EVENT_ASPECT_CHANGED = "event-aspect-changed"
+    EVENT_TAG_DISCOVERED = "event-tag-discovered"
+
+    """
     # observer events
     OBS_STARTED = 0
     OBS_KILLED = 1
@@ -36,6 +62,7 @@ class AbstractBackend(Observable):
     
     OBS_CONNECTING = 10
     OBS_BUFFERING = 11
+    """
     
     # error codes
     ERR_INVALID = 0
@@ -96,6 +123,49 @@ class AbstractBackend(Observable):
         
         self.__position_handler = None
         self.__idle_handler = None
+        
+        
+        EventEmitter.__init__(self)
+        
+        
+    def connect_started(self, cb, *args):
+    
+        self._connect(self.EVENT_STARTED, cb, *args)
+        
+        
+    def connect_killed(self, cb, *args):
+    
+        self._connect(self.EVENT_KILLED, cb, *args)
+
+
+    def connect_suspended(self, cb, *args):
+    
+        self._connect(self.EVENT_SUSPENDED, cb, *args)
+
+
+    def connect_error(self, cb, *args):
+    
+        self._connect(self.EVENT_ERROR, cb, *args)
+        
+        
+    def connect_status_changed(self, cb, *args):
+    
+        self._connect(self.EVENT_STATUS_CHANGED, cb, *args)
+
+
+    def connect_position_changed(self, cb, *args):
+    
+        self._connect(self.EVENT_POSITION_CHANGED, cb, *args)
+        
+        
+    def connect_aspect_changed(self, cb, *args):
+    
+        self._connect(self.EVENT_ASPECT_CHANGED, cb, *args)
+
+
+    def connect_tag_discovered(self, cb, *args):
+    
+        self._connect(self.EVENT_TAG_DISCOVERED, cb, *args)
 
 
     def __repr__(self):
@@ -156,7 +226,9 @@ class AbstractBackend(Observable):
         logging.info("reached end-of-file")
         self.__eof_reached = True
         #self.__suspension_point = (self.__uri, 0)
-        self.update_observer(self.OBS_EOF, self.__context_id)
+        self.emit_event(self.EVENT_STATUS_CHANGED,
+                        self.__context_id, self.STATUS_EOF)
+        #self.update_observer(self.OBS_EOF, self.__context_id)
 
 
     def __on_idle_timeout(self):
@@ -177,7 +249,7 @@ class AbstractBackend(Observable):
 
     def __resume_if_necessary(self):
     
-        if (self.__suspension_point):        
+        if (self.__suspension_point):
             uri, pos = self.__suspension_point
             self.__suspension_point = None
 
@@ -230,8 +302,10 @@ class AbstractBackend(Observable):
             self.__position = (pos, total)
             if (pos != 0 or total != 0):
                 if (pos >= 0):
-                    self.update_observer(self.OBS_POSITION, self.__context_id,
-                                         pos, total)
+                    self.emit_event(self.EVENT_POSITION_CHANGED,
+                                    self.__context_id, pos, total)
+                    #self.update_observer(self.OBS_POSITION, self.__context_id,
+                    #                     pos, total)
 
             if (total != 0 and total - pos < 1):
                 delay = 200
@@ -306,7 +380,7 @@ class AbstractBackend(Observable):
         self._load(uri)
         self._set_volume(self.__volume)
         
-        print "DELAY PLAY"
+        print "DELAY PLAY", uri
         gobject.timeout_add(0, self.play)
 
         if (ctx_id != -1):
@@ -326,7 +400,8 @@ class AbstractBackend(Observable):
         @param ratio: the aspect ratio
         """
         
-        self.update_observer(self.OBS_ASPECT, self.__context_id, ratio)
+        self.emit_event(self.EVENT_ASPECT_CHANGED, self.__context_id, ratio)
+        #self.update_observer(self.OBS_ASPECT, self.__context_id, ratio)
 
 
     def _report_tag(self, tag, value):
@@ -335,7 +410,9 @@ class AbstractBackend(Observable):
         """
         
         self.__tags[tag] = value
-        self.update_observer(self.OBS_TAG_INFO, self.__context_id, self.__tags)
+        self.emit_event(self.EVENT_TAG_DISCOVERED,
+                        self.__context_id, self.__tags)
+        #self.update_observer(self.OBS_TAG_INFO, self.__context_id, self.__tags)
     
     
     def _report_connecting(self):
@@ -343,7 +420,9 @@ class AbstractBackend(Observable):
         The subclass calls this to report connecting to a server.
         """
         
-        self.update_observer(self.OBS_CONNECTING, self.__context_id)
+        self.emit_event(self.EVENT_STATUS_CHANGED,
+                        self.__context_id, self.STATUS_CONNECTING)
+        #self.update_observer(self.OBS_CONNECTING, self.__context_id)
         
     
     def _report_buffering(self, value):
@@ -351,7 +430,9 @@ class AbstractBackend(Observable):
         The subclass calls this to report stream buffering.
         """
         
-        self.update_observer(self.OBS_BUFFERING, self.__context_id, value)
+        self.emit_event(self.EVENT_STATUS_CHANGED,
+                        self.__context_id, self.STATUS_BUFFERING)
+        #self.update_observer(self.OBS_BUFFERING, self.__context_id, value)
         
         
     def _report_error(self, err, message):
@@ -362,7 +443,8 @@ class AbstractBackend(Observable):
         """
         
         self.stop()
-        self.update_observer(self.OBS_ERROR, self.__context_id, err)
+        self.emit_event(self.EVENT_ERROR, self.__context_id, err)
+        #self.update_observer(self.OBS_ERROR, self.__context_id, err)
        
         
         
@@ -379,7 +461,9 @@ class AbstractBackend(Observable):
 
         self.__playing = True
         print "PLAY"
-        self.update_observer(self.OBS_PLAYING, self.__context_id)
+        self.emit_event(self.EVENT_STATUS_CHANGED,
+                        self.__context_id, self.STATUS_PLAYING)
+        #self.update_observer(self.OBS_PLAYING, self.__context_id)
         self.__watch_progress()
         
         
@@ -393,11 +477,15 @@ class AbstractBackend(Observable):
         if (self.__playing):
             self._stop()
             self.__playing = False
-            self.update_observer(self.OBS_STOPPED, self.__context_id)
+            self.emit_event(self.EVENT_STATUS_CHANGED,
+                            self.__context_id, self.STATUS_STOPPED)
+            #self.update_observer(self.OBS_STOPPED, self.__context_id)
         else:
             self._play()
             self.__playing = True
-            self.update_observer(self.OBS_PLAYING, self.__context_id)
+            self.emit_event(self.EVENT_STATUS_CHANGED,
+                            self.__context_id, self.STATUS_PLAYING)
+            #self.update_observer(self.OBS_PLAYING, self.__context_id)
             self.__watch_progress()
         
         
@@ -446,7 +534,9 @@ class AbstractBackend(Observable):
         self.__position = (0, 0)
         self._seek(pos)
         self.__playing = True
-        self.update_observer(self.OBS_PLAYING, self.__context_id)
+        self.emit_event(self.EVENT_STATUS_CHANGED,
+                        self.__context_id, self.STATUS_PLAYING)
+        #self.update_observer(self.OBS_PLAYING, self.__context_id)
         self.__watch_progress()
         
         
@@ -471,11 +561,16 @@ class AbstractBackend(Observable):
         
         pos, total = self.__position
         if (pos > 0):
-            pos = max(0, pos - 10)
+            print pos,
+            pos = max(0, pos - 30)
+            print pos
             self.seek(pos)
             self.__position = self._get_position()
-            self.update_observer(self.OBS_POSITION, self.__context_id,
-                                 *self.__position)
+            print pos, self.__position
+            self.emit_event(self.EVENT_POSITION_CHANGED,
+                            self.__context_id, *self.__position)
+            #self.update_observer(self.OBS_POSITION, self.__context_id,
+            #                     *self.__position)
 
             
         
@@ -487,11 +582,16 @@ class AbstractBackend(Observable):
 
         pos, total = self.__position
         if (pos > 0):
-            pos = min(total - 1, pos + 10)
+            print pos,
+            pos = min(total - 1, pos + 30)
+            print pos
             self.seek(pos)
             self.__position = self._get_position()
-            self.update_observer(self.OBS_POSITION, self.__context_id,
-                                 *self.__position)
+            print pos, self.__position
+            self.emit_event(self.EVENT_POSITION_CHANGED,
+                            self.__context_id, *self.__position)
+            #self.update_observer(self.OBS_POSITION, self.__context_id,
+            #                     *self.__position)
 
 
     def _get_icon(self):

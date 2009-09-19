@@ -7,18 +7,20 @@ def get_devices():
     from AudioGenreStorage import AudioGenreStorage
     from ImageStorage import ImageStorage
     
+    from HistoryDevice import HistoryDevice
     from BookmarkDevice import GenericBookmarkDevice
-    from BookmarkDevice import AudioBookmarkDevice
-    from BookmarkDevice import VideoBookmarkDevice
-    from BookmarkDevice import ImageBookmarkDevice
+    #from BookmarkDevice import AudioBookmarkDevice
+    #from BookmarkDevice import VideoBookmarkDevice
+    #from BookmarkDevice import ImageBookmarkDevice
     
     devices = [AudioStorage, AudioAlbumStorage, AudioArtistStorage,
                AudioGenreStorage, ImageStorage,
 
-               GenericBookmarkDevice,
-               AudioBookmarkDevice,
-               VideoBookmarkDevice,
-               ImageBookmarkDevice]
+               HistoryDevice,
+               GenericBookmarkDevice]
+               #AudioBookmarkDevice,
+               #VideoBookmarkDevice,
+               #ImageBookmarkDevice]
     
     # video still doesn't work well on the 770 :(
     if (maemo.get_product_code() != "SU-18"):

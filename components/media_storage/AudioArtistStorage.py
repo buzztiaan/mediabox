@@ -50,11 +50,11 @@ class AudioArtistStorage(Device):
             for folder in added:
                 cnt += 1
                 percent = int((cnt / float(total_length)) * 100)
-                self.emit_event(msgs.UI_ACT_SHOW_MESSAGE,
-                                "Updating Index",
-                                #"- %s -" % folder.name,
-                                "- %d%% complete -" % (percent),
-                                self.get_icon())
+                self.emit_message(msgs.UI_ACT_SHOW_MESSAGE,
+                                  "Updating Index",
+                                  #"- %s -" % folder.name,
+                                  "- %d%% complete -" % (percent),
+                                  self.get_icon())
                                 
                 self.__index.remove_album(folder)
                 self.__index.add_album(folder)
@@ -65,7 +65,7 @@ class AudioArtistStorage(Device):
                 self.__index.remove_album(folder)
             #end for
 
-            self.emit_event(msgs.UI_ACT_HIDE_MESSAGE)
+            self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
             #finished.set()
           
 

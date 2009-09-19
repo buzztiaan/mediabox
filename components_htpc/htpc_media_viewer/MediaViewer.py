@@ -12,8 +12,10 @@ class MediaViewer(_MediaViewer):
 
     def __init__(self):
 
-        _MediaViewer.__init__(self, RootDevice(), "Browser", "Media")
+        _MediaViewer.__init__(self, RootDevice(), "Browser", "Media",
+                              show_sliders = False)
 
+        self.get_browser().connect_folder_opened(self.__on_open_folder)
 
 
     def show(self):
@@ -22,4 +24,10 @@ class MediaViewer(_MediaViewer):
         
         # search for UPnP devices
         self.emit_message(msgs.SSDP_ACT_SEARCH_DEVICES)
+
+
+
+    def __on_open_folder(self, f):
+    
+        self.emit_message(msgs.HTPC_EV_FOLDER_OPENED, f)
 

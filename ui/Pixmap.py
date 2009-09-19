@@ -5,6 +5,14 @@ Class for on-screen and off-screen drawables.
 import gtk
 import pango
 
+try:
+    import cairo
+except:
+    _HAVE_CAIRO = False
+else:
+    _HAVE_CAIRO = True
+
+
 
 #_PANGO_CTX = gtk.HBox().get_pango_context()
 #_PANGO_LAYOUT = pango.Layout(_PANGO_CTX)
@@ -111,14 +119,20 @@ class Pixmap(object):
         """
         self.__layout = _get_pango_layout()
 
+        self.__pixmap = None
+        self.__cmap = None
+        self.__gc = None
+        self.__cairo_ctx = None
+
+        self.__buffer = None
+        self.__buffer_cmap = None
+        self.__buffer_gc = None
+
+
         if (pmap):
             self.__pixmap = pmap
-            w, h = pmap.get_size()
             self.__buffered = True
-            self.__buffer = gtk.gdk.Pixmap(None, w, h, _DEPTH)
-            self.__buffer_cmap = self.__buffer.get_colormap() or _CMAP
-            self.__buffer.set_colormap(self.__buffer_cmap)
-            self.__buffer_gc = self.__buffer.new_gc()
+            self.__create_buffer()
         else:
             self.__pixmap = gtk.gdk.Pixmap(None, w, h, _DEPTH)
             self.__buffered = False
@@ -129,18 +143,47 @@ class Pixmap(object):
         self.__cmap = self.__pixmap.get_colormap() or _CMAP
         self.__pixmap.set_colormap(self.__cmap)
         self.__gc = self.__pixmap.new_gc()
-                
+        
+        if (_HAVE_CAIRO):
+            self.__cairo_ctx = self.__pixmap.cairo_create()
                 
                         
     def _get_pixmap(self):
     
         return self.__pixmap
         
+        
+    def _get_cairo_context(self):
+    
+        return self.__cairo_ctx
+        
     
     def _get_buffer(self):
     
         return self.__buffer
         
+        
+    def __create_buffer(self):
+    
+        w, h = self.__pixmap.get_size()
+        self.__buffer = gtk.gdk.Pixmap(None, w, h, _DEPTH)
+        self.__buffer_cmap = self.__buffer.get_colormap() or _CMAP
+        self.__buffer.set_colormap(self.__buffer_cmap)
+        self.__buffer_gc = self.__buffer.new_gc()
+
+        
+
+    def __to_buffer(self, x, y, w, h):
+        """
+        Copies the given area to the buffer.
+        """
+    
+        if (not self.__buffer): return
+        
+        self.__buffer.draw_drawable(self.__buffer_gc, self.__pixmap,
+                                    x, y, x, y, w, h)
+            
+            
         
     def clone(self):
         """
@@ -154,6 +197,7 @@ class Pixmap(object):
         else:
             new_pmap = Pixmap(None, self.__width, self.__height)
         new_pmap.draw_pixmap(self, 0, 0)
+        
 
         return new_pmap
 
@@ -187,6 +231,8 @@ class Pixmap(object):
         new_pmap.set_colormap(self.__cmap)
         del self.__pixmap
         self.__pixmap = new_pmap
+        if (_HAVE_CAIRO):
+            self.__cairo_ctx = self.__pixmap.cairo_create()
 
         self.__width = w
         self.__height = h        
@@ -229,7 +275,7 @@ class Pixmap(object):
         @return: whether this pixmap is buffered
         """
     
-        return self.__buffered
+        return (self.__buffer != None)
         
         
     def is_offscreen(self):
@@ -286,8 +332,8 @@ class Pixmap(object):
             rect = gtk.gdk.Rectangle(0, 0, self.__width, self.__height)
 
         self.__gc.set_clip_rectangle(rect)
-        if (self.__buffered):
-            self.__buffer_gc.set_clip_rectangle(rect)
+        #if (self.__buffered):
+        #    self.__buffer_gc.set_clip_rectangle(rect)
 
 
     def set_clip_mask(self, mask = None):
@@ -302,8 +348,8 @@ class Pixmap(object):
         else:
             rect = gtk.gdk.Rectangle(0, 0, self.__width, self.__height)
             self.__gc.set_clip_rectangle(rect)
-            if (self.__buffered):
-                self.__buffer_gc.set_clip_rectangle(rect)
+            #if (self.__buffered):
+            #    self.__buffer_gc.set_clip_rectangle(rect)
 
 
               
@@ -318,24 +364,36 @@ class Pixmap(object):
         return (self.__width, self.__height)
 
 
+    def __parse_color(self, color):
+        """
+        Parses a color string and returns the RGBA values as quadruple.
+        """
+        
+        color = str(color)
+        if (len(color) < 9):
+            color += "ff"
+
+        r = int(color[1:3], 16)
+        g = int(color[3:5], 16)
+        b = int(color[5:7], 16)
+        a = int(color[7:9], 16)
+        
+        return (r, g, b, a)
+        
+
+
     def clear_translucent(self):
 
-        import cairo
-        ctx = self.__pixmap.cairo_create()
-        ctx.save()
-        ctx.set_source_rgba(1, 1, 1, 0)
-        ctx.set_operator(cairo.OPERATOR_SOURCE)
-        ctx.paint()
-        ctx.restore()
-        
-        if (self.__buffered):
-            ctx = self.__buffer.cairo_create()
-            ctx.save()
-            ctx.set_source_rgba(1, 1, 1, 0)
-            ctx.set_operator(cairo.OPERATOR_SOURCE)
-            ctx.paint()
-            ctx.restore()
-        
+        if (_HAVE_CAIRO):
+            self.__cairo_ctx.save()
+            self.__cairo_ctx.set_source_rgba(1, 1, 1, 0)
+            self.__cairo_ctx.set_operator(cairo.OPERATOR_SOURCE)
+            self.__cairo_ctx.paint()
+            self.__cairo_ctx.restore()
+            
+            w, h = self.get_size()
+            self.__to_buffer(0, 0, w, h)
+        #end if
 
 
     def fill_area(self, x, y, w, h, color):
@@ -348,22 +406,37 @@ class Pixmap(object):
         assert (w > 0 and h > 0)
 
         _reload(color)
-        if (len(str(color)) == 9):
-            # RGBA
-            pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
-            pbuf.fill(long(str(color)[1:], 16))
-            self.draw_pixbuf(pbuf, x, y)
-            del pbuf
-            
+        
+        if (_HAVE_CAIRO):
+            r, g, b, a = self.__parse_color(color)
+            r /= 255.0
+            g /= 255.0
+            b /= 255.0
+            a /= 255.0
+            self.__cairo_ctx.save()
+            if (a < 0.999):
+                self.__cairo_ctx.set_source_rgba(r, g, b, a)
+            else:
+                self.__cairo_ctx.set_source_rgb(r, g, b)
+            self.__cairo_ctx.rectangle(x, y, w, h)
+            self.__cairo_ctx.fill()
+            self.__cairo_ctx.restore()
+        
         else:
-            # RGB
-            col = self.__cmap.alloc_color(str(color))
-            self.__gc.set_foreground(col)
-            self.__pixmap.draw_rectangle(self.__gc, True, x, y, w, h)
-
-            if (self.__buffered):
-                self.__buffer_gc.set_foreground(col)
-                self.__buffer.draw_rectangle(self.__buffer_gc, True, x, y, w, h)
+            if (len(str(color)) == 9):
+                # RGBA
+                pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
+                pbuf.fill(long(str(color)[1:], 16))
+                self.draw_pixbuf(pbuf, x, y)
+                del pbuf
+            
+            else:
+                # RGB
+                col = self.__cmap.alloc_color(str(color))
+                self.__gc.set_foreground(col)
+                self.__pixmap.draw_rectangle(self.__gc, True, x, y, w, h)
+    
+        self.__to_buffer(x, y, w, h)
         
         
     def move_area(self, x, y, w, h, dx, dy):
@@ -373,14 +446,9 @@ class Pixmap(object):
         @param x y w h: area to move
         @param dx dy: amount
         """
-            
-        self.copy_buffer(self, x, y, x + dx, y + dy, w, h)
-        #self.__pixmap.draw_drawable(self.__gc, self.__pixmap,
-        #                            x, y, x + dx, y + dy, w, h)
 
-        #if (self.__buffered):
-        #    self.__buffer.draw_drawable(self.__buffer_gc, self.__buffer,
-        #                                x, y, x + dx, y + dy, w, h)
+        self.copy_buffer(self, x, y, x + dx, y + dy, w, h)
+
 
 
     def draw_line(self, x1, y1, x2, y2, color):
@@ -397,9 +465,8 @@ class Pixmap(object):
         self.__gc.set_foreground(col)
         self.__pixmap.draw_line(self.__gc, x1, y1, x2, y2)
 
-        if (self.__buffered):
-            self.__buffer_gc.set_foreground(col)
-            self.__buffer.draw_line(self.__buffer_gc, x1, y1, x2, y2)
+        self.__to_buffer(min(x1, x2), min(y1, y2),
+                         abs(x1 - x2), abs(y1 - y2))
 
 
     def draw_rect(self, x, y, w, h, color):
@@ -417,9 +484,7 @@ class Pixmap(object):
         self.__gc.set_foreground(col)
         self.__pixmap.draw_rectangle(self.__gc, False, x, y, w, h)
 
-        if (self.__buffered):
-            self.__buffer_gc.set_foreground(col)
-            self.__buffer.draw_rectangle(self.__buffer_gc, False, x, y, w, h)
+        self.__to_buffer(x, y, w, h)
 
 
     def draw_centered_text(self, text, font, x, y, w, h, color,
@@ -472,10 +537,7 @@ class Pixmap(object):
         
         self.__pixmap.draw_layout(self.__gc, x, y, self.__layout)
 
-        if (self.__buffered):        
-            self.__buffer_gc.set_foreground(
-                                       self.__buffer_cmap.alloc_color(str(color)))
-            self.__buffer.draw_layout(self.__buffer_gc, x, y, self.__layout)
+        self.__to_buffer(x, y, w, h)
         
         
     def draw_pixbuf(self, pbuf, x, y, w = -1, h = -1, scale = False):
@@ -494,14 +556,10 @@ class Pixmap(object):
         self.__pixmap.draw_pixbuf(self.__gc, pbuf,
                                   0, 0, x, y, w, h)
 
-        if (self.__buffered):
-            if (w == -1): w = pbuf.get_width()
-            if (h == -1): h = pbuf.get_height()
-            
-            self.__buffer.draw_pixbuf(self.__buffer_gc, pbuf,
-                                      0, 0, x, y, w, h)
+        if (w == -1): w = pbuf.get_width()
+        if (h == -1): h = pbuf.get_height()
+        self.__to_buffer(x, y, w, h)
 
-                                       
         del pbuf
 
 
@@ -521,9 +579,7 @@ class Pixmap(object):
 
         self.__pixmap.draw_pixbuf(self.__gc, pbuf, srcx, srcy, dstx, dsty, w, h)
         
-        if (self.__buffered):
-            self.__buffer.draw_pixbuf(self.__buffer_gc, pbuf, srcx, srcy,
-                                      dstx, dsty, w, h)
+        self.__to_buffer(dstx, dsty, w, h)
                                       
 
     def fit_pixbuf(self, pbuf, x, y, w, h):
@@ -545,10 +601,26 @@ class Pixmap(object):
         scale = min(sx, sy)
         offx = (w - pbuf_width * scale) / 2
         offy = (h - pbuf_height * scale) / 2
+        
+        if (_HAVE_CAIRO):
+            fmt = pbuf.get_has_alpha() and cairo.FORMAT_ARGB32 \
+                                        or cairo.FORMAT_RGB24
+            surface = cairo.ImageSurface(fmt, pbuf_width, pbuf_height)
+            gdkctx = gtk.gdk.CairoContext(self.__cairo_ctx)
+            gdkctx.save()
+            gdkctx.translate(int(x + offx), int(y + offy))
+            gdkctx.scale(scale, scale)
+            gdkctx.set_source_pixbuf(pbuf, 0, 0)
+            gdkctx.paint()
+            gdkctx.restore()
+        
+        else:
+            self.draw_pixbuf(pbuf, int(x + offx), int(y + offy),
+                             int(pbuf_width * scale), int(pbuf_height * scale),
+                             scale = True)
 
-        self.draw_pixbuf(pbuf, int(x + offx), int(y + offy),
-                         int(pbuf_width * scale), int(pbuf_height * scale),
-                         scale = True)
+        self.__to_buffer(x, y, w, h)
+
 
 
     def draw_pixmap(self, pmap, x, y):
@@ -656,7 +728,8 @@ class Pixmap(object):
         self.__pixmap.draw_drawable(self.__gc, pmap._get_pixmap(),
                                     srcx, srcy, dstx, dsty, w, h)
 
-        if (self.__buffered):
+        
+        if (self.__buffer):
             if (pmap == self):                
                 self.__buffer.draw_drawable(self.__buffer_gc, self.__buffer,
                                             srcx, srcy, dstx, dsty, w, h)
@@ -681,7 +754,7 @@ class Pixmap(object):
         if (pmap.is_buffered()):
             self.__pixmap.draw_drawable(self.__gc, pmap._get_buffer(),
                                         srcx, srcy, dstx, dsty, w, h)
-            if (self.__buffered):            
+            if (self.__buffer):
                 self.__buffer.draw_drawable(self.__buffer_gc, pmap._get_buffer(),
                                             srcx, srcy, dstx, dsty, w, h)
         else:
@@ -697,7 +770,7 @@ class Pixmap(object):
         @param x y w h: area to restore
         """
     
-        if (not self.__buffered): return
+        if (not self.__buffer): return
         
         self.__pixmap.draw_drawable(self.__gc, self.__buffer,
                                     x, y, x, y, w, h)

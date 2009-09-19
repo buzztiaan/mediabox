@@ -1,5 +1,5 @@
-from ui.HBox import HBox
-from ui.VBox import VBox
+from ui.layout import HBox
+from ui.layout import VBox
 from ui.Button import Button
 from ui.Label import Label
 from theme import theme

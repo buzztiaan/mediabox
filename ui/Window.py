@@ -2,17 +2,26 @@ from Widget import Widget
 from ui import try_rgba
 from Pixmap import Pixmap
 from Widget import Widget
-from utils import maemo
+import platforms
 
 import gtk
 
 
 class Window(Widget):
+    """
+    Base class for windows.
+    """
 
     EVENT_CLOSED = "event-closed"
     
 
-    def __init__(self, is_toplevel):
+    def __init__(self, is_toplevel, hide_cursor = False):
+        """
+        Creates a new window.
+        
+        @param is_toplevel: whether the window is a toplevel window
+        @param hide_cursor: whether to hide the mouse pointer cursor
+        """
     
         self.__size = (0, 0)
         self.__fixed = None
@@ -20,18 +29,20 @@ class Window(Widget):
         Widget.__init__(self)
     
         if (is_toplevel):
-            if (maemo.IS_MAEMO):
+            if (platforms.PLATFORM in (platforms.MAEMO5, platforms.MER)):
+                import hildon
+                self.__window = hildon.StackableWindow()
+
+            elif (platforms.PLATFORM == platforms.MAEMO4):
                 import hildon
                 self.__window = hildon.Window()
                 self.__window.fullscreen()
+                
             else:
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             
-            #self.set_size(800, 480)
-            #self.__window.set_resizable(False)
         else:
             self.__window = gtk.Window(gtk.WINDOW_POPUP)
-
 
         self.__window.connect("configure-event", self.__on_configure)
         self.__window.connect("expose-event", self.__on_expose)
@@ -51,7 +62,7 @@ class Window(Widget):
                                  gtk.gdk.KEY_RELEASE_MASK)
 
 
-        self.__window.set_size_request(800, 480)
+        self.set_visible(False)
         try_rgba(self.__window)
         self.__window.set_app_paintable(True)
         self.__window.realize()
@@ -60,14 +71,26 @@ class Window(Widget):
         self.__fixed = gtk.Fixed()
         self.__fixed.show()
         self.__window.add(self.__fixed)
-        self.__screen = None #Pixmap(self.__window.window)
+        self.__screen = None
 
+        # hide mouse cursor
+        if (hide_cursor):
+            pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 8, 8)
+            pbuf.fill(0x00000000)
+            csr = gtk.gdk.Cursor(gtk.gdk.display_get_default(), pbuf, 0, 0)
+            self.__window.window.set_cursor(csr)
+            del pbuf
+        #end if
                 
         self.set_window(self)
-        self.__check_window_size()
 
 
     def get_gtk_window(self):
+        """
+        Returns the associated GtkWindow of this window.
+        
+        @return: GtkWindow object
+        """
     
         return self.__window
 
@@ -94,8 +117,9 @@ class Window(Widget):
 
     def __on_expose(self, src, ev):
     
-        x, y, w, h = ev.area
-        self.__screen.restore(x, y, w, h)
+        if (self.__screen):
+            x, y, w, h = ev.area
+            self.__screen.restore(x, y, w, h)
 
 
     def __on_close_window(self, src, ev):
@@ -183,7 +207,8 @@ class Window(Widget):
     def set_size(self, w, h):
     
         Widget.set_size(self, w, h)
-        self.__window.set_size_request(w, h)
+        #self.__window.set_size_request(w, h)
+        self.__window.resize(w, h)
 
 
     def get_size(self):
@@ -221,6 +246,11 @@ class Window(Widget):
     def present(self):
     
         self.__window.present()
+        
+        
+    def fullscreen(self):
+    
+        self.__window.fullscreen()
 
 
     def iconify(self):

@@ -12,6 +12,7 @@ class Viewer(Component, Widget):
     Base class for viewer components.
     Components derived from this class appear with an icon in the viewer menu
     and can be selected by the user.
+    @deprecated: do not use this anymore
     
     Example::
 
@@ -62,13 +63,14 @@ class Viewer(Component, Widget):
         """
         Sets the toolbar from the given widgets.
         @since: 0.96
+        @deprecated: this is not used anymore
         
         @param widgets: list of widgets
         """
         
-        self.__current_tbar_set = widgets
+        self.__current_tbar_set = [(None, widgets)]
         if (self.__is_active):
-            self.emit_message(msgs.CORE_ACT_SET_TOOLBAR, self.__current_tbar_set)
+            self.emit_message(msgs.CORE_ACT_SET_TOOLBAR_SETS, self.__current_tbar_set)
 
 
     def set_title(self, title):
@@ -172,8 +174,6 @@ class Viewer(Component, Widget):
         self.set_visible(True)        
         self.__is_active = True
         
-        print self.__current_tbar_set
-        self.set_toolbar(self.__current_tbar_set)
         #self.set_strip(self.__collection)
         self.set_title(self.__title)
         self.set_info(self.__info)

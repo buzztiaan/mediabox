@@ -25,7 +25,8 @@ class Preferences(Viewer):
         self.set_title("Preferences")
         
         self.__list = TrackList()
-        self.__list.connect_button_clicked(self.__on_item_button)
+        #self.__list.connect_button_clicked(self.__on_item_button)
+        self.__list.connect_item_activated(self.__on_item_button)
         self.add(self.__list)
 
         # toolbar
@@ -34,7 +35,10 @@ class Preferences(Viewer):
         self.__btn_back.connect_clicked(self.__on_btn_back)
         
         
-    def __on_item_button(self, item, idx, button):
+    def __on_item_button(self, idx, px):
+    
+        item = self.__list.get_items()[idx]
+        button = item.get_button_at(px)
     
         if (button == item.BUTTON_PLAY):
             self.__list.hilight(idx)
@@ -105,7 +109,7 @@ class Preferences(Viewer):
     def show(self):
     
         Viewer.show(self)
-        self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+        self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
         self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
 
 

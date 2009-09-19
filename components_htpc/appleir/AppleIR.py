@@ -100,7 +100,7 @@ class AppleIR(Component):
         print code
 
         if (code == _KEY_REPEAT):
-            if (time.time() > self.__accept_repeat_time):
+            if (self.__accept_repeat_time + 1.0 > time.time() > self.__accept_repeat_time):
                 keycode = self.__last_keycode
             else:
                 return True

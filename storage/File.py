@@ -2,7 +2,7 @@
 Class for representing a file or folder on a storage device.
 """
 
-import md5
+import hashlib
 
 
 class File(object):
@@ -22,6 +22,7 @@ class File(object):
     ITEMS_DOWNLOADABLE =   1 << 5
     ITEMS_ADDABLE =        1 << 6
     ITEMS_SORTABLE =       1 << 7
+    ITEMS_SORTED_ALPHA =   1 << 8
     
 
 
@@ -174,8 +175,8 @@ class File(object):
         """
         Modification time of this file.
         @since: 0.96.5
-        """
-        
+        """      
+
         self.__medium = None
         
         self.child_count = 0
@@ -224,12 +225,27 @@ class File(object):
     """
 
 
+    def __get_bookmarked(self):
+
+        return self.__device.get_bookmarked(self)
+
+    def __set_bookmarked(self, v):
+
+        self.__device.set_bookmarked(self, v)
+
+    bookmarked = property(__get_bookmarked, __set_bookmarked)
+    """
+    bookmark status of the file
+    @since: 0.97
+    """
+
+
     def __get_md5(self):
         
         try:
             return self.__md5
         except:
-            self.__md5 = md5.new(self.full_path).hexdigest()
+            self.__md5 = hashlib.md5(self.full_path).hexdigest()
             return self.__md5
 
     md5 = property(__get_md5)

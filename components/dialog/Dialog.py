@@ -1,5 +1,5 @@
 from ui.Widget import Widget
-from ui.VBox import VBox
+from ui.layout import VBox
 from ui.Button import Button
 from ui.Label import Label
 from ui.TextInput import TextInput

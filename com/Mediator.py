@@ -84,21 +84,6 @@ class Mediator(object):
         self.__pass_type = self.PASS_TYPE_PASS_ON
         
         
-    def emit_event(self, event, *args):
-        """
-        Emits the given message.
-        @since: 0.96
-        @deprecated: use L{emit_message} instead
-
-        @param event: message
-        @param args: variable list of arguments
-        """
-    
-        logging.warning("DEPRECATED: %s called 'emit_event'",
-                        self.__class__.__name__)
-        self.emit_message(event, *args)
-        
-        
     def emit_message(self, msg, *args):
         """
         Emits the given message.

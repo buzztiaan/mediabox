@@ -66,6 +66,30 @@ def draw_pbuf(pbuf1, pbuf2, x, y, w = -1, h = -1):
     pbuf2.composite(subpbuf, 0, 0, w, h, 0, 0, 1, 1,
                     gtk.gdk.INTERP_NEAREST, 0xff)
     del subpbuf
+
+
+def fit_pbuf(pbuf1, pbuf2, x, y, w, h):
+
+    _reload(pbuf1, pbuf2)
+    pbuf1_w = pbuf1.get_width()
+    pbuf1_h = pbuf1.get_height()
+    pbuf2_w = pbuf2.get_width()
+    pbuf2_h = pbuf2.get_height()
+    
+    sx = w / float(pbuf2_w)
+    sy = h / float(pbuf2_h)
+    scale = min(sx, sy)
+
+    new_w = int(pbuf2_w * scale)
+    new_h = int(pbuf2_h * scale)
+    offx = (w - new_w) / 2
+    offy = (h - new_h) / 2
+
+    pbuf2 = pbuf2.scale_simple(new_w, new_h, gtk.gdk.INTERP_BILINEAR)
+    subpbuf = pbuf1.subpixbuf(x + offx, y + offy, new_w, new_h)
+    pbuf2.composite(subpbuf, 0, 0, new_w, new_h, 0, 0, 1, 1,
+                    gtk.gdk.INTERP_NEAREST, 0xff)
+    del subpbuf
     
 
 def make_frame(pbuf, w, h, filled, parts = 0xf):

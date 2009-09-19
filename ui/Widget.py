@@ -2,6 +2,7 @@
 Every widget is derived from this base class.
 """
 
+from utils.EventEmitter import EventEmitter
 from utils import logging
 
 import time
@@ -9,7 +10,7 @@ import threading
 import gtk
 
 
-class Widget(object):
+class Widget(EventEmitter):
     """
     Base class for GDK based lightweight widgets.
     """
@@ -21,9 +22,6 @@ class Widget(object):
     EVENT_KEY_RELEASE = "key-released"
     
     
-    # static lock for blocking event handling
-    __events_lock = threading.Event()
-
     # static lock for animations
     __animation_lock = threading.Event()
 
@@ -47,7 +45,6 @@ class Widget(object):
         self.__children = []
         self.__parent = None
     
-        self.__event_handlers = {}
         self.__locked_zone = None
         self.__need_to_check_zones = False
         
@@ -68,6 +65,7 @@ class Widget(object):
         self.__window = None
         self.__instances.append(self)
 
+        EventEmitter.__init__(self)
 
           
     def push_actor(self, w):
@@ -166,24 +164,14 @@ class Widget(object):
         @param *args:   variable number of arguments (depending on the
                         event type)
         """
-
-        if (self.__events_lock.isSet()): return
-        
+       
         if (ev in (self.EVENT_KEY_PRESS, self.EVENT_KEY_RELEASE) and
               self._input_focus_widget and
               self._input_focus_widget.is_visible()):
             self._input_focus_widget.send_event(ev, *args)
         
         else:
-            handlers = self.__event_handlers.get(ev, [])
-            for cb, user_args in handlers:
-                try:
-                    cb(*(args + user_args))
-                except:
-                    import traceback; traceback.print_exc()
-            #end for
-        
-        #end if    
+            self.emit_event(ev, *args)
         
         
     def __on_action(self, etype, px, py):
@@ -216,23 +204,8 @@ class Widget(object):
         """
         
         return self.__animation_lock.isSet()
-        
 
 
-    def set_events_blocked(self, value):
-        """
-        Sets the global lock for blocking events. While events are blocked,
-        no event handling takes place by the Widget class.
-        
-        @param value: whether events are blocked (True) or not (False)
-        """
-    
-        if (value):
-            self.__events_lock.set()
-        else:
-            self.__events_lock.clear()
-    
-    
     def get_children(self):
         """
         Returns a list of all child widgets of this widget.
@@ -501,9 +474,10 @@ class Widget(object):
     def __check_zone(self):
     
         # don't check zone when widget does not have event handlers
-        if (not self.__event_handlers): return
+        #if (not self.__event_handlers): return
+        if (not self.has_events()): return
     
-        if (self.is_enabled() and self.__event_handlers):
+        if (self.is_enabled()):
             x, y = self.get_screen_pos()
             w, h = self.get_size()
             self.__set_zone(self, x, y, w, h)
@@ -525,16 +499,7 @@ class Widget(object):
         and should only be used when implementing new widgets.
         """
     
-        if (not etype in self.__event_handlers):
-            self.__event_handlers[etype] = []
-            
-        # don't allow the same callback twice
-        for c, a in self.__event_handlers[etype]:
-            if (c == cb):
-                return
-        #end for
-            
-        self.__event_handlers[etype].append((cb, args))
+        EventEmitter._connect(self, etype, cb, *args)
         self.__check_zone()
 
 
@@ -655,7 +620,7 @@ class Widget(object):
         else:
             parx, pary = (0, 0)
         x, y = self.get_pos()
-        
+
         return (parx + x, pary + y)
         
         

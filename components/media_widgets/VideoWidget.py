@@ -6,14 +6,13 @@ from ui.EventBox import EventBox
 from ui.ImageButton import ImageButton
 from ui.Image import Image
 from ui.ProgressBar import ProgressBar
+from ui.Slider import Slider
 import mediaplayer
-from ui import dialogs
 from utils import maemo
 from utils import logging
 from theme import theme
 
 import gtk
-import gobject
 
 
 class VideoWidget(MediaWidget):
@@ -25,11 +24,9 @@ class VideoWidget(MediaWidget):
     
         self.__layout = None
         self.__player = None
-        self.__load_handler = None
         mediaplayer.add_observer(self.__on_observe_player)
 
         self.__aspect_ratio = 1.0
-        self.__overlay_coords = (0, 0, 0, 0)
 
         self.__current_file = None
         self.__uri = ""
@@ -40,7 +37,7 @@ class VideoWidget(MediaWidget):
         # video screen
         self.__screen = gtk.DrawingArea()
         self.__screen.set_double_buffered(False)
-        self.__screen.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
+        self.__screen.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#ff0000"))
         self.__screen.connect("expose-event", self.__on_expose)
         self.__screen.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                                  gtk.gdk.KEY_PRESS_MASK)
@@ -53,6 +50,14 @@ class VideoWidget(MediaWidget):
         self.__ebox = EventBox()
         self.add(self.__ebox)
         self.__ebox.connect_button_pressed(self.__on_click)
+
+
+        # volume slider
+        self.__volume = Slider(theme.mb_slider_gauge)
+        self.__volume.set_mode(Slider.HORIZONTAL)
+        self.__volume.set_background_color("#000000")
+        self.add(self.__volume)
+        self.__volume.connect_value_changed(self.__on_change_volume)
 
 
         # controls
@@ -106,37 +111,20 @@ class VideoWidget(MediaWidget):
     def _visibility_changed(self):
 
         if (not self.may_render()):
-            self.__hide_video_screen()
+            self.__screen.hide()
         else:
-            pass #self.__show_video_screen()
-
-
-    def set_size(self, w, h):
-    
-        if ((w, h) != self.get_size()):
-            MediaWidget.set_size(self, w, h)
-            self.__scale_video()
-
-
-    def __show_video_screen(self):
-    
-        if (not self.get_screen().is_offscreen() and
-              self.may_render() and
-              self.__player):
             self.__screen.show()
             
-    
-    def __hide_video_screen(self):
-    
-        #self.__screen.show()
-        self.__screen.hide()
-
 
     def render_this(self):
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()
+        if (w == 0 or h == 0): return
         screen = self.get_screen()    
+
+        self.__volume.set_geometry(0, h - 42, w, 42)
+        h -= 42
 
         self.__ebox.set_geometry(0, 0, w, h)
 
@@ -144,38 +132,36 @@ class VideoWidget(MediaWidget):
         vx, vy, vw, vh = x + 1, y + 1, w - 2, h - 2
         #vx, vy, vw, vh = x, y, w, h
 
-        if (w < 800):
-            self.__render_overlay_frame(screen, fx, fy, fw, fh)
-            screen.draw_rect(vx, vy, vw, vh, theme.color_mb_background)
-            #screen.fill_area(vx, vy, vw, vh, "#000000")
+        screen.fill_area(fx, fy, fw, fh, "#000000")
+
+        # scale video screen
+        w2 = int(self.__aspect_ratio * h)
+        h2 = int(w / self.__aspect_ratio)
+
+        if (w % 2 == 1): w -= 1
+        if (w2 % 2 == 1): w2 -= 1
+         
+	"""
+        if (w2 > w):
+            if (w > 0): self.__screen.set_size_request(w, h2)
+            print "SET", w, h2
+            w2, h2 = w, h2
         else:
-            self.__render_overlay_frame(screen, fx, fy, fw, fh)
-        #    screen.fill_area(x, y, w, h, "#000000")
+            if (w2 > 0): self.__screen.set_size_request(w2, h)
+            print "SET", w2, h
+            w2, h2 = w2, h
+	"""
+        self.__screen.set_size_request(w, h)
+        w2, h2 = w, h
 
-        gobject.idle_add(self.__show_video_screen)
+        if (not self.__layout):
+            self.__layout = self.get_window()
+            self.__layout.put(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
+            if (self.is_visible()):
+                self.__screen.show()
+        else:
+            self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
 
-
-    def __render_overlay_frame(self, screen, x, y, w, h):
-    
-        vx, vy, vw, vh = self.__overlay_coords
-        screen.fill_area(x, y, w, h, "#000000")
-        return
-        
-        w1 = vx - x
-        h1 = vy - y
-        
-        if (w1 > 0):
-            # left
-            screen.fill_area(x, y, w1, h, "#000000")
-            # right
-            screen.fill_area(x + w - w1, y, w1, h, "#000000")
-            
-        if (h1 > 0):
-            # top
-            screen.fill_area(x, y, w, h1, "#000000")
-            # bottom
-            screen.fill_area(x, y + h - h1, w, h1, "#000000")
-        
         
     def __on_expose(self, src, ev):
 
@@ -186,7 +172,6 @@ class VideoWidget(MediaWidget):
             gc.set_foreground(cmap.alloc_color("#000000"))
             x, y, w, h = ev.area
             self.__player.handle_expose(win, gc, x, y, w, h)
-
             
             
     def __on_click(self, px, py):
@@ -195,10 +180,7 @@ class VideoWidget(MediaWidget):
             handled = self.__player.send_key(self.__player.KEY_SELECT)
             
             if (not handled):
-                self.send_event(self.EVENT_FULLSCREEN_TOGGLED)
-
-        
-
+                self.emit_event(self.EVENT_FULLSCREEN_TOGGLED)
 
 
     def __on_observe_player(self, src, cmd, *args):
@@ -215,8 +197,11 @@ class VideoWidget(MediaWidget):
                 else:
                     info = "%d:%02d" % (pos_m, pos_s)            
 
+                #self.emit_message(msgs.MEDIA_EV_POSITION,
+                #                  pos * 1000, total * 1000)
                 self.__progress.set_position(pos, total)
-                self.send_event(self.EVENT_MEDIA_POSITION, info)
+                self.emit_event(self.EVENT_MEDIA_POSITION,
+                                pos * 1000, total * 1000)
 
             # bad mplayer shows its screen even when not asked for...
             #if (not self.may_render()):
@@ -234,7 +219,6 @@ class VideoWidget(MediaWidget):
             self.__uri = ""
             self.__progress.set_message("")
             self.__progress.set_amount(0)
-            self.__hide_video_screen()
             self.__btn_play.set_images(theme.mb_btn_play_1,
                                        theme.mb_btn_play_2)
 
@@ -257,7 +241,6 @@ class VideoWidget(MediaWidget):
                                            theme.mb_btn_play_2)
                 self.__progress.set_message("error")
                 self.__show_error(err)
-                self.__hide_video_screen()
                 self.emit_message(msgs.MEDIA_EV_PAUSE)
             
         elif (cmd == src.OBS_PLAYING):
@@ -267,7 +250,6 @@ class VideoWidget(MediaWidget):
                 self.__progress.set_message("")
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)
-                self.__show_video_screen()
                 self.emit_message(msgs.MEDIA_EV_PLAY)
             
         elif (cmd == src.OBS_STOPPED):
@@ -283,7 +265,6 @@ class VideoWidget(MediaWidget):
             ctx = args[0]
             if (ctx == self.__context_id):        
                 self.__uri = ""
-                self.__hide_video_screen()
 
                 # unfullscreen
                 #if (self.__is_fullscreen): self.__on_fullscreen()
@@ -291,13 +272,12 @@ class VideoWidget(MediaWidget):
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)                
                 self.emit_message(msgs.MEDIA_EV_PAUSE)
-                self.send_event(self.EVENT_MEDIA_EOF)
+                self.emit_event(self.EVENT_MEDIA_EOF)
 
 
         elif (cmd == src.OBS_ASPECT):
             ctx, ratio = args
             if (ctx == self.__context_id):
-                self.__aspect_ratio = ratio
                 self.__set_aspect_ratio(ratio)
 
 
@@ -353,13 +333,9 @@ class VideoWidget(MediaWidget):
                               self.__current_file, bookmarks)
 
 
-    def __scale_video(self):
-        """
-        Scales the video to fill the available space while retaining the
-        original aspect ratio.
-        """
-           
-        self.__set_aspect_ratio(self.__aspect_ratio)
+    def __on_change_volume(self, v):
+
+        self.set_scaling(v)
 
 
     def __set_aspect_ratio(self, ratio):
@@ -367,102 +343,36 @@ class VideoWidget(MediaWidget):
         Sets the aspect ratio of the screen to the given value.
         """
     
-        if (ratio == 0): return
-
-        #self.__screen.hide()
-        
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        if (w < 800):
-            x, y, w, h = x + 2, y + 2, w - 4, h - 4
-            y += 10
-            h -= 20
-        else:
-            x, y, w, h = x, y, w, h
-
-        w2 = int(ratio * h)
-        h2 = int(w / ratio)
-
-        if (w % 2 == 1): w -= 1
-        if (w2 % 2 == 1): w2 -= 1
-         
-        #print ratio, w, h, w2, h2, self
-        if (w2 > w):
-            if (w > 0): self.__screen.set_size_request(w, h2)
-            w2, h2 = w, h2
-        else:
-            if (w2 > 0): self.__screen.set_size_request(w2, h)
-            w2, h2 = w2, h
-
-
-        #if (not self.__layout):
-        #    self.__layout = self.get_window()
-        #    self.__layout.put(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
-        #else:
-        if (self.__layout):
-            self.__layout.move(self.__screen, x + (w - w2) / 2, y + (h - h2) / 2)
-            self.__overlay_coords = (x + (w - w2) / 2, y + (h - h2) / 2, w2, h2)
-
-        #print  x + (w - w2) / 2, y + (h - h2) / 2, w2, h2
-        
-        cnt = 0
-        #while (gtk.events_pending() and cnt < 10):
-        #    gtk.main_iteration(False)
-        #    cnt += 1
-        #self.__show_video_screen()
+        self.__aspect_ratio = ratio or 1.0
         self.render()
 
 
     def load(self, item, direction = MediaWidget.DIRECTION_NEXT):
         
-        def f():
-            self.__load_handler = None
-            uri = item.get_resource()
-            if (not uri.startswith("/") and
-                not "://localhost" in uri and
-                not "://127.0.0.1" in uri):                    
-                maemo.request_connection()
-            #end if
-            
-            if (self.__screen.window.xid):
-                self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
-                self.__player.set_window(self.__screen.window.xid)
-                try:
-                    self.__context_id = self.__player.load_video(uri)
-                except:
-                    logging.error("could not load video '%s'\n%s" \
-                                  % (uri, logging.stacktrace()))
-                    self.__hide_video_screen()
-                    return
-                                
-                self.__player.set_volume(mb_config.volume())
-                bookmarks = media_bookmarks.get_bookmarks(item)
-                self.__progress.set_bookmarks(bookmarks)
-                self.__uri = uri
-                self.__current_file = item
-                
-
-        if (not self.__layout):
-            x, y = self.get_screen_pos()
-            self.__layout = self.get_window()
-            self.__layout.put(self.__screen, x, y)
-            #self.__screen.set_size_request(10, 10)
-            self.__screen.show()
-            #gtk.gdk.window_process_all_updates()
-
-        cnt = 0
-        while (gtk.events_pending() and cnt < 10):
-            gtk.main_iteration(False)
-            cnt += 1
-
-        #if (self.__load_handler):
-        #    gobject.source_remove(self.__load_handler)
-
-        #self.__load_handler = gobject.timeout_add(1500, f)
-        #gobject.idle_add(f)
+        gtk.gdk.window_process_all_updates()
         
-        f()
+        uri = item.get_resource()
+        if (not uri.startswith("/") and
+            not "://localhost" in uri and
+            not "://127.0.0.1" in uri):                    
+            maemo.request_connection()
+        #end if
 
+        self.__player = mediaplayer.get_player_for_mimetype(item.mimetype)
+        self.__player.set_window(self.__screen.window.xid)
+        try:
+            self.__context_id = self.__player.load_video(uri)
+        except:
+            logging.error("could not load video '%s'\n%s" \
+                            % (uri, logging.stacktrace()))
+            return
+                        
+        self.__player.set_volume(mb_config.volume())
+        bookmarks = media_bookmarks.get_bookmarks(item)
+        self.__progress.set_bookmarks(bookmarks)
+        self.__uri = uri
+        self.__current_file = item
+                
 
     def play_pause(self):
     
@@ -489,7 +399,8 @@ class VideoWidget(MediaWidget):
         mb_config.set_volume(vol)        
         if (self.__player):
             self.__player.set_volume(vol)
-        self.send_event(self.EVENT_MEDIA_SCALE, vol / 100.0)
+        self.__volume.set_value(vol / 100.0)
+        self.emit_event(self.EVENT_MEDIA_SCALE, vol / 100.0)
 
        
     def decrement(self):
@@ -499,16 +410,29 @@ class VideoWidget(MediaWidget):
         mb_config.set_volume(vol)        
         if (self.__player):
             self.__player.set_volume(vol)
-        self.send_event(self.EVENT_MEDIA_SCALE, vol / 100.0)
+        self.__volume.set_value(vol / 100.0)
+        self.emit_event(self.EVENT_MEDIA_SCALE, vol / 100.0)
 
 
     def set_scaling(self, v):
 
+        self.__volume.set_value(v)
+        self.__set_volume(v)
+
+
+    def __set_volume(self, v):
+
         vol = int(v * 100)
-        mb_config.set_volume(vol)        
+        mb_config.set_volume(vol)
         if (self.__player):
             self.__player.set_volume(vol)
         self.send_event(self.EVENT_MEDIA_SCALE, v)
+
+
+    def seek(self, pos):
+    
+        if (self.__player):
+            self.__player.seek(pos)
 
 
     def rewind(self):

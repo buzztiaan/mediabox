@@ -2,7 +2,7 @@
 
     F1              PREVIOUS_VIEWER -
     F2              NEXT_VIEWER     -
-    F4              MENU            -
+#    F4              MENU            -
     F6              FULLSCREEN      -
     F7              VOLUME_UP       -
     F8              VOLUME_DOWN     -
@@ -15,43 +15,44 @@
     UP              UP              -
     DOWN            DOWN            -
     ENTER           ENTER           -
-
+    MENU            MENU            -
+    F4              MENU            -
+    
 
 [BROWSER]
     UP              UP              -
     DOWN            DOWN            -
-    LEFT            GO_PARENT       -
-    RIGHT           ENTER           -
+    LEFT            LEFT            -
+    RIGHT           RIGHT           -
     ENTER           ENTER           -
-    ESCAPE          SWITCH_TAB      -
-    MENU            SWITCH_TAB      -
+    MENU            GO_PARENT       -
+    F4              GO_PARENT       -
 
 
 [PLAYER]
-    UP              VOLUME_UP       -
-    DOWN            VOLUME_DOWN     -
-    LEFT            PREVIOUS        -
-    RIGHT           NEXT            -
-    ENTER           PLAY            -
-    ESCAPE          SWITCH_TAB      -
-    MENU            SWITCH_TAB      -
+    UP              NAV_UP          -
+    DOWN            NAV_DOWN        -
+    LEFT            NAV_LEFT        -
+    RIGHT           NAV_RIGHT       -
+    ENTER           NAV_ENTER       -
+    MENU            MENU            -
+    F4              MENU            -
+#    ESCAPE          SWITCH_TAB      -
 
 
 [FULLSCREEN]
-    UP              VOLUME_UP       -
-    DOWN            VOLUME_DOWN     -
-    LEFT            PREVIOUS        -
-    RIGHT           NEXT            -
-    ENTER           PLAY            -
-    ESCAPE          SWITCH_TAB      -
-    MENU            SWITCH_TAB      -
-
-#    UP              NAV_UP          -
-#    DOWN            NAV_DOWN        -
-#    LEFT            NAV_LEFT        -
-#    RIGHT           NAV_RIGHT       -
-#    ESCAPE          NAV_MENU        -
-#    ENTER           NAV_ENTER       -
+#    UP              VOLUME_UP       -
+#    DOWN            VOLUME_DOWN     -
+#    LEFT            PREVIOUS        -
+#    RIGHT           NEXT            -
+#    ENTER           PLAY            -
 #    ESCAPE          SWITCH_TAB      -
-#    MENU            SWITCH_TAB      -
+
+    UP              NAV_UP          -
+    DOWN            NAV_DOWN        -
+    LEFT            NAV_LEFT        -
+    RIGHT           NAV_RIGHT       -
+#    ESCAPE          NAV_MENU        -
+    ENTER           NAV_ENTER       -
+    ESCAPE          MENU            -
 

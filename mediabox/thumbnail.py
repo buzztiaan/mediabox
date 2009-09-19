@@ -57,15 +57,7 @@ def _make_frame(mimetype):
     if there is no frame.
     """
 
-    if (mimetype == "application/x-folder"):
-        tx, ty, tw, th = 3, 3, 109, 109
-        #if (os.path.exists(thumbfile)):
-        #frame = theme.mb_frame_music
-        frame = None
-        #else:
-        #frame = None
-
-    elif (mimetype == "application/x-music-folder"):
+    if (mimetype == "application/x-music-folder"):
         #if (os.path.exists(thumbfile)):
         tx, ty, tw, th = 3, 3, 109, 109
         frame = theme.mb_frame_music
@@ -76,6 +68,10 @@ def _make_frame(mimetype):
     elif (mimetype == "application/x-image-folder"):
         tx, ty, tw, th = 35, 30, 100, 69
         frame = theme.mb_thumbnail_image_folder
+        
+    elif (mimetype.endswith("-folder")):
+        tx, ty, tw, th = 3, 3, 109, 109
+        frame = None       
         
     elif (mimetype in mimetypes.get_audio_types()):
         tx, ty, tw, th = 3, 3, 109, 109
@@ -154,6 +150,7 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
         sx = w / float(_WIDTH)
         sy = h / float(_HEIGHT)
         scale = min(sx, sy)
+        
         fx = (w - scale * _WIDTH) / 2
         fy = (h - scale * _HEIGHT) / 2
     #end if
@@ -180,10 +177,11 @@ def _render_thumbnail(cnv, x, y, w, h, thumbfile, mimetype):
                                  int(y + fy + ty * scale),
                                  int(tw * scale), int(th * scale))
         else:
-            pixbuftools.draw_pbuf(_PBUF, pbuf,
-                                  int(fx + tx * scale),
-                                  int(fy + ty * scale),
-                                  int(tw * scale), int(th * scale))
+            pixbuftools.fit_pbuf(_PBUF, pbuf,
+                                 int(fx + tx * scale),
+                                 int(fy + ty * scale),
+                                 int(tw * scale), int(th * scale))
+
         del pbuf
     #end if
     

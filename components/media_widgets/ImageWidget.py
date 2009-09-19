@@ -5,7 +5,7 @@ from ui.Label import Label
 from ui.ImageButton import ImageButton
 from ui.Image import Image as UIImage
 from ui.Slider import Slider
-from ui.VBox import VBox
+from ui.layout import VBox
 from mediabox import viewmodes
 from Image import Image
 from theme import theme
@@ -69,7 +69,6 @@ class ImageWidget(MediaWidget):
         self.add(self.__image)
 
         kscr = KineticScroller(self.__image)
-        kscr.set_touch_area(0, 800)
 
         # controls
         ctrls = []

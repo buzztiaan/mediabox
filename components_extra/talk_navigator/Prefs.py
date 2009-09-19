@@ -3,8 +3,8 @@ from ui.Button import Button
 from ui.Label import Label
 from ui.ChoiceBox import ChoiceBox
 from ui.Slider import Slider
-from ui.HBox import HBox
-from ui.VBox import VBox
+from ui.layout import HBox
+from ui.layout import VBox
 import config
 from theme import theme
 

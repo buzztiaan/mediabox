@@ -1,7 +1,7 @@
 from com import Configurator, msgs
 from ui.Label import Label
 from ui.CheckBox import CheckBox
-from ui.VBox import VBox
+from ui.layout import VBox
 from theme import theme
 
 

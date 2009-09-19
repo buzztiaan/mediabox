@@ -2,8 +2,9 @@ from com import Configurator, msgs
 from ui.Label import Label
 from ui.ChoiceBox import ChoiceBox
 from ui.CheckBox import CheckBox
-from ui.VBox import VBox
+from ui.layout import VBox
 from utils import mmc
+import formats
 import config
 from theme import theme
 
@@ -43,12 +44,11 @@ class Prefs(Configurator):
                     theme.font_mb_plain, theme.color_mb_listitem_text)        
         self.__vbox.add(lbl)
 
+        fmt_list = []
+        for fmt in formats.get_formats():
+            fmt_list += [formats.get_description(fmt), fmt]
 
-        chbox_quality = ChoiceBox("Standard FLV", 0,
-                                  "FLV 480x270 mono", 6,
-                                  "MP4 480x270 stereo", 18,
-                                  "FLV 640x360 mono", 35,
-                                  "MP4 1280x720 stereo", 22)
+        chbox_quality = ChoiceBox(*fmt_list)
         chbox_quality.select_by_value(config.get_quality_type())
         chbox_quality.connect_changed(self.__on_select_quality_type)
         self.__vbox.add(chbox_quality)

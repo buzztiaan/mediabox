@@ -9,7 +9,9 @@ Component subsystem for extending the application.
 import msgs
 from exc import *
 from Component import Component
-from Viewer import Viewer
+#from Viewer import Viewer
+from View import View
+from Player import Player
 from Widget import Widget
 from Configurator import Configurator
 from MediaWidgetFactory import MediaWidgetFactory

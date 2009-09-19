@@ -1,19 +1,19 @@
-from com import msgs
-from TabbedViewer import TabbedViewer
+from com import View, msgs
 from StorageBrowser import StorageBrowser
-from ui.HBox import HBox
+from ui.layout import HBox
 from ui.ImageButton import ImageButton
 from ui.Image import Image
 from ui.Slider import Slider
+from ui.Toolbar import Toolbar
 from ui.Widget import Widget
 from utils import mimetypes
 from utils import logging
-from mediabox.MediaWidget import MediaWidget
 from mediabox import viewmodes
 from mediabox import config as mb_config
 from theme import theme
 
 import random
+import time
 
 
 class _NotLoadedMessage(Widget):
@@ -24,7 +24,7 @@ class _NotLoadedMessage(Widget):
         
         
     def render_this(self):
-    
+
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
@@ -35,7 +35,7 @@ class _NotLoadedMessage(Widget):
 
 
 
-class MediaViewer(TabbedViewer):
+class MediaViewer(View):
     """
     Base class for media viewers.
     
@@ -45,7 +45,7 @@ class MediaViewer(TabbedViewer):
     ICON = None
     PRIORITY = 0
 
-    def __init__(self, root_device, tab_label_1, tab_label_2):
+    def __init__(self, root_device, tab_label_1, tab_label_2, show_sliders = False):
 
         self.__is_fullscreen = False
 
@@ -63,51 +63,59 @@ class MediaViewer(TabbedViewer):
         
         self.__is_searching = False
         self.__search_term = ""
+        
+        self.__key_hold_down_timestamp = 0
+        self.__skip_letter = False
 
     
-        TabbedViewer.__init__(self)
-
-        browser_hbox = HBox()
-        browser_hbox.set_visible(False)
-        self.add(browser_hbox)
+        View.__init__(self)
 
         # browser list slider
         self.__browser_slider = Slider(theme.mb_list_slider)
         self.__browser_slider.set_mode(self.__browser_slider.VERTICAL)
-        browser_hbox.add(self.__browser_slider, False)
+        if (show_sliders):
+            browser_hbox.add(self.__browser_slider, False)
         
         # file browser
         self.__browser = StorageBrowser()
-        self.__browser.set_thumb_slider(self.__browser_slider)
+        self.__browser.associate_with_slider(self.__browser_slider)
         self.__browser.set_thumbnailer(self.__on_request_thumbnail)
-        browser_hbox.add(self.__browser, True)
+        #browser_hbox.add(self.__browser, True)
         self.__browser.connect_folder_opened(self.__on_open_folder)
         self.__browser.connect_file_opened(self.__on_open_file)
         self.__browser.connect_file_enqueued(self.__on_enqueue_file)
         self.__browser_slider.connect_button_pressed(
                                     lambda a,b:self.__browser.stop_scrolling())
+        self.add(self.__browser)
 
-        hbox = HBox()
-        hbox.set_visible(False)
-        self.add(hbox)
-
-        # volume/zoom slider
-        self.__slider = Slider(theme.mb_slider_volume)
-        self.__slider.set_mode(self.__slider.VERTICAL)
-        self.__slider.set_value(0.5)
-        self.__slider.connect_value_changed(self.__on_slider_changed)
-        #self.__slider.set_visible(False)
-        hbox.add(self.__slider, False)
+        #hbox = HBox()
+        #hbox.set_visible(False)
+        #self.add(hbox)
 
         # media widget box
         self.__media_box = HBox()
-        #self.__media_box.set_visible(False)
-        hbox.add(self.__media_box, True)
+        self.__media_box.set_visible(False)
+        #self.add(self.__media_box)
 
         self.__not_loaded_msg = _NotLoadedMessage()
         self.__media_box.add(self.__not_loaded_msg, True)
 
         # toolbar
+        self.__toolbar = Toolbar()
+        #self.set_toolbar(self.__toolbar)
+
+        self.__btn_home = ImageButton(theme.mb_btn_home_1,
+                                      theme.mb_btn_home_2)
+        self.__btn_home.connect_clicked(self.__on_btn_home)
+        
+        self.__btn_history = ImageButton(theme.mb_btn_home_1,
+                                         theme.mb_btn_home_2)
+        self.__btn_history.connect_clicked(self.__on_btn_history)
+
+        self.__btn_bookmarks = ImageButton(theme.mb_btn_bookmark_1,
+                                           theme.mb_btn_bookmark_2)
+        self.__btn_bookmarks.connect_clicked(self.__on_btn_bookmarks)
+
         self.__btn_back = ImageButton(theme.mb_btn_dir_up_1,
                                       theme.mb_btn_dir_up_2)
         self.__btn_back.connect_clicked(self.__on_btn_back)
@@ -131,14 +139,25 @@ class MediaViewer(TabbedViewer):
 
         
         self.__browser.set_root_device(root_device)
-        self.add_tab(tab_label_1, browser_hbox, self.__on_browser_tab)
-        self.add_tab(tab_label_2, hbox, self.__on_player_tab)
+        #self.add_tab(tab_label_1, browser_hbox, self.__on_browser_tab)
+        #self.add_tab(tab_label_2, self.__media_box, self.__on_player_tab)
 
 
     def __update_toolbar(self):
         """
         Updates the contents of the toolbar.
         """
+
+        if (self.__browser.is_visible()):
+            self.__toolbar.set_toolbar(self.__btn_home,
+                                       self.__btn_history,
+                                       self.__btn_bookmarks,
+                                       self.__btn_back)
+            
+        elif (self.__media_box.is_visible() and self.__media_widget):
+            self.__toolbar.set_toolbar(*self.__media_widget.get_controls())
+            
+        return
         
         items = []
         
@@ -173,7 +192,8 @@ class MediaViewer(TabbedViewer):
     def __on_browser_tab(self):
     
         names = [ p.name for p in self.__browser.get_path() ]
-        title = u" \u00bb ".join(names)
+        #title = u" \u00bb ".join(names)
+        title = names[-1]
         self.set_title(title)
 
         self.__update_toolbar()
@@ -193,31 +213,23 @@ class MediaViewer(TabbedViewer):
         else:
             self.emit_message(msgs.INPUT_EV_CONTEXT_PLAYER)
         
-
-    def render_this(self):
-    
-        TabbedViewer.render_this(self)
-        
-        w, h = self.get_size()
-        self.__browser_slider.set_geometry(0, 0, 80, h)
-        self.__slider.set_geometry(0, 0, 80, h)
-
-        
+       
     def __on_open_file(self, f):
     
-        self.__load_file(f, MediaWidget.DIRECTION_NONE)
+        self.__load_file(f)
 
 
     def __on_open_folder(self, f):
 
         if (self.__browser.is_visible()):
             names = [ p.name for p in self.__browser.get_path() ]
-            title = u" \u00bb ".join(names)
+            #title = u" \u00bb ".join(names)
+            title = names[-1]
             names.reverse()
             acoustic_title = "Entering " + " in ".join(names)
             self.set_title(title)
             self.emit_message(msgs.UI_ACT_TALK, acoustic_title)
-
+            self.emit_message(msgs.CORE_EV_FOLDER_VISITED, f)
             self.__update_toolbar()
         #end if
         
@@ -249,16 +261,44 @@ class MediaViewer(TabbedViewer):
         self.__is_fullscreen = not self.__is_fullscreen
         if (self.__is_fullscreen):
             self.set_tabs_visible(False)
-            self.__slider.set_visible(False)
+            self.__toolbar.set_visible(False)
             self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.FULLSCREEN)
             self.render()
         else:
             self.set_tabs_visible(True)
-            self.__slider.set_visible(True)
-            self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NO_STRIP)
+            self.__toolbar.set_visible(True)
+            self.emit_message(msgs.UI_ACT_VIEW_MODE, viewmodes.NORMAL)
             self.emit_message(msgs.UI_ACT_RENDER)
 
         self.handle_INPUT_ACT_REPORT_CONTEXT()
+
+
+    def __on_btn_home(self):
+        """
+        Reacts on pressing the [Home] button.
+        """
+
+        self.__browser.go_root()
+        
+        
+    def __on_btn_history(self):
+        """
+        Reacts on pressing the [History] button.
+        """
+        
+        f = self.call_service(msgs.CORE_SVC_GET_FILE, "history:///")
+        if (f):
+            self.__browser.load_folder(f, self.__browser.GO_PARENT, True)
+
+
+    def __on_btn_bookmarks(self):
+        """
+        Reacts on pressing the [Bookmarks] button.
+        """
+        
+        f = self.call_service(msgs.CORE_SVC_GET_FILE, "bookmarks://generic/")
+        if (f):
+            self.__browser.load_folder(f, self.__browser.GO_PARENT, True)
 
 
     def __on_btn_back(self):
@@ -326,13 +366,6 @@ class MediaViewer(TabbedViewer):
         """
 
         self.emit_message(msgs.MEDIA_EV_VOLUME_CHANGED, int(v * 100))
-        self.__slider.set_value(v)
-
-
-    def __on_slider_changed(self, v):
-    
-        if (self.__media_widget):
-            self.__media_widget.set_scaling(v)
 
 
     def __go_previous(self):
@@ -347,7 +380,7 @@ class MediaViewer(TabbedViewer):
             
         if (idx > 0):
             next_item = playable_files[idx - 1]
-            self.__load_file(next_item, MediaWidget.DIRECTION_PREVIOUS)
+            self.__load_file(next_item)
             
             
     def __go_next(self):
@@ -384,7 +417,7 @@ class MediaViewer(TabbedViewer):
 
     def __play_same(self):
     
-        self.__load_file(self.__current_file, MediaWidget.DIRECTION_NONE)
+        self.__load_file(self.__current_file)
 
         return True
         
@@ -401,12 +434,12 @@ class MediaViewer(TabbedViewer):
 
         if (idx + 1 < len(playable_files)):
             next_item = playable_files[idx + 1]
-            self.__load_file(next_item, MediaWidget.DIRECTION_NEXT)
+            self.__load_file(next_item)
             return True
 
         elif (wraparound):
             next_item = playable_files[0]
-            self.__load_file(next_item, MediaWidget.DIRECTION_NEXT)
+            self.__load_file(next_item)
             return True
             
         else:
@@ -426,26 +459,26 @@ class MediaViewer(TabbedViewer):
 
         idx = random.randint(0, len(self.__random_files) - 1)
         next_item = self.__random_files.pop(idx)
-        self.__load_file(next_item, MediaWidget.DIRECTION_NEXT)
+        self.__load_file(next_item)
         
         return True
 
 
 
-    def __load_file(self, f, direction):
+    def __load_file(self, f):
         """
         Loads the given file.
         """
 
         self.__current_file = f
-        self.__browser.hilight_file(f)
 
         if (not f.mimetype in mimetypes.get_image_types()):
             self.emit_message(msgs.MEDIA_ACT_STOP)
-            self.__slider.set_image(theme.mb_slider_volume)
-        else:
-            self.__slider.set_image(theme.mb_slider_zoom)
-            
+
+        self.emit_message(msgs.MEDIA_ACT_LOAD, f)
+        self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
+        return
+
         # request media widget
         media_widget = self.call_service(
                         msgs.MEDIAWIDGETREGISTRY_SVC_GET_WIDGET,
@@ -490,10 +523,6 @@ class MediaViewer(TabbedViewer):
         else:
             self.set_title(self.__current_file.name)
 
-        volume = mb_config.volume()
-        self.__slider.set_value(volume / 100.0)
-
-
         self.__media_widget.load(f, direction)
         self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 
@@ -508,6 +537,12 @@ class MediaViewer(TabbedViewer):
                 self.__media_widget.preload(playable_files[idx + 1])
 
 
+    def render_this(self):
+    
+        w, h = self.get_size()
+        self.__browser.set_geometry(0, 0, w, h)
+
+
     def get_browser(self):
     
         return self.__browser
@@ -517,7 +552,7 @@ class MediaViewer(TabbedViewer):
     
         return self.__media_widget
         
-        
+
     def show(self):
     
         TabbedViewer.show(self)
@@ -569,10 +604,10 @@ class MediaViewer(TabbedViewer):
     
     def handle_MEDIA_EV_LOADED(self, viewer, f):
     
-        self.__browser.hilight(-1)
+        self.__browser.set_hilight(-1)
         self.__current_file = None
         self.__may_go_next = False
-
+  
 
     def handle_MEDIA_ACT_PLAY(self):
 
@@ -586,6 +621,12 @@ class MediaViewer(TabbedViewer):
         if (self.__media_widget):
             self.__media_widget.stop()
 
+
+    def handle_MEDIA_ACT_SEEK(self, pos):
+    
+        if (self.__media_widget):
+            self.__media_widget.seek(pos)
+            
 
     def handle_INPUT_ACT_REPORT_CONTEXT(self):
     
@@ -603,21 +644,25 @@ class MediaViewer(TabbedViewer):
     def handle_INPUT_EV_UP(self):
 
         if (not self.is_active()): return
-       
+
+        now = time.time()
+        #if (now < self.__key_hold_down_timestamp + 0.1):
+        #    self.__skip_letter = True
+        #elif (now > self.__key_hold_down_timestamp + 0.5):
+        self.__skip_letter = False
+        self.__key_hold_down_timestamp = now
+
         if (self.__is_searching):
             idx = self.__browser.search(self.__search_term, -1)
             if (idx != -1):
                 self.__browser.set_cursor(idx)
-                self.__browser.scroll_to_item(idx)
+                #self.__browser.scroll_to_item(idx)
             
         else:
+            self.__browser.move_cursor(-1, self.__skip_letter)
             cursor = self.__browser.get_cursor()
-            if (cursor == -1): cursor = 1
-            if (cursor > 0):
-                cursor -= 1
-            self.__browser.set_cursor(cursor)
-
-            f = self.__browser.get_item(cursor).get_file()
+            item = self.__browser.get_item(cursor)
+            f = item.get_file()
             self.emit_message(msgs.UI_ACT_TALK, f.acoustic_name or f.name)
             
 
@@ -633,21 +678,25 @@ class MediaViewer(TabbedViewer):
     def handle_INPUT_EV_DOWN(self):
 
         if (not self.is_active()): return
+
+        now = time.time()
+        #if (now < self.__key_hold_down_timestamp + 0.1):
+        #    self.__skip_letter = True
+        #elif (now > self.__key_hold_down_timestamp + 0.5):
+        self.__skip_letter = False
+        self.__key_hold_down_timestamp = now
         
         if (self.__is_searching):
             idx = self.__browser.search(self.__search_term, 1)
             if (idx != -1):            
                 self.__browser.set_cursor(idx)
-                self.__browser.scroll_to_item(idx)
+                #self.__browser.scroll_to_item(idx)
             
         else:
+            self.__browser.move_cursor(1, self.__skip_letter)
             cursor = self.__browser.get_cursor()
-            if (cursor == -1): cursor = 0
-            if (cursor + 1 < len(self.__browser.get_items())):
-                cursor += 1
-            self.__browser.set_cursor(cursor)            
-
-            f = self.__browser.get_item(cursor).get_file()
+            item = self.__browser.get_item(cursor)
+            f = item.get_file()
             self.emit_message(msgs.UI_ACT_TALK, f.acoustic_name or f.name)
 
 

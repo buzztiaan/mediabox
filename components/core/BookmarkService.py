@@ -67,11 +67,15 @@ class BookmarkService(Component):
     def handle_BOOKMARK_SVC_LIST(self, mimetypes):
     
         if (self.__needs_reload): self.__load_bookmarks()
-        
-        out = [ f for f in self.__items if f.mimetype in mimetypes ]
+
+        if (mimetypes):
+            out = [ f for f in self.__items if f.mimetype in mimetypes ]
+        else:
+            out = self.__items[:]
         
         return out
-        
+
+           
         
     def handle_BOOKMARK_SVC_ADD(self, f):
 

@@ -113,6 +113,13 @@ def get_player_for_mimetype(mimetype):
     DUMMY player if no appropriate player was found.
     """
 
+    # this operation is not time-critical, so we may read in the mapping table
+    # every time
+    _read_mapping_table(_PLAYERS_MAPPING_FILE1)
+    if (os.path.exists(_PLAYERS_MAPPING_FILE2)):
+        _read_mapping_table(_PLAYERS_MAPPING_FILE2)
+    
+
     mediatype = mimetypes.mimetype_to_name(mimetype)
     
     backend = get_backend_for(mediatype)

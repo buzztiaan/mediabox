@@ -4,13 +4,11 @@ def get_classes():
     from IdleDetector import IdleDetector
     from BookmarkService import BookmarkService
     from DirectoryService import DirectoryService
-    from MediaWidgetRegistry import MediaWidgetRegistry
 
     return [Initialiser,
             IdleDetector,
             BookmarkService,
-            DirectoryService,
-            MediaWidgetRegistry]
+            DirectoryService]
 
 
 

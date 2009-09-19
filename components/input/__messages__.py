@@ -1,3 +1,5 @@
+def INPUT_SVC_SEND_KEY(keycode, pressed): pass
+
 def INPUT_ACT_REPORT_CONTEXT(): pass
 
 def INPUT_EV_CONTEXT_MENU(): pass

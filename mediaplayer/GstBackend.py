@@ -57,7 +57,8 @@ class GstBackend(AbstractBackend):
             self._report_error(self.ERR_INVALID, "")
 
         elif (t == gst.MESSAGE_TAG):
-            print message
+            #print message
+            pass
 
 
     def __on_sync_message(self, bus, message):
@@ -84,12 +85,13 @@ class GstBackend(AbstractBackend):
 
         self.__player.set_state(gst.STATE_NULL)
         self.__player.set_property("uri", uri)
+        self._report_aspect_ratio(16/9.0)
         
 
 
     def _set_volume(self, volume):
 
-        self.__player.set_property("volume", volume / 10.0)
+        self.__player.set_property("volume", volume / 100.0)
 
     
     def _is_eof(self):

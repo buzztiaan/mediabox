@@ -74,7 +74,7 @@ class NotificationService(Widget):
         
     def handle_NOTIFY_SVC_SHOW_INFO(self, text):
     
-        self.__notify_window.show_message(text)
+        #self.__notify_window.show_message(text)
 
         return 0
 
@@ -98,7 +98,7 @@ class NotificationService(Widget):
             notify.Notify("abc", 3, "", "", text, [], [], -1)
             print "\n\n\n%s\n\n\n" % text
 
-
+    """
     def __show_progress(self, amount, total, text):
     
         if (maemo.IS_MAEMO):
@@ -119,4 +119,4 @@ class NotificationService(Widget):
 
         else:
             print "\n\n\n%d / %d - %s\n\n\n" % (amount, total, text)
-
+    """

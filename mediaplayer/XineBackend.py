@@ -1,5 +1,6 @@
 from AbstractBackend import AbstractBackend
 from utils import maemo
+from utils import logging
 
 import dbus
 import gobject
@@ -20,6 +21,8 @@ class XineBackend(AbstractBackend):
         self.__current_pos = 0
         self.__window_id = 0
         self.__player = None
+        self.__is_eof = False
+        self.__uri = ""
     
         AbstractBackend.__init__(self)
 
@@ -37,8 +40,9 @@ class XineBackend(AbstractBackend):
             obj = bus.get_object(_SERVICE_NAME, _OBJECT_PATH)
             self.__player = dbus.Interface(obj, _PLAYER_IFACE)
             self.__player.connect_to_signal("aspect_changed", self.__on_aspect_changed)
+            self.__player.connect_to_signal("end_of_stream", self.__on_end_of_stream)
         except:
-            pass
+            logging.error("cannot start Xine backend:\n%s", logging.stacktrace())
 
 
     def __on_aspect_changed(self, a):
@@ -55,9 +59,14 @@ class XineBackend(AbstractBackend):
             ratio = 2.11/1.0   # DVB
         else:
             ratio = 16/9.0
-                      
+
         print "RATIO", ratio
         self._report_aspect_ratio(ratio)
+
+
+    def __on_end_of_stream(self):
+    
+        self.__is_eof = True
 
         
     def _ensure_backend(self):
@@ -74,7 +83,10 @@ class XineBackend(AbstractBackend):
         
     def _is_eof(self):
     
-        return False
+        if (self.__uri.startswith("dvd://")):
+            return False
+        else:
+            return self.__is_eof
         
         
     def _close(self):
@@ -87,7 +99,9 @@ class XineBackend(AbstractBackend):
     
         if (uri.endswith(".dvd") or uri.endswith(".iso")):
             uri = "dvd://" + uri
+        self.__uri = uri
         self.__current_pos = 0
+        self.__is_eof = False
     
         if (self._get_mode() == self.MODE_VIDEO):
             if (self.__window_id != 0):
@@ -99,7 +113,11 @@ class XineBackend(AbstractBackend):
                 self.__window_id = 0
 
         self.__player.open(uri)
-
+        w, h = self.__player.get_video_size()
+        if (w and h):
+            ratio = w / float(h)
+            print "VIDEO RATIO", w, h, ratio
+            self._report_aspect_ratio(ratio)
 
 
     def _send_key(self, key):
@@ -121,16 +139,18 @@ class XineBackend(AbstractBackend):
         
     def _seek(self, pos):
 
+        self.__is_eof = False
         self.__player.seek(pos)    
         
         
     def _set_volume(self, vol):
 
-        self.__player.set_volume(vol)    
+        if (self.__player):
+            self.__player.set_volume(vol)    
 
         
     def _get_position(self):
 
-        pos, total = self.__player.get_position()    
+        pos, total = self.__player.get_position()
         return (pos, total)
 

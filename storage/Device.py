@@ -2,7 +2,7 @@
 Base class of all storage devices.
 """
 
-from com import Component
+from com import Component, msgs
 from utils import logging
 
 
@@ -18,6 +18,7 @@ class Device(Component):
      - L{CATEGORY_LAN} - file system for accessing stuff on the LAN, e.g. UPnP devices
      - L{CATEGORY_WAN} - file system for accessing stuff on the internet
      - L{CATEGORY_OTHER} - file system for accessing other stuff, e.g. mobile phones
+     - L{CATEGORY_HIDDEN} - hidden device not directly visible in the browser
 
     The category determines the position where the device will appear in the
     user interface. The list of devices is sorted first by category, then
@@ -53,8 +54,9 @@ class Device(Component):
     CATEGORY_LAN = 3
     CATEGORY_WAN = 4
     CATEGORY_OTHER = 5
+    CATEGORY_HIDDEN = 6
     
-    TYPE_PRIVATE = 0
+    #TYPE_PRIVATE = 0
     TYPE_GENERIC = 1
     TYPE_AUDIO = 2
     TYPE_VIDEO = 3
@@ -69,6 +71,8 @@ class Device(Component):
 
     def __init__(self):
     
+        self.__bookmarks = []
+
         Component.__init__(self)
         
         
@@ -332,3 +336,23 @@ class Device(Component):
         
         return f.resource
 
+
+    def get_bookmarked(self, f):
+
+        if (not self.__bookmarks):
+            self.__bookmarks = self.call_service(msgs.BOOKMARK_SVC_LIST, [])
+
+        return (f in self.__bookmarks)
+
+
+    def set_bookmarked(self, f, v):
+
+        if (v):
+            self.emit_message(msgs.BOOKMARK_SVC_ADD, f)
+        else:
+            self.emit_message(msgs.BOOKMARK_SVC_DELETE, f)
+
+
+    def handle_BOOKMARK_EV_INVALIDATED(self):
+
+        self.__bookmarks = self.call_service(msgs.BOOKMARK_SVC_LIST, [])

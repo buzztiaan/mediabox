@@ -3,18 +3,15 @@ from mediabox.MediaWidget import MediaWidget
 from mediabox import media_bookmarks
 from mediabox import tagreader
 from mediabox import config as mb_config
-from ui.Button import Button
-from ui.HBox import HBox
-from ui.VBox import VBox
-from ui.EventBox import EventBox
+from ui.layout import HBox
+from ui.layout import VBox
 from ui.ImageButton import ImageButton
 from ui.Image import Image
 from ui.ProgressBar import ProgressBar
 from ui.Label import Label
+from ui.Slider import Slider
 from ui.Pixmap import TEMPORARY_PIXMAP
-from ui.Widget import Widget
 from ui import pixbuftools
-from ui import dialogs
 import mediaplayer
 from utils import maemo
 from theme import theme
@@ -56,29 +53,24 @@ class AudioWidget(MediaWidget):
         self.__lyrics.set_alignment(Label.CENTERED)
         #self.__lyrics = Button("")
         self.add(self.__lyrics)
-
-
-        self.__hbox = HBox()
-        self.__hbox.set_spacing(24)
-        self.add(self.__hbox)
-        
+       
     
         # car control PLAY/PAUSE / cover art
         self.__cover = ImageButton(theme.mb_btn_play_1,
                                    theme.mb_btn_play_2,
                                    True)
         self.__cover.connect_clicked(self.__on_play_pause)
-        self.__hbox.add(self.__cover, False)
+        self.add(self.__cover)
           
           
         # artist and album labels
-        vbox = VBox()
-        self.__hbox.add(vbox, True)
+        self.__trackinfo = VBox()
+        self.add(self.__trackinfo)
         
         hbox = HBox()
         hbox.set_spacing(24)
         #hbox.set_size(0, 42)
-        vbox.add(hbox, True)
+        self.__trackinfo.add(hbox, True)
         img = Image(theme.mb_music_album)
         hbox.add(img, False)
         self.__album = Label("-", theme.font_mb_plain,
@@ -88,19 +80,19 @@ class AudioWidget(MediaWidget):
         hbox = HBox()
         hbox.set_spacing(24)
         #hbox.set_size(0, 42)
-        vbox.add(hbox, True)
+        self.__trackinfo.add(hbox, True)
         img = Image(theme.mb_music_artist)
         hbox.add(img, False)
         self.__artist = Label("-", theme.font_mb_plain,
                               theme.color_mb_trackinfo_text)
         hbox.add(self.__artist, True)
 
-        self.__free_space = Widget()
-        vbox.add(self.__free_space, False)
+        #self.__free_space = Widget()
+        #vbox.add(self.__free_space, False)
 
 
         self.__ctrlbox = VBox()
-        self.__hbox.add(self.__ctrlbox, False)
+        self.add(self.__ctrlbox)
 
         # car control PREVIOUS
         self.__car_btn_prev = ImageButton(theme.mb_btn_car_previous_1,
@@ -124,6 +116,14 @@ class AudioWidget(MediaWidget):
         self.__progress_label.set_alignment(Label.RIGHT)
         self.add(self.__progress_label)
 
+
+        # volume slider
+        self.__volume = Slider(theme.mb_slider_gauge)
+        self.__volume.set_mode(Slider.HORIZONTAL)
+        self.__volume.set_background_color(theme.color_mb_trackinfo_background)
+        self.add(self.__volume)
+        self.__volume.connect_value_changed(self.__on_change_volume)
+
         
         # controls
         self.__btn_play = ImageButton(theme.mb_btn_play_1,
@@ -138,16 +138,12 @@ class AudioWidget(MediaWidget):
                                    theme.mb_btn_bookmark_2)
         btn_bookmark.connect_clicked(self.__on_add_bookmark)
         
-        self._set_controls(Image(theme.mb_toolbar_space_1),
-                           self.__btn_play,
+        self._set_controls(self.__btn_play,
                            Image(theme.mb_progress_left),
                            self.__progress,
                            Image(theme.mb_progress_right),
-                           btn_bookmark,
-                           Image(theme.mb_toolbar_space_1))
-       
+                           btn_bookmark)
 
-        
 
     def set_size(self, w, h):
     
@@ -186,24 +182,32 @@ class AudioWidget(MediaWidget):
 
         screen.fill_area(x, y, w, h, theme.color_mb_trackinfo_background)
         
-        if (w < 800):
-            self.__ctrlbox.set_visible(False)
-            self.__progress_label.set_visible(False)
-            self.__hbox.set_geometry(0, 64, w, h - 128)
-            self.__title.set_geometry(10, 6, w - 2 * 20, 0)
-            self.__lyrics.set_geometry(10, h - 42, w - 2 * 20, 0)
-            self.__free_space.set_size(0, h - 128 - 70)
+        cover_w, cover_h = self.__cover.get_size()
+
+        self.__ctrlbox.set_visible(False)
+        self.__progress_label.set_visible(False)
+        self.__title.set_geometry(10, 6, w - 2 * 20, 0)
+        self.__lyrics.set_geometry(10, h - 42, w - 2 * 20, 0)
+        self.__volume.set_geometry(0, h - 50 - 48, w, 48)
+
+        if (w >= h):
+            # landscape mode
+            self.__cover.set_geometry(10, 70,
+                                      cover_w, cover_h)
+            self.__trackinfo.set_geometry(cover_w + 20, 70,
+                                          w - cover_w - 20, 80)
+            #self.__free_space.set_size(0, h - 128 - 70)
             border_width = 10
-        else:
-            self.__ctrlbox.set_visible(True)
-            self.__ctrlbox.set_size(64, h - 128)
-            self.__title.set_geometry(10, 6, w - 200 - 2 * 20, 0)
-            self.__progress_label.set_visible(True)
-            self.__progress_label.set_geometry(w - 20 - 200, 6, 200, 0)
-            self.__lyrics.set_geometry(10, h - 42, w - 2 * 20, 0)
-            self.__hbox.set_geometry(0, 64, w, h - 128)
-            self.__free_space.set_size(10, h - 128 - 70)
-            border_width = 100
+
+        elif (h > w):
+            # portrait mode
+            self.__cover.set_geometry((w - cover_w) / 2, 70,
+                                      cover_w, cover_h)
+            self.__trackinfo.set_geometry((w - cover_w) / 2, 70 + cover_h + 10,
+                                          cover_w, 80)
+            #self.__free_space.set_size(0, h - 128 - 70)
+            border_width = 10
+
 
         # top and bottom borders
         screen.fill_area(x, y, w, 50,
@@ -220,7 +224,12 @@ class AudioWidget(MediaWidget):
     
         if (w <= 0 or h <= 0): return
     
-        cover_size = min(h - 128, w / 2)
+        if (w >= h):
+            # landscape mode
+            cover_size = min(h - 128, w / 2)
+        else:
+            # portrait mode
+            cover_size = min(w - 20, h / 2)
 
         pbuf = pixbuftools.make_frame(theme.mb_frame_music,
                                       cover_size + 11, cover_size + 11,
@@ -245,10 +254,7 @@ class AudioWidget(MediaWidget):
         del pbuf
         del cover1
         del cover2
-        
-
-
-        
+             
 
 
     def __on_observe_player(self, src, cmd, *args):
@@ -266,8 +272,8 @@ class AudioWidget(MediaWidget):
                     info = "%d:%02d" % (pos_m, pos_s)
                     total = 0
 
-                self.emit_message(msgs.MEDIA_EV_POSITION,
-                                  pos * 1000, total * 1000)
+                #self.emit_message(msgs.MEDIA_EV_POSITION,
+                #                  pos * 1000, total * 1000)
                 self.__progress.set_position(pos, total)
                 self.__progress_label.set_text(info)
                 self.send_event(self.EVENT_MEDIA_POSITION, info)
@@ -399,6 +405,11 @@ class AudioWidget(MediaWidget):
                               self.__current_file, bookmarks)
 
 
+    def __on_change_volume(self, v):
+
+        self.set_scaling(v)
+
+
     def __show_info(self, item):
     
         tags = tagreader.get_tags(item)
@@ -481,6 +492,7 @@ class AudioWidget(MediaWidget):
         mb_config.set_volume(vol)        
         if (self.__player):
             self.__player.set_volume(vol)
+        self.__volume.set_value(vol / 100.0)
         self.send_event(self.EVENT_MEDIA_SCALE, vol / 100.0)
 
        
@@ -492,16 +504,29 @@ class AudioWidget(MediaWidget):
         mb_config.set_volume(vol)        
         if (self.__player):
             self.__player.set_volume(vol)
+        self.__volume.set_value(vol / 100.0)
         self.send_event(self.EVENT_MEDIA_SCALE, vol / 100.0)    
 
 
     def set_scaling(self, v):
 
+        self.__volume.set_value(v)
+        self.__set_volume(v)
+        
+
+    def __set_volume(self, v):
+
         vol = int(v * 100)
-        mb_config.set_volume(vol)        
+        mb_config.set_volume(vol)
         if (self.__player):
             self.__player.set_volume(vol)
         self.send_event(self.EVENT_MEDIA_SCALE, v)
+
+
+    def seek(self, pos):
+    
+        if (self.__player):
+            self.__player.seek(pos)
 
 
     def rewind(self):

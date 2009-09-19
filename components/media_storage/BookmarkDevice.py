@@ -6,7 +6,7 @@ from theme import theme
 
 class _BookmarkDevice(Device):
 
-    CATEGORY = Device.CATEGORY_OTHER
+    CATEGORY = Device.CATEGORY_HIDDEN
     TYPE = Device.TYPE_GENERIC
     _PREFIX = ""
 
@@ -49,6 +49,11 @@ class _BookmarkDevice(Device):
         return f
 
 
+    def get_file(self, path):
+    
+        return self.get_root()
+
+
     def delete_file(self, folder, idx):
     
         f = self.__items[idx]
@@ -58,6 +63,7 @@ class _BookmarkDevice(Device):
 
     def get_contents(self, path, begin_at, end_at, cb, *args):
 
+        """
         if (self.TYPE == Device.TYPE_AUDIO):
             types = mimetypes.get_audio_types()
         elif (self.TYPE == Device.TYPE_VIDEO):
@@ -68,8 +74,9 @@ class _BookmarkDevice(Device):
             types = mimetypes.get_audio_types() + \
                     mimetypes.get_video_types() + \
                     mimetypes.get_image_types()
-        
-        bookmarks = self.call_service(msgs.BOOKMARK_SVC_LIST, types)
+        """
+
+        bookmarks = self.call_service(msgs.BOOKMARK_SVC_LIST, [])
         bookmarks.sort(lambda a,b:cmp(a.name, b.name))
         
         self.__current_folder = path

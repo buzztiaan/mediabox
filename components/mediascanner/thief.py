@@ -8,14 +8,14 @@ thief needs to be quick!
 
 from utils import urlquote
 import os
-import md5
+import hashlib
 
 
 def steal_image(uri):
 
     # try osso
     vfsuri = "file://" + urlquote.quote(uri) + ".png"
-    name = md5.new(vfsuri).hexdigest()
+    name = hashlib.md5(vfsuri).hexdigest()
     thumb_dir = os.path.expanduser("~/.thumbnails/osso")
     thumb_uri = os.path.join(thumb_dir, name)
     

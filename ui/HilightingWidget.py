@@ -1,9 +1,6 @@
 from Widget import Widget
 from Pixmap import Pixmap
 
-import gobject
-import gtk
-
 
 class HilightingWidget(Widget):
     """
@@ -23,9 +20,6 @@ class HilightingWidget(Widget):
         
         # current position of the hilighting box
         self.__box_pos = (0, -1000)
-        
-        # handle of the motion timer
-        self.__motion_timer = None
         
     
         Widget.__init__(self)
@@ -73,7 +67,6 @@ class HilightingWidget(Widget):
         @param new_y:      y coordinate
         """
     
-        #def move_box(from_x, from_y, to_x, to_y):
         def move_box(params):
             from_x, from_y, to_x, to_y = params
             dx = (to_x - from_x) / 3
@@ -85,15 +78,12 @@ class HilightingWidget(Widget):
                 params[1] = from_y + dy
                 params[2] = to_x
                 params[3] = to_y
-                #self.__motion_timer = gobject.timeout_add(10, move_box,
-                #                                       from_x + dx, from_y + dy,
-                #                                       to_x, to_y)
+
                 return True
             else:
                 self.__move_cursor(from_x, from_y, to_x - from_x, to_y - from_y)
                 self.__box_pos = (to_x, to_y)
-                self.__motion_timer = None
-                #self.set_animation_lock(False)
+
                 return False
 
 
@@ -101,18 +91,10 @@ class HilightingWidget(Widget):
             self.place_hilighting_box(new_x, new_y)
     
         else:
-            #self.set_animation_lock(True)
-
             prev_x, prev_y = self.__box_pos
             
-            if (self.__motion_timer):
-                gobject.source_remove(self.__motion_timer)
-
             params = [prev_x, prev_y, new_x, new_y]
             self.animate(50, move_box, params)
-            #self.__motion_timer = gobject.timeout_add(10, move_box,
-            #                                      prev_x, prev_y, new_x, new_y)
-            #threads.wait_for(lambda :not self.__motion_timer, "moving hilighting box")
         #end if
 
 
@@ -192,7 +174,6 @@ class HilightingWidget(Widget):
                                   0, 0, bw, bh)
 
         # 6. draw cursor onto motion buffer
-        #screen.copy_pixmap(self.__motion_buffer, 0, 0, 0, 0, w, h)
         self.__motion_buffer.draw_pixbuf(self.__hilight_box, x2 - x, y2 - y)
                                   
         # 7. copy motion buffer to screen        

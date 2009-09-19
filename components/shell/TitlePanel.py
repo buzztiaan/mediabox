@@ -2,7 +2,7 @@ from ui.Widget import Widget
 from ui.Image import Image
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from ui.Label import Label
-from ui.HBox import HBox
+from ui.layout import HBox
 from ui import pixbuftools
 from theme import theme
 

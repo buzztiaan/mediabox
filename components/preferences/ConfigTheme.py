@@ -24,7 +24,7 @@ class ConfigTheme(Configurator):
         Configurator.__init__(self)
         
         self.__list = TrackList()
-        self.__list.connect_button_clicked(self.__on_item_button)
+        self.__list.connect_item_activated(self.__on_item_clicked)
         self.add(self.__list)
                   
         self.__update_list()
@@ -36,14 +36,18 @@ class ConfigTheme(Configurator):
         self.__list.set_geometry(0, 0, w, h)
         
         
-    def __on_item_button(self, item, idx, btn):
+    def __on_item_clicked(self, idx, px):
     
-        self.__list.hilight(idx)
-        self.render()
-        theme, title = self.__themes[idx]
-        #self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
-        #                  "Loading theme %s..." % theme)
-        gobject.idle_add(self.__change_theme, theme, title, item.get_preview())
+        item = self.__list.get_items()[idx]
+        button = item.get_button_at(px)
+    
+        if (button):
+            self.__list.hilight(idx)
+            self.render()
+            theme, title = self.__themes[idx]
+            #self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
+            #                  "Loading theme %s..." % theme)
+            gobject.idle_add(self.__change_theme, theme, title, item.get_preview())
 
 
 

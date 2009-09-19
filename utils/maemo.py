@@ -96,6 +96,7 @@ def get_product_code():
      - Nokia N800:   RX-34
      - Nokia N810:   RX-44
      - Nokia N810WE: RX-48
+     - Nokia N900:   RX-51
      - Unknown:      ?
     
     @since: 0.96

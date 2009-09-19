@@ -49,6 +49,7 @@ class RootPane(Widget):
     
         w, h = self.get_size()
         screen = self.get_screen()
+        
         TEMPORARY_PIXMAP.fill_area(0, 0, w, h, "#000000")
 
         if (not self.__has_overlay):
