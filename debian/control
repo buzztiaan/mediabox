@@ -7,7 +7,8 @@ Standards-Version: 3.7.2
 
 Package: mediabox
 Architecture: any
-Depends: python2.5-runtime, mplayer, mediabox-compat-plugin (=1.1), mediabox-compat-theme (=1.1)
+#Depends: python2.5-runtime, mplayer, mediabox-compat-plugin (=1.1), mediabox-compat-theme (=1.1)
+Depends: python-osso, python-hildon, python-dbus
 Description: A media center for Nokia Internet Tablets
  MediaBox Media Center was built to handle large collections of
  media and lets you browse and play your music and videos and show

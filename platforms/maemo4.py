@@ -10,6 +10,28 @@ def create_osso_context(name, version, v):
     _osso_ctx = osso.Context(name, version, v)
 
 
+def get_system_bus():
+    """
+    Returns the DBus system bus.
+    @since: 0.96
+    
+    @return: dbus system bus
+    """
+
+    return _system_bus
+    
+
+def get_session_bus():
+    """
+    Returns the DBus session bus.
+    @since: 0.96
+    
+    @return: dbus session bus
+    """
+
+    return _session_bus
+
+
 def get_product_code():
     """
     Returns the product code of the device.
@@ -28,6 +50,7 @@ def get_product_code():
     
     # you can override the product code by setting the environment variable
     # MEDIABOX_MAEMO_DEVICE
+    import os
     product = os.environ.get("MEDIABOX_MAEMO_DEVICE")
     
     if (not product):
@@ -67,3 +90,17 @@ def request_connection():
     except:
         pass
 
+
+
+if (get_product_code() == "SU-18"):
+    # bad hack!
+    # work around broken D-Bus bindings on OS 2006; this breaks urllib2 for us,
+    # but we don't use it anyway
+    def _f(*args): raise RuntimeError("Ignore me...")
+    import urllib2
+    urllib2.AbstractHTTPHandler.do_open = _f
+#end if
+
+import dbus, dbus.glib
+_system_bus = dbus.SystemBus()
+_session_bus = dbus.SessionBus()
