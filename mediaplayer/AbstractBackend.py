@@ -486,7 +486,8 @@ class AbstractBackend(EventEmitter):
 
         if (self.__playing):
             self._stop()
-            self.update_observer(self.OBS_STOPPED, self.__context_id)
+            self.emit_event(self.EVENT_STATUS_CHANGED,
+                            self.__context_id, self.STATUS_STOPPED)
         self.__playing = False
         
         
