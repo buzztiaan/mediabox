@@ -15,13 +15,13 @@ class _MessageBus(object):
 
     def __init__(self):
     
-        self.__mediators = []
+        #self.__mediators = []
         self.__handlers = []
 
 
     def add_mediator(self, mediator):
     
-        self.__mediators.append(mediator)
+        #self.__mediators.append(mediator)
         self.__inspect_mediator(mediator)
 
 

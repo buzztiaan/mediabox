@@ -12,6 +12,8 @@ class Toolbar(Widget):
     
         self.__bg_pmap = None
     
+        self.__current_set = []
+    
 
         Widget.__init__(self)
         self.__box = HBox()
@@ -58,7 +60,10 @@ class Toolbar(Widget):
         Sets the given toolbar on this panel.
         """
     
-        print tbset
+        if (tuple(tbset) == tuple(self.__current_set)):
+            return
+        
+        self.__current_set = tbset
     
         for c in self.__box.get_children():
             self.__box.remove(c)
