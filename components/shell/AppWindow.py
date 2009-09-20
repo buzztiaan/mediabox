@@ -709,3 +709,13 @@ class AppWindow(Component, RootPane):
     
         self.__title_panel.unset_status_icon(w)
 
+
+    def handle_ASR_EV_LANDSCAPE(self):
+    
+        self.__window.set_portrait_mode(False)
+        
+        
+    def handle_ASR_EV_PORTRAIT(self):
+    
+        self.__window.set_portrait_mode(True)
+

@@ -5,6 +5,7 @@ from Widget import Widget
 import platforms
 
 import gtk
+import os
 
 
 class Window(Widget):
@@ -261,4 +262,34 @@ class Window(Widget):
     def set_title(self, title):
     
         self.__window.set_title(title)
+
+
+    def __set_portrait_property(self, prop, value):
+
+        self.__window.window.property_change(prop, "CARDINAL", 32,
+                                             gtk.gdk.PROP_MODE_REPLACE,
+                                             [value])
+    
+    
+    def set_portrait_mode(self, v):
+        """
+        Switches between landscape and portrait mode on supported platforms.
+        @since: 2009.09
+        """
+        
+        if (platforms.PLATFORM == platforms.MAEMO5):
+            if (v):
+                self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
+                self.__set_portrait_property("_HILDON_PORTRAIT_MODE_REQUEST", 1)
+            else:
+                self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
+                self.__set_portrait_property("_HILDON_PORTRAIT_MODE_REQUEST", 0)
+
+        elif (platforms.PLATFORM == platforms.MAEMO4):
+            if (v):
+                os.system("xrandr -o left")
+            else:
+                os.system("xrandr -o normal")
+
+        #end if
 
