@@ -872,11 +872,12 @@ class Widget(EventEmitter):
         delta = 1.0 / float(fps)
         next = time.time()
         while (True):
-            #print next
+            # TODO: this stuff should be put into a function in utils
+            gobject.timeout_add(int(delta*1000), lambda : False)
             while (time.time() < next):
                 cnt = 0
                 while (gtk.events_pending() and cnt < 10):
-                    gtk.main_iteration(False)
+                    gtk.main_iteration(True)
                     cnt += 1
                     
             ret = cb(*args)

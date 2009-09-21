@@ -300,8 +300,9 @@ class MPlayerBackend(AbstractBackend):
             self.__send_cmd("get_time_length")
             self.__media_length = -1
             timeout = time.time() + 1.0
+            gobject.timeout_add(1000, lambda : False)
             while (self.__media_length == -1 and time.time() < timeout):
-                gtk.main_iteration(False)
+                gtk.main_iteration(True)
             if (time.time() >= timeout):
                 logging.warning("timeout reached for mplayer.get_time_length")
 
@@ -316,8 +317,9 @@ class MPlayerBackend(AbstractBackend):
         #else:
         self.__send_cmd("get_time_pos")
         timeout = time.time() + 1.0
+        gobject.timeout_add(1000, lambda : False)
         while (self.__media_position == -1 and time.time() < timeout):
-            gtk.main_iteration(False)
+            gtk.main_iteration(True)
         if (time.time() >= timeout):
             logging.warning("timeout reached for mplayer.get_time_pos")
 
@@ -468,7 +470,8 @@ class MPlayerBackend(AbstractBackend):
             value = int(float(data[idx1 + 1:idx2].strip()))
             self._report_buffering(value)
 
-        elif (data.endswith("No stream found.\n")):
+        elif (data.endswith("No stream found.\n") or \
+             (data.startswith("No stream found"))):
             #print "NO STREAM FOUND"
             self._report_error(self.ERR_NOT_FOUND, "")
 
@@ -488,7 +491,11 @@ class MPlayerBackend(AbstractBackend):
             self._report_error(self.ERR_NOT_FOUND, "")
 
         elif (data.startswith("Server returned 503")):
-            self._report_error(self.ERR_NOT_FOUND, "")
+            # 503 is a temporary error, it may repeat several times before
+            # definite failure
+            # self._report_error(self.ERR_NOT_FOUND, "")
+            pass
+
 
 
     def __parse_icy_info(self, data):

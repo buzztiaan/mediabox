@@ -140,7 +140,7 @@ class ThumbableGridView(GridView):
         self.__letter_visible = True
 
         prev_offset = self.get_offset()
-        GridView.move(self, dx, dy)
+        dy, dy = GridView.move(self, dx, dy)
         
         # stop scrolling immediately if there is no more motion
         if (prev_offset == self.get_offset()):
@@ -157,6 +157,8 @@ class ThumbableGridView(GridView):
             gobject.source_remove(self.__letter_timeout_handler)
         self.__letter_timeout_handler = gobject.timeout_add(_LETTER_TIMEOUT,
                                                       self.__on_letter_timeout)
+
+        return (dx, dy)
 
         
     def associate_with_slider(self, slider):

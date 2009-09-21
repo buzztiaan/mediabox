@@ -3,6 +3,8 @@ Class for representing a file or folder on a storage device.
 """
 
 import hashlib
+import gobject
+import gtk
 
 
 class File(object):
@@ -368,14 +370,14 @@ class File(object):
                 collection.append(f)
             else:
                 finished[0] = True
+                gobject.timeout_add(0, lambda : False)
             return True
     
         finished = [False]
         collection = []
         self.get_children_async(collector)
         while (not finished[0]):
-            import gtk
-            gtk.main_iteration(False)
+            gtk.main_iteration(True)
     
         return collection
 

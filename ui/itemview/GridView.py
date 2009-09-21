@@ -283,7 +283,7 @@ class GridView(ItemView):
 
     def move(self, dx, dy):
     
-        if (not self.__buffer): return
+        if (not self.__buffer): return (dx, dy)
     
         w, h = self.get_size()
         total_w, total_h = self.get_total_size()
@@ -295,14 +295,7 @@ class GridView(ItemView):
         elif (self.__offset + dy > total_h - h):
             dy = (total_h - h) - self.__offset
     
-        self.__offset += dy
-        
-        #if (self.__offset < 0):
-        #    self.__offset = 0
-            
-        #elif (self.__offset > total_h - h):
-        #    self.__offset = total_h - h
-            
+        self.__offset += dy          
 
         abs_dy = abs(dy)
         if (dy < 0):
@@ -316,6 +309,8 @@ class GridView(ItemView):
             self.__render(h - abs_dy, h)
 
         self.render()
+        
+        return (dx, dy)
         
         
     def scroll_to_item(self, pos):

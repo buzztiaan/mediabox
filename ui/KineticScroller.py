@@ -143,7 +143,6 @@ class KineticScroller(EventEmitter, Observable):
         #    return False
         #else:
         #    self.__impulse_point = now
-            
         
         if (self.__is_dragging or (abs(delta_sx) < 1 and abs(delta_sy) < 1)):
             # shut down impulse handler when not needed to save battery
@@ -152,7 +151,7 @@ class KineticScroller(EventEmitter, Observable):
             return False
         
         else:
-            self.__child.move(int(delta_sx), int(delta_sy))
+            delta_sx, delta_sy = self.__child.move(int(delta_sx), int(delta_sy))
             
             # apply simple physics
             vx = delta_sx / self.__delta_t
@@ -166,7 +165,7 @@ class KineticScroller(EventEmitter, Observable):
             # it will block
             #gtk.main_iteration(False)
             gobject.timeout_add(0, self.__impulse_handler)
-
+        
 
     def __begin_tap_and_hold(self):
     
@@ -228,7 +227,7 @@ class KineticScroller(EventEmitter, Observable):
         self.__is_dragging = False
         self.__scrolling = False
      
-        # start up impulse handler if not running        
+        # start up impulse handler if not running
         if (not self.__impulse_handler_running):
             self.__impulse_handler_running = True
             self.__impulse_handler()
