@@ -96,7 +96,10 @@ class MediaItem(Item):
             
             # render icon
             pbuf = thumbnail.render_on_pixbuf(self.__icon, self.__file.mimetype)
-            pmap.fit_pixbuf(pbuf, offset, 20, 140, 80)
+            # weird, Fremantle requires me to make a copy of the pixbuf...
+            pbuf2 = pbuf.copy()
+            pmap.fit_pixbuf(pbuf2, offset, 20, 140, 80)
+            del pbuf2
 
             # render fav star
             if (self.__file.bookmarked):

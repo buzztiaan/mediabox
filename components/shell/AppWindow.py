@@ -127,7 +127,7 @@ class AppWindow(Component, RootPane):
                                         "",
                                         theme.mb_viewer_audio]),
                    (self.__window.set_visible, [True]),
-                   (time.sleep, [5]),
+                   #(time.sleep, [5]),
                    (self.__register_views, []),
                    #(self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
                    #                     "- starting -",
