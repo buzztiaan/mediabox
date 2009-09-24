@@ -3,7 +3,7 @@ This package contains the media player backends.
 """
 
 from DummyBackend import DummyBackend
-from utils import maemo
+import platforms
 from mediabox import values
 from utils import mimetypes
 from utils import logging
@@ -13,15 +13,15 @@ import os
 
 _DUMMY = DummyBackend()
 
-if (maemo.IS_MER):
+if (platforms.PLATFORM == platforms.MER):
     from XineBackend import XineBackend
     _XINE = XineBackend()
     _PLAYERS = {"gst": _GST,
                 "mplayer": _MPLAYER,
                 "xine": _XINE}
     _SUFFIX = ".mer"
-    
-elif (maemo.IS_MAEMO):
+
+elif (platforms.PLATFORM == platforms.MAEMO4):
     from GstBackend import GstBackend
     from MPlayerBackend import MPlayerBackend
     from OSSOBackend import OSSOBackend
@@ -32,6 +32,13 @@ elif (maemo.IS_MAEMO):
                 "mplayer": _MPLAYER,
                 "oms": _OMS}
     _SUFFIX = ".maemo"
+
+elif (platforms.PLATFORM == platforms.MAEMO5):
+    from GstBackend import GstBackend
+    _GST = GstBackend()
+    _PLAYERS = {"gst": _GST}
+    _SUFFIX = ".maemo5"
+
                 
 else:
     from GstBackend import GstBackend

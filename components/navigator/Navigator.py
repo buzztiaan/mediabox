@@ -1,12 +1,9 @@
 from com import View, msgs
 from RootDevice import RootDevice
 from mediabox.StorageBrowser import StorageBrowser
-from ui.layout import HBox
 from ui.ImageButton import ImageButton
-from ui.Image import Image
 from ui.Slider import Slider
 from ui.Toolbar import Toolbar
-from ui.Widget import Widget
 from utils import mimetypes
 from utils import logging
 from mediabox import config as mb_config
@@ -41,25 +38,20 @@ class Navigator(View):
 
         # browser list slider
         self.__browser_slider = Slider(theme.mb_list_slider)
-        self.__browser_slider.set_mode(self.__browser_slider.VERTICAL)
-        #if (show_sliders):
-        #    browser_hbox.add(self.__browser_slider, False)
+        self.__browser_slider.set_mode(Slider.VERTICAL)
+        self.add(self.__browser_slider)
+
         
         # file browser
         self.__browser = StorageBrowser()
         self.__browser.associate_with_slider(self.__browser_slider)
         self.__browser.set_thumbnailer(self.__on_request_thumbnail)
-        #browser_hbox.add(self.__browser, True)
         self.__browser.connect_folder_opened(self.__on_open_folder)
         self.__browser.connect_file_opened(self.__on_open_file)
         self.__browser.connect_file_enqueued(self.__on_enqueue_file)
         self.__browser_slider.connect_button_pressed(
                                     lambda a,b:self.__browser.stop_scrolling())
         self.add(self.__browser)
-
-        #hbox = HBox()
-        #hbox.set_visible(False)
-        #self.add(hbox)
 
 
         # toolbar
@@ -89,8 +81,6 @@ class Navigator(View):
 
        
         self.__browser.set_root_device(RootDevice())
-        #self.add_tab(tab_label_1, browser_hbox, self.__on_browser_tab)
-        #self.add_tab(tab_label_2, self.__media_box, self.__on_player_tab)
 
 
     def __update_toolbar(self):
@@ -104,38 +94,6 @@ class Navigator(View):
                                        self.__btn_bookmarks,
                                        self.__btn_back)
             
-        return
-        
-        items = []
-        
-        current_folder = self.__browser.get_current_folder()
-
-        if (current_folder):
-            if (current_folder.folder_flags & current_folder.ITEMS_DOWNLOADABLE):
-                self.__btn_keep.set_active(False)
-                items.append(self.__btn_keep)        
-
-            if (current_folder.folder_flags & current_folder.ITEMS_ADDABLE):
-                items.append(Image(theme.mb_toolbar_space_1))
-                items.append(self.__btn_add)
-        
-            if (self.__media_box.is_visible()):
-                if (self.__media_widget):
-                    items += self.__media_widget.get_controls()
-        
-                if (current_folder.folder_flags & current_folder.ITEMS_SKIPPABLE):            
-                    items.append(Image(theme.mb_toolbar_space_1))
-                    items.append(self.__btn_prev)
-                    items.append(self.__btn_next)
-
-        if (self.__browser.is_visible()):
-            items.append(Image(theme.mb_toolbar_space_1))
-            items.append(self.__btn_back)
-
-        self.set_toolbar(items)
-
-
-
     def show(self):
     
         View.show(self)
@@ -248,6 +206,7 @@ class Navigator(View):
         """
 
         self.__current_file = f
+        self.__browser.hilight_file(f)
 
         if (not f.mimetype in mimetypes.get_image_types()):
             self.emit_message(msgs.MEDIA_ACT_STOP)
@@ -259,13 +218,106 @@ class Navigator(View):
     def render_this(self):
     
         w, h = self.get_size()
-        self.__browser.set_geometry(0, 0, w, h - 70)
+        self.__browser_slider.set_geometry(0, 0, 40, h - 70)
+        self.__browser.set_geometry(40, 0, w - 40, h - 70)
         self.__toolbar.set_geometry(0, h - 70, w, 70)
 
 
-    def get_browser(self):
+    def __go_previous(self):
+
+        playable_files = [ f for f in self.__browser.get_files()
+                           if not f.mimetype.endswith("-folder") ]
+
+        try:
+            idx = playable_files.index(self.__current_file)
+        except ValueError:
+            return False
+            
+        if (idx > 0):
+            next_item = playable_files[idx - 1]
+            self.__load_file(next_item)
+            
+            
+    def __go_next(self):
+
+        repeat_mode = mb_config.repeat_mode()
+        shuffle_mode = mb_config.shuffle_mode()
+        
+        if (repeat_mode == mb_config.REPEAT_MODE_NONE):
+            if (shuffle_mode == mb_config.SHUFFLE_MODE_NONE):
+                self.__play_next(False)
+
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ONE):
+                self.__play_shuffled(False)
+                
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ALL):
+                self.__play_shuffled(True)
+            
+        elif (repeat_mode == mb_config.REPEAT_MODE_ONE):
+            if (self.__current_file):
+                self.__play_same()
+            else:
+                self.__play_next(True)
+
+        elif (repeat_mode == mb_config.REPEAT_MODE_ALL):
+            if (shuffle_mode == mb_config.SHUFFLE_MODE_NONE):
+                self.__play_next(True)
+
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ONE):
+                self.__play_shuffled(False)
+
+            elif (shuffle_mode == mb_config.SHUFFLE_MODE_ALL):
+                self.__play_shuffled(True)
+            
+
+    def __play_same(self):
     
-        return self.__browser
+        self.__load_file(self.__current_file)
+
+        return True
+        
+        
+    def __play_next(self, wraparound):
+    
+        playable_files = [ f for f in self.__browser.get_files()
+                           if not f.mimetype.endswith("-folder") ]
+        try:
+            idx = playable_files.index(self.__current_file)
+        except:
+            idx = -1
+        
+
+        if (idx + 1 < len(playable_files)):
+            next_item = playable_files[idx + 1]
+            self.__load_file(next_item)
+            return True
+
+        elif (wraparound):
+            next_item = playable_files[0]
+            self.__load_file(next_item)
+            return True
+            
+        else:
+            return False
+
+        
+        
+    def __play_shuffled(self, from_all):
+    
+        if (from_all):
+            # TODO...
+            pass
+
+        if (not self.__random_files):
+            self.__random_files = [ f for f in self.__browser.get_files()
+                                    if not f.mimetype.endswith("-folder") ]
+
+        idx = random.randint(0, len(self.__random_files) - 1)
+        next_item = self.__random_files.pop(idx)
+        self.__load_file(next_item)
+        
+        return True
+
       
 
     def handle_CORE_EV_FOLDER_INVALIDATED(self, folder):
@@ -307,9 +359,17 @@ class Navigator(View):
     
     def handle_MEDIA_EV_LOADED(self, viewer, f):
     
-        self.__browser.set_hilight(-1)
-        self.__current_file = None
-        self.__may_go_next = False
+        pass
+
+
+    def handle_MEDIA_ACT_PREVIOUS(self):
+    
+        self.__go_previous()
+  
+  
+    def handle_MEDIA_ACT_NEXT(self):
+    
+        self.__go_next()
   
           
 

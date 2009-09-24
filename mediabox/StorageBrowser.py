@@ -424,13 +424,14 @@ class StorageBrowser(ThumbableGridView):
         self.__hilighted_file = f
         if (f):
             try:
-                idx = self.get_files().index(f) + 1
+                idx = self.get_files().index(f)
             except ValueError:
                 idx = -1
         else:
             idx = -1
         
         self.set_hilight(idx)
+        self.invalidate()
         if (idx != -1):
             self.scroll_to_item(idx)
         
@@ -569,7 +570,7 @@ class StorageBrowser(ThumbableGridView):
             # don't reload list
             #self.clear_items()
             self.switch_item_set(folder.full_path)
-            self.set_hilight(-1)
+            #self.set_hilight(-1)
             
         w, h = self.get_size()
         for item in self.get_items():

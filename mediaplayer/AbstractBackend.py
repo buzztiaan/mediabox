@@ -43,27 +43,7 @@ class AbstractBackend(EventEmitter):
     EVENT_POSITION_CHANGED = "event-position-changed"
     EVENT_ASPECT_CHANGED = "event-aspect-changed"
     EVENT_TAG_DISCOVERED = "event-tag-discovered"
-
-    """
-    # observer events
-    OBS_STARTED = 0
-    OBS_KILLED = 1
-    OBS_SUSPENDED = 2
-    OBS_ERROR = 3
-        
-    OBS_PLAYING = 4
-    OBS_STOPPED = 5
-    OBS_EOF = 6
-    
-    OBS_POSITION = 7
-    
-    OBS_ASPECT = 8
-    OBS_TAG_INFO = 9
-    
-    OBS_CONNECTING = 10
-    OBS_BUFFERING = 11
-    """
-    
+   
     # error codes
     ERR_INVALID = 0
     ERR_NOT_FOUND = 1
