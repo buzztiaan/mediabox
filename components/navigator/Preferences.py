@@ -2,6 +2,7 @@ from com import View, Configurator, msgs
 from ui.itemview.ThumbableGridView import ThumbableGridView
 from ui.Toolbar import Toolbar
 from ui.ImageButton import ImageButton
+from ui.Pixmap import Pixmap
 from PrefsItem import PrefsItem
 from theme import theme
 
@@ -69,7 +70,12 @@ class Preferences(View):
         self.__list.set_visible(False)
         comp.set_visible(True)
         self.__current_configurator = comp
-        self.render()
+        
+        w, h = self.get_size()
+        buf = Pixmap(None, w, h)
+        self.render_at(buf)
+        self.fx_slide_horizontal(buf, 0, 0, w, h, self.SLIDE_LEFT)
+        del buf
         
         
     def __hide_prefs(self):
@@ -78,10 +84,15 @@ class Preferences(View):
         self.__list.set_visible(True)
         self.__current_configurator.set_visible(False)
         self.__current_configurator = None
-        self.render()
-    
-        
-        
+
+        w, h = self.get_size()
+        buf = Pixmap(None, w, h)
+        self.render_at(buf)
+        self.fx_slide_horizontal(buf, 0, 0, w, h, self.SLIDE_RIGHT)
+        del buf
+
+
+
     def handle_COM_EV_COMPONENT_LOADED(self, comp):
     
         if (isinstance(comp, Configurator)):

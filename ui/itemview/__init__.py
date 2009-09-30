@@ -6,4 +6,5 @@ from Item import Item
 from ButtonItem import ButtonItem
 from CheckBoxItem import CheckBoxItem
 from LabelItem import LabelItem
+from OptionItem import OptionItem
 

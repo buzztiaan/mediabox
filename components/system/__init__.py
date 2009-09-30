@@ -1,11 +1,12 @@
 from utils import maemo
+import platforms
 
 def get_classes():
     from VolumeMount import VolumeMount
     from Prefs import Prefs
 
     classes = [VolumeMount, Prefs]
-    if (maemo.IS_MAEMO):
+    if (platforms.PLATFORM in [platforms.MAEMO4, platforms.MAEMO5]):
         from Headset import Headset
         from DisplayLight import DisplayLight
         classes += [Headset, DisplayLight]

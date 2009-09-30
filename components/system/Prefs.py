@@ -1,7 +1,7 @@
 from com import Configurator, msgs
-from ui.Label import Label
-from ui.ChoiceBox import ChoiceBox
-from ui.layout import VBox
+from ui.itemview import ThumbableGridView
+from ui.itemview import LabelItem
+from ui.itemview import OptionItem
 from theme import theme
 import config
 
@@ -32,41 +32,30 @@ class Prefs(Configurator):
     
         Configurator.__init__(self)
         
-        self.__vbox = VBox()
-        self.__vbox.set_spacing(12)
-        self.add(self.__vbox)
+        self.__list = ThumbableGridView()
+        self.__list.set_background(theme.color_mb_background)
+        self.add(self.__list)
         
-        lbl = Label("Keep display lit:",
-                    theme.font_mb_plain, theme.color_mb_listitem_text)
-        self.__vbox.add(lbl)
-
-        lit = config.get_display_lit()
-        chbox = ChoiceBox("never", "no",
-                          "while playing", "playing",
-                          #"when on AC", "ac",
-                          "yes", "yes")
-        chbox.select_by_value(lit)
+        lbl = LabelItem("Keep display lit:")
+        self.__list.append_item(lbl)
+        
+        chbox = OptionItem("never", "no",
+                           "while playing", "playing",
+                           "yes", "yes")
         chbox.connect_changed(self.__on_select_display_lit)
-        self.__vbox.add(chbox)
-      
-        self.__label_lit = Label(_DESCRIPTIONS[lit],
-                                 theme.font_mb_plain,
-                                 theme.color_mb_listitem_text)
-        self.__vbox.add(self.__label_lit)
-
+        self.__list.append_item(chbox)
+        
 
     def render_this(self):
     
-        x, y = self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.get_screen()
-        
-        self.__vbox.set_geometry(32, 32, w - 64, h - 64)
-        screen.fill_area(x, y, w, h, theme.color_mb_background)
+        self.__list.set_geometry(0, 0, w, h)
         
         
     def __on_select_display_lit(self, value):
     
+        self.__list.invalidate()
+        self.__list.render()
         config.set_display_lit(value)
         self.__label_lit.set_text(_DESCRIPTIONS[value])
 
