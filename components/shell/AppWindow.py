@@ -71,6 +71,7 @@ class AppWindow(Component, RootPane):
 
         # window
         self.__window = Window(True)
+        self.__window.set_title("MediaBox")
         #self.__window.set_size(800, 480)
         self.__window.set_size(480, 800)
         self.__window.set_visible(True)
@@ -228,15 +229,15 @@ class AppWindow(Component, RootPane):
             if (w < h):
                 # portrait mode
                 self.__tabs.set_orientation(Tabs.HORIZONTAL)
-                self.__tabs.set_geometry(0, 0, w, 70)
+                self.__tabs.set_geometry(0, h - 42, w, 42)
                 if (self.__current_view):
-                    self.__current_view.set_geometry(0, 70, w, h - 70)
+                    self.__current_view.set_geometry(0, 0, w, h - 42)
             else:
                 # landscape mode
-                self.__tabs.set_orientation(Tabs.VERTICAL)
-                self.__tabs.set_geometry(w - 70, 0, 70, h)
+                self.__tabs.set_orientation(Tabs.HORIZONTAL)
+                self.__tabs.set_geometry(0, h - 42, w, 42)
                 if (self.__current_view):
-                    self.__current_view.set_geometry(0, 0, w - 70, h)
+                    self.__current_view.set_geometry(0, 0, w, h - 42)
 
         else:
             if (self.__current_view):

@@ -21,6 +21,8 @@ class Widget(EventEmitter):
     EVENT_KEY_PRESS = "key-pressed"
     EVENT_KEY_RELEASE = "key-released"
     
+    SLIDE_LEFT = 0
+    SLIDE_RIGHT = 1
     
     # static lock for animations
     __animation_lock = threading.Event()
@@ -885,4 +887,63 @@ class Widget(EventEmitter):
             next += delta
             if (not ret): break
         #end for
+
+
+
+    def fx_slide_horizontal(self, buf, x, y, w, h, direction):
+
+        def fx(params):
+            from_x, to_x = params
+            dx = (to_x - from_x) / 3
+
+            if (dx > 0):
+                if (direction == self.SLIDE_LEFT):
+                    screen.move_area(scr_x + x + dx, scr_y + y,
+                                     w - dx, h,
+                                     -dx, 0)
+                    screen.copy_pixmap(buf,
+                                       x + from_x, y,
+                                       scr_x + x + w - dx, scr_y + y,
+                                       dx, h)
+                else:
+                    screen.move_area(scr_x + x, scr_y + y,
+                                     w - dx, h,
+                                     dx, 0)
+                    screen.copy_pixmap(buf,
+                                       x + w - from_x - dx, y,
+                                       scr_x + x, scr_y + y,
+                                       dx, h)
+
+                params[0] = from_x + dx
+                params[1] = to_x
+                return True
+
+            else:
+                dx = to_x - from_x
+                if (direction == self.SLIDE_LEFT):
+                    screen.move_area(scr_x + x + dx, scr_y + y,
+                                     w - dx, h,
+                                     -dx, 0)
+                    screen.copy_pixmap(buf,
+                                       x + from_x, y,
+                                       scr_x + x + w - dx,
+                                       scr_y + y,
+                                       dx, h)
+                else:
+                    screen.move_area(scr_x + x, scr_y + y,
+                                     w - dx, h,
+                                     dx, 0)
+                    screen.copy_pixmap(buf,
+                                       x + w - from_x - dx, y,
+                                       scr_y + x, scr_y + y,
+                                       dx, h)
+                
+                return False
+
+
+        if (not self.may_render()): return
+
+        scr_x, scr_y = self.get_screen_pos()
+        screen = self.get_screen()
+        self.animate(50, fx, [0, w])
 

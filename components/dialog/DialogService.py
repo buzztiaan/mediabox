@@ -2,6 +2,7 @@ from com import Widget, msgs
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP, text_extents
 from ui.Button import Button
 from Dialog import Dialog
+from OptionDialog import OptionDialog
 from theme import theme
 
 import gtk
@@ -101,6 +102,17 @@ class DialogService(Widget):
         return self.__response
 
 
+    def handle_DIALOG_SVC_OPTIONS(self, *options):
+    
+        dlg = OptionDialog()
+        for icon, label in options:
+            dlg.add_option(icon, label)
+        print "PROEB"
+        dlg.run()
+        
+        return dlg.get_choice()
+
+
     def handle_DIALOG_SVC_QUESTION(self, header, text):
     
         self.__dialog.reset()
@@ -163,7 +175,7 @@ class DialogService(Widget):
                                   ("Cancel", self.__on_btn_cancel))
 
         self.__show_dialog()
-        self.emit_message(msgs.VKB_ACT_SHOW, self.get_window())
+        #self.emit_message(msgs.VKB_ACT_SHOW, self.get_window())
         resp = self.__run_dialog()
         return (resp, self.__dialog.get_text_input())
         

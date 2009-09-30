@@ -1,6 +1,7 @@
 from com import Component, msgs
 from mediabox import tagreader
 from utils import imageloader
+from theme import theme
 
 import os
 
@@ -22,7 +23,7 @@ class CoverStore(Component):
                 if (cover):
                     imageloader.load(cover, cb, *args)
                 else:
-                    cb(None, *args)
+                    cb(theme.mb_unknown_album, *args)
                     
             else:
                 # it's a regular file
@@ -34,13 +35,13 @@ class CoverStore(Component):
                     if (embedded):
                         imageloader.load_data(embedded, cb, *args)
                     else:
-                        cb(None, *args)
+                        cb(theme.mb_unknown_album, *args)
 
                 #end if   
 
         else:
             # it's a remote file
-            cb(None, *args)
+            cb(theme.mb_unknown_album, *args)
         
     
         # tell the message bus that we handled this service call

@@ -25,6 +25,7 @@ class File(object):
     ITEMS_ADDABLE =        1 << 6
     ITEMS_SORTABLE =       1 << 7
     ITEMS_SORTED_ALPHA =   1 << 8
+    ITEMS_COMPACT =        1 << 9
     
 
 
@@ -33,6 +34,9 @@ class File(object):
 
     DIRECTORY = "application/x-folder"
     """MIME type for folders"""
+    
+    DEVICE_ROOT = "application/x-device-folder"
+    """MIME type for device folders"""
     
 
     def __init__(self, device):

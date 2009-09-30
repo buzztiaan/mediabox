@@ -54,10 +54,11 @@ class LocalDevice(Device):
         f = File(self)
         f.is_local = True
         f.path = "MENU"
-        f.mimetype = f.DIRECTORY
+        f.mimetype = f.DEVICE_ROOT
         f.resource = ""
         f.name = self.__name
         f.info = "Browse the filesystem"
+        f.icon = self.get_icon().get_path()
         f.folder_flags = f.ITEMS_ENQUEUEABLE | \
                          f.INDEXABLE
 

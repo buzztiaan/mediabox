@@ -117,7 +117,7 @@ class Tabs(HilightingWidget):
         
         self.__is_prepared = False
         #self.__prepare_tabs()
-        #self.select_tab(0)
+        self.select_tab(0)
         
         
     def __prepare_tabs(self):
@@ -128,7 +128,7 @@ class Tabs(HilightingWidget):
         if (self.__orientation == self.VERTICAL):
             parts = pixbuftools.LEFT | pixbuftools.BOTTOM | pixbuftools.TOP
         else:
-            parts = pixbuftools.LEFT | pixbuftools.BOTTOM | pixbuftools.RIGHT
+            parts = pixbuftools.LEFT | pixbuftools.TOP | pixbuftools.RIGHT
             
         for i in range(len(self.__tabs)):
             self.__prepare_tab(i)

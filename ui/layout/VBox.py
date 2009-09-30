@@ -1,10 +1,10 @@
-from HBox import _Box
+from Box import Box
 
 
-class VBox(_Box):
+class VBox(Box):
 
     def __init__(self):
     
-        _Box.__init__(self)
-        self.set_mode(self.VERTICAL)
+        Box.__init__(self)
+        self.set_orientation(self.VERTICAL)
 

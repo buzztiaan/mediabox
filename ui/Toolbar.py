@@ -1,5 +1,5 @@
 from ui.Widget import Widget
-from ui.layout import HBox
+from ui.layout import Box
 from ui.Pixmap import Pixmap
 from theme import theme
 
@@ -16,9 +16,9 @@ class Toolbar(Widget):
     
 
         Widget.__init__(self)
-        self.__box = HBox()
-        self.__box.set_spacing(0)
-        self.__box.set_halign(self.__box.HALIGN_RIGHT)
+        self.__box = Box()
+        self.__box.set_spacing(32)
+        self.__box.set_halign(self.__box.HALIGN_CENTER)
         self.__box.set_valign(self.__box.VALIGN_CENTER)
         self.add(self.__box)        
 
@@ -50,6 +50,11 @@ class Toolbar(Widget):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
+
+        if (w < h):
+            self.__box.set_orientation(Box.VERTICAL)
+        else:
+            self.__box.set_orientation(Box.HORIZONTAL)
 
         if (self.__bg_pmap):
             screen.draw_pixmap(self.__bg_pmap, x, y)

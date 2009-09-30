@@ -52,8 +52,15 @@ class VideoPlayer(Player):
     def render_this(self):
     
         w, h = self.get_size()
-        self.__screen.set_geometry(0, 0, w, h - 70)
-        self.__toolbar.set_geometry(0, h - 70, w, 70)
+        if (w < h):
+            # portrait mode
+            self.__screen.set_geometry(0, 0, w, h - 70)
+            self.__toolbar.set_geometry(0, h - 70, w, 70)
+
+        else:
+            # landscape mode
+            self.__screen.set_geometry(0, 0, w - 70, h)
+            self.__toolbar.set_geometry(w - 70, 0, 70, h)        
         
         
     def get_mime_types(self):

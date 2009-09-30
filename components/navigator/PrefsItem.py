@@ -12,11 +12,7 @@ class PrefsItem(Item):
         self.__configurator = configurator
     
         Item.__init__(self)
-
-
-    def get_size(self):
-    
-        return (240, 160)
+        self.set_size(120, 120)
 
 
     def render_at(self, cnv, x, y):
@@ -25,10 +21,10 @@ class PrefsItem(Item):
 
         pmap, is_new = self._get_cached_pixmap()
         if (is_new):
-            pmap.fill_area(0, 0, w, h, "#ffffff")
-            pmap.fit_pixbuf(self.__configurator.ICON, 20, 20, w - 40, h - 40)
+            pmap.fill_area(0, 0, w, h, theme.color_mb_background)
+            pmap.fit_pixbuf(self.__configurator.ICON, 10, 10, w - 20, h - 30)
             pmap.draw_centered_text(self.__configurator.TITLE,
-                                    theme.font_mb_list_item,
+                                    theme.font_mb_listitem,
                                     10, h - 26, w - 20, 20,
                                     theme.color_mb_listitem_text)
         #end if

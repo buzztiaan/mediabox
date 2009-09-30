@@ -1,28 +1,23 @@
-from ui.ButtonListItem import ButtonListItem
+from ui.itemview import Item
 from theme import theme
 
 
-class ThemeListItem(ButtonListItem):
+class ThemeListItem(Item):
     """
     List item for themes.
     """
 
-    BUTTON_PLAY = "play"
+    EVENT_CLICKED = "event-clicked"
 
 
     def __init__(self, preview, name, info, author):
 
         self.__preview = preview
-        self.__label = self.escape_xml(name)
-        self.__info = self.escape_xml(info)
-        self.__author = self.escape_xml(author)
-        
-        
-        ButtonListItem.__init__(self)
-        self.set_colors(theme.color_mb_listitem_text, theme.color_mb_listitem_subtext)
-        self.set_font(theme.font_mb_tiny)
+        self.__label = name #self.escape_xml(name)
+        self.__info = info #self.escape_xml(info)
+        self.__author = author #self.escape_xml(author)
 
-        self.set_buttons((self.BUTTON_PLAY, theme.mb_item_btn_open))
+        Item.__init__(self)
 
 
     def get_preview(self):
@@ -30,21 +25,43 @@ class ThemeListItem(ButtonListItem):
         return self.__preview
 
 
-    def render_this(self, cnv):
+    def render_at(self, cnv, x, y):
     
-        self.render_bg(cnv)
-
         w, h = self.get_size()
-        icon_y = (h - self.__preview.get_height()) / 2
-        cnv.draw_pixbuf(self.__preview, 8, icon_y)
+        
+        pmap, is_new = self._get_cached_pixmap()
+        if (is_new):        
+            pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
-        info = self.__info
-        if (self.__author):
-            info += "\nby " + self.__author
+            icon_y = (h - self.__preview.get_height()) / 2
+            pmap.draw_pixbuf(self.__preview, 8, icon_y)
 
-        self.render_label(cnv, 128, self.__label, info)
-        self.render_selection_frame(cnv)
-             
-        if (not self.is_hilighted()):
-            self.render_buttons(cnv)
+            info = self.__info
+            if (self.__author):
+                info += "\nby " + self.__author
 
+            pmap.set_clip_rect(0, 0, w, h)
+            pmap.draw_text(self.__label, theme.font_mb_listitem,
+                            128, 10, theme.color_mb_listitem_text)
+            pmap.draw_text(info, theme.font_mb_listitem,
+                            128, 30, theme.color_mb_listitem_subtext)
+            pmap.set_clip_rect()
+        #end if
+
+        # copy to the given canvas
+        cnv.copy_buffer(pmap, 0, 0, x, y, w, h)
+
+
+    def connect_clicked(self, cb, *args):
+    
+        self._connect(self.EVENT_CLICKED, cb, *args)
+        
+        
+        
+    def click_at(self, px, py):
+    
+        w, h = self.get_size()
+        if (px >= w - 80):
+            print "CLICK"
+            self.emit_event(self.EVENT_CLICKED)
+        

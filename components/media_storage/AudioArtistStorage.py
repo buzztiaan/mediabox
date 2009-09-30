@@ -134,9 +134,10 @@ class AudioArtistStorage(Device):
         f.is_local = True
         f.can_skip = True
         f.path = "/"
-        f.mimetype = f.DIRECTORY
+        f.mimetype = f.DEVICE_ROOT
         f.resource = ""
         f.name = self.get_name()
+        f.icon = self.get_icon().get_path()
         f.info = "Browse your music library by artist"
         
         return f

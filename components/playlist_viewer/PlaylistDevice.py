@@ -2,6 +2,7 @@ from com import msgs
 from Playlist import Playlist
 from storage import Device, File
 from mediabox import values
+from ui.dialog import InputDialog
 from utils import urlquote
 from utils import logging
 from theme import theme
@@ -66,9 +67,14 @@ class PlaylistDevice(Device):
         Creates a new playlist.
         """
         
-        resp, name = self.call_service(msgs.DIALOG_SVC_TEXT_INPUT,
-                                       "Create New List",
-                                       "Enter name of list:")
+        dlg = InputDialog("Create New List")
+        dlg.add_input("Enter name of list:", "")
+        resp = dlg.run()
+        name = dlg.get_values()[0]
+
+        #resp, name = self.call_service(msgs.DIALOG_SVC_TEXT_INPUT,
+        #                               "Create New List",
+        #                               "Enter name of list:")
 
         names = [ n for n, pl in self.__lists ]
         if (resp == 0 and name):
@@ -219,7 +225,7 @@ class PlaylistDevice(Device):
         f.name = self.get_name()
         f.path = "/"
         f.mimetype = f.DIRECTORY
-        f.folder_flags = f.ITEMS_DELETABLE
+        f.folder_flags = f.ITEMS_DELETABLE | f.ITEMS_ADDABLE
 
         return f
 
@@ -303,15 +309,24 @@ class PlaylistDevice(Device):
 
         pl.append(f)
         
+        
+    def handle_PLAYLIST_SVC_GET_LISTS(self):
 
-    def handle_PLAYLIST_ACT_APPEND(self, f):        
+        if (self.__needs_playlist_reload):
+            self.__load_playlists()
+            self.__needs_playlist_reload = False
 
-        pl = self.__current_list
+        names = [ n for n, pl in self.__lists
+                  if not n in [_PLAYLIST_RECENT_50] ]
+        return names
+
+
+    def handle_PLAYLIST_ACT_APPEND(self, pl_name, f):        
+
+        pl = self.__lookup_playlist(pl_name)
         if (pl.get_name() in _SPECIAL_PLAYLISTS):
             pl = self.__lookup_playlist(_PLAYLIST_DEFAULT)
-        
-        pl_name = pl.get_name()
-                
+
         self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
                           u"adding \xbb%s\xab to %s" % (f.name, pl_name))
         self.__add_item_to_playlist(pl, f)

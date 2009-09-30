@@ -33,6 +33,9 @@ class GridView(ItemView):
         # list of overlay renderers
         self.__overlay_renderers = []
         
+        # items per row
+        self.__items_per_row = 1
+        
         
         self.__is_invalidated = True
     
@@ -45,6 +48,35 @@ class GridView(ItemView):
         ItemView.set_size(self, w, h)
         if ((old_w, old_h) != (w, h)):
             self.__init_buffer()
+            self.set_items_per_row(self.__items_per_row)
+
+    def append_item(self, item):
+    
+        ItemView.append_item(self, item)
+        
+        w, h = self.get_size()
+        item_w = w / self.__items_per_row
+        nil, item_h = item.get_size()
+        item.set_size(item_w, item_h)
+
+
+    def set_items_per_row(self, n):
+        """
+        Sets the number of items per row.
+        
+        @param n: number of columns
+        """
+        
+        self.__items_per_row = max(1, n)
+        
+        if (self.get_items()):
+            w, h = self.get_size()
+            item_w = w / self.__items_per_row
+            nil, item_h = self.get_item(0).get_size()
+            for i in self.get_items():
+                i.set_size(item_w, item_h)
+            #end for
+        #end if
 
 
     def set_background(self, color):
@@ -97,6 +129,8 @@ class GridView(ItemView):
         """
         Returns the number of items per row.
         """
+
+        #return self.__items_per_row
 
         items = self.get_items()
         if (items):

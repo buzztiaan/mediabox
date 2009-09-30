@@ -114,9 +114,10 @@ class AVDevice(Device):
     
         f = File(self)
         f.path = "0"
-        f.mimetype = f.DIRECTORY
+        f.mimetype = f.DEVICE_ROOT
         f.resource = ""
         f.name = self.get_name()
+        f.icon = self.get_icon().get_path()
         f.info = "UPnP network storage"
         
         return f    

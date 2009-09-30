@@ -4,6 +4,7 @@ from mediabox.StorageBrowser import StorageBrowser
 from ui.ImageButton import ImageButton
 from ui.Slider import Slider
 from ui.Toolbar import Toolbar
+from ui.dialog import OptionDialog
 from utils import mimetypes
 from utils import logging
 from mediabox import config as mb_config
@@ -45,10 +46,10 @@ class Navigator(View):
         # file browser
         self.__browser = StorageBrowser()
         self.__browser.associate_with_slider(self.__browser_slider)
-        self.__browser.set_thumbnailer(self.__on_request_thumbnail)
         self.__browser.connect_folder_opened(self.__on_open_folder)
         self.__browser.connect_file_opened(self.__on_open_file)
         self.__browser.connect_file_enqueued(self.__on_enqueue_file)
+        self.__browser.connect_thumbnail_requested(self.__on_request_thumbnail)
         self.__browser_slider.connect_button_pressed(
                                     lambda a,b:self.__browser.stop_scrolling())
         self.add(self.__browser)
@@ -88,11 +89,14 @@ class Navigator(View):
         Updates the contents of the toolbar.
         """
 
-        if (self.__browser.is_visible()):
-            self.__toolbar.set_toolbar(self.__btn_home,
-                                       #self.__btn_history,
-                                       self.__btn_bookmarks,
-                                       self.__btn_back)
+        cwd = self.__browser.get_current_folder()
+        items = [self.__btn_home, self.__btn_history, self.__btn_back]
+        
+        if (cwd.folder_flags & cwd.ITEMS_ADDABLE):
+            items.append(self.__btn_add)
+
+        self.__toolbar.set_toolbar(*items)
+
             
     def show(self):
     
@@ -130,15 +134,32 @@ class Navigator(View):
 
     def __on_enqueue_file(self, f):
     
-        self.emit_message(msgs.PLAYLIST_ACT_APPEND, f)
+        print "ENQ"
+        dlg = OptionDialog("Select a Playlist")
+        playlists = self.call_service(msgs.PLAYLIST_SVC_GET_LISTS)
+        print playlists
+        if (not playlists): return
+        
+        # select playlist
+        if (len(playlists) == 1):
+            playlist = playlists[0]
+        
+        else:
+            for pl in playlists:
+                dlg.add_option(None, pl)
+            if (dlg.run() == 0):
+                choice = dlg.get_choice()
+                playlist = playlists[choice]
+        #end for
+    
+        self.emit_message(msgs.PLAYLIST_ACT_APPEND, playlist, f)
         
 
-    def __on_request_thumbnail(self, f, cb, *args):
+    def __on_request_thumbnail(self, f, async_required, cb):
 
-        if (cb):
+        if (async_required):
             # create thumbnail
-            self.call_service(msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL, f,
-                              cb, *args)
+            self.call_service(msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL, f, cb)
             return None
             
         else:
@@ -218,9 +239,17 @@ class Navigator(View):
     def render_this(self):
     
         w, h = self.get_size()
-        self.__browser_slider.set_geometry(0, 0, 40, h - 70)
-        self.__browser.set_geometry(40, 0, w - 40, h - 70)
-        self.__toolbar.set_geometry(0, h - 70, w, 70)
+        if (w < h):
+            # portrait mode
+            self.__browser_slider.set_geometry(0, 0, 40, h - 70)
+            self.__browser.set_geometry(40, 0, w - 40, h - 70)
+            self.__toolbar.set_geometry(0, h - 70, w, 70)
+
+        else:
+            # landscape mode
+            self.__browser_slider.set_geometry(0, 0, 40, h)
+            self.__browser.set_geometry(40, 0, w - 40 - 70, h)
+            self.__toolbar.set_geometry(w - 70, 0, 70, h)
 
 
     def __go_previous(self):

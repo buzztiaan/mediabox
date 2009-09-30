@@ -1,8 +1,8 @@
-def get_classes():
+def get_devices():
 
-    from PlaylistViewer import PlaylistViewer
-    return [] #PlaylistViewer]
-
+    #from PlaylistViewer import PlaylistViewer
+    from PlaylistDevice import PlaylistDevice
+    return [PlaylistDevice] #PlaylistViewer]
 
 
 import __messages__

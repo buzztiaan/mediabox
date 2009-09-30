@@ -1,3 +1,12 @@
+def DIALOG_SVC_OPTIONS(*options): pass
+"""
+Displays a dialog with option buttons. It takes a list of tuples consisting
+of an icon pixbuf (or None) and a text label.
+@since: 2009.09
+
+@param options: variable list of (icon, label) tuples
+"""
+
 def DIALOG_SVC_CUSTOM(icon, header, widget): pass
 """
 Displays a dialog with custom content.

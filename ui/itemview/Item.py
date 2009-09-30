@@ -17,15 +17,27 @@ class Item(EventEmitter):
 
     def __init__(self):
     
+        self.__size = (240, 80)
         self.__is_hilighted = False
         self.__is_marked = False
 
         EventEmitter.__init__(self)
 
 
+    def get_letter(self):
+    
+        return ""
+        
+
     def get_size(self):
     
-        return (240, 80)
+        return self.__size
+        
+        
+    def set_size(self, w, h):
+    
+        self.__size = (max(60, w), max(60, h))
+        self._invalidate_cached_pixmap()
 
 
     def set_hilighted(self, v):
@@ -70,6 +82,15 @@ class Item(EventEmitter):
         """
     
         pass
+
+
+    def tap_and_hold(self, px, py):
+        """
+        Override this method to handle tap-and-hold on the item.
+        """
+
+        pass
+
 
 
     def _get_cached_pixmap(self):

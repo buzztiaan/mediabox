@@ -2,7 +2,7 @@ def get_classes():
 
     #from Preferences import Preferences
     #from ConfigBackend import ConfigBackend
-    #from ConfigTheme import ConfigTheme
+    from ConfigTheme import ConfigTheme
 
-    return [] #ConfigBackend]
+    return [ConfigTheme] #ConfigBackend]
 

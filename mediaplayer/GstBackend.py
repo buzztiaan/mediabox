@@ -29,7 +29,7 @@ class GstBackend(AbstractBackend):
 
     def __start_gst(self):
 
-        self.__player = gst.element_factory_make("playbin", "player")
+        self.__player = gst.element_factory_make("playbin2", "player")
         bus = self.__player.get_bus()
         bus.add_signal_watch()
         bus.enable_sync_message_emission()

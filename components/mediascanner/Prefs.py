@@ -1,9 +1,8 @@
 from com import Configurator, msgs
-from ui.layout import HBox
-from ui.layout import VBox
-from ui.Label import Label
-from ui.CheckBox import CheckBox
-from ui.Button import Button
+from ui.itemview import ThumbableGridView
+from ui.itemview import ButtonItem
+from ui.itemview import CheckBoxItem
+from ui.itemview import LabelItem
 from theme import theme
 from mediabox import config as mb_config
 
@@ -21,66 +20,39 @@ class Prefs(Configurator):
     
         Configurator.__init__(self)
 
-        self.__vbox = VBox()
-        self.__vbox.set_halign(VBox.HALIGN_LEFT)
-        self.__vbox.set_valign(VBox.VALIGN_TOP)
-        self.__vbox.set_spacing(12)
-        #self.__vbox.set_geometry(0, 0, 620, 370)
-        self.add(self.__vbox)
+        self.__list = ThumbableGridView()
+        self.add(self.__list)
 
-                
-        chk = CheckBox(mb_config.scan_at_startup())
+
+        chk = CheckBoxItem("Always update index at startup", False)
         chk.connect_checked(self.__on_check_startup)
-        self.__vbox.add(chk)
-        lbl = Label("Always update index at startup\n"
-                    "(delays startup time)",
-                    theme.font_mb_plain, theme.color_mb_listitem_text)        
-        chk.add(lbl)
+        self.__list.append_item(chk)
 
-        #chk = CheckBox(mb_config.scan_with_inotify())
-        #chk.connect_checked(self.__on_check_inotify)
-        #self.__vbox.add(chk)
-        #lbl = Label("Watch folders for changes via inotify\n"
-        #            "(detects new files automatically)",
-        #            theme.font_mb_plain, theme.color_mb_listitem_text)        
-        #chk.add(lbl)
+        btn = ButtonItem("Update index now")
+        btn.connect_clicked(self.__on_click_rebuild)
+        self.__list.append_item(btn)
 
-
-        self.__btn_reindex = Button("Update index now")
-        self.__btn_reindex.connect_clicked(self.__on_click_rebuild)
-        self.__vbox.add(self.__btn_reindex)
-
-        chk = CheckBox(mb_config.store_thumbnails_on_medium())
+        chk = CheckBoxItem("Store thumbnails on the same medium as the " \
+                           "associated files", False)
         chk.connect_checked(self.__on_check_store_thumbs)
-        self.__vbox.add(chk)
-        lbl = Label("Store thumbnails on the same medium as the\n"
-                    "associated files (restart MediaBox for this)",
-                    theme.font_mb_plain, theme.color_mb_listitem_text)        
-        chk.add(lbl)
+        self.__list.append_item(chk)
 
-        self.__btn_reset = Button("Reset thumbnail previews")
-        self.__btn_reset.connect_clicked(self.__on_click_reset)
-        self.__vbox.add(self.__btn_reset)
-
-
+        btn = ButtonItem("Clear preview icons")
+        btn.connect_clicked(self.__on_click_reset)
+        self.__list.append_item(btn)
 
 
     def render_this(self):
     
-        x, y = self.get_screen_pos()
         w, h = self.get_size()
-        screen = self.get_screen()
-        
-        self.__vbox.set_geometry(32, 32, w - 64, h - 64)
-        self.__btn_reset.set_size(w - 64, 64)
-        self.__btn_reindex.set_size(w - 64, 64)
-        screen.fill_area(x, y, w, h, theme.color_mb_background)
-        
+        self.__list.set_geometry(0, 0, w, h)        
         
         
     def __on_check_startup(self, value):
     
         mb_config.set_scan_at_startup(value)
+        self.__list.invalidate()
+        self.__list.render()
 
 
     def __on_check_inotify(self, value):
@@ -91,6 +63,8 @@ class Prefs(Configurator):
     def __on_check_store_thumbs(self, value):
     
         mb_config.set_store_thumbnails_on_medium(value)
+        self.__list.invalidate()
+        self.__list.render()
 
 
     def __on_click_reset(self):

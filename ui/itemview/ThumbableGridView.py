@@ -80,12 +80,18 @@ class ThumbableGridView(GridView):
         
         
     def __on_tap_and_hold(self, px, py):
-    
-        if (self.__has_drag_sort and px < 32):
-            idx = self.get_item_at(px, py)
-            self.float_item(idx, px, py)
-            self.invalidate()
-            self.render()
+
+        idx = self.get_item_at(px, py)
+        x, y = self.get_position_of_item(idx)
+        item = self.get_item(idx)
+        item.tap_and_hold(px - x, py - y)
+
+        
+        #if (self.__has_drag_sort and px < 32):
+        #    idx = self.get_item_at(px, py)
+        #    self.float_item(idx, px, py)
+        #    self.invalidate()
+        #    self.render()
 
 
     def __on_release_button(self, px, py):
@@ -121,11 +127,6 @@ class ThumbableGridView(GridView):
         prev_offset = self.get_offset()
         offset = int((total_h - h) * (1.0 - percent))
         self.move(0, offset - prev_offset)
-
-
-    #def connect_item_clicked(self, cb, *args):
-   # 
-   #     self._connect(self.EVENT_ITEM_CLICKED, cb, *args)
 
 
     def __on_letter_timeout(self):

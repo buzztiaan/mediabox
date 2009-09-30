@@ -2,6 +2,7 @@ from com import Widget, msgs
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP, text_extents
 from ui.Button import Button
 from Dialog import Dialog
+from OptionDialog import OptionDialog
 from theme import theme
 
 import gtk
@@ -18,6 +19,16 @@ class DialogService(Widget):
         Widget.__init__(self)
         
 
+
+    def handle_DIALOG_SVC_OPTIONS(self, *options):
+    
+        dlg = OptionDialog()
+        for icon, label in options:
+            dlg.add_option(icon, label)
+        print "PROEB"
+        dlg.run()
+        
+        return dlg.get_choice()
 
 
     def handle_DIALOG_SVC_QUESTION(self, header, text):
