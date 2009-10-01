@@ -8,6 +8,7 @@ from ui.dialog import OptionDialog
 from utils import mimetypes
 from utils import logging
 from mediabox import config as mb_config
+from utils.ItemScheduler import ItemScheduler
 from theme import theme
 
 import random
@@ -34,6 +35,9 @@ class Navigator(View):
         self.__key_hold_down_timestamp = 0
         self.__skip_letter = False
 
+        # scheduler for creating thumbnails one by one
+        self.__tn_scheduler = ItemScheduler()
+        
     
         View.__init__(self)
 
@@ -46,11 +50,14 @@ class Navigator(View):
         # file browser
         self.__browser = StorageBrowser()
         self.__browser.associate_with_slider(self.__browser_slider)
-        self.__browser.connect_folder_opened(self.__on_open_folder)
+        self.__browser.connect_folder_begin(self.__on_begin_folder)
+        self.__browser.connect_folder_progress(self.__on_progress_folder)
+        self.__browser.connect_folder_complete(self.__on_complete_folder)
+        #self.__browser.connect_folder_opened(self.__on_open_folder)
         self.__browser.connect_file_opened(self.__on_open_file)
         self.__browser.connect_file_enqueued(self.__on_enqueue_file)
         self.__browser.connect_file_bookmarked(self.__on_bookmark_file)
-        self.__browser.connect_thumbnail_requested(self.__on_request_thumbnail)
+        #self.__browser.connect_thumbnail_requested(self.__on_request_thumbnail)
         self.__browser_slider.connect_button_pressed(
                                     lambda a,b:self.__browser.stop_scrolling())
         self.add(self.__browser)
@@ -116,7 +123,27 @@ class Navigator(View):
         self.__load_file(f)
 
 
-    def __on_open_folder(self, f):
+    def __on_begin_folder(self, f):
+    
+        self.__tn_scheduler.new_schedule(5, self.__on_load_thumbnail)
+        self.__tn_scheduler.halt()
+
+
+    def __on_progress_folder(self, f, c):
+
+        if (c.icon): return
+
+        item = self.__browser.get_items()[-1]
+        thumbpath, is_final = \
+          self.call_service(msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, c)
+
+        item.set_icon(thumbpath)
+        
+        if (not is_final):
+            self.__tn_scheduler.add(item, c)
+
+
+    def __on_complete_folder(self, f):
 
         if (self.__browser.is_visible()):
             names = [ p.name for p in self.__browser.get_path() ]
@@ -131,11 +158,11 @@ class Navigator(View):
         #end if
         
         self.__random_files = []
+        self.__tn_scheduler.resume()
 
 
     def __on_enqueue_file(self, f):
     
-        print "ENQ"
         dlg = OptionDialog("Select a Playlist")
         playlists = self.call_service(msgs.PLAYLIST_SVC_GET_LISTS)
         print playlists
@@ -159,20 +186,29 @@ class Navigator(View):
     def __on_bookmark_file(self, f):
     
         f.bookmarked = True
-        
 
-    def __on_request_thumbnail(self, f, async_required, cb):
 
-        if (async_required):
-            # create thumbnail
-            self.call_service(msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL, f, cb)
+    def __update_thumbnail(self, item, thumbpath):
+    
+        item.set_icon(thumbpath)
+        #idx = self.get_items().index(item)
+        # TODO: only render if item is currently on screen
+        self.__browser.invalidate()
+        self.__browser.render()
+
+
+    def __on_load_thumbnail(self, item, f):
+
+        def on_loaded(thumbpath):
+            self.__update_thumbnail(item, thumbpath)
             
-        else:
-            # lookup existing thumbnail
-            thumbnail = self.call_service(
-                msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, f) or None
-            cb(thumbnail)
-
+            #if (self.is_visible()):
+            self.__tn_scheduler.resume()
+    
+        # load thumbnail
+        self.__tn_scheduler.halt()
+        self.call_service(msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL, f, on_loaded)
+        
 
     def __on_btn_home(self):
         """

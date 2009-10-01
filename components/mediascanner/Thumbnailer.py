@@ -262,7 +262,7 @@ class Thumbnailer(Component):
     def handle_COM_EV_COMPONENT_LOADED(self, comp):
     
         if (isinstance(comp, _Thumbnailer)):
-            self.__register_thumbnailer(thumbnailer)
+            self.__register_thumbnailer(comp)
 
 
     def handle_MEDIASCANNER_SVC_LOOKUP_THUMBNAIL(self, f):
@@ -275,9 +275,9 @@ class Thumbnailer(Component):
             handlers = self.__mime_handlers.get(m1 + "/*")
 
         if (not handlers):
-            return ""
+            return ("", True)
 
-        handlers[0].make_quick_thumbnail(f)
+        return handlers[0].make_quick_thumbnail(f)
 
         #if (self.has_thumbnail(f)):
         #    return self.get_thumbnail_path(f)

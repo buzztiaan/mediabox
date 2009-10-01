@@ -23,7 +23,7 @@ def MEDIASCANNER_SVC_LOOKUP_THUMBNAIL(f): pass
 Looks up a thumbnail for the given file.
 
 @param f: file object
-@return: path of thumbnail file
+@return: path of thumbnail file and whether the thumbnail is final
 """
 
 def MEDIASCANNER_SVC_LOAD_THUMBNAIL(f, cb, *args): pass

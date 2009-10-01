@@ -21,7 +21,12 @@ class StorageBrowser(ThumbableGridView):
     GO_CHILD = 1
     GO_PARENT = 2
     
+    EVENT_FOLDER_BEGIN = "folder-begin"
+    EVENT_FOLDER_PROGRESS = "folder-progress"
+    EVENT_FOLDER_COMPLETE = "folder-complete"
+    
     EVENT_FOLDER_OPENED = "folder-opened"
+    
     EVENT_FILE_OPENED = "file-opened"
     EVENT_FILE_ENQUEUED = "file-enqueued"
     EVENT_FILE_REMOVED = "file-removed"
@@ -78,8 +83,23 @@ class StorageBrowser(ThumbableGridView):
     def connect_folder_opened(self, cb, *args):
     
         self._connect(self.EVENT_FOLDER_OPENED, cb, *args)
-        
-        
+
+
+    def connect_folder_begin(self, cb, *args):
+    
+        self._connect(self.EVENT_FOLDER_BEGIN, cb, *args)
+
+
+    def connect_folder_progress(self, cb, *args):
+    
+        self._connect(self.EVENT_FOLDER_PROGRESS, cb, *args)
+
+
+    def connect_folder_complete(self, cb, *args):
+    
+        self._connect(self.EVENT_FOLDER_COMPLETE, cb, *args)
+
+
     def connect_file_opened(self, cb, *args):
     
         self._connect(self.EVENT_FILE_OPENED, cb, *args)
@@ -580,9 +600,11 @@ class StorageBrowser(ThumbableGridView):
         @param force_reload: whether to force reloading the folder
         """
 
-        self.__close_subfolder()
-        self.__tn_scheduler.new_schedule(5, self.__on_load_thumbnail)
-        self.__tn_scheduler.halt()
+        #self.__close_subfolder()
+        #self.__tn_scheduler.new_schedule(5, self.__on_load_thumbnail)
+        #self.__tn_scheduler.halt()
+
+        self.emit_event(self.EVENT_FOLDER_BEGIN, folder)
 
         # are we just reloading the same folder?
         reload_only = False
@@ -660,11 +682,14 @@ class StorageBrowser(ThumbableGridView):
         if (loading_status == _STATUS_INCOMPLETE or full_reload):
             self.set_message("Loading")
             self.complete_current_folder()
+        else:
+            self.emit_event(self.EVENT_FOLDER_COMPLETE, folder)
 
         # now is a good time to collect garbage
         import gc; gc.collect()    
 
-        
+   
+    """     
     def __close_subfolder(self):
 
         if (not self.__subfolder_range): return
@@ -680,6 +705,7 @@ class StorageBrowser(ThumbableGridView):
         
         self.__subfolder_range = None
         self.render()
+    """
         
         
     def complete_current_folder(self):
@@ -700,6 +726,8 @@ class StorageBrowser(ThumbableGridView):
                 entries.append(f)
                 try:
                     self.__add_file(f)
+                    self.emit_event(self.EVENT_FOLDER_PROGRESS,
+                                    self.get_current_folder(), f)
                 except:
                     print logging.stacktrace()
 
@@ -712,12 +740,14 @@ class StorageBrowser(ThumbableGridView):
                 self.__path_stack[-1][1] = _STATUS_OK
                 
                 # finished loading items; now create thumbnails
-                self.__tn_scheduler.resume()
+                #self.__tn_scheduler.resume()
                 
                 self.invalidate()
                 self.render()
-                self.send_event(self.EVENT_FOLDER_OPENED,
+                self.emit_event(self.EVENT_FOLDER_COMPLETE,
                                 self.get_current_folder())
+                #self.send_event(self.EVENT_FOLDER_OPENED,
+                #                self.get_current_folder())
 
             now = time.time()
             if (not f or now > self.__last_list_render_time + 1.0):
@@ -745,16 +775,16 @@ class StorageBrowser(ThumbableGridView):
         cwd = self.get_current_folder()
         self.__support_legacy_folder_flags(cwd, f)
 
-        thumbnail = f.icon or ""
-        item = MediaItem(f, thumbnail)
-        if (not thumbnail):
-            self.emit_event(self.EVENT_THUMBNAIL_REQUESTED, f, False,
-                     lambda thumbpath:self.__update_thumbnail(item, thumbpath))
-        #end if
+        #thumbnail = f.icon or ""
+        item = MediaItem(f, f.icon or "")
+        #if (not thumbnail):
+        #    self.emit_event(self.EVENT_THUMBNAIL_REQUESTED, f, False,
+        #             lambda thumbpath:self.__update_thumbnail(item, thumbpath))
+        ##end if
 
         # remember for thumbnailing if no thumbnail was found
-        if (not item.has_icon() and f.mimetype != f.DIRECTORY):
-            self.__tn_scheduler.add(item, f)
+        #if (not item.has_icon() and f.mimetype != f.DIRECTORY):
+        #    self.__tn_scheduler.add(item, f)
 
         #w, h = self.get_size()
         #item.set_size(w, 100)

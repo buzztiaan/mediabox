@@ -1,5 +1,8 @@
 from Component import Component
+from mediabox import config
 import msgs
+
+import os
 
 
 class Thumbnailer(Component):
@@ -8,6 +11,10 @@ class Thumbnailer(Component):
     thumbnails of files.
     @since: 2009.10
     """
+
+    __THUMB_FOLDER = os.path.abspath(config.thumbdir())
+    __STORE_ON_MEDIUM = config.store_thumbnails_on_medium()
+
 
     def __init__(self):
     
@@ -33,10 +40,10 @@ class Thumbnailer(Component):
         May return an empty string.
         
         @param f: file object
-        @return: path of thumbnail file
+        @return: tuple of thumbnail file and whether the thumbnail is final
         """
         
-        return ""
+        return ("", True)
         
         
     def make_thumbnail(self, f, cb, *args):
@@ -51,4 +58,63 @@ class Thumbnailer(Component):
         """
         
         cb("", *args)
+
+
+
+    def _set_thumbnail(self, f, pbuf):
+    
+        path = self.__get_thumbnail_path(f)
+        try:
+            pbuf.save(path, "jpeg")
+            return path
+        except:
+            return ""
+        
+        
+    def _get_thumbnail(self, f):
+    
+        path = self.__get_thumbnail_path(f)
+        if (os.path.exists(path)):
+            mtime1 = f.mtime
+            mtime2 = os.path.getmtime(path)
+            tn_epoch = config.thumbnails_epoch()
+            if (mtime1 <= mtime2 and mtime2 >= tn_epoch):
+                return path
+            else:
+                return ""
+        else:
+            return ""
+
+        
+    
+    def __get_thumbnail_path(self, f):
+        """
+        Returns the path for the thumbnail for the given file.
+        """
+
+        md5 = f.thumbnail_md5
+        thumb_fallback = os.path.join(self.__THUMB_FOLDER,
+                                      md5 + ".jpg")
+        if (not self.__STORE_ON_MEDIUM):
+            return thumb_fallback
+
+        else:
+            medium = f.medium
+            if (not medium or medium == "/"):
+                return thumb_fallback
+
+            else:
+                prefix = os.path.join(medium, ".mediabox", "thumbnails")
+                if (not os.path.exists(prefix)):
+                    try:
+                        os.makedirs(prefix)
+                    except:
+                        logging.error("could not create thumbnails directory:"
+                                      "%s\n%s", prefix, logging.stacktrace())
+                        return thumb_fallback
+                #end if
+            #end if
+            
+            thumb = os.path.join(prefix, md5 + ".jpg")
+            return thumb
 

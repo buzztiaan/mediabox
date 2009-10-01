@@ -1,5 +1,7 @@
 def get_classes():
 
     from ImageViewer import ImageViewer
-    return [ImageViewer]
+    from ImageThumbnailer import ImageThumbnailer
+    return [ImageViewer,
+            ImageThumbnailer]
 
