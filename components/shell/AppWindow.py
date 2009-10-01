@@ -234,10 +234,10 @@ class AppWindow(Component, RootPane):
                     self.__current_view.set_geometry(0, 42, w, h - 42)
             else:
                 # landscape mode
-                self.__tabs.set_orientation(Tabs.HORIZONTAL)
-                self.__tabs.set_geometry(0, h - 42, w, 42)
+                self.__tabs.set_orientation(Tabs.VERTICAL)
+                self.__tabs.set_geometry(0, 0, 42, h)
                 if (self.__current_view):
-                    self.__current_view.set_geometry(0, 0, w, h - 42)
+                    self.__current_view.set_geometry(42, 0, w - 42, h)
 
         else:
             if (self.__current_view):

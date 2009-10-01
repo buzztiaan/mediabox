@@ -23,7 +23,7 @@ _DESCRIPTIONS = {"no":
 
 class Prefs(Configurator):
 
-    ICON = theme.mb_device_n800
+    ICON = theme.mb_device_nit
     TITLE = "Device"
     DESCRIPTION = "Configure the device hardware"
 

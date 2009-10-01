@@ -3,6 +3,8 @@ from mediabox import thumbnail
 from utils import textutils
 from theme import theme
 
+import gtk
+
 
 class MediaItem(Item):
 
@@ -96,12 +98,21 @@ class MediaItem(Item):
         if (is_new):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
            
+
             # render icon
-            pbuf = thumbnail.render_on_pixbuf(self.__icon, self.__file.mimetype)
-            # weird, Fremantle requires me to make a copy of the pixbuf...
-            pbuf2 = pbuf.copy()
-            pmap.fit_pixbuf(pbuf2, 0, 0, w, h)
-            del pbuf2
+            try:
+                pbuf = gtk.gdk.pixbuf_new_from_file(self.__icon)
+            except:
+                pass
+            else:
+                pmap.fit_pixbuf(pbuf, offset, 5, 120, h - 10)
+                del pbuf
+
+            #pbuf = thumbnail.render_on_pixbuf(self.__icon, self.__file.mimetype)
+            ## weird, Fremantle requires me to make a copy of the pixbuf...
+            #pbuf2 = pbuf.copy()
+            #pmap.fit_pixbuf(pbuf2, 0, 0, w, h)
+            #del pbuf2
 
             # render fav star
             #if (self.__file.bookmarked):
@@ -153,11 +164,19 @@ class MediaItem(Item):
                 offset = 4
             
             # render icon
-            pbuf = thumbnail.render_on_pixbuf(self.__icon, self.__file.mimetype)
-            # weird, Fremantle requires me to make a copy of the pixbuf...
-            pbuf2 = pbuf.copy()
-            pmap.fit_pixbuf(pbuf2, offset, 20, 140, 80)
-            del pbuf2
+            try:
+                pbuf = gtk.gdk.pixbuf_new_from_file(self.__icon)
+            except:
+                pass
+            else:
+                pmap.fit_pixbuf(pbuf, offset, 5, 120, h - 10)
+                del pbuf
+                
+            #pbuf = thumbnail.render_on_pixbuf(self.__icon, self.__file.mimetype)
+            ## weird, Fremantle requires me to make a copy of the pixbuf...
+            #pbuf2 = pbuf.copy()
+            #pmap.fit_pixbuf(pbuf2, offset, 5, 120, h - 10)
+            #del pbuf2
 
             # render fav star
             #if (self.__file.bookmarked):
@@ -166,7 +185,7 @@ class MediaItem(Item):
             #    icon = theme.mb_item_fav_1
             #pmap.draw_pixbuf(icon, offset, 0)
             
-            offset += 140
+            offset += 130
             
             # render text
             pmap.set_clip_rect(0, 0, w - 80, h)

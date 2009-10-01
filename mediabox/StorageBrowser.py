@@ -25,6 +25,7 @@ class StorageBrowser(ThumbableGridView):
     EVENT_FILE_OPENED = "file-opened"
     EVENT_FILE_ENQUEUED = "file-enqueued"
     EVENT_FILE_REMOVED = "file-removed"
+    EVENT_FILE_BOOKMARKED = "file-bookmarked"
     EVENT_FILE_ADDED_TO_LIBRARY = "file-added-to-library"
     EVENT_THUMBNAIL_REQUESTED = "thumbnail-requested"
     
@@ -93,6 +94,11 @@ class StorageBrowser(ThumbableGridView):
     
         self._connect(self.EVENT_FILE_REMOVED, cb, *args)
 
+
+    def connect_file_bookmarked(self, cb, *args):
+    
+        self._connect(self.EVENT_FILE_BOOKMARKED, cb, *args)
+        
 
     def connect_file_added_to_library(self, cb, *args):
     
@@ -205,8 +211,7 @@ class StorageBrowser(ThumbableGridView):
 
         if (not f.bookmarked):
             options.append((None, "Add to Favorites",
-                            self.EVENT_FILE_REMOVED))
-
+                            self.EVENT_FILE_BOOKMARKED))
     
         if (cwd.folder_flags & cwd.ITEMS_ENQUEUEABLE):
             options.append((None, "Add to Playlist",
@@ -563,7 +568,7 @@ class StorageBrowser(ThumbableGridView):
         Reloads the current folder.
         """
         
-        self.load_folder(self.get_current_folder(), self.GO_NEW)  
+        self.load_folder(self.get_current_folder(), self.GO_PARENT)  
         
         
     def load_folder(self, folder, direction, force_reload = False):
@@ -744,7 +749,7 @@ class StorageBrowser(ThumbableGridView):
         item = MediaItem(f, thumbnail)
         if (not thumbnail):
             self.emit_event(self.EVENT_THUMBNAIL_REQUESTED, f, False,
-                            lambda pbuf:self.__update_thumbnail(item, pbuf))
+                     lambda thumbpath:self.__update_thumbnail(item, thumbpath))
         #end if
 
         # remember for thumbnailing if no thumbnail was found
@@ -817,7 +822,6 @@ class StorageBrowser(ThumbableGridView):
     def __update_thumbnail(self, item, thumbpath):
     
         item.set_icon(thumbpath)
-        print "thumbnailing", thumbpath
         #idx = self.get_items().index(item)
         # TODO: only render if item is currently on screen
         self.invalidate()

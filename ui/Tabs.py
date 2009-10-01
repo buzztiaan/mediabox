@@ -126,7 +126,7 @@ class Tabs(HilightingWidget):
         """
     
         if (self.__orientation == self.VERTICAL):
-            parts = pixbuftools.LEFT | pixbuftools.BOTTOM | pixbuftools.TOP
+            parts = pixbuftools.RIGHT | pixbuftools.BOTTOM | pixbuftools.TOP
         else:
             parts = pixbuftools.LEFT | pixbuftools.BOTTOM | pixbuftools.RIGHT
             

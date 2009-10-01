@@ -1,4 +1,5 @@
 from com import Component, msgs
+from com import Thumbnailer as _Thumbnailer
 from mediabox import config
 from io import Downloader
 from utils import logging
@@ -19,6 +20,10 @@ class Thumbnailer(Component):
     """
 
     def __init__(self):
+
+        # table: MIME type -> [handlers]
+        self.__mime_handlers = {}
+
     
         self.__thumb_folder = os.path.abspath(config.thumbdir())
         self.__store_thumbnails_on_medium = config.store_thumbnails_on_medium()
@@ -33,32 +38,7 @@ class Thumbnailer(Component):
             pass
 
 
-    def handle_MEDIASCANNER_SVC_LOOKUP_THUMBNAIL(self, f):
 
-        if (self.has_thumbnail(f)):
-            return self.get_thumbnail_path(f)
-        else:
-            return ""
-
-
-    def handle_MEDIASCANNER_SVC_LOAD_THUMBNAIL(self, f, cb, *cb_args):
-
-        self.__load_thumbnail(f, cb, *cb_args)
-        return 0
-
-
-    def handle_MEDIASCANNER_SVC_COPY_THUMBNAIL(self, f1, f2):
-
-        self.__copy_thumbnail(f1, f2)
-        return 0
-
-
-    def handle_MEDIASCANNER_SVC_SET_THUMBNAIL(self, f, pbuf):
-
-        thumbpath = self.__thumbnailer.get_thumbnail_path(f)
-        pbuf.save(thumbpath, "jpeg")
-        print "saving thumbnail for %s as %s" % (f.name, thumbpath)
-        return thumbpath
         
         
         
@@ -267,3 +247,71 @@ class Thumbnailer(Component):
             thumb = os.path.join(prefix, f.thumbnail_md5 + ".jpg")
             return thumb
 
+
+
+    def __register_thumbnailer(self, thumbnailer):
+    
+        # ask thumbnailer for MIME types
+        for mt in thumbnailer.get_mime_types():
+            l = self.__mime_handlers.get(mt, [])
+            l.append(thumbnailer)
+            self.__mime_handlers[mt] = l
+        #end for
+
+
+    def handle_COM_EV_COMPONENT_LOADED(self, comp):
+    
+        if (isinstance(comp, _Thumbnailer)):
+            self.__register_thumbnailer(thumbnailer)
+
+
+    def handle_MEDIASCANNER_SVC_LOOKUP_THUMBNAIL(self, f):
+
+        mimetype = f.mimetype
+        handlers = self.__mime_handlers.get(mimetype)
+
+        if (not handlers):
+            m1, m2 = mimetype.split("/")
+            handlers = self.__mime_handlers.get(m1 + "/*")
+
+        if (not handlers):
+            return ""
+
+        handlers[0].make_quick_thumbnail(f)
+
+        #if (self.has_thumbnail(f)):
+        #    return self.get_thumbnail_path(f)
+        #else:
+        #    return ""
+
+
+    def handle_MEDIASCANNER_SVC_LOAD_THUMBNAIL(self, f, cb, *cb_args):
+
+        mimetype = f.mimetype
+        handlers = self.__mime_handlers.get(mimetype)
+
+        if (not handlers):
+            m1, m2 = mimetype.split("/")
+            handlers = self.__mime_handlers.get(m1 + "/*")
+
+        if (not handlers):
+            return ""
+
+        handlers[0].make_thumbnail(f, cb, *cb_args)
+
+        #self.__load_thumbnail(f, cb, *cb_args)
+        return 0
+
+
+    def handle_MEDIASCANNER_SVC_COPY_THUMBNAIL(self, f1, f2):
+
+        self.__copy_thumbnail(f1, f2)
+        return 0
+
+
+    def handle_MEDIASCANNER_SVC_SET_THUMBNAIL(self, f, pbuf):
+
+        thumbpath = self.__thumbnailer.get_thumbnail_path(f)
+        pbuf.save(thumbpath, "jpeg")
+        print "saving thumbnail for %s as %s" % (f.name, thumbpath)
+        return thumbpath

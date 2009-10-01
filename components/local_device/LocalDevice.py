@@ -46,7 +46,7 @@ class LocalDevice(Device):
 
     def get_icon(self):
     
-        return theme.mb_device_n800
+        return theme.mb_device_nit
 
 
     def get_root(self):

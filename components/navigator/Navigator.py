@@ -49,6 +49,7 @@ class Navigator(View):
         self.__browser.connect_folder_opened(self.__on_open_folder)
         self.__browser.connect_file_opened(self.__on_open_file)
         self.__browser.connect_file_enqueued(self.__on_enqueue_file)
+        self.__browser.connect_file_bookmarked(self.__on_bookmark_file)
         self.__browser.connect_thumbnail_requested(self.__on_request_thumbnail)
         self.__browser_slider.connect_button_pressed(
                                     lambda a,b:self.__browser.stop_scrolling())
@@ -153,6 +154,11 @@ class Navigator(View):
         #end for
     
         self.emit_message(msgs.PLAYLIST_ACT_APPEND, playlist, f)
+
+
+    def __on_bookmark_file(self, f):
+    
+        f.bookmarked = True
         
 
     def __on_request_thumbnail(self, f, async_required, cb):
@@ -160,13 +166,12 @@ class Navigator(View):
         if (async_required):
             # create thumbnail
             self.call_service(msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL, f, cb)
-            return None
             
         else:
             # lookup existing thumbnail
             thumbnail = self.call_service(
                 msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, f) or None
-            return thumbnail
+            cb(thumbnail)
 
 
     def __on_btn_home(self):

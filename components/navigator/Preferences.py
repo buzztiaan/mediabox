@@ -45,13 +45,24 @@ class Preferences(View):
     def render_this(self):
     
         w, h = self.get_size()
-        self.__list.set_geometry(0, 0, w, h - 70)
+       
+        if (w < h):
+            # portrait mode
+            self.__list.set_geometry(0, 0, w, h - 70)
         
-        if (self.__current_configurator):
-            self.__current_configurator.is_visible()
-            self.__current_configurator.set_geometry(0, 0, w, h - 70)
+            if (self.__current_configurator):
+                self.__current_configurator.set_geometry(0, 0, w, h - 70)
             
-        self.__toolbar.set_geometry(0, h - 70, w, 70)
+            self.__toolbar.set_geometry(0, h - 70, w, 70)
+    
+        else:
+            # landscape mode
+            self.__list.set_geometry(0, 0, w - 70, h)
+        
+            if (self.__current_configurator):
+                self.__current_configurator.set_geometry(0, 0, w - 70, h)
+            
+            self.__toolbar.set_geometry(w - 70, 0, 70, h)
         
 
     def __register_configurator(self, comp):

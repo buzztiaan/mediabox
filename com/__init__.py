@@ -12,6 +12,7 @@ from Component import Component
 #from Viewer import Viewer
 from View import View
 from Player import Player
+from Thumbnailer import Thumbnailer
 from Widget import Widget
 from Configurator import Configurator
 #from MediaWidgetFactory import MediaWidgetFactory
