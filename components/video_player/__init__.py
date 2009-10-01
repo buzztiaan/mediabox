@@ -1,5 +1,7 @@
 def get_classes():
 
     from VideoPlayer import VideoPlayer
-    return [VideoPlayer]
+    from VideoThumbnailer import VideoThumbnailer
+    return [VideoPlayer,
+            VideoThumbnailer]
 

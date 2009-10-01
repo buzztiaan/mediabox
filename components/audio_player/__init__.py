@@ -1,5 +1,7 @@
 def get_classes():
 
     from AudioPlayer import AudioPlayer
-    return [AudioPlayer]
+    from AudioThumbnailer import AudioThumbnailer
+    return [AudioPlayer,
+            AudioThumbnailer]
 
