@@ -2,7 +2,6 @@ from com import Widget, msgs
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP, text_extents
 from ui.Button import Button
 from Dialog import Dialog
-from OptionDialog import OptionDialog
 from theme import theme
 
 import gtk
@@ -107,7 +106,6 @@ class DialogService(Widget):
         dlg = OptionDialog()
         for icon, label in options:
             dlg.add_option(icon, label)
-        print "PROEB"
         dlg.run()
         
         return dlg.get_choice()
