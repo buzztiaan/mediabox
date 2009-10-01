@@ -24,15 +24,12 @@ class StorageBrowser(ThumbableGridView):
     EVENT_FOLDER_BEGIN = "folder-begin"
     EVENT_FOLDER_PROGRESS = "folder-progress"
     EVENT_FOLDER_COMPLETE = "folder-complete"
-    
-    EVENT_FOLDER_OPENED = "folder-opened"
-    
+
     EVENT_FILE_OPENED = "file-opened"
     EVENT_FILE_ENQUEUED = "file-enqueued"
     EVENT_FILE_REMOVED = "file-removed"
     EVENT_FILE_BOOKMARKED = "file-bookmarked"
     EVENT_FILE_ADDED_TO_LIBRARY = "file-added-to-library"
-    EVENT_THUMBNAIL_REQUESTED = "thumbnail-requested"
     
 
     def __init__(self):
@@ -68,21 +65,6 @@ class StorageBrowser(ThumbableGridView):
         self.add_overlay_renderer(self.__render_search_box)
         self.add_overlay_renderer(self.__render_caps)
         self.set_background(theme.color_mb_background)
-
-        #self.connect_item_clicked(self.__on_item_clicked)
-        #self.connect_button_clicked(self.__on_item_button)
-
-
-    def set_size(self, w, h):
-    
-        ThumbableGridView.set_size(self, w, h)
-        #for item in self.get_items():
-        #    item.set_size(w, 100)
-
-
-    def connect_folder_opened(self, cb, *args):
-    
-        self._connect(self.EVENT_FOLDER_OPENED, cb, *args)
 
 
     def connect_folder_begin(self, cb, *args):
@@ -123,19 +105,6 @@ class StorageBrowser(ThumbableGridView):
     def connect_file_added_to_library(self, cb, *args):
     
         self._connect(self.EVENT_FILE_ADDED_TO_LIBRARY, cb, *args)
-
-
-    def connect_thumbnail_requested(self, cb, *args):
-    
-        self._connect(self.EVENT_THUMBNAIL_REQUESTED, cb, *args)
-
-
-    def _visibility_changed(self):
-    
-        if (self.is_visible()):
-            self.__tn_scheduler.resume()
-        else:
-            self.__tn_scheduler.halt()
 
 
     def set_message(self, message):
@@ -600,10 +569,6 @@ class StorageBrowser(ThumbableGridView):
         @param force_reload: whether to force reloading the folder
         """
 
-        #self.__close_subfolder()
-        #self.__tn_scheduler.new_schedule(5, self.__on_load_thumbnail)
-        #self.__tn_scheduler.halt()
-
         self.emit_event(self.EVENT_FOLDER_BEGIN, folder)
 
         # are we just reloading the same folder?
@@ -657,18 +622,10 @@ class StorageBrowser(ThumbableGridView):
             else:
                 self.set_drag_sort_enabled(False)
 
-            #self.append_item(header)
-
         else:
             # don't reload list
-            #self.clear_items()
             self.switch_item_set(folder.full_path)
-            #self.set_hilight(-1)
             
-        #w, h = self.get_size()
-        #for item in self.get_items():
-        #    item.set_size(w, 100)
-
         # animate
         if (direction == self.GO_CHILD):
             self.fx_slide_left()
@@ -687,26 +644,7 @@ class StorageBrowser(ThumbableGridView):
 
         # now is a good time to collect garbage
         import gc; gc.collect()    
-
-   
-    """     
-    def __close_subfolder(self):
-
-        if (not self.__subfolder_range): return
-        
-        idx1, idx2 = self.__subfolder_range
-        n = idx2 - idx1
-        for i in range(n):
-            self.remove_item(idx1 + 1)
-        #end for
-        
-        item = self.get_item(idx1)
-        #item.set_buttons((item.BUTTON_OPEN, theme.mb_item_btn_open))
-        
-        self.__subfolder_range = None
-        self.render()
-    """
-        
+      
         
     def complete_current_folder(self):
         """
@@ -775,19 +713,7 @@ class StorageBrowser(ThumbableGridView):
         cwd = self.get_current_folder()
         self.__support_legacy_folder_flags(cwd, f)
 
-        #thumbnail = f.icon or ""
         item = MediaItem(f, f.icon or "")
-        #if (not thumbnail):
-        #    self.emit_event(self.EVENT_THUMBNAIL_REQUESTED, f, False,
-        #             lambda thumbpath:self.__update_thumbnail(item, thumbpath))
-        ##end if
-
-        # remember for thumbnailing if no thumbnail was found
-        #if (not item.has_icon() and f.mimetype != f.DIRECTORY):
-        #    self.__tn_scheduler.add(item, f)
-
-        #w, h = self.get_size()
-        #item.set_size(w, 100)
         item.connect_activated(self.__on_item_clicked, item)
         item.connect_menu_opened(self.__on_item_menu_opened, item)
 
@@ -820,9 +746,6 @@ class StorageBrowser(ThumbableGridView):
             buttons.append((item.BUTTON_REMOVE_SUCCEEDING, theme.mb_item_btn_remove_down))
         """
 
-        #item.set_buttons(*buttons)
-        #item.connect_button_pressed(self.__on_item_button_pressed, item)
-
         if (cwd.folder_flags & cwd.ITEMS_SORTABLE):
             item.set_grip_visible(True)
         else:
@@ -847,32 +770,6 @@ class StorageBrowser(ThumbableGridView):
         while (gtk.events_pending() and cnt < 10):
             gtk.main_iteration(False)
             cnt += 1
-
-
-    def __update_thumbnail(self, item, thumbpath):
-    
-        item.set_icon(thumbpath)
-        #idx = self.get_items().index(item)
-        # TODO: only render if item is currently on screen
-        self.invalidate()
-        self.render()
-
-
-    def __on_load_thumbnail(self, item, f):
-
-        def on_loaded(thumbpath):
-            self.__update_thumbnail(item, thumbpath)
-            
-            if (self.is_visible()):
-                self.__tn_scheduler.resume()
-    
-        # load thumbnail
-        #self.set_message("Creating preview (%d of %d)" \
-        #                    % (total - len(items_to_thumbnail), total))
-        
-        self.__tn_scheduler.halt()
-        self.emit_event(self.EVENT_THUMBNAIL_REQUESTED, f, True, on_loaded)
-        #self.__thumbnailer(f, on_loaded, item)
 
 
     def __support_legacy_folder_flags(self, folder, f):

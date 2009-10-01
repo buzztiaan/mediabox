@@ -53,11 +53,9 @@ class Navigator(View):
         self.__browser.connect_folder_begin(self.__on_begin_folder)
         self.__browser.connect_folder_progress(self.__on_progress_folder)
         self.__browser.connect_folder_complete(self.__on_complete_folder)
-        #self.__browser.connect_folder_opened(self.__on_open_folder)
         self.__browser.connect_file_opened(self.__on_open_file)
         self.__browser.connect_file_enqueued(self.__on_enqueue_file)
         self.__browser.connect_file_bookmarked(self.__on_bookmark_file)
-        #self.__browser.connect_thumbnail_requested(self.__on_request_thumbnail)
         self.__browser_slider.connect_button_pressed(
                                     lambda a,b:self.__browser.stop_scrolling())
         self.add(self.__browser)
@@ -117,6 +115,14 @@ class Navigator(View):
         self.__update_toolbar()
         self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
 
+
+    def _visibility_changed(self):
+    
+        if (self.is_visible()):
+            self.__tn_scheduler.resume()
+        else:
+            self.__tn_scheduler.halt()
+            
        
     def __on_open_file(self, f):
     
@@ -158,7 +164,9 @@ class Navigator(View):
         #end if
         
         self.__random_files = []
-        self.__tn_scheduler.resume()
+        
+        if (self.is_visible()):
+            self.__tn_scheduler.resume()
 
 
     def __on_enqueue_file(self, f):
