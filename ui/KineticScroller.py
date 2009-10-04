@@ -13,7 +13,7 @@ import time
 
 _FPS = 50
 _SCROLL_DELAY = 1.0 / _FPS
-_DRAG_THRESHOLD = 5
+_DRAG_THRESHOLD = 10
 
 # a click must last at least this long to be recognized as such
 _CLICK_THRESHOLD = 0
@@ -249,7 +249,7 @@ class KineticScroller(EventEmitter, Observable):
         if (not self.__is_dragging and (abs(dx) > _DRAG_THRESHOLD or \
                                         abs(dy) > _DRAG_THRESHOLD)):
             self.__abort_tap_and_hold()
-            #self.__is_click = False
+            self.__is_click = False
             self.__is_dragging = True
             self.__drag_pointer = (prev_px, prev_py)
             self.__drag_begin = time.time()
@@ -281,7 +281,7 @@ class KineticScroller(EventEmitter, Observable):
                     self.__scrolling = True
                     
                 self.__child.move(self.__delta_s[0], self.__delta_s[1])
-                self.__is_click = False
+                #self.__is_click = False
             
             else:
                 self.emit_event(self.EVENT_SCROLLING_STOPPED)

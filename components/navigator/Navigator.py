@@ -311,16 +311,16 @@ class Navigator(View):
         w, h = self.get_size()
         if (w < h):
             # portrait mode
-            self.__now_playing_box.set_geometry(0, 0, w, 70)
-            self.__browser_slider.set_geometry(0, 70, 40, h - 70 - 70)
-            self.__browser.set_geometry(40, 70, w - 40, h - 70 - 70)
+            self.__now_playing_box.set_geometry(0, 0, w, 80)
+            self.__browser_slider.set_geometry(0, 80, 40, h - 70 - 80)
+            self.__browser.set_geometry(40, 80, w - 40, h - 70 - 80)
             self.__toolbar.set_geometry(0, h - 70, w, 70)
 
         else:
             # landscape mode
-            self.__now_playing_box.set_geometry(0, h - 70, w - 70, 70)
-            self.__browser_slider.set_geometry(0, 0, 40, h - 70)
-            self.__browser.set_geometry(40, 0, w - 40 - 70, h - 70)
+            self.__now_playing_box.set_geometry(0, h - 80, w - 70, 80)
+            self.__browser_slider.set_geometry(0, 0, 40, h - 80)
+            self.__browser.set_geometry(40, 0, w - 40 - 70, h - 80)
             self.__toolbar.set_geometry(w - 70, 0, 70, h)
 
 

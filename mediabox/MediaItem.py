@@ -128,7 +128,7 @@ class MediaItem(Item):
 
             # render text
             pmap.set_clip_rect(5, 0, w - 10, h)
-            pmap.draw_centered_text(self.__label, theme.font_mb_micro,
+            pmap.draw_centered_text(self.__label, theme.font_mb_tiny,
                                     0, h - 20, w, 20,
                                     theme.color_mb_listitem_text)
             pmap.set_clip_rect()
