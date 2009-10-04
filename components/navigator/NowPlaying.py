@@ -1,0 +1,55 @@
+from ui.Widget import Widget
+from ui.Label import Label
+from theme import theme
+
+import gtk
+
+
+class NowPlaying(Widget):
+
+    def __init__(self):
+    
+        # the file that is currently playing
+        self.__current_file = None
+        
+        # the currently displayed icon pixbuf
+        self.__icon = None
+        
+    
+        Widget.__init__(self)
+        
+        self.__lbl_title = Label("", theme.font_mb_plain, theme.color_mb_text)
+        self.add(self.__lbl_title)
+        
+        
+        
+    def render_this(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        screen.fill_area(x, y, w, h, theme.color_mb_background)
+        
+        icon_size = h
+        if (self.__icon):
+            screen.fit_pixbuf(self.__icon, x + 5, y, icon_size, icon_size)
+        
+        self.__lbl_title.set_pos(icon_size + 10, 10)
+
+
+
+    def set_playing(self, icon, f):
+    
+        if (icon):
+            if (self.__icon):
+                del self.__icon
+            try:
+                self.__icon = gtk.gdk.pixbuf_new_from_file(icon)
+            except:
+                self.__icon = None
+        #end if
+    
+        self.__lbl_title.set_text(f.name)
+        self.render()
+

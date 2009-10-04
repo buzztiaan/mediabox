@@ -36,7 +36,7 @@ class RootDevice(Device):
         
     def get_name(self):
     
-        return "Media"
+        return "MediaBox"
         
         
     def get_icon(self):
@@ -50,7 +50,7 @@ class RootDevice(Device):
         f.name = self.get_name()
         f.path = "/"
         f.mimetype = f.DEVICE_ROOT
-        #f.folder_flags = f.ITEMS_COMPACT
+        f.folder_flags = f.ITEMS_COMPACT
         return f
 
 

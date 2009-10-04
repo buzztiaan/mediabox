@@ -1,5 +1,6 @@
 from com import View, msgs
 from RootDevice import RootDevice
+from NowPlaying import NowPlaying
 from mediabox.StorageBrowser import StorageBrowser
 from ui.ImageButton import ImageButton
 from ui.Slider import Slider
@@ -41,6 +42,11 @@ class Navigator(View):
     
         View.__init__(self)
 
+        # now-playing box
+        self.__now_playing_box = NowPlaying()
+        self.add(self.__now_playing_box)
+        self.__now_playing_box.connect_clicked(self.__on_click_now_playing)
+
         # browser list slider
         self.__browser_slider = Slider(theme.mb_list_slider)
         self.__browser_slider.set_mode(Slider.VERTICAL)
@@ -53,6 +59,7 @@ class Navigator(View):
         self.__browser.connect_folder_begin(self.__on_begin_folder)
         self.__browser.connect_folder_progress(self.__on_progress_folder)
         self.__browser.connect_folder_complete(self.__on_complete_folder)
+        self.__browser.connect_file_added_to_library(self.__on_add_file_to_lib)
         self.__browser.connect_file_opened(self.__on_open_file)
         self.__browser.connect_file_enqueued(self.__on_enqueue_file)
         self.__browser.connect_file_bookmarked(self.__on_bookmark_file)
@@ -117,11 +124,17 @@ class Navigator(View):
 
 
     def _visibility_changed(self):
-    
+        
+        View._visibility_changed(self)
         if (self.is_visible()):
             self.__tn_scheduler.resume()
         else:
             self.__tn_scheduler.halt()
+
+    
+    def __on_click_now_playing(self):
+    
+        self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
             
        
     def __on_open_file(self, f):
@@ -133,6 +146,8 @@ class Navigator(View):
     
         self.__tn_scheduler.new_schedule(5, self.__on_load_thumbnail)
         self.__tn_scheduler.halt()
+        
+        self.set_title(f.name)
 
 
     def __on_progress_folder(self, f, c):
@@ -168,6 +183,11 @@ class Navigator(View):
         if (self.is_visible()):
             self.__tn_scheduler.resume()
 
+
+    def __on_add_file_to_lib(self, f):
+    
+        self.emit_message(msgs.LIBRARY_ACT_ADD_MEDIAROOT, f)
+        
 
     def __on_enqueue_file(self, f):
     
@@ -281,6 +301,7 @@ class Navigator(View):
         if (not f.mimetype in mimetypes.get_image_types()):
             self.emit_message(msgs.MEDIA_ACT_STOP)
 
+        self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
         self.emit_message(msgs.MEDIA_ACT_LOAD, f)
         self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 
@@ -290,14 +311,16 @@ class Navigator(View):
         w, h = self.get_size()
         if (w < h):
             # portrait mode
-            self.__browser_slider.set_geometry(0, 0, 40, h - 70)
-            self.__browser.set_geometry(40, 0, w - 40, h - 70)
+            self.__now_playing_box.set_geometry(0, 0, w, 70)
+            self.__browser_slider.set_geometry(0, 70, 40, h - 70 - 70)
+            self.__browser.set_geometry(40, 70, w - 40, h - 70 - 70)
             self.__toolbar.set_geometry(0, h - 70, w, 70)
 
         else:
             # landscape mode
-            self.__browser_slider.set_geometry(0, 0, 40, h)
-            self.__browser.set_geometry(40, 0, w - 40 - 70, h)
+            self.__now_playing_box.set_geometry(0, h - 70, w - 70, 70)
+            self.__browser_slider.set_geometry(0, 0, 40, h - 70)
+            self.__browser.set_geometry(40, 0, w - 40 - 70, h - 70)
             self.__toolbar.set_geometry(w - 70, 0, 70, h)
 
 
@@ -437,7 +460,8 @@ class Navigator(View):
     
     def handle_MEDIA_EV_LOADED(self, viewer, f):
     
-        pass
+        icon, is_final = self.call_service(msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, f)
+        self.__now_playing_box.set_playing(icon, f)
 
 
     def handle_MEDIA_ACT_PREVIOUS(self):

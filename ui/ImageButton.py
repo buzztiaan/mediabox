@@ -15,6 +15,7 @@ class ImageButton(Widget):
         self.__img2 = img2
     
         Widget.__init__(self)
+        #self.set_size(img1.get_width(), img1.get_height())
         self.set_size(64, 64)
         
         if (not manual):
@@ -105,6 +106,7 @@ class ImageButton(Widget):
         self.__img1 = img1
         self.__img2 = img2
         
+        #self.set_size(img1.get_width(), img1.get_height())
         #self.__render_button(self.__state)
         self.__render_button()
 

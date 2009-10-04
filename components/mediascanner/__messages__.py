@@ -45,16 +45,6 @@ thumbnail preview.
 @param f2: destination file object
 """
 
-def MEDIASCANNER_SVC_GET_THUMBNAIL(f): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
-def MEDIASCANNER_SVC_SET_THUMBNAIL(f, pixbuf): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
 def MEDIASCANNER_EV_SCANNING_STARTED(): pass
 """
 Gets emitted when the media scanner starts scanning.

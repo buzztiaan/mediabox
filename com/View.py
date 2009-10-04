@@ -5,9 +5,10 @@ Base class for view components.
 from Component import Component
 import msgs
 from ui.Widget import Widget
+from ui.Window import Window
 
 
-class View(Component, Widget):
+class View(Component, Window):
     """
     Base class for view components.
     Components derived from this class appear as tabs in the application.
@@ -51,7 +52,7 @@ class View(Component, Widget):
         
        
         Component.__init__(self)
-        Widget.__init__(self)
+        Window.__init__(self, True)
 
 
     def show(self):

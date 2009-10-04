@@ -79,6 +79,7 @@ class GridView(ItemView):
         #end if
 
 
+
     def set_background(self, color):
         """
         Sets the background color of the view.

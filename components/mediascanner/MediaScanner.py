@@ -48,12 +48,7 @@ class MediaScanner(Component):
      * the files that are new
      
      * the files that have been removed
-    """
-
-    MEDIA_VIDEO = 1
-    MEDIA_AUDIO = 2
-    MEDIA_IMAGE = 4
-    
+    """  
 
     def __init__(self):
 
@@ -87,6 +82,7 @@ class MediaScanner(Component):
         return self.__get_media(mime_types)
 
 
+    """
     def handle_MEDIASCANNER_SVC_GET_THUMBNAIL(self, f):
 
         logging.warning("MEDIASCANNER_SVC_GET_THUMBNAIL is deprecated")
@@ -102,6 +98,7 @@ class MediaScanner(Component):
         pbuf.save(thumbpath, "jpeg")
         print "saving thumbnail for %s as %s" % (f.name, thumbpath)
         return thumbpath
+    """
 
 
     def __file_exists(self, fp):
@@ -166,6 +163,7 @@ class MediaScanner(Component):
             mediatypes[path] = mtypes
             roots.append(path)
         #end for
+        print "MEDIAROOTS:", roots
 
         new_roots = self.__find_new_roots(roots, mediatypes)
         removed_roots = self.__find_removed_roots(roots)
@@ -251,9 +249,9 @@ class MediaScanner(Component):
                 self.__process_media(mediaroot, mediatypes, child, seen)
         #end if
         
-        for mediatype, module in [(self.MEDIA_VIDEO, video),
-                                  (self.MEDIA_AUDIO, audio),
-                                  (self.MEDIA_IMAGE, image)]:
+        for mediatype, module in [(config.MEDIA_VIDEO, video),
+                                  (config.MEDIA_AUDIO, audio),
+                                  (config.MEDIA_IMAGE, image)]:
 
             if (mediatypes & mediatype and module.is_media(f)):
                 if (self.__file_index.has_file(f.full_path)):
@@ -303,9 +301,9 @@ class MediaScanner(Component):
             cb(self.__thumbnailer.get_thumbnail_path(f), *args)
             
         handled = False
-        for mediatype, module in [(self.MEDIA_VIDEO, video),
-                                  (self.MEDIA_AUDIO, audio),
-                                  (self.MEDIA_IMAGE, image)]:
+        for mediatype, module in [(config.MEDIA_VIDEO, video),
+                                  (config.MEDIA_AUDIO, audio),
+                                  (config.MEDIA_IMAGE, image)]:
 
             if (mediatypes & mediatype and module.is_media(f)):
                 handled = True

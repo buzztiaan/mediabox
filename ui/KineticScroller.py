@@ -202,7 +202,7 @@ class KineticScroller(EventEmitter, Observable):
             self.__click_begin = time.time()
             self.__is_click = True
         else:
-            self.__is_click = True
+            self.__is_click = False
             self.stop_scrolling()
 
         self.__begin_tap_and_hold()
@@ -281,6 +281,7 @@ class KineticScroller(EventEmitter, Observable):
                     self.__scrolling = True
                     
                 self.__child.move(self.__delta_s[0], self.__delta_s[1])
+                self.__is_click = False
             
             else:
                 self.emit_event(self.EVENT_SCROLLING_STOPPED)

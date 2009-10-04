@@ -11,6 +11,10 @@ SHUFFLE_MODE_NONE = "none"
 SHUFFLE_MODE_ONE = "one"
 SHUFFLE_MODE_ALL = "all"
 
+MEDIA_VIDEO = 1
+MEDIA_AUDIO = 2
+MEDIA_IMAGE = 4
+
 
 _cfg = Config("",
               [("current_device", Config.STRING, ""),

@@ -28,7 +28,6 @@ class MediaItem(Item):
         Item.__init__(self)
         self.set_size(-1, 100)
 
-
     def connect_activated(self, cb, *args):
     
         self._connect(self.EVENT_ACTIVATED, cb, *args)
@@ -80,6 +79,12 @@ class MediaItem(Item):
     def set_compact(self, v):
     
         self.__is_compact = v
+        w, h = self.get_size()
+        if (self.__is_compact):
+            self.set_size(w, 120)
+        else:
+            self.set_size(w, 100)
+
         
 
     def render_at(self, cnv, x, y):
@@ -105,7 +110,7 @@ class MediaItem(Item):
             except:
                 pass
             else:
-                pmap.fit_pixbuf(pbuf, offset, 5, 120, h - 10)
+                pmap.fit_pixbuf(pbuf, 0, 0, w, h - 20)
                 del pbuf
 
             #pbuf = thumbnail.render_on_pixbuf(self.__icon, self.__file.mimetype)
@@ -123,14 +128,15 @@ class MediaItem(Item):
 
             # render text
             pmap.set_clip_rect(5, 0, w - 10, h)
-            pmap.draw_centered_text(self.__label, theme.font_mb_tiny,
+            pmap.draw_centered_text(self.__label, theme.font_mb_micro,
                                     0, h - 20, w, 20,
                                     theme.color_mb_listitem_text)
             pmap.set_clip_rect()
 
             # render selection frame
             if (self.is_hilighted()):
-                pmap.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True,
+                pmap.draw_frame(theme.mb_selection_frame,
+                                4, 0, w - 8, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
             
         #end if
@@ -222,11 +228,13 @@ class MediaItem(Item):
     def click_at(self, px, py):
     
         w, h = self.get_size()
-        if (w - 80 <= px <= w):
+        if (self.__is_compact):
+            self.emit_event(self.EVENT_ACTIVATED)
+        elif (w - 80 <= px <= w):
             self.emit_event(self.EVENT_ACTIVATED)
 
-        elif (px < 60):
-            self.__file.bookmarked = not self.__file.bookmarked
+        #elif (px < 60):
+        #    self.__file.bookmarked = not self.__file.bookmarked
             
             
     def tap_and_hold(self, px, py):

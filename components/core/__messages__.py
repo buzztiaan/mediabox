@@ -99,26 +99,6 @@ Instructs the media scanner to scan the media library.
 @param force_rescan: whether to force a scan even if the library has not changed
 """
 
-def CORE_ACT_LOAD_ITEM(item): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
-def CORE_ACT_RENDER_ITEMS(): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
-def CORE_ACT_SCROLL_UP(): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
-def CORE_ACT_SCROLL_DOWN(): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
 def CORE_ACT_SET_TITLE(title): pass
 """
 Sets the title bar text.
@@ -364,41 +344,11 @@ Gets emitted when a storage device has been selected.
 @param device_id: device ID string
 """
 
-def UI_ACT_SHOW_STRIP(): pass
+def UI_ACT_SELECT_VIEW(name): pass
 """
-@deprecated: do not use; it will be removed
-"""
+Selects a view by name.
 
-def UI_ACT_SET_STRIP(viewer, items): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
-def UI_ACT_CHANGE_STRIP(owner): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
-def UI_ACT_HILIGHT_STRIP_ITEM(viewer, index): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
-def UI_ACT_SELECT_STRIP_ITEM(viewer, index): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
-def UI_ACT_SHOW_STRIP_ITEM(viewer, index): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
-def UI_ACT_SELECT_VIEWER(name): pass
-"""
-Selects a viewer by name.
-
-@param: name of the viewer
+@param: name of the view
 """
 
 def UI_ACT_SELECT_DEVICE(device_id): pass

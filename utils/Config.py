@@ -90,8 +90,8 @@ class Config(object):
             return _CLIENT.get_string(self.__prefix + key) \
                    or default
         elif (dtype == self.STRING_LIST):
-            return _CLIENT.get_list(self.__prefix + key, gconf.VALUE_STRING)[:] \
-                   or default[:]
+            l = _CLIENT.get_list(self.__prefix + key, gconf.VALUE_STRING) or []
+            return l[:] or default[:]
         elif (dtype == self.INTEGER):
             try:
                 have_key = _CLIENT.get_without_default(self.__prefix + key)
@@ -102,8 +102,8 @@ class Config(object):
             if (not have_key): v = default
             return v
         elif (dtype == self.INTEGER_LIST):                
-            return _CLIENT.get_list(self.__prefix + key, gconf.VALUE_INT)[:] \
-                   or default[:]
+            l = _CLIENT.get_list(self.__prefix + key, gconf.VALUE_INT) or []
+            return l[:] or default[:]
         elif (dtype == self.BOOL):
             try:
                 have_key = _CLIENT.get_without_default(self.__prefix + key)

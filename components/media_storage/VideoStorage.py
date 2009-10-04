@@ -100,7 +100,8 @@ class VideoStorage(Device):
                 f.acoustic_name = f.name + ", Folder"
                 f.info = "%d items" % len(self.__folders.get(folder, []))
                 f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                                 f.ITEMS_SKIPPABLE
+                                 f.ITEMS_SKIPPABLE | \
+                                 f.ITEMS_COMPACT
                 cb(f, *args)
                 
         else:

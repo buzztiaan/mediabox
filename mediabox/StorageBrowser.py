@@ -540,10 +540,10 @@ class StorageBrowser(ThumbableGridView):
         
     def go_parent(self):
     
-        if (self.__subfolder_range):
-            self.__close_subfolder()
+        #if (self.__subfolder_range):
+        #    self.__close_subfolder()
         
-        elif (len(self.__path_stack) > 1):
+        if (len(self.__path_stack) > 1):
             self.__path_stack.pop()
             path, status = self.__path_stack.pop()
             if (status == _STATUS_INVALID):
@@ -598,11 +598,6 @@ class StorageBrowser(ThumbableGridView):
         if (not reload_only):
             self.__path_stack.append([folder, _STATUS_INCOMPLETE])
 
-        if (folder.folder_flags & folder.ITEMS_COMPACT):
-            self.set_items_per_row(3)
-        else:
-            self.set_items_per_row(1)
-
         if (full_reload):
             # reload list
             self.switch_item_set(folder.full_path)
@@ -625,7 +620,12 @@ class StorageBrowser(ThumbableGridView):
         else:
             # don't reload list
             self.switch_item_set(folder.full_path)
-            
+
+        if (folder.folder_flags & folder.ITEMS_COMPACT):
+            self.set_items_per_row(3)
+        else:
+            self.set_items_per_row(1)
+
         # animate
         if (direction == self.GO_CHILD):
             self.fx_slide_left()

@@ -145,6 +145,7 @@ class AudioPlayer(Player):
         if (ctx_id == self.__context_id):
             self.__progress.set_position(pos, total)
 
+
     def __on_change_volume(self, v):
     
         if (self.__player):
@@ -187,30 +188,31 @@ class AudioPlayer(Player):
 
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         
-        self.__volume_slider.set_geometry(0, 0, 42, h - 70)
 
         if (w < h):
             # portrait mode
             cover_size = w - 84
             self.__toolbar.set_geometry(0, h - 70, w, 70)
-            self.__progress.set_geometry(42, h - (70 + 70), w - 84, 70)
+            self.__progress.set_geometry(42 + 20, h - (70 + 50), w - 84 - 40, 32)
             lbl_width = w - cover_size - 42
             self.__lbl_title.set_geometry(42, cover_size + 20, w - 84, 0)
             self.__lbl_title.set_alignment(Label.CENTERED)
             self.__trackinfo.set_geometry(42, cover_size + 60, w - 84, 80)
+            self.__volume_slider.set_geometry(0, 0, 42, h - 70)
 
 
         else:
             # landscape mode
             cover_size = h - 90
             self.__toolbar.set_geometry(w - 70, 0, 70, h)
-            self.__progress.set_geometry(42, h - 70, w - (70 + 84), 70)
+            self.__progress.set_geometry(42 + 20, h - 50, w - (70 + 84 + 40), 32)
             lbl_width = w - cover_size - 42 - 70
             self.__lbl_title.set_geometry(w - lbl_width - 70 + 10, 10,
                                           lbl_width - 20, 0)
             self.__lbl_title.set_alignment(Label.LEFT)
             self.__trackinfo.set_geometry(w - lbl_width - 70 + 10, 60,
                                           lbl_width - 20, 80)
+            self.__volume_slider.set_geometry(0, 0, 42, h)
 
 
         if (self.__cover):
@@ -270,4 +272,6 @@ class AudioPlayer(Player):
 
             self.__sliding_direction = self.SLIDE_LEFT
         #end if
+
+        self.render()
 

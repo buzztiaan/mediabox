@@ -80,4 +80,4 @@ class ImageViewer(Player):
     def load(self, f):
 
         self.__image.load(f)
-
+        self.render()

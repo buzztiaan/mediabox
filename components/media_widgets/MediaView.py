@@ -68,4 +68,5 @@ class MediaView(View):
         self.__current_player = handlers[0]
         self.__current_player.set_visible(True)
         self.__current_player.load(f)
+        self.set_title(f.name)
 

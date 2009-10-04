@@ -38,7 +38,7 @@ class Toolbar(Widget):
             self.__bg_pmap.draw_frame(theme.mb_panel, 0, 0, w, h, True,
                                       Pixmap.LEFT | Pixmap.TOP | Pixmap.RIGHT)
     
-            self.__box.set_size(w - 20, h)
+            self.__box.set_size(w, h)
 
         Widget.set_size(self, w, h)
         

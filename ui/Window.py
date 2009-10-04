@@ -41,6 +41,7 @@ class Window(Widget):
                 
             else:
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+                self.__window.set_default_size(800, 480)
             
         else:
             self.__window = gtk.Window(gtk.WINDOW_POPUP)
@@ -67,6 +68,15 @@ class Window(Widget):
         try_rgba(self.__window)
         self.__window.set_app_paintable(True)
         self.__window.realize()
+
+
+        if (platforms.PLATFORM in (platforms.MAEMO5, platforms.MER)):
+            import hildon
+            # we need to notify Maemo5 that we want to use the volume keys
+            self.__window.window.property_change("_HILDON_ZOOM_KEY_ATOM",
+                                                 "XA_INTEGER", 32,
+                                                 gtk.gdk.PROP_MODE_REPLACE,
+                                                 [1])                
 
 
         self.__fixed = gtk.Fixed()
@@ -124,7 +134,7 @@ class Window(Widget):
 
 
     def __on_close_window(self, src, ev):
-    
+        
         self.send_event(self.EVENT_CLOSED)
         return True
         

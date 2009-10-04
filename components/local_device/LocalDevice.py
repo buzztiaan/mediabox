@@ -59,8 +59,7 @@ class LocalDevice(Device):
         f.name = self.__name
         f.info = "Browse the filesystem"
         f.icon = self.get_icon().get_path()
-        f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                         f.INDEXABLE
+        f.folder_flags = f.ITEMS_ENQUEUEABLE
 
         return f
         

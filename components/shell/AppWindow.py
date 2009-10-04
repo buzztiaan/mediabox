@@ -36,8 +36,9 @@ class AppWindow(Component, RootPane):
 
         self.__views = []
         self.__current_view = None
+        self.__initial_view = None
 
-        self.__viewers = []
+        #self.__viewers = []
         self.__current_viewer = None
         self.__current_device_id = ""
         self.__view_mode = viewmodes.NORMAL
@@ -70,29 +71,29 @@ class AppWindow(Component, RootPane):
             platforms.create_osso_context(values.OSSO_NAME, "1.0", False)
 
         # window
-        self.__window = Window(True)
-        self.__window.set_title("MediaBox")
+        #self.__window = Window(True)
+        #self.__window.set_title("MediaBox")
         #self.__window.set_size(800, 480)
-        self.__window.set_size(480, 800)
-        self.__window.set_visible(True)
+        #self.__window.set_size(480, 800)
+        #self.__window.set_visible(True)
 
-        if (platforms.PLATFORM == platforms.MAEMO4):
-            self.__program.add_window(self.__window.get_gtk_window())
+        #if (platforms.PLATFORM == platforms.MAEMO4):
+        #    self.__program.add_window(self.__window.get_gtk_window())
 
-        self.__window.connect_key_pressed(self.__on_key)
-        self.__window.connect_key_released(lambda *a:self.__autorepeat_stop())
-        self.__window.connect_closed(self.__on_close_window)
+        #self.__window.connect_key_pressed(self.__on_key)
+        #self.__window.connect_key_released(lambda *a:self.__autorepeat_stop())
+        #self.__window.connect_closed(self.__on_close_window)
 
         # screen pixmap
         #screen = Pixmap(self.__window.window)
         
         Component.__init__(self)
         RootPane.__init__(self)
-        self.__window.add(self)
-        w, h = self.__window.get_size()
+        #self.__window.add(self)
+        #w, h = self.__window.get_size()
         
         #self.set_window(self.__window)
-        self.set_size(w, h)
+        #self.set_size(w, h)
         #self.set_screen(screen)
 
         # viewer tabs
@@ -105,13 +106,13 @@ class AppWindow(Component, RootPane):
         self.push_actor(self.__box)
        
         # title panel
-        self.__title_panel = TitlePanel()
-        self.__title_panel.set_title("Initializing")
+        #self.__title_panel = TitlePanel()
+        #self.__title_panel.set_title("Initializing")
         #self.__title_panel.set_visible(False)
-        self.__title_panel.connect_clicked(self.__on_click_title)
+        #self.__title_panel.connect_clicked(self.__on_click_title)
         #self.__box.add(self.__title_panel)
        
-        self.__status_current_viewer = Image(None)
+        #self.__status_current_viewer = Image(None)
 
         gobject.idle_add(self.__startup)
 
@@ -124,17 +125,17 @@ class AppWindow(Component, RootPane):
 
         actions = [(self.render, []),
                    #(gtk.main_quit, []),
-                   (self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
-                                        "",
-                                        theme.mb_viewer_audio]),
-                   (self.__window.set_visible, [True]),
+                   #(self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
+                   #                     "",
+                   #                     theme.mb_viewer_audio]),
+                   #(self.__window.set_visible, [True]),
                    #(time.sleep, [5]),
                    (self.__register_views, []),
                    #(self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
                    #                     "- starting -",
                    #                     theme.mb_viewer_audio]),
                    (self.__scan_at_startup, []),
-                   (self.hide_overlay, []),
+                   #(self.hide_overlay, []),
                    (self.__add_panels, []),
                    (self.__select_initial_view, []),
                    (self.emit_message, [msgs.CORE_EV_APP_STARTED]),
@@ -178,7 +179,6 @@ class AppWindow(Component, RootPane):
         if (config.scan_at_startup()):
             self.__scan_media(True)
         else:
-            #self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
             self.__scan_media(False)
 
 
@@ -188,9 +188,8 @@ class AppWindow(Component, RootPane):
         Selects the view that is initially shown.
         """
         
-        self.__current_view = self.__views[0]
-        self.__current_view.set_visible(True)
-        self.render()        
+        self.__initial_view = self.__views[0]
+        self.__select_view_by_name(`self.__initial_view`)
 
 
     def __register_views(self):
@@ -200,11 +199,22 @@ class AppWindow(Component, RootPane):
 
         self.__views.sort(lambda a,b:cmp(a.PRIORITY, b.PRIORITY))
 
+        cnt = 0
         for view in self.__views:
             logging.info("registering view [%s]", view)
-            self.add(view)
+            #self.add(view)
             view.set_visible(False)
-            self.__tabs.add_tab(None, view.TITLE, self.__on_show_view, view)
+            #view.set_title(`view`)
+            #self.__tabs.add_tab(None, view.TITLE, self.__on_show_view, view)
+            
+            if (cnt == 0):
+                view.connect_closed(self.__try_quit)
+            else:
+                print "NAME", `self.__initial_view`
+                view.connect_closed(self.__close_view)
+            
+            cnt += 1
+         #end for
 
 
     def __add_panels(self):
@@ -213,7 +223,8 @@ class AppWindow(Component, RootPane):
         """
     
         #self.__box.add(self.__title_panel)
-        self.__title_panel.set_status_icon(self.__status_current_viewer)
+        #self.__title_panel.set_status_icon(self.__status_current_viewer)
+        pass
 
 
     def render_this(self):
@@ -225,23 +236,23 @@ class AppWindow(Component, RootPane):
 
         #self.__title_panel.set_geometry(0, 0, w, 40)
         
-        if (self.__tabs.is_visible()):
-            if (w < h):
-                # portrait mode
-                self.__tabs.set_orientation(Tabs.HORIZONTAL)
-                self.__tabs.set_geometry(0, 0, w, 42)
-                if (self.__current_view):
-                    self.__current_view.set_geometry(0, 42, w, h - 42)
-            else:
-                # landscape mode
-                self.__tabs.set_orientation(Tabs.VERTICAL)
-                self.__tabs.set_geometry(0, 0, 42, h)
-                if (self.__current_view):
-                    self.__current_view.set_geometry(42, 0, w - 42, h)
-
-        else:
+        #if (self.__tabs.is_visible()):
+        if (w < h):
+            # portrait mode
+            #self.__tabs.set_orientation(Tabs.HORIZONTAL)
+            #self.__tabs.set_geometry(0, 0, w, 42)
             if (self.__current_view):
                 self.__current_view.set_geometry(0, 0, w, h)
+        else:
+            # landscape mode
+            #self.__tabs.set_orientation(Tabs.VERTICAL)
+            #self.__tabs.set_geometry(0, 0, 42, h)
+            if (self.__current_view):
+                self.__current_view.set_geometry(0, 0, w, h)
+
+        #else:
+        #    if (self.__current_view):
+        #        self.__current_view.set_geometry(0, 0, w, h)
 
         
     def __set_view_mode(self, view_mode):
@@ -255,16 +266,17 @@ class AppWindow(Component, RootPane):
         w, h = self.get_size()
 
         if (view_mode == viewmodes.NORMAL):
-            self.__title_panel.set_visible(True)
+            pass #self.__title_panel.set_visible(True)
                        
         elif (view_mode == viewmodes.FULLSCREEN):
-            self.__title_panel.set_visible(False)
-            if (self.__current_viewer):
-                self.__current_viewer.set_geometry(0, 0, w, h)
+            #self.__title_panel.set_visible(False)
+            #if (self.__current_viewer):
+            #    self.__current_viewer.set_geometry(0, 0, w, h)
+            pass
 
         self.__view_mode = view_mode
-        if (self.__current_viewer):
-            self.__get_vstate().view_mode = view_mode
+        #if (self.__current_viewer):
+        #    self.__get_vstate().view_mode = view_mode
 
 
     def __on_click_title(self):
@@ -309,13 +321,13 @@ class AppWindow(Component, RootPane):
         self.emit_message(msgs.MEDIASCANNER_ACT_SCAN, mediaroots, force_rebuild)
         
 
-        for v in self.__viewers:
-            vstate = self.__get_vstate(v)
-            vstate.selected_item = -1
-            vstate.item_offset = 0
+        #for v in self.__viewers:
+        #    vstate = self.__get_vstate(v)
+        #    vstate.selected_item = -1
+        #    vstate.item_offset = 0
 
 
-        import gc; gc.collect()
+        #import gc; gc.collect()
         #self.hide_overlay()
 
 
@@ -437,7 +449,7 @@ class AppWindow(Component, RootPane):
         Displays the virtual keyboard.
         """
        
-        self.emit_message(msgs.VKB_ACT_SHOW, self.__window)
+        pass #self.emit_message(msgs.VKB_ACT_SHOW, self.__window)
 
 
 
@@ -493,25 +505,37 @@ class AppWindow(Component, RootPane):
         return self.__viewer_states[viewer]
                 
             
- 
-    def __select_viewer_by_name(self, name):
+    def __select_view_by_name(self, name):
         """
-        Selects the current viewer by name.
+        Selects the current view by name.
         """
         
-        viewers = [ v for v in self.__viewers if repr(v) == name ]
-        if (viewers):
-            idx = self.__viewers.index(viewers[0])
-            self.__select_viewer(idx)
-        else:
-            self.__select_viewer(0)
+        views = [ v for v in self.__views if repr(v) == name ]
+        if (views):
+            view = views[0]
             
+            if (view == self.__current_view):
+                return
+            
+            if (self.__current_view and self.__current_view != self.__initial_view):
+                self.__current_view.set_visible(False)
+    
+            self.__current_view = view
+            self.__current_view.set_visible(True)
+            self.__current_view.render()
+        #end if
+
+
+    def __close_view(self):
+    
+        self.__select_view_by_name(`self.__initial_view`)
 
             
+    """
     def __select_viewer(self, idx):
-        """
+        ""
         Selects the current viewer by index number.
-        """        
+        ""        
       
         viewer = self.__viewers[idx]
         
@@ -535,18 +559,30 @@ class AppWindow(Component, RootPane):
         
         self.emit_message(msgs.INPUT_ACT_REPORT_CONTEXT)
         self.emit_message(msgs.UI_EV_VIEWER_CHANGED, idx)
-     
+    """
+
+    """
+    def __stack_window(self):
+    
+        self.__window.remove(self)
+        win = Window(True)
+        win.add(self)
+        win.set_visible(True)
+        self.set_visible(True)
+        win.render()
+    """
         
     def __try_quit(self):
     
-        self.__window.present()
-        result = self.call_service(msgs.DIALOG_SVC_QUESTION,
-                                   "Exit",
-                                   "Do you want to quit?")
-
+        #self.__window.present()
+        #result = self.call_service(msgs.DIALOG_SVC_QUESTION,
+        #                           "Exit",
+        #                           "Do you want to quit?")
+        result = 0
+        
         if (result == 0):
-            config.set_current_viewer(self.__current_viewer)
-            config.set_current_device(self.__current_device_id)
+            #config.set_current_viewer(self.__current_viewer)
+            #config.set_current_device(self.__current_device_id)
             self.emit_message(msgs.MEDIA_ACT_STOP)
             self.emit_message(msgs.CORE_EV_APP_SHUTDOWN)
             gtk.main_quit()
@@ -565,7 +601,7 @@ class AppWindow(Component, RootPane):
 
     def handle_CORE_ACT_APP_MINIMIZE(self):
 
-        self.__window.iconify()
+        pass #self.__window.iconify()
         
         
     def handle_CORE_ACT_APP_CLOSE(self):
@@ -592,23 +628,13 @@ class AppWindow(Component, RootPane):
 
     def handle_CORE_ACT_SET_TITLE(self, title):
 
-        self.__title_panel.set_title(title)
-        self.__window.set_title(title)
+        #self.__title_panel.set_title(title)
+        pass #self.__window.set_title(title)
 
 
     def handle_CORE_ACT_SET_INFO(self, info):
 
-        self.__title_panel.set_info(info)
-
-
-    def handle_CORE_ACT_SET_TOOLBAR(self, tbset):
-
-        pass
-
-
-    def handle_CORE_ACT_SET_TOOLBAR_SETS(self, sets):
-
-        pass
+        pass #self.__title_panel.set_info(info)
 
 
     def handle_HWKEY_EV_BACKSPACE(self):
@@ -624,7 +650,7 @@ class AppWindow(Component, RootPane):
         term += key.lower()
         self.__set_search_term(term)
 
-
+    """
     def handle_INPUT_EV_PREVIOUS_VIEWER(self):            
 
         idx = self.__viewers.index(self.__current_viewer)
@@ -636,22 +662,23 @@ class AppWindow(Component, RootPane):
         idx = self.__viewers.index(self.__current_viewer)
         if (idx < len(self.__viewers) - 1):
             self.__select_viewer(idx + 1)
+    """
 
 
     def handle_MEDIASCANNER_EV_SCANNING_STARTED(self):
 
-        self.show_overlay("Scanning Media", "", theme.mb_viewer_audio)
+        pass #self.show_overlay("Scanning Media", "", theme.mb_viewer_audio)
         
         
     def handle_MEDIASCANNER_EV_SCANNING_PROGRESS(self, name):
 
-        self.show_overlay("Scanning Media", "- %s -" % name,
-                          theme.mb_viewer_audio)
+        pass #self.show_overlay("Scanning Media", "- %s -" % name,
+        #                  theme.mb_viewer_audio)
 
     
     def handle_MEDIASCANNER_EV_SCANNING_FINISHED(self):
 
-        self.hide_overlay()
+        pass #self.hide_overlay()
 
 
     def handle_SYSTEM_EV_BATTERY_REMAINING(self, percent):                
@@ -683,17 +710,17 @@ class AppWindow(Component, RootPane):
 
     def handle_UI_ACT_SHOW_MESSAGE(self, text, subtext, icon):
 
-        self.show_overlay(text, subtext, icon)
+        pass #self.show_overlay(text, subtext, icon)
 
 
     def handle_UI_ACT_HIDE_MESSAGE(self):
 
-        self.hide_overlay()
+        pass #self.hide_overlay()
 
 
-    def handle_UI_ACT_SELECT_VIEWER(self, name):
+    def handle_UI_ACT_SELECT_VIEW(self, name):
 
-        self.__select_viewer_by_name(name)
+        self.__select_view_by_name(name)
 
 
     def handle_UI_ACT_VIEW_MODE(self, mode):
@@ -703,20 +730,20 @@ class AppWindow(Component, RootPane):
 
     def handle_UI_ACT_SET_STATUS_ICON(self, w):
     
-        self.__title_panel.set_status_icon(w)
+        pass #self.__title_panel.set_status_icon(w)
         
 
     def handle_UI_ACT_UNSET_STATUS_ICON(self, w):
     
-        self.__title_panel.unset_status_icon(w)
+        pass #self.__title_panel.unset_status_icon(w)
 
 
     def handle_ASR_EV_LANDSCAPE(self):
     
-        self.__window.set_portrait_mode(False)
+        pass #self.__window.set_portrait_mode(False)
         
         
     def handle_ASR_EV_PORTRAIT(self):
     
-        self.__window.set_portrait_mode(True)
+        pass #self.__window.set_portrait_mode(True)
 

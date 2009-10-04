@@ -123,13 +123,13 @@ class Widget(EventEmitter):
         zone = None
         zone_tstamp = 0
         
-       
         if (ev == Widget.EVENT_BUTTON_PRESS):
             for w in self._zones:
                 if (w.is_frozen()):
                     continue
                 #print self._zones[w]
                 window, x, y, w, h, tstamp, cb = self._zones[w]
+
                 if (window != self.get_window()):
                     continue
             #for x, y, w, h, tstamp, cb in self._zones.values():
@@ -407,9 +407,7 @@ class Widget(EventEmitter):
                 f(c)
     
         self.__is_visible = value
-
         self.__check_zones()
-            
         f(self)
 
 

@@ -71,7 +71,7 @@ class ImageStorage(Device):
         f.name = self.get_name()
         f.info = "Browse your picture library"
         f.icon = self.get_icon().get_path()
-        f.folder_flags = f.ITEMS_ENQUEUEABLE
+        f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
         
         return f
           
@@ -107,7 +107,8 @@ class ImageStorage(Device):
                 f.info = "%d items" % len(self.__folders.get(folder, []))
                 f.thumbnail = self.__find_image_in_folder(folder)
                 f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                                 f.ITEMS_SKIPPABLE
+                                 f.ITEMS_SKIPPABLE | \
+                                 f.ITEMS_COMPACT
                 
                 cb(f, *args)
                 

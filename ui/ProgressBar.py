@@ -72,19 +72,27 @@ class ProgressBar(Widget):
             return
     
         w, h = self.get_size()
-        theme.mb_progress.reload()
-        pbuf1 = theme.mb_progress.subpixbuf(0, 0, 5, 64)
-        pbuf2 = theme.mb_progress.subpixbuf(5, 0, 5, 64)
+        theme.mb_progress_1.reload()
+        theme.mb_progress_2.reload()
+        
+        pbuf1 = theme.mb_progress_1
+        pbuf2 = theme.mb_progress_2
+        
+        #pbuf1 = theme.mb_progress.subpixbuf(0, 0, 5, 64)
+        #pbuf2 = theme.mb_progress.subpixbuf(5, 0, 5, 64)
     
         self.__bg_pmap = Pixmap(None, w, h)
-        self.__bg_pmap.copy_pixmap(screen, x, y, 0, 0, w, h)
-        #self.__bg_pmap.fill_area(0, 0, w, h, "#ff0000")
-        self.__progress_pmap = Pixmap(None, w, h)
-        self.__progress_pmap.copy_pixmap(screen, x, y, 0, 0, w, h)
-        #self.__progress_pmap.fill_area(0, 0, w, h, "#ff0000")
+        self.__bg_pmap.fill_area(0, 0, w, h, "#000000")
+        #self.__bg_pmap.copy_pixmap(screen, x, y, 0, 0, w, h)
         
-        self.__bg_pmap.draw_pixbuf(pbuf1, 0, 0, w, h, True)
-        self.__progress_pmap.draw_pixbuf(pbuf2, 0, 0, w, h, True)
+        self.__progress_pmap = Pixmap(None, w, h)
+        self.__progress_pmap.fill_area(0, 0, w, h, "#000000")
+        #self.__progress_pmap.copy_pixmap(screen, x, y, 0, 0, w, h)
+        
+        #self.__bg_pmap.draw_pixbuf(pbuf1, 0, 0, w, h, True)
+        #self.__progress_pmap.draw_pixbuf(pbuf2, 0, 0, w, h, True)
+        self.__bg_pmap.draw_frame(pbuf1, 0, 0, w, h, True)
+        self.__progress_pmap.draw_frame(pbuf2, 0, 0, w, h, True)
 
 
     def connect_changed(self, cb, *args):
@@ -210,7 +218,7 @@ class ProgressBar(Widget):
         progress_width = w * self.__progress
         if (self.__progress_pmap):
             pmap.copy_pixmap(self.__progress_pmap, 0, 0, 0, 0,
-                             progress_width, 64)
+                             progress_width, h)
         #end if
 
 
