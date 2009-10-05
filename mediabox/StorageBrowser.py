@@ -64,7 +64,6 @@ class StorageBrowser(ThumbableGridView):
         self.add_overlay_renderer(self.__render_message)
         self.add_overlay_renderer(self.__render_search_box)
         self.add_overlay_renderer(self.__render_caps)
-        self.set_background(theme.color_mb_background)
 
 
     def connect_folder_begin(self, cb, *args):

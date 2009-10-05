@@ -33,7 +33,6 @@ class Prefs(Configurator):
         Configurator.__init__(self)
         
         self.__list = ThumbableGridView()
-        self.__list.set_background(theme.color_mb_background)
         self.add(self.__list)
         
         lbl = LabelItem("Keep display lit:")

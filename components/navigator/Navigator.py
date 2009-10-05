@@ -97,6 +97,11 @@ class Navigator(View):
         self.__browser.set_root_device(RootDevice())
 
 
+        # menu
+        self.set_window_menu((None, "Settings", self.__on_menu_settings),
+                             (None, "FM Transmitter", self.__on_menu_fmtx))
+
+
     def __update_toolbar(self):
         """
         Updates the contents of the toolbar.
@@ -130,6 +135,16 @@ class Navigator(View):
             self.__tn_scheduler.resume()
         else:
             self.__tn_scheduler.halt()
+
+
+    def __on_menu_settings(self, *args):
+    
+        self.emit_message(msgs.UI_ACT_SELECT_VIEW, "Preferences")
+        
+        
+    def __on_menu_fmtx(self):
+    
+        pass
 
     
     def __on_click_now_playing(self):

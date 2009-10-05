@@ -303,3 +303,26 @@ class Window(Widget):
 
         #end if
 
+
+    def set_window_menu(self, *items):
+        """
+        Sets the window menu.
+        @since: 2009.10
+        """
+        
+        if (platforms.PLATFORM == platforms.MAEMO5):
+            import hildon
+            menu = hildon.AppMenu()
+        
+            for item in items:
+                icon, label, callback = item
+
+                btn = gtk.Button(label)
+                btn.connect("clicked", lambda x, cb:cb(), callback)
+                menu.append(btn)
+            #end for
+
+            menu.show_all()            
+            self.__window.set_app_menu(menu)
+        #end if
+

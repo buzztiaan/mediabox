@@ -1,5 +1,6 @@
 from ItemView import ItemView
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
+from theme import theme
 
 import math
 
@@ -15,7 +16,7 @@ class GridView(ItemView):
         self.__background = None
         
         # color of the background
-        self.__bg_color = "#ffffff"
+        self.__bg_color = theme.color_mb_background
         
         # offset value of the currently visible area
         self.__offset = 0

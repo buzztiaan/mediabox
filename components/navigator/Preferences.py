@@ -23,6 +23,7 @@ class Preferences(View):
         
     
         View.__init__(self)
+        self.set_title("Settings")
         
         self.__list = ThumbableGridView()
         self.__list.set_background(theme.color_mb_background)
