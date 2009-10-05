@@ -67,6 +67,9 @@ class Navigator(View):
                                     lambda a,b:self.__browser.stop_scrolling())
         self.add(self.__browser)
 
+        # beta version!
+        self.__browser.add_overlay_renderer(self.__render_beta_mark)
+
 
         # toolbar
         self.__toolbar = Toolbar()
@@ -76,8 +79,8 @@ class Navigator(View):
                                       theme.mb_btn_home_2)
         self.__btn_home.connect_clicked(self.__on_btn_home)
         
-        self.__btn_history = ImageButton(theme.mb_btn_home_1,
-                                         theme.mb_btn_home_2)
+        self.__btn_history = ImageButton(theme.mb_btn_history_1,
+                                         theme.mb_btn_history_2)
         self.__btn_history.connect_clicked(self.__on_btn_history)
 
         self.__btn_bookmarks = ImageButton(theme.mb_btn_bookmark_1,
@@ -100,6 +103,13 @@ class Navigator(View):
         # menu
         self.set_window_menu((None, "Settings", self.__on_menu_settings),
                              (None, "FM Transmitter", self.__on_menu_fmtx))
+
+
+    def __render_beta_mark(self, screen):
+    
+        x, y = self.__browser.get_screen_pos()
+        w, h = self.__browser.get_size()
+        screen.draw_pixbuf(theme.mb_beta_mark, w - 128, h - 48)
 
 
     def __update_toolbar(self):
