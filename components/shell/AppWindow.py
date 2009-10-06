@@ -123,7 +123,7 @@ class AppWindow(Component, RootPane):
         Runs a queue of actions to take for startup.
         """
 
-        actions = [(self.render, []),
+        actions = [#(self.render, []),
                    #(gtk.main_quit, []),
                    #(self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
                    #                     "",
@@ -131,13 +131,13 @@ class AppWindow(Component, RootPane):
                    #(self.__window.set_visible, [True]),
                    #(time.sleep, [5]),
                    (self.__register_views, []),
+                   (self.__select_initial_view, []),
                    #(self.show_overlay, ["%s %s" % (values.NAME, values.VERSION),
                    #                     "- starting -",
                    #                     theme.mb_viewer_audio]),
                    (self.__scan_at_startup, []),
                    #(self.hide_overlay, []),
-                   (self.__add_panels, []),
-                   (self.__select_initial_view, []),
+                   #(self.__add_panels, []),
                    (self.emit_message, [msgs.CORE_EV_APP_STARTED]),
                    ]
                    
@@ -210,7 +210,6 @@ class AppWindow(Component, RootPane):
             if (cnt == 0):
                 view.connect_closed(self.__try_quit)
             else:
-                print "NAME", `self.__initial_view`
                 view.connect_closed(self.__close_view)
             
             cnt += 1
@@ -740,10 +739,12 @@ class AppWindow(Component, RootPane):
 
     def handle_ASR_EV_LANDSCAPE(self):
     
-        pass #self.__window.set_portrait_mode(False)
+        for view in self.__views:
+            view.set_portrait_mode(False)
         
         
     def handle_ASR_EV_PORTRAIT(self):
-    
-        pass #self.__window.set_portrait_mode(True)
+
+        for view in self.__views:    
+            view.set_portrait_mode(True)
 

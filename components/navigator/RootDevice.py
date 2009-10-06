@@ -84,6 +84,7 @@ class RootDevice(Device):
             f.path = path
             f.mimetype = f.DIRECTORY
             f.icon = icon.get_path()
+            f.folder_flags = f.ITEMS_COMPACT
             out.append(f)
         #end for
         

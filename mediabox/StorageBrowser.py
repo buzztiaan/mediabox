@@ -55,6 +55,9 @@ class StorageBrowser(ThumbableGridView):
         # message text to display
         self.__message = ""
         
+        # token for detecting when to abort loading
+        self.__token = 0
+        
         self.__search_term = ""
         
         self.__tn_scheduler = ItemScheduler()
@@ -651,9 +654,10 @@ class StorageBrowser(ThumbableGridView):
         current file list.
         """
 
-        def on_child(f, path, entries):
+        def on_child(f, token, path, entries):
             # abort if the user has changed the directory inbetween
-            if (self.get_current_folder() != path): return False
+            #if (self.get_current_folder() != path): return False
+            if (token != self.__token): return False
             
             if (f):
                 #self.get_item(0).set_info("%d items" \
@@ -700,7 +704,8 @@ class StorageBrowser(ThumbableGridView):
 
         cwd = self.get_current_folder()
         num_of_items = len(self.get_files())
-        cwd.get_contents(num_of_items, 0, on_child, cwd, [])
+        cwd.get_contents(num_of_items, 0, on_child, self.__token, cwd, [])
+        self.__token = (self.__token + 1) % 100
         
         
     def __add_file(self, f):

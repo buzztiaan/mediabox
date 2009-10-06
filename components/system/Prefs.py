@@ -43,6 +43,16 @@ class Prefs(Configurator):
                            "yes", "yes")
         chbox.connect_changed(self.__on_select_display_lit)
         self.__list.append_item(chbox)
+
+
+        lbl = LabelItem("Orientation:")
+        self.__list.append_item(lbl)
+        
+        chbox = OptionItem("Landscape", "landscape",
+                           "Portrait", "portrait")
+        chbox.connect_changed(self.__on_select_orientation)
+        self.__list.append_item(chbox)
+
         
 
     def render_this(self):
@@ -57,4 +67,15 @@ class Prefs(Configurator):
         self.__list.render()
         config.set_display_lit(value)
         self.__label_lit.set_text(_DESCRIPTIONS[value])
+
+
+    def __on_select_orientation(self, value):
+
+        self.__list.invalidate()
+        self.__list.render()
+    
+        if (value == "landscape"):
+            self.emit_message(msgs.ASR_EV_LANDSCAPE)
+        else:
+            self.emit_message(msgs.ASR_EV_PORTRAIT)
 

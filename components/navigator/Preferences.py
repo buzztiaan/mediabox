@@ -120,4 +120,5 @@ class Preferences(View):
         while self.__configurators:
             self.__register_configurator(self.__configurators.pop(0))
         self.render()
+        self.set_visible(True)
 

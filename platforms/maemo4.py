@@ -32,6 +32,18 @@ def get_session_bus():
     return _session_bus
 
 
+def get_device_state():
+    """
+    Returns the OSSO device state object.
+    @since: 0.96.3
+    
+    @return: OSSO device state
+    """
+    
+    import osso
+    return osso.DeviceState(get_osso_context())
+    
+
 def get_product_code():
     """
     Returns the product code of the device.

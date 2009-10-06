@@ -7,7 +7,7 @@ DESKTOP_FILE=maemo-data/mediabox-mc.desktop
 SERVICE_FILE=maemo-data/de.pycage.mediabox.service
 
 # installation destination
-LIBDIR=/usr/lib/${NAME}
+LIBDIR=/opt/${NAME}
 
 # files to copy into destination
 COPY_FILES=com      \
@@ -16,6 +16,7 @@ COPY_FILES=com      \
 	   io       \
 	   mediabox \
 	   mediaplayer \
+	   platforms \
 	   storage  \
 	   theme    \
  	   ui       \
@@ -23,7 +24,14 @@ COPY_FILES=com      \
 	   utils    \
 	   mimetypes.mapping \
 	   MediaBox.py
-	  
+
+# stuff to purge, since we have more than we want in the package
+PURGE_FILES=${DESTDIR}/opt/mediabox/mediabox/EXPERIMENTAL \
+            ${DESTDIR}/opt/mediabox/ui/EXPERIMENTAL \
+            ${DESTDIR}/opt/mediabox/theme/darkbox \
+            ${DESTDIR}/opt/mediabox/theme/htpc
+            
+
 EXEC_FILE=MediaBox.py
 
 
@@ -54,15 +62,19 @@ install-lib:
 	find ${_LIBDIR} -name "*~" -exec rm -f "{}" \; ; true
 	find ${_LIBDIR} -name "*.xcf" -exec rm -f "{}" \; ; true
 	chmod a+x ${_LIBDIR}/${EXEC_FILE}
-	
+
 install-maemo:
 	mkdir -p ${_ICONDIR} ${_SERVICEDIR} ${_DESKTOPDIR}
 	cp ${ICON_FILE} ${_ICONDIR}
 	cp ${SERVICE_FILE} ${_SERVICEDIR}
 	cp ${DESKTOP_FILE} ${_DESKTOPDIR}
 
-install: install-lib install-maemo py-compile
+purge:
+	rm -rf ${PURGE_FILES}
+	
+install: install-lib install-maemo purge py-compile
 	@true
+
 
 doc:
 	epydoc -n ${NAME} --parse-only -o ../www/apidoc -v \

@@ -1,5 +1,5 @@
 from com import Component, msgs
-from utils import maemo
+import platforms
 import config
 
 import gobject
@@ -10,7 +10,7 @@ class DisplayLight(Component):
     def __init__(self):
 
         Component.__init__(self)
-        self.__devstate = maemo.get_device_state()
+        self.__devstate = platforms.get_device_state()
         
         self.__timeout_handler = None
 
@@ -36,6 +36,7 @@ class DisplayLight(Component):
             self.__disable_light()
 
 
+    """
     def handle_UI_EV_VIEWER_CHANGED(self, idx):    
 
         lit = config.get_display_lit()
@@ -49,14 +50,14 @@ class DisplayLight(Component):
                 
         elif (lit == "no"):
             self.__disable_light()
-      
+    """
 
 
     def __enable_light(self):
 
         #print "enabling light"
         if (not self.__timeout_handler):
-            self.__timeout_handler = gobject.timeout_add(29000,
+            self.__timeout_handler = gobject.timeout_add(23000,
                                                          self.__keep_display_on)
                                                          
                                                          
@@ -70,6 +71,9 @@ class DisplayLight(Component):
 
     def __keep_display_on(self):
     
+        # dbus-send --system --print-reply --dest=com.nokia.mce 
+        #     /com/nokia/mce/request
+        #     com.nokia.mce.request.req_display_blanking_pause
         self.__devstate.display_blanking_pause()
         return True
 

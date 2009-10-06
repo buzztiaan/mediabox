@@ -9,6 +9,10 @@ import gobject
 # hide the letter display after this many milliseconds without scrolling
 _LETTER_TIMEOUT = 100
 
+# letters are only displayed if the list is at least this many times bigger
+# than the screen size
+_LETTER_LENGTH_THRESHOLD = 5
+
 
 class ThumbableGridView(GridView):
 
@@ -43,9 +47,10 @@ class ThumbableGridView(GridView):
     def __render_letter(self, screen):
     
         w, h = self.get_size()
+        total_w, total_h = self.get_total_size()
 
         # render letter
-        if (self.__letter_visible):
+        if (self.__letter_visible and h * _LETTER_LENGTH_THRESHOLD < total_h):
             idx = self.get_item_at(0, h / 2)
             if (idx >= self.count_items() - 1): return
             item = self.get_item(idx)

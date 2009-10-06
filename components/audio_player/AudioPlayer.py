@@ -89,8 +89,8 @@ class AudioPlayer(Player):
 
         self.__toolbar.set_toolbar(btn_previous,
                                    self.__btn_play,
-                                   btn_next,
-                                   btn_bookmark)
+                                   btn_next)
+                                   #btn_bookmark)
 
         
     def get_mime_types(self):
@@ -122,16 +122,18 @@ class AudioPlayer(Player):
             if (status == self.__player.STATUS_PLAYING):
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)
+                self.emit_message(msgs.MEDIA_EV_PLAY)
 
             elif (status == self.__player.STATUS_STOPPED):
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
+                self.emit_message(msgs.MEDIA_EV_PAUSE)
 
             elif (status == self.__player.STATUS_EOF):
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
+                self.emit_message(msgs.MEDIA_EV_EOF)
                 self.emit_message(msgs.MEDIA_ACT_NEXT)
-
 
 
     def __on_seek(self, progress):

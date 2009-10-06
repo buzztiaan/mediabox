@@ -1,3 +1,11 @@
+mediabox (2009.10.6) unstable; urgency=low
+
+  First unstable beta-release for Fremantle
+  
+  Major UI redesigns
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 06 Oc 2009 20:30:00 +0200
+
 mediabox (0.96.5) unstable; urgency=low
 
   Support for LRC file format for music lyrics

@@ -32,7 +32,7 @@ _cfg = Config("",
                ("thumbnails_epoch", Config.INTEGER, 0),
                ("thumbnails_folder", Config.STRING, 
                               os.path.expanduser("~/.thumbnails/mediabox")),
-               ("theme", Config.STRING, "default"),
+               ("theme", Config.STRING, "kuro"),
                ("volume", Config.INTEGER, 50)]
              )
 
