@@ -102,8 +102,13 @@ class MediaItem(Item):
         pmap, is_new = self._get_cached_pixmap()
         if (is_new):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
-           
 
+            # render selection frame
+            if (self.is_hilighted()):
+                pmap.draw_frame(theme.mb_selection_frame,
+                                4, 0, w - 8, h, True,
+                                pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
+           
             # render icon
             try:
                 pbuf = gtk.gdk.pixbuf_new_from_file(self.__icon)
@@ -132,12 +137,6 @@ class MediaItem(Item):
                                     0, h - 20, w, 20,
                                     theme.color_mb_listitem_text)
             pmap.set_clip_rect()
-
-            # render selection frame
-            if (self.is_hilighted()):
-                pmap.draw_frame(theme.mb_selection_frame,
-                                4, 0, w - 8, h, True,
-                                pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
             
         #end if
         
@@ -161,6 +160,11 @@ class MediaItem(Item):
             #    pmap.fill_area(0, 0, w, h, "#0000ff")
             #else:
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
+
+            # render selection frame
+            if (self.is_hilighted()):
+                pmap.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True,
+                                pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
 
             # render grip
             if (self.__grip_visible):
@@ -202,11 +206,6 @@ class MediaItem(Item):
                            offset, h - 40,
                            theme.color_mb_listitem_subtext)
             pmap.set_clip_rect()
-            
-            # render selection frame
-            if (self.is_hilighted()):
-                pmap.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True,
-                                pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
             
             # render button
             if (self.__file.mimetype.endswith("-folder")):

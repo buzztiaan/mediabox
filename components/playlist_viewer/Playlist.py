@@ -43,6 +43,7 @@ class Playlist(object):
     
         return self.__files[:]
 
+
     def prepend(self, f):
     
         self.__files = [f] + self.__files

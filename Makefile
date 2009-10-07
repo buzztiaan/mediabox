@@ -25,12 +25,6 @@ COPY_FILES=com      \
 	   mimetypes.mapping \
 	   MediaBox.py
 
-# stuff to purge, since we have more than we want in the package
-PURGE_FILES=${DESTDIR}/opt/mediabox/mediabox/EXPERIMENTAL \
-            ${DESTDIR}/opt/mediabox/ui/EXPERIMENTAL \
-            ${DESTDIR}/opt/mediabox/theme/darkbox \
-            ${DESTDIR}/opt/mediabox/theme/htpc
-            
 
 EXEC_FILE=MediaBox.py
 
@@ -58,9 +52,6 @@ py-compile:
 install-lib:
 	mkdir -p ${_LIBDIR}
 	cp -r ${COPY_FILES} ${_LIBDIR}
-	find ${_LIBDIR} -name ".svn" -exec rm -rf "{}" \; ; true
-	find ${_LIBDIR} -name "*~" -exec rm -f "{}" \; ; true
-	find ${_LIBDIR} -name "*.xcf" -exec rm -f "{}" \; ; true
 	chmod a+x ${_LIBDIR}/${EXEC_FILE}
 
 install-maemo:
@@ -72,7 +63,7 @@ install-maemo:
 purge:
 	rm -rf ${PURGE_FILES}
 	
-install: install-lib install-maemo purge py-compile
+install: install-lib install-maemo py-compile
 	@true
 
 

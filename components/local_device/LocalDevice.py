@@ -1,3 +1,4 @@
+from com import msgs
 from storage import Device, File
 from utils import mimetypes
 from utils import maemo
@@ -114,7 +115,26 @@ class LocalDevice(Device):
         #end for
         
         cb(None, *args)        
+
+
+    def __on_add_to_playlist(self, folder, f):
+    
+        self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
+
+
+    def __on_put_on_dashboard(self, folder, f):
         
+        f.bookmarked = True
+
+
+    def get_file_actions(self, folder, f):
+    
+        actions = []
+        actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
+        actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+        
+        return actions
+
         
     def get_file(self, path):
 

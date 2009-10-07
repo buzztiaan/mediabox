@@ -218,6 +218,25 @@ class AVDevice(Device):
                 pass
             
         return didl
+
+
+    def __on_add_to_playlist(self, folder, f):
+    
+        self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
+
+
+    def __on_put_on_dashboard(self, folder, f):
+        
+        f.bookmarked = True
+
+
+    def get_file_actions(self, folder, f):
+    
+        actions = []
+        actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
+        actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+        
+        return actions
      
    
     def get_contents(self, path, begin_at, end_at, cb, *args):

@@ -339,25 +339,26 @@ class File(object):
         return self.__device.new_file(self)
         
         
-    def delete_file(self, idx):
+    def delete_file(self, f):
         """
-        Deletes the file given by the index number from this folder. This only
+        Deletes the given file  from this folder. This only
         works if the storage device implements the C{delete_file} method.
-        @since: 0.96.5
+        @since: 2009.10.7
         """
 
-        return self.__device.delete_file(self, idx)    
+        return self.__device.delete_file(self, f)
+               
         
+    def get_file_actions(self, f):
+        """
+        Returns a list of actions for the given file in the folder.
+        @since: 2009.10
         
-    def delete(self):
+        @param f: file object
+        @return: list of (icon, action_name, callback) tuples
         """
-        Deletes this file. This only works if the storage device implements
-        the delete method.
-        @since: 0.96
-        @deprecated: use L{delete_file} instead
-        """
-
-        return self.__device.delete(self)
+        
+        return self.__device.get_file_actions(self, f)
         
         
     def get_children(self):

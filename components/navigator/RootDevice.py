@@ -1,5 +1,6 @@
 from com import msgs
 from storage import Device, File
+from utils import logging
 from theme import theme
 
 
@@ -16,6 +17,9 @@ class RootDevice(Device):
     
         # table: id -> device
         self.__devices = {}
+        
+        # list of favorited files
+        self.__favorites = []
         
         # table: type -> list of devices
         self.__device_lists = {
@@ -94,11 +98,11 @@ class RootDevice(Device):
     def __list_favorites(self):
 
         # get bookmarks
-        bookmarks = self.call_service(msgs.BOOKMARK_SVC_LIST, [])
-        bookmarks.sort(lambda a,b:cmp(a.name, b.name))
+        self.__favorites = self.call_service(msgs.BOOKMARK_SVC_LIST, [])
+        self.__favorites.sort(lambda a,b:cmp(a.name, b.name))
         
-        return bookmarks
-        
+        return self.__favorites
+
 
 
     def get_contents(self, path, begin_at, end_at, cb, *args):
@@ -129,6 +133,23 @@ class RootDevice(Device):
             cb(f, *args)
         #end for
         cb(None, *args)       
+
+
+    def __on_remove_from_dashboard(self, folder, f):
+    
+        logging.debug("removing from dashboard: %s", f.name)
+        f.bookmarked = False
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+
+
+    def get_file_actions(self, folder, f):
+    
+        options = []
+        if (f in self.__favorites):
+            options.append((None, "Remove from Dashboard",
+                            self.__on_remove_from_dashboard))
+
+        return options
 
     
     def handle_CORE_EV_DEVICE_ADDED(self, ident, device):

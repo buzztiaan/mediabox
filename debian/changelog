@@ -1,10 +1,10 @@
-mediabox (2009.10.6) unstable; urgency=low
+mediabox (2009.10.7) unstable; urgency=low
 
   First unstable beta-release for Fremantle
   
   Major UI redesigns
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 06 Oc 2009 20:30:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 07 Oct 2009 21:30:00 +0200
 
 mediabox (0.96.5) unstable; urgency=low
 

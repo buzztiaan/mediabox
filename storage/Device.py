@@ -169,33 +169,18 @@ class Device(Component):
         raise NotImplementedError
 
 
-    def delete_file(self, folder, idx):
+    def delete_file(self, folder, f):
         """
         Deletes the file given by its index number from the given folder.
-        @since: 0.96.5
+        @since: 2009.10.7
         
         @param folder: file object of the parent folder
-        @param idx:    index of file to delete
+        @param f:      file to delete
         """
         
-        # support legacy plugins
-        logging.warning("DEPRECATED: %s implements 'delete'",
-                        self.__class__.__name__)        
-        self.delete(folder._LEGACY_SUPPORT_file_to_delete)
-
-        
-    def delete(self, f):
-        """
-        Can be implemented by devices to support deleting files.
-        @since: 096
-        @deprecated: use L{delete_file} instead
-        
-        @param f: file object to delete
-        """
-    
         raise NotImplementedError
 
-
+        
     def keep(self, f):
         """
         Keeps the given file. Storage device can implement this method to
@@ -218,6 +203,19 @@ class Device(Component):
         """
         
         pass
+
+
+    def get_file_actions(self, folder, f):
+        """
+        Returns a list of actions for the given file.
+        @since: 2009.10
+        
+        @param folder: file object representing the folder
+        @param f: file object
+        @return: list of (icon, action_name, callback) tuples
+        """
+    
+        return []
 
 
 

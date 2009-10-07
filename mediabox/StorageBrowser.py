@@ -196,20 +196,39 @@ class StorageBrowser(ThumbableGridView):
     
         cwd = self.get_current_folder()
         f = item.get_file()
+        
+        actions = cwd.get_file_actions(f)
+        if (not actions):
+            return
+        
+        dlg = OptionDialog("Options")
+        callbacks = []
+        for icon, name, cb in actions:
+            dlg.add_option(icon, name)
+            callbacks.append(cb)
+           
+        if (dlg.run() != 0):
+            return
+
+        choice = dlg.get_choice()
+        if (choice != -1):
+            callbacks[choice](cwd, f)
+            
+        """
         idx = self.get_items().index(item)
     
         options = []
 
         if (not f.bookmarked):
-            options.append((None, "Add to Favorites",
+            options.append((None, "Put on Dashboard",
                             self.EVENT_FILE_BOOKMARKED))
     
         if (cwd.folder_flags & cwd.ITEMS_ENQUEUEABLE):
-            options.append((None, "Add to Playlist",
+            options.append((None, "Add to a Playlist",
                             self.EVENT_FILE_ENQUEUED))
 
         if (f.folder_flags & f.INDEXABLE):
-            options.append((None, "Add to Library",
+            options.append((None, "Add to Media Library",
                             self.EVENT_FILE_ADDED_TO_LIBRARY))
 
         if (cwd.folder_flags & cwd.ITEMS_DELETABLE):
@@ -238,7 +257,7 @@ class StorageBrowser(ThumbableGridView):
             
             self.emit_event(ev, f)
         #end if
-
+        """
 
 
     """
@@ -682,7 +701,7 @@ class StorageBrowser(ThumbableGridView):
                 
                 # finished loading items; now create thumbnails
                 #self.__tn_scheduler.resume()
-                
+
                 self.invalidate()
                 self.render()
                 self.emit_event(self.EVENT_FOLDER_COMPLETE,

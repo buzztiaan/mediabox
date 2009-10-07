@@ -3,6 +3,7 @@ from Playlist import Playlist
 from storage import Device, File
 from mediabox import values
 from ui.dialog import InputDialog
+from ui.dialog import OptionDialog
 from utils import urlquote
 from utils import logging
 from theme import theme
@@ -272,7 +273,7 @@ class PlaylistDevice(Device):
         for pl in playlists:
             f = File(self)
             f.name = pl.get_name()
-            f.info = "%d items" % pl.get_size()
+            #f.info = "%d items" % pl.get_size()
             f.path = "/" + urlquote.quote(f.name)
             f.mimetype = f.DIRECTORY
             f.icon = theme.mb_viewer_playlist.get_path()
@@ -308,6 +309,43 @@ class PlaylistDevice(Device):
         #end if
 
         pl.append(f)
+
+
+    def __on_delete_playlist(self, folder, f):
+
+        playlists = [ pl for n, pl in self.__lists if f.name == n ]
+        pl = playlists[0]
+
+        self.__lists = [ (n, p) for n, p in self.__lists
+                         if (p != pl) ]
+        pl.delete_playlist()
+        self.__ensure_special_playlists()
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
+
+
+    def __on_delete_item(self, folder, f):
+    
+        pl = self.__current_list
+        idx = pl.get_files().index(f)
+        pl.remove(idx)
+        pl.save()
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
+
+
+    def get_file_actions(self, folder, f):
+    
+        options = []
+        if (folder.path == "/"):
+            if (f.name in _SPECIAL_PLAYLISTS):
+                options.append((None, "Clear List", self.__on_delete_playlist))
+            else:
+                options.append((None, "Delete", self.__on_delete_playlist))
+                options.append((None, "Rename", self.__on_delete_playlist))
+
+        else:
+            options.append((None, "Delete", self.__on_delete_item))
+
+        return options
         
         
     def handle_PLAYLIST_SVC_GET_LISTS(self):
@@ -323,18 +361,37 @@ class PlaylistDevice(Device):
 
     def handle_PLAYLIST_ACT_APPEND(self, pl_name, f):        
 
-        pl = self.__lookup_playlist(pl_name)
-        if (pl.get_name() in _SPECIAL_PLAYLISTS):
-            pl = self.__lookup_playlist(_PLAYLIST_DEFAULT)
+        if (self.__needs_playlist_reload):
+            self.__load_playlists()
+            self.__needs_playlist_reload = False
 
-        self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
-                          u"adding \xbb%s\xab to %s" % (f.name, pl_name))
-        self.__add_item_to_playlist(pl, f)
+        playlist = None
+        if (not pl_name):
+            dlg = OptionDialog("Select a Playlist")
+        
+            playlists = [ pl for n, pl in self.__lists
+                          if not n in [_PLAYLIST_RECENT_50] ]
+            print "DLG", playlists, self.__lists
+            for pl in playlists:
+                dlg.add_option(None, pl.get_name())
+            if (dlg.run() == 0):
+                choice = dlg.get_choice()
+                playlist = playlists[choice]
+                
+        else:
+            playlist = self.__lookup_playlist(pl_name)
 
-        pl.save()
-        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.__current_folder)
-        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+        #end if
 
+        if (playlist):
+            self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
+                          u"adding \xbb%s\xab to %s" % (f.name, pl.get_name()))
+            self.__add_item_to_playlist(playlist, f)
+
+            playlist.save()
+            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED,
+                              self.__current_folder)
+        #end if
 
 
     def handle_MEDIA_EV_LOADED(self, viewer, f):
