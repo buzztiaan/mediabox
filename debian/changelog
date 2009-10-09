@@ -1,3 +1,11 @@
+mediabox (2009.10.8) unstable; urgency=low
+
+  Preventing display blanking works again
+  
+  Fixed portrait mode issue with option menus
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 08 Oct 2009 23:15:00 +0200
+
 mediabox (2009.10.7) unstable; urgency=low
 
   First unstable beta-release for Fremantle

@@ -81,7 +81,7 @@ class MediaItem(Item):
         self.__is_compact = v
         w, h = self.get_size()
         if (self.__is_compact):
-            self.set_size(w, 120)
+            self.set_size(w, 140)
         else:
             self.set_size(w, 100)
 
@@ -133,7 +133,7 @@ class MediaItem(Item):
 
             # render text
             pmap.set_clip_rect(5, 0, w - 10, h)
-            pmap.draw_centered_text(self.__label, theme.font_mb_tiny,
+            pmap.draw_centered_text(self.__label, theme.font_mb_listitem,
                                     0, h - 20, w, 20,
                                     theme.color_mb_listitem_text)
             pmap.set_clip_rect()

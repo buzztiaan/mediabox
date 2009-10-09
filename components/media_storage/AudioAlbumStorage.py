@@ -104,6 +104,7 @@ class AudioAlbumStorage(AudioArtistStorage):
             
             for filepath in index.list_files(album):
                 f = self.call_service(msgs.CORE_SVC_GET_FILE, filepath)
+                if (not f): continue
                 
                 tags = tagreader.get_tags(f)
                 f.name = tags.get("TITLE") or f.name

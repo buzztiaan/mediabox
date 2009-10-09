@@ -91,7 +91,7 @@ class GstBackend(AbstractBackend):
 
     def _set_volume(self, volume):
 
-        self.__player.set_property("volume", volume / 100.0)
+        self.__player.set_property("volume", volume / 1000.0)
 
     
     def _is_eof(self):

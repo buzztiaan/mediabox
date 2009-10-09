@@ -776,7 +776,8 @@ class Pixmap(object):
                                     x, y, x, y, w, h)
 
 
-TEMPORARY_PIXMAP = Pixmap(None, gtk.gdk.screen_width(), gtk.gdk.screen_height())
+screen_size = max(gtk.gdk.screen_width(), gtk.gdk.screen_height())
+TEMPORARY_PIXMAP = Pixmap(None, screen_size, screen_size)
 """
 The temporary pixmap can be used for temporary drawing operations without
 having to create a new pixmap.

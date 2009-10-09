@@ -10,7 +10,7 @@ class DisplayLight(Component):
     def __init__(self):
 
         Component.__init__(self)
-        self.__devstate = platforms.get_device_state()
+        #self.__devstate = platforms.get_device_state()
         
         self.__timeout_handler = None
 
@@ -74,6 +74,7 @@ class DisplayLight(Component):
         # dbus-send --system --print-reply --dest=com.nokia.mce 
         #     /com/nokia/mce/request
         #     com.nokia.mce.request.req_display_blanking_pause
-        self.__devstate.display_blanking_pause()
+        #self.__devstate.display_blanking_pause()
+        platforms.inhibit_screen_blanking()
         return True
 

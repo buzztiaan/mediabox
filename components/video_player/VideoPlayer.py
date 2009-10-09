@@ -5,8 +5,11 @@ from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
 from ui.Slider import Slider
 import mediaplayer
+import platforms
 from theme import theme
 from utils import logging
+
+import gobject
 
 
 class VideoPlayer(Player):
@@ -15,6 +18,9 @@ class VideoPlayer(Player):
 
         self.__player = None
         self.__context_id = 0
+        self.__is_playing = False
+        
+        self.__blanking_handler = None
 
         Player.__init__(self)
         
@@ -79,10 +85,28 @@ class VideoPlayer(Player):
             if (status == self.__player.STATUS_PLAYING):
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)
+                self.__is_playing = True
+                self.emit_message(msgs.MEDIA_EV_PLAY)
+                
+                # we need manual unblanking on Maemo5 for videos
+                if (not self.__blanking_handler and
+                      platforms.PLATFORM == platforms.MAEMO5):
+                    self.__blanking_handler = gobject.timeout_add(25000,
+                                                      self.__inhibit_blanking)
+                #end if
                                            
             elif (status == self.__player.STATUS_STOPPED):
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
+                self.__is_playing = False
+                self.emit_message(msgs.MEDIA_EV_PAUSE)
+
+            elif (status == self.__player.STATUS_EOF):
+                self.__btn_play.set_images(theme.mb_btn_play_1,
+                                           theme.mb_btn_play_2)
+                self.__is_playing = False
+                self.emit_message(msgs.MEDIA_EV_EOF)
+
 
 
     def __on_update_position(self, ctx_id, pos, total):
@@ -102,6 +126,16 @@ class VideoPlayer(Player):
     
         if (self.__player):
             self.__player.seek_percent(progress)
+
+
+    def __inhibit_blanking(self):
+    
+        if (self.__is_playing):
+            platforms.inhibit_screen_blanking()
+            return True
+        else:
+            self.__blanking_handler = None
+            return False
 
 
     def render_this(self):

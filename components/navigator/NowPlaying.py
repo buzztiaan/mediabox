@@ -18,6 +18,9 @@ class NowPlaying(Widget):
     
         Widget.__init__(self)
         
+        self.__lbl_action = Label("", theme.font_mb_tiny, theme.color_mb_text)
+        self.add(self.__lbl_action)
+        
         self.__lbl_title = Label("", theme.font_mb_plain, theme.color_mb_text)
         self.add(self.__lbl_title)
         
@@ -35,7 +38,8 @@ class NowPlaying(Widget):
         if (self.__icon):
             screen.fit_pixbuf(self.__icon, x + 5, y, icon_size, icon_size)
         
-        self.__lbl_title.set_pos(icon_size + 10, 10)
+        self.__lbl_action.set_pos(icon_size + 10, 12)
+        self.__lbl_title.set_pos(icon_size + 10, 40)
 
 
 
@@ -52,4 +56,9 @@ class NowPlaying(Widget):
     
         self.__lbl_title.set_text(f.name)
         self.render()
+
+
+    def set_action(self, action):
+    
+        self.__lbl_action.set_text(action)
 

@@ -4,11 +4,6 @@ from Thumbnailer import Thumbnailer
 from mediabox import config
 from utils import logging
 
-# these modules handle the particular media types
-import video
-import audio
-import image
-
 import os
 import time
 
@@ -81,24 +76,6 @@ class MediaScanner(Component):
 
         return self.__get_media(mime_types)
 
-
-    """
-    def handle_MEDIASCANNER_SVC_GET_THUMBNAIL(self, f):
-
-        logging.warning("MEDIASCANNER_SVC_GET_THUMBNAIL is deprecated")
-        path = self.__thumbnailer.get_thumbnail_path(f)
-        uptodate = self.__thumbnailer.is_thumbnail_up_to_date(f)
-        return (path, uptodate)
-
-
-    def handle_MEDIASCANNER_SVC_SET_THUMBNAIL(self, f, pbuf):
-
-        logging.warning("MEDIASCANNER_SVC_SET_THUMBNAIL is deprecated")
-        thumbpath = self.__thumbnailer.get_thumbnail_path(f)
-        pbuf.save(thumbpath, "jpeg")
-        print "saving thumbnail for %s as %s" % (f.name, thumbpath)
-        return thumbpath
-    """
 
 
     def __file_exists(self, fp):

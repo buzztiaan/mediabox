@@ -2,8 +2,10 @@ def get_classes():
 
     classes = []
     from MediaScanner import MediaScanner
+    from Tracker import Tracker
     from Thumbnailer import Thumbnailer
-    classes.append(MediaScanner)
+    #classes.append(MediaScanner)
+    classes.append(Tracker)
     classes.append(Thumbnailer)
 
     from Prefs import Prefs

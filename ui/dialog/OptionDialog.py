@@ -11,6 +11,12 @@ class OptionDialog(gtk.Dialog):
         gtk.Dialog.__init__(self)
         self.set_title(title)
         
+        self.realize()
+        
+        self.window.property_change("_HILDON_PORTRAIT_MODE_SUPPORT",
+                                    "CARDINAL", 32,
+                                    gtk.gdk.PROP_MODE_REPLACE,
+                                    [1])
 
     def add_option(self, icon, label):
     

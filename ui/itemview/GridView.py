@@ -291,7 +291,7 @@ class GridView(ItemView):
         # render background and items
         if (self.__is_invalidated):
             self.__is_invalidated = False
-            self.__render_background(0, 0, w, h)
+            #self.__render_background(0, 0, w, h)
             self.__render(0, h)
 
         TEMPORARY_PIXMAP.copy_buffer(self.__buffer, 0, 0, 0, 0, w, h)

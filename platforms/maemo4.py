@@ -41,7 +41,17 @@ def get_device_state():
     """
     
     import osso
-    return osso.DeviceState(get_osso_context())
+    return osso.DeviceState(_osso_ctx)
+
+
+def inhibit_screen_blanking():
+    """
+    Inhibits screen blanking. This function must be called repeatedly as long
+    as blanking must not take place.
+    """
+    
+    devstate = get_device_state()
+    devstate.display_blanking_pause()
     
 
 def get_product_code():
