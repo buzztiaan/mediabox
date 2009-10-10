@@ -9,8 +9,15 @@ _INDEX_FILE = os.path.join(values.USER_DIR, "audio.idx")
 
 # when the index format becomes incompatible, raise the magic number to force
 # rejection of old index
-_MAGIC = 0xbeef0003
+_MAGIC = 0xbeef0004
 
+
+_FOLDER_PATH = 0
+_FILE_PATH = 1
+_TITLE = 2
+_ARTIST = 3
+_ALBUM = 4
+_GENRE = 5
 
 
 class _MusicIndex(object):
@@ -137,45 +144,45 @@ class _MusicIndex(object):
     def list_artists(self):
     
         self.__check_scanner()
-        artists = self.__list_index(None, 3)
+        artists = self.__list_index(None, _ARTIST)
         return artists
 
 
     def list_albums(self):
     
         self.__check_scanner()
-        albums = self.__list_index(None, 4)
+        albums = self.__list_index(None, _ALBUM)
         return albums
 
 
     def list_genres(self):
     
         self.__check_scanner()
-        genres = self.__list_index(None, 5)
+        genres = self.__list_index(None, _GENRE)
         return genres
 
 
     def list_albums_by_artist(self, artist):
 
         self.__check_scanner()
-        selector = lambda item: item[3] == artist
-        albums = self.__list_index(selector, 4)
+        selector = lambda item: item[_ARTIST] == artist
+        albums = self.__list_index(selector, _ALBUM)
         return albums
 
 
     def list_albums_by_genre(self, genre):
 
         self.__check_scanner()
-        selector = lambda item: item[5] == genre
-        albums = self.__list_index(selector, 4)
+        selector = lambda item: item[_GENRE] == genre
+        albums = self.__list_index(selector, _ALBUM)
         return albums
 
 
     def list_files(self, album):
 
         self.__check_scanner()
-        selector = lambda item: item[4] == album
-        tracks = self.__list_index(selector, 1)
+        selector = lambda item: item[_ALBUM] == album
+        tracks = self.__list_index(selector, _FILE_PATH)
         return tracks
 
 
@@ -212,7 +219,42 @@ class _MusicIndex(object):
     def remove_album(self, folder):
     
         self.__delete_from_index(folder.full_path)
+       
+       
+    def add_file(self, f):
+
+        tags = tagreader.get_tags(f)
+        title = (tags.get("TITLE") or f.name).encode("utf-8")
+        artist = (tags.get("ARTIST") or "unknown").encode("utf-8")
+        album = (tags.get("ALBUM") or "").encode("utf-8")
+        try:
+            genre = (tags.get("GENRE") or "unknown").encode("utf-8")
+        except:
+            genre = "unknown"
+        if (not album):
+            parent = os.path.dirname(f.full_path)
+            album = os.path.basename(parent)
+        else:
+            parent = ""
+
+        self.__add_to_index(parent,
+                            f.full_path,
+                            title,
+                            artist,
+                            album,
+                            genre)
+
         
+        
+    def remove_file(self, f):
+    
+        new_index = []
+        for item in self.__index:
+            if (item[_FILE_PATH] != f.full_path):
+                new_index.append(item)
+        #end for
+
+        self.__index = new_index
 
         
 _singleton = _MusicIndex()

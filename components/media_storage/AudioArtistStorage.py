@@ -46,7 +46,7 @@ class AudioArtistStorage(Device):
             # add new files to index
             total_length = len(added)
             cnt = 0
-            for folder in added:
+            for path in added:
                 cnt += 1
                 percent = int((cnt / float(total_length)) * 100)
                 self.emit_message(msgs.UI_ACT_SHOW_MESSAGE,
@@ -55,22 +55,21 @@ class AudioArtistStorage(Device):
                                   "- %d%% complete -" % (percent),
                                   self.get_icon())
                                 
-                self.__index.remove_album(folder)
-                self.__index.add_album(folder)
+                #self.__index.remove_file(path)
+                self.__index.add_file(path)
             #end for
             
             # delete removed files from index
-            for folder in removed:
-                self.__index.remove_album(folder)
+            for path in removed:
+                self.__index.remove_file(path)
             #end for
 
             self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
-            #finished.set()
           
 
         media, added, removed = \
                 self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
-                                 [File.DIRECTORY])
+                                 ["audio/"])
         print "ADDED", added
         print "REMOVED", removed
         if (not media):

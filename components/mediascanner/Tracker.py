@@ -1,6 +1,8 @@
 from com import Component, msgs
+from FileIndex import FileIndex
 
 import commands
+import os
 
 
 class Tracker(Component):
@@ -12,6 +14,9 @@ class Tracker(Component):
     def __init__(self):
     
         self.__files = []
+        
+        # index for files that is serialized to disk
+        self.__file_index = FileIndex()
     
         Component.__init__(self)
         
@@ -19,7 +24,8 @@ class Tracker(Component):
     def handle_MEDIASCANNER_ACT_SCAN(self, mediaroots, rebuild_index):
     
         if (rebuild_index):
-            self.__tracker_update()
+            self.__file_index.clear()
+        #    self.__tracker_update()
 
         self.__tracker_files(mediaroots)
 
@@ -32,40 +38,57 @@ class Tracker(Component):
 
 
 
-    def __is_on_mediaroots(self, path, mediaroots):
+    def __find_mediaroot(self, path, mediaroots):
     
         for m, n in mediaroots:
             if (path.startswith(m)):
-                return True
+                return m
             #end if
         #end for
         
-        return False
+        return None
 
 
     def __tracker_files(self, mediaroots):
     
+        lines = []
         fail, out = commands.getstatusoutput("/usr/bin/tracker-files " \
-                                             "-s files -l 10000000")
-        self.__files = []
+                                             "-s Music -l 10000000")
         if (not fail):
-            cnt = 0
-            for line in out.splitlines():
-                path = "file://" + line.strip()
-                
-                if (not self.__is_on_mediaroots(path, mediaroots)):
-                    continue
+            # first line is skipped as it shows number of results only
+            lines += out.splitlines()[1:]
 
-                f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
-                if (f):
-                    self.__files.append(f)
-                    
-                if (cnt % 100 == 0):
-                    self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_PROGRESS,
-                                      path)
-                cnt += 1
-            #end for
-        #end if
+        fail, out = commands.getstatusoutput("/usr/bin/tracker-files " \
+                                             "-s Videos -l 10000000")
+        if (not fail):
+            lines += out.splitlines()[1:]
+
+        fail, out = commands.getstatusoutput("/usr/bin/tracker-files " \
+                                             "-s Images -l 10000000")
+        if (not fail):
+            lines += out.splitlines()[1:]
+
+        self.__file_index.clear_status()
+        cnt = 0
+        for line in lines:
+            path = line.strip()
+            fullpath = "file://" + path
+            
+            mediaroot = self.__find_mediaroot(fullpath, mediaroots)
+            if (not mediaroot):
+                continue
+
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, fullpath)
+            if (f):
+                mtime = os.path.getmtime(path)
+                self.__file_index.discover_file(mediaroot, f.full_path,
+                                                mtime, f.mimetype)
+                
+            if (cnt % 100 == 0):
+                self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_PROGRESS,
+                                    f.full_path)
+            cnt += 1
+        #end for
 
 
     def __get_media(self, mime_types):
@@ -79,4 +102,56 @@ class Tracker(Component):
         #end for
         
         return (media, [], [])
+
+
+
+
+    def __get_media(self, mime_types):
+        """
+        Returns the media files of the given mimetypes.
+        """
+        
+        media = []
+        added = []
+        removed = []
+
+        unchanged_files = [ self.call_service(msgs.CORE_SVC_GET_FILE, fp)
+                            for fp in self.__file_index.get_unchanged_files() ]
+                            
+        new_files = [ self.call_service(msgs.CORE_SVC_GET_FILE, fp)
+                      for fp in self.__file_index.get_new_files() ]
+                      
+        removed_files = [ (self.call_service(msgs.CORE_SVC_GET_FILE, fp),
+                           self.__file_index.get_mimetype(fp))
+                          for fp in self.__file_index.get_removed_files() ]
+        
+        for f in unchanged_files:
+            if (not f): continue
+            for m in mime_types:
+                if (f.mimetype.startswith(m)):
+                    media.append(f)
+            #end for
+        #end for
+
+        for f in new_files:
+            if (not f): continue
+            for m in mime_types:
+                if (f.mimetype.startswith(m)):
+                    added.append(f)
+                    media.append(f)
+            #end for
+        #end for
+
+        for f, mt in removed_files:
+            if (not f): continue
+            for m in mime_types:
+                if (mt.startswith(m)):
+                    removed.append(f)
+            #end for
+        #end for
+                
+        #print "CURRENT", media
+        #print "NEW", added
+        #print "REMOVED", removed
+        return (media, added, removed)
 
