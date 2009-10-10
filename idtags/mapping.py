@@ -17,7 +17,18 @@ MAPPING = { "APIC": "PICTURE",
             "TT2":  "TITLE",
             "TRK":  "TRACKNUMBER",
             "TYE":  "YEAR",
-            "TCO":  "GENRE" }
+            "TCO":  "GENRE",
+            
+            # Tracker mapping
+            "Audio:Title": "TITLE",
+            "Audio:Artist": "ARTIST",
+            "Audio:Album": "ALBUM",
+            "Audio:Genre": "GENRE",
+            "Audio:Duration": "LENGTH",
+            "Audio:ReleaseDate": "DATE",
+            "Audio:TrackNo": "TRACKNUMBER",
+            "Audio:Comment": "COMMENT",
+            "File:Copyright": "COPYRIGHT" }
 
 STRINGS = ( "COMMENT", "COPYRIGHT", "TITLE", "ARTIST", "ALBUM", "TRACKNUMBER" )
 

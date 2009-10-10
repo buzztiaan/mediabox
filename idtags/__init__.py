@@ -15,6 +15,7 @@ import flactags
 import oggtags
 import id3v1tags
 import id3v2tags
+import trackertags
 
 
 
@@ -31,6 +32,11 @@ def read_fd(fd):
 
     try:
         fd.seek(0)
+
+        # try tracker first
+        tags = trackertags.read(fd)
+        if (tags):
+            return tags
 
         if (tagtype == "Ogg"):
             return oggtags.read(fd)
