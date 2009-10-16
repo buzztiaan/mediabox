@@ -79,6 +79,7 @@ class ItemView(Widget):
     
         self.__items = []
         self.__cursor_pos = -1
+        self.__hilighted_pos = -1
                 
         
     def append_item(self, item):

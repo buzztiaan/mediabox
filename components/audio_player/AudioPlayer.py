@@ -19,6 +19,7 @@ class AudioPlayer(Player):
     
         self.__player = None
         self.__context_id = 0
+        self.__volume = 50
         
         self.__cover = None
         
@@ -153,6 +154,7 @@ class AudioPlayer(Player):
         if (self.__player):
             vol = int(v * 100)
             self.__player.set_volume(vol)
+            self.__volume = vol
         
 
 
@@ -163,6 +165,7 @@ class AudioPlayer(Player):
                 del self.__cover
 
             self.__cover = pbuf
+            self.render()
         #end if
 
 
@@ -275,5 +278,22 @@ class AudioPlayer(Player):
             self.__sliding_direction = self.SLIDE_LEFT
         #end if
 
-        self.render()
+        #self.render()
+
+
+
+    def handle_INPUT_EV_VOLUME_UP(self):
+    
+        self.__volume = min(100, self.__volume + 5)
+        self.__volume_slider.set_value(self.__volume / 100.0)
+        if (self.__player):
+            self.__player.set_volume(self.__volume)
+        
+        
+    def handle_INPUT_EV_VOLUME_DOWN(self):
+    
+        self.__volume = max(0, self.__volume - 5)
+        self.__volume_slider.set_value(self.__volume / 100.0)
+        if (self.__player):
+            self.__player.set_volume(self.__volume)
 

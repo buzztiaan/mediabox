@@ -1,3 +1,23 @@
+mediabox (2009.10.16) unstable; urgency=low
+
+  Added option for deleting files
+  
+  Improved speed of navigator
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 17 Oct 2009 00:30:00 +0200
+
+mediabox (2009.10.15) unstable; urgency=low
+
+  Thumbnailing of albums
+
+  Disabled tracker idtags module because it doesn't retrieve album art
+  
+  Hardware keys work for controlling volume
+  
+  Fixed some rendering glitches
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 15 Oct 2009 22:30:00 +0200
+
 mediabox (2009.10.9) unstable; urgency=low
 
   Preventing display blanking works again

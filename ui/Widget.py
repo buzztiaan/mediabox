@@ -18,8 +18,8 @@ class Widget(EventEmitter):
     EVENT_BUTTON_PRESS = "button-pressed"
     EVENT_BUTTON_RELEASE = "button-released"
     EVENT_MOTION = "motion"
-    EVENT_KEY_PRESS = "key-pressed"
-    EVENT_KEY_RELEASE = "key-released"
+    EVENT_KEY_PRESSED = "key-pressed"
+    EVENT_KEY_RELEASED = "key-released"
     
     SLIDE_LEFT = 0
     SLIDE_RIGHT = 1
@@ -167,6 +167,9 @@ class Widget(EventEmitter):
                         event type)
         """
        
+        self.emit_event(ev, *args)
+
+        """
         if (ev in (self.EVENT_KEY_PRESS, self.EVENT_KEY_RELEASE) and
               self._input_focus_widget and
               self._input_focus_widget.is_visible()):
@@ -174,6 +177,7 @@ class Widget(EventEmitter):
         
         else:
             self.emit_event(ev, *args)
+        """
         
         
     def __on_action(self, etype, px, py):
@@ -565,7 +569,7 @@ class Widget(EventEmitter):
         @param *args: variable list of user arguments
         """
     
-        self._connect(self.EVENT_KEY_PRESS,
+        self._connect(self.EVENT_KEY_PRESSED,
                       lambda key,*a:cb(key, *a),
                       *args)
                       
@@ -578,7 +582,7 @@ class Widget(EventEmitter):
         @param *args: variable list of user arguments
         """
     
-        self._connect(self.EVENT_KEY_RELEASE,
+        self._connect(self.EVENT_KEY_RELEASED,
                       lambda key,*a:cb(key, *a),
                       *args)
 

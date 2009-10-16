@@ -34,9 +34,9 @@ def read_fd(fd):
         fd.seek(0)
 
         # try tracker first
-        tags = trackertags.read(fd)
-        if (tags):
-            return tags
+        #tags = trackertags.read(fd)
+        #if (tags):
+        #    return tags
 
         if (tagtype == "Ogg"):
             return oggtags.read(fd)

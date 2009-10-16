@@ -53,6 +53,12 @@ class View(Component, Window):
        
         Component.__init__(self)
         Window.__init__(self, True)
+        self.connect_key_pressed(self.__on_key_pressed)
+
+
+    def __on_key_pressed(self, keycode):
+    
+        self.call_service(msgs.INPUT_SVC_SEND_KEY, keycode, True)
 
 
     def show(self):

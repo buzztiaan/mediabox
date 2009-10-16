@@ -16,6 +16,8 @@ class VideoPlayer(Player):
 
     def __init__(self):
 
+        self.__is_fullscreen = False
+
         self.__player = None
         self.__context_id = 0
         self.__is_playing = False
@@ -26,6 +28,7 @@ class VideoPlayer(Player):
         
         # video screen
         self.__screen = VideoScreen()
+        self.__screen.connect_clicked(self.__on_click_screen)
         self.add(self.__screen)
 
 
@@ -78,6 +81,11 @@ class VideoPlayer(Player):
         
         self.emit_message(msgs.MEDIA_ACT_NEXT)
 
+
+    def __on_click_screen(self, px, py):
+    
+        self.__toggle_fullscreen()
+        
 
     def __on_status_changed(self, ctx_id, status):
     
@@ -138,6 +146,23 @@ class VideoPlayer(Player):
             return False
 
 
+    def __toggle_fullscreen(self):
+    
+        self.__is_fullscreen = not self.__is_fullscreen
+        if (self.__is_fullscreen):
+            #self.fullscreen()
+            self.__progress.set_visible(False)
+            self.__volume_slider.set_visible(False)
+            self.__toolbar.set_visible(False)
+        else:
+            #self.unfullscreen()
+            self.__progress.set_visible(True)
+            self.__volume_slider.set_visible(True)
+            self.__toolbar.set_visible(True)
+
+        self.render()
+
+
     def render_this(self):
     
         x, y = self.get_screen_pos()
@@ -146,7 +171,11 @@ class VideoPlayer(Player):
         
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         
-        if (w < h):
+        if (self.__is_fullscreen):
+            # fullscreen mode
+            self.__screen.set_geometry(0, 0, w, h)
+        
+        elif (w < h):
             # portrait mode
             self.__screen.set_geometry(42, 0, w - 42, h - 70 - 70)
             self.__progress.set_geometry(20, h - 70 - 50, w - 40, 32)
@@ -167,7 +196,7 @@ class VideoPlayer(Player):
 
         
     def load(self, f):
-    
+
         self.__player = mediaplayer.get_player_for_mimetype(f.mimetype)
         self.__player.connect_status_changed(self.__on_status_changed)
         self.__player.connect_position_changed(self.__on_update_position)
@@ -191,3 +220,10 @@ class VideoPlayer(Player):
                           uri, logging.stacktrace())
 
         self.render()
+        
+        
+        
+    def handle_INPUT_EV_FULLSCREEN(self):
+    
+        self.__toggle_fullscreen()
+

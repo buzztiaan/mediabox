@@ -77,3 +77,10 @@ class Prefs(Configurator):
         mediaroots = mb_config.mediaroot()
         self.emit_event(msgs.CORE_ACT_SCAN_MEDIA, True)
 
+
+    def handle_CORE_EV_APP_STARTED(self):
+
+        mediaroots = mb_config.mediaroot()        
+        self.emit_message(msgs.MEDIASCANNER_ACT_SCAN, mediaroots,
+                          mb_config.scan_at_startup())
+

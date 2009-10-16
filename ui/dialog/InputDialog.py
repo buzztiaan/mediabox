@@ -15,6 +15,12 @@ class InputDialog(gtk.Dialog):
         btn.show()
         self.action_area.add(btn)
 
+        self.realize()
+        self.window.property_change("_HILDON_PORTRAIT_MODE_SUPPORT",
+                                    "CARDINAL", 32,
+                                    gtk.gdk.PROP_MODE_REPLACE,
+                                    [1])
+
 
     def add_input(self, label, default):
     

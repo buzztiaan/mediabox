@@ -53,6 +53,7 @@ class AudioAlbumStorage(AudioArtistStorage):
         f.resource = ""
         f.name = self.get_name()
         f.info = "Browse your music library by album"
+        f.icon = self.get_icon().get_path()
         f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
         
         return f

@@ -169,7 +169,7 @@ class Window(Widget):
         else:
             key = gtk.gdk.keyval_name(keyval)
 
-        self.send_event(self.EVENT_KEY_PRESS, key)        
+        self.emit_event(self.EVENT_KEY_PRESSED, key)
         
         # kill queued events
         if (key in ["Up", "Down", "Left", "Right"]):
@@ -182,6 +182,9 @@ class Window(Widget):
 
     def __on_key_released(self, src, ev):
 
+        return True
+
+    """
         keyval = ev.keyval
         c = gtk.gdk.keyval_to_unicode(keyval)
         if (c > 31):
@@ -192,6 +195,7 @@ class Window(Widget):
         self.send_event(self.EVENT_KEY_RELEASE, key)
                 
         return True
+    """
 
 
     def connect_closed(self, cb, *args):
@@ -262,6 +266,11 @@ class Window(Widget):
     def fullscreen(self):
     
         self.__window.fullscreen()
+
+
+    def unfullscreen(self):
+    
+        self.__window.unfullscreen()
 
 
     def iconify(self):

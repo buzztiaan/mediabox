@@ -192,8 +192,9 @@ class GridView(ItemView):
         Returns the index number of the item at the given position.
         """
     
-        y += self.__offset
         w, h = self.get_size()
+        self.__offset = max(0, min(self.__offset, self.get_total_size()[1] - h))
+        y += self.__offset
         items = self.get_items()
         if (items):
             item_w, item_h = items[0].get_size()
@@ -291,7 +292,7 @@ class GridView(ItemView):
         # render background and items
         if (self.__is_invalidated):
             self.__is_invalidated = False
-            #self.__render_background(0, 0, w, h)
+            self.__render_background(0, 0, w, h)
             self.__render(0, h)
 
         TEMPORARY_PIXMAP.copy_buffer(self.__buffer, 0, 0, 0, 0, w, h)

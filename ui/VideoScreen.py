@@ -27,7 +27,7 @@ class VideoScreen(Widget):
         scr = self.__screen.get_screen()
         cmap = scr.get_rgb_colormap()
         self.__screen.set_colormap(cmap)
-    
+  
 
     def __on_expose(self, src, ev):
 
@@ -69,6 +69,7 @@ class VideoScreen(Widget):
         screen = self.get_screen()
         
         self.__screen.set_size_request(w, h)
+        self.__screen.show()
         print "VIDEO", x, y, w, h
 
         if (self.__layout):

@@ -18,7 +18,8 @@ class ImageThumbnailer(Thumbnailer):
         
     def get_mime_types(self):
     
-        return ["image/*"]
+        return ["image/*",
+                "application/x-image-folder"]
 
     
     def make_quick_thumbnail(self, f):
@@ -26,6 +27,8 @@ class ImageThumbnailer(Thumbnailer):
         thumb = self._get_thumbnail(f)
         if (thumb):
             return (thumb, True)
+        elif (f.mimetype == "application/x-image-folder"):
+            return (theme.mb_thumbnail_image_folder.get_path(), True)
         else:
             return (theme.mb_frame_image.get_path(), False)
         

@@ -1,6 +1,7 @@
 # pyFMRadio
-# Module for controlling the tea5761 FM radio chip in the Nokia N800.
-# Copyright (C) 2007 - 2008 Martin Grimme  <martin.grimme _AT_ lintegra.de>
+# Module for controlling the tea5761 FM radio chip in the Nokia N800
+# and the BCM2048 FM radio chip in the Nokia N900.
+# Copyright (C) 2007 - 2009 Martin Grimme  <martin.grimme _AT_ lintegra.de>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -28,7 +29,7 @@ import os
 import time
 
 
-__VERSION__ = 0.22
+__VERSION__ = 0.30
 
 
 # kernel definitions for ioctl commands
@@ -91,10 +92,10 @@ _V4L2_AUDCAP_AVL    = 0x00002
 _V4L2_AUDMODE_AVL   = 0x00001
 
 # user-class control IDs defined by V4L2
-_V4L2_CTRL_CLASS_USER = 0x00980000
-_V4L2_CID_BASE        = _V4L2_CTRL_CLASS_USER | 0x900
-_V4L2_CID_FM_BAND     = _V4L2_CID_BASE + 0
-_V4L2_CID_AUDIO_MUTE  = _V4L2_CID_BASE + 9
+_V4L2_CTRL_CLASS_USER  = 0x00980000
+_V4L2_CID_BASE         = _V4L2_CTRL_CLASS_USER | 0x900
+_V4L2_CID_N800_FM_BAND = _V4L2_CID_BASE + 0
+_V4L2_CID_AUDIO_MUTE   = _V4L2_CID_BASE + 9
 
 # mixer control constants
 _SOUND_MIXER_FMRADIO         = 0x06
@@ -102,8 +103,9 @@ _SOUND_MIXER_READ            = 0x80044D00
 _SOUND_MIXER_WRITE           = 0xC0044D00
 
 # the devices we directly talk to
-_RADIO_DEV = "/dev/radio0"
-_MIXER_DEV = "/dev/mixer"
+_N800_RADIO_DEV = "/dev/radio0"
+_N900_RADIO_DEV = "/dev/radio1"
+_N800_MIXER_DEV = "/dev/mixer"
 
 # signal scanning parameters
 _SIGNAL_LOCK_TIME = 0.1
@@ -144,14 +146,25 @@ class FMRadio(object):
     FM_BAND_JPN = 1
     
 
-    def __init__(self):
+    def __init__(self, device = "RX-34"):
         
+        self.__device = device
         self.__is_scanning = False
+
+        if (self.__device == "RX-34"):
+            dev_file = _N800_RADIO_DEV
+        else:
+            dev_file = _N900_RADIO_DEV
         
         try:
-            self.__fd = os.open(_RADIO_DEV, os.O_RDONLY)
+            self.__fd = os.open(dev_file, os.O_RDONLY)
         except OSError:
-            raise FMRadioUnavailableError("FM radio is not available.")
+            if (self.__device == "RX-51"):
+                msg = "FM radio is not enabled. Please enable it with " \
+                      "n900-fmrx-enabler first"
+            else:
+                msg = "FM radio is not available"
+            raise FMRadioUnavailableError(msg)
 
         self.__tuner = self.__get_tuner()
         self.__factor = (self.__tuner["capability"] & _V4L2_TUNER_CAP_LOW) \
@@ -190,7 +203,8 @@ class FMRadio(object):
 
         self.cancel_scanning()        
         self.set_mute(True)
-        self.set_frequency(0)
+        if (self.__device == "RX-34"):
+            self.set_frequency(0)
         os.close(self.__fd)
         
         
@@ -204,8 +218,14 @@ class FMRadio(object):
         """
         
         assert band in (self.FM_BAND_EUR, self.FM_BAND_JPN)
+
+        # this is not supported in this way on the N900. only root may switch
+        # the FM band there, via the sysfs interface
+        if (self.__device == "RX-51"):
+            raise FMRadioOperationNotSupportedError(
+                      "The FM band must be switched by root using sysfs")
         
-        inp = struct.pack("Ll", _V4L2_CID_FM_BAND, band)
+        inp = struct.pack("Ll", _V4L2_CID_N800_FM_BAND, band)
         try:        
             ioctl(self.__fd, _VIDIOC_S_CTRL, inp)
         except:
@@ -225,18 +245,23 @@ class FMRadio(object):
         US/Europe FM band and FM_BAND_JPN for the Japanese FM band.
         """
         
-        inp = struct.pack("Ll", _V4L2_CID_FM_BAND, 0)
-        try:
-            data = ioctl(self.__fd, _VIDIOC_G_CTRL, inp)
-        except:
-            # we may assume that if the operation is unsupported, the band
-            # is set to US/Europe
-            band = self.FM_BAND_EUR
+        if (self.__device == "RX-51"):
+            # TODO: read the sysfs settings
+            return self.FM_BAND_EUR
+
         else:
-            fields = struct.unpack("Ll", data)
-            band = fields[1]
-        
-        return band
+            inp = struct.pack("Ll", _V4L2_CID_FM_BAND, 0)
+            try:
+                data = ioctl(self.__fd, _VIDIOC_G_CTRL, inp)
+            except:
+                # we may assume that if the operation is unsupported, the band
+                # is set to US/Europe
+                band = self.FM_BAND_EUR
+            else:
+                fields = struct.unpack("Ll", data)
+                band = fields[1]
+
+            return band
         
         
     def get_frequency_range(self):
@@ -290,12 +315,16 @@ class FMRadio(object):
         Returns the current volume value as left channel, right channel.
         """
 
-        mixer = os.open(_MIXER_DEV, os.O_RDONLY)
-        data = ioctl(mixer, _SOUND_MIXER_READ | _SOUND_MIXER_FMRADIO, "\x00\x00")
-        os.close(mixer)
-        left, right = struct.unpack("bb", data)
+        if (self.__device == "RX-51"):
+            return (50, 50)
 
-        return (left, right)
+        else:
+            mixer = os.open(_N800_MIXER_DEV, os.O_RDONLY)
+            data = ioctl(mixer, _SOUND_MIXER_READ | _SOUND_MIXER_FMRADIO, "\x00\x00")
+            os.close(mixer)
+            left, right = struct.unpack("bb", data)
+
+            return (left, right)
         
         
     def set_volume(self, left, right = -1):
@@ -307,10 +336,14 @@ class FMRadio(object):
         if (right == -1): right = left
         assert(0 <= left <= 100 and 0 <= right <= 100)
 
-        mixer = os.open(_MIXER_DEV, os.O_RDONLY)
-        inp = struct.pack("bb", left, right)
-        ioctl(mixer, _SOUND_MIXER_WRITE | _SOUND_MIXER_FMRADIO, inp)
-        os.close(mixer)
+        if (self.__device == "RX-51"):
+            pass
+
+        else:
+            mixer = os.open(_N800_MIXER_DEV, os.O_RDONLY)
+            inp = struct.pack("bb", left, right)
+            ioctl(mixer, _SOUND_MIXER_WRITE | _SOUND_MIXER_FMRADIO, inp)
+            os.close(mixer)
         
         
     def set_mute(self, value):

@@ -1,5 +1,6 @@
 from com import msgs
 from storage import Device, File
+from ui.dialog import OptionDialog
 from utils import mimetypes
 from utils import maemo
 from utils import mmc
@@ -127,11 +128,38 @@ class LocalDevice(Device):
         f.bookmarked = True
 
 
+    def __on_add_to_library(self, folder, f):
+    
+        self.emit_message(msgs,LIBRARY_ACT_ADD_MEDIAROOT, f)
+
+
+    def __on_delete_file(self, folder, f):
+    
+        dlg = OptionDialog("Really delete this file?")
+        dlg.add_option(None, "Yes, delete from device")
+        dlg.add_option(None, "No, keep it")
+        ret = dlg.run()
+        if (ret == 0):
+            choice = dlg.get_choice()
+            if (choice == 0):
+                try:
+                    os.unlink(f.resource)
+                except:
+                    pass
+                self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
+            #end if
+        #end if
+
+
     def get_file_actions(self, folder, f):
     
         actions = []
         actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
         actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+        if (f.mimetype == f.DIRECTORY):
+            actions.append((None, "Add to Library", self.__on_add_to_library))
+        else:
+            actions.append((None, "Delete File", self.__on_delete_file))
         
         return actions
 

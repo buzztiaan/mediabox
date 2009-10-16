@@ -578,7 +578,7 @@ class StorageBrowser(ThumbableGridView):
         Reloads the current folder.
         """
         
-        self.load_folder(self.get_current_folder(), self.GO_PARENT)  
+        self.load_folder(self.get_current_folder(), self.GO_NEW)  
         
         
     def load_folder(self, folder, direction, force_reload = False):
@@ -653,7 +653,8 @@ class StorageBrowser(ThumbableGridView):
         elif (direction == self.GO_PARENT):
             self.fx_slide_right()
         else:
-            self.render()
+            #self.render()
+            pass
 
         # load remaining items
         loading_status = self.__path_stack[-1][1]
@@ -746,29 +747,6 @@ class StorageBrowser(ThumbableGridView):
         if (cwd.folder_flags & cwd.ITEMS_COMPACT):
             item.set_compact(True)        
 
-        """
-        if (f.mimetype in ("application/x-bookmarks-folder",
-                           "application/x-music-folder")):
-            buttons.append((item.BUTTON_OPEN, theme.mb_item_btn_open))
-            
-        elif (f.mimetype.endswith("-folder")):
-            buttons.append((item.BUTTON_PLAY, theme.mb_item_btn_open))
-            
-        else:
-            buttons.append((item.BUTTON_PLAY, theme.mb_item_btn_play))
-            
-            if (cwd.folder_flags & cwd.ITEMS_ENQUEUEABLE):
-                buttons.append((item.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
-        #end if
-            
-        if (cwd.folder_flags & cwd.ITEMS_DELETABLE):
-            buttons.append((item.BUTTON_REMOVE, theme.mb_item_btn_remove))
-
-        if (cwd.folder_flags & cwd.ITEMS_BULK_DELETABLE):
-            buttons.append((item.BUTTON_REMOVE_PRECEDING, theme.mb_item_btn_remove_up))
-            buttons.append((item.BUTTON_REMOVE_SUCCEEDING, theme.mb_item_btn_remove_down))
-        """
-
         if (cwd.folder_flags & cwd.ITEMS_SORTABLE):
             item.set_grip_visible(True)
         else:
@@ -786,13 +764,16 @@ class StorageBrowser(ThumbableGridView):
         if (self.__hilighted_file == f):
             self.set_hilight(idx)
         self.invalidate_item(idx)
-        self.render()            
+        
+        #self.render()
 
         import gtk
-        cnt = 0
-        while (gtk.events_pending() and cnt < 10):
-            gtk.main_iteration(False)
-            cnt += 1
+        #cnt = 0
+        gobject.timeout_add(10, lambda : False)
+        gtk.main_iteration(True)
+        #while (gtk.events_pending() and cnt < 10):
+        #    gtk.main_iteration(False)
+        #    cnt += 1
 
 
     def __support_legacy_folder_flags(self, folder, f):
