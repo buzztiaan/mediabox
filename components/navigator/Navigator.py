@@ -84,6 +84,10 @@ class Navigator(View):
                                          theme.mb_btn_history_2)
         self.__btn_history.connect_clicked(self.__on_btn_history)
 
+        self.__btn_prefs = ImageButton(theme.mb_btn_prefs_1,
+                                       theme.mb_btn_prefs_2)
+        self.__btn_prefs.connect_clicked(self.__on_btn_prefs)
+
         self.__btn_bookmarks = ImageButton(theme.mb_btn_bookmark_1,
                                            theme.mb_btn_bookmark_2)
         self.__btn_bookmarks.connect_clicked(self.__on_btn_bookmarks)
@@ -119,7 +123,10 @@ class Navigator(View):
         """
 
         cwd = self.__browser.get_current_folder()
-        items = [self.__btn_home, self.__btn_history, self.__btn_back]
+        items = [self.__btn_home,
+                 self.__btn_history,
+                 self.__btn_prefs,
+                 self.__btn_back]
         
         if (cwd.folder_flags & cwd.ITEMS_ADDABLE):
             items.append(self.__btn_add)
@@ -280,7 +287,17 @@ class Navigator(View):
         
         f = self.call_service(msgs.CORE_SVC_GET_FILE, "history:///")
         if (f):
-            self.__browser.load_folder(f, self.__browser.GO_PARENT, True)
+            self.__browser.load_folder(f, self.__browser.GO_CHILD, True)
+
+
+    def __on_btn_prefs(self):
+        """
+        Reacts on pressing the [Prefs] button.
+        """
+        
+        f = self.call_service(msgs.CORE_SVC_GET_FILE, "preferences:///")
+        if (f):
+            self.__browser.load_folder(f, self.__browser.GO_CHILD, False)
 
 
     def __on_btn_bookmarks(self):
@@ -325,12 +342,17 @@ class Navigator(View):
         self.__current_file = f
         self.__browser.hilight_file(f)
 
-        if (not f.mimetype in mimetypes.get_image_types()):
-            self.emit_message(msgs.MEDIA_ACT_STOP)
+        if (f.mimetype == "application/x-applet"):
+            applet_id = f.resource
+            self.call_service(msgs.CORE_SVC_LAUNCH_APPLET, applet_id)
 
-        self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
-        self.emit_message(msgs.MEDIA_ACT_LOAD, f)
-        self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
+        else:
+            if (not f.mimetype in mimetypes.get_image_types()):
+                self.emit_message(msgs.MEDIA_ACT_STOP)
+
+            self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
+            self.emit_message(msgs.MEDIA_ACT_LOAD, f)
+            self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 
 
     def render_this(self):

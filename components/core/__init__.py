@@ -2,11 +2,13 @@ def get_classes():
 
     from Initialiser import Initialiser
     from IdleDetector import IdleDetector
+    from AppletService import AppletService
     from BookmarkService import BookmarkService
     from DirectoryService import DirectoryService
 
     return [Initialiser,
             IdleDetector,
+            AppletService,
             BookmarkService,
             DirectoryService]
 

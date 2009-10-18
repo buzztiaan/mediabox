@@ -44,7 +44,8 @@ class Window(Widget):
                 self.__window.set_default_size(800, 480)
             
         else:
-            self.__window = gtk.Window(gtk.WINDOW_POPUP)
+            self.__window = gtk.Dialog()
+
 
         self.__window.connect("configure-event", self.__on_configure)
         self.__window.connect("expose-event", self.__on_expose)
@@ -69,6 +70,7 @@ class Window(Widget):
         self.__window.set_app_paintable(True)
         self.__window.realize()
 
+        self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
 
         if (platforms.PLATFORM in (platforms.MAEMO5, platforms.MER)):
             import hildon
@@ -81,7 +83,10 @@ class Window(Widget):
 
         self.__fixed = gtk.Fixed()
         self.__fixed.show()
-        self.__window.add(self.__fixed)
+        if (is_toplevel):
+            self.__window.add(self.__fixed)
+        else:
+            self.__window.vbox.add(self.__fixed)
         self.__screen = None
 
         # hide mouse cursor
@@ -92,7 +97,7 @@ class Window(Widget):
             self.__window.window.set_cursor(csr)
             del pbuf
         #end if
-                
+
         self.set_window(self)
 
 

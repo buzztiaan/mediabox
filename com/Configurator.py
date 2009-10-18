@@ -2,11 +2,10 @@
 Base class for configurator components.
 """
 
-from Component import Component
-from ui.Widget import Widget
+from Applet import Applet
 
 
-class Configurator(Component, Widget):
+class Configurator(Applet):
     """
     Base class for configurator components.
     Components derived from this class are shown as pages in the
@@ -60,6 +59,5 @@ class Configurator(Component, Widget):
 
     def __init__(self):
 
-        Component.__init__(self)
-        Widget.__init__(self)
+        Applet.__init__(self)
 

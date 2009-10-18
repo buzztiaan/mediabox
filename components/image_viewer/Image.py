@@ -14,8 +14,9 @@ import gc
 
 
 # predefined zoom levels
-_ZOOM_LEVELS = [12, 18, 25, 36, 50, 75, 100, 150, 200, 300, 400, 600,
-                800, 1200, 1600, 2400, 3200]
+_ZOOM_LEVELS = [12, 15, 18, 22, 25, 31, 36, 43, 50, 63, 75, 88, 100,
+                125, 150, 175, 200, 250, 300, 350, 400, 500, 600,
+                700, 800, 1000, 1200, 1400, 1600, 2000, 2400, 2800, 3200]
 
 # read this many bytes at once
 _CHUNK_SIZE = 50000
@@ -41,7 +42,7 @@ class Image(MultiTouchWidget, Observable):
 
     def __init__(self):
 
-        # the buffer contains the pixbuf for rendering on screen
+        # client-side buffer for scaling
         self.__buffer = None
         
         # color of the background
@@ -87,10 +88,12 @@ class Image(MultiTouchWidget, Observable):
         self.__zoom_fit = 0
         self.__zoom_100 = 0
 
+        """
         # distance between fingers in multitouch mode
         self.__multitouch_distance = 0
         self.__multitouch_zoom_value = 0
         self.__is_multitouch = False
+        """
 
         self.__timer_tstamp = 0
         self.__current_file = ""
@@ -131,7 +134,7 @@ class Image(MultiTouchWidget, Observable):
         #self.connect_multitouch_stopped(self.__on_end_multitouch)
         #self.connect_multitouch_moved(self.__on_move_multitouch)
 
-        # create a client-side pixmap for rendering
+        # create a client-side pixmap for scaling
         self.__buffer = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
                                        True, 8,
                                        gtk.gdk.screen_width(),
@@ -171,6 +174,7 @@ class Image(MultiTouchWidget, Observable):
         else:
             self.__copy_image_buffer(self.__offscreen, screen)
         
+        """
         # render progress bar
         if (self.__progress > 0 and w > 0):
             p = self.__progress / 100.0
@@ -183,7 +187,9 @@ class Image(MultiTouchWidget, Observable):
             #                             pw, ph)
             TEMPORARY_PIXMAP.fill_area(px, py, pw, ph, "#80808060")
             screen.copy_pixmap(TEMPORARY_PIXMAP, px, py, px, py, pw, ph)
+        """
 
+        """
         # render multitouch fingers
         if (self.__is_multitouch):
             f1, f2 = self.get_fingers()
@@ -196,7 +202,8 @@ class Image(MultiTouchWidget, Observable):
             #screen.draw_line(x + fx1, y + fy1, x + fx2, y + fy2, "#ff0000")
             if (fw > 1 and fh > 1):
                 screen.fill_area(x + fx, y + fy, fw, fh, "#ff000044")
-
+        """
+        
 
     def set_size(self, w, h):
     
@@ -206,9 +213,9 @@ class Image(MultiTouchWidget, Observable):
             self.__visible_size = (w, h)
             if (self.__original_size != (0, 0)):
                 self.__invalidated = True
-                #self.__offscreen = Pixmap(None, w, h)
-                #self.__buffer = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
-                #                               True, 8, w, h)
+                self.__offscreen = Pixmap(None, w, h)
+                self.__buffer = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
+                                               True, 8, w, h)
                 self._render()
                 self.__scale_to_fit()
                 #gobject.idle_add(self.__scale_to_fit)
@@ -220,7 +227,7 @@ class Image(MultiTouchWidget, Observable):
         self.__invalidated = True
         #self.__offscreen.fill_area(0, 0, 800, 480, self.__bg_color)
         
-        
+    """
     def __on_begin_multitouch(self):
     
         self.__is_multitouch = True
@@ -250,7 +257,7 @@ class Image(MultiTouchWidget, Observable):
             self.zoom(0, zoom_value)
         else:
             self.__multitouch_distance = distance
-
+    """
 
     def __hi_quality_render(self):
 
@@ -280,6 +287,7 @@ class Image(MultiTouchWidget, Observable):
     def move(self, dx, dy):        
     
         self.scroll_by(dx, dy)
+        return (dx, dy)
 
 
     def set_drag_amount(self, amount):
@@ -467,17 +475,12 @@ class Image(MultiTouchWidget, Observable):
         else:
             # copy on the server-side (this is our simple trick for
             # fast scrolling!)
-            self.__offscreen.copy_pixmap(self.__offscreen,
-                                         x + src_x, y + src_y,
-                                         x + dest_x, y + dest_y,
-                                         src_w, src_h)
+            self.__offscreen.move_area(x + src_x, y + src_y, src_w, src_h,
+                                       -dx, -dy)
             
         # render borders
         for rx, ry, rw, rh in areas:
             self.__render_area(rx, ry, rw, rh, high_quality)
-
-        # wait for VBL
-        #omapfb.sync_gfx()
 
         # copy to screen
         if (self.may_render()):
@@ -822,7 +825,7 @@ class Image(MultiTouchWidget, Observable):
     def slide_from_left(self):
     
         self.__slide_from_right = False
-        
+                
         
     def slide_from_right(self):
     
@@ -835,6 +838,15 @@ class Image(MultiTouchWidget, Observable):
         w, h = self.get_size()
         screen = self.get_screen()
         
+        if (self.__slide_from_right):
+            self.fx_slide_horizontal(self.__offscreen, x, y, w, h,
+                                     self.SLIDE_LEFT)
+        else:
+            self.fx_slide_horizontal(self.__offscreen, x, y, w, h,
+                                     self.SLIDE_RIGHT)
+        
+        
+        """
         def f(params):
             from_x, to_x = params
             dx = (to_x - from_x) / 5
@@ -868,4 +880,4 @@ class Image(MultiTouchWidget, Observable):
                 return False
 
         self.animate(50, f, [0, w])
-
+        """

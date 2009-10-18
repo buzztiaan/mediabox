@@ -15,6 +15,25 @@ class Player(Component, Widget):
         Widget.__init__(self)
         
         
+    def seconds_to_hms(self, v):
+        """
+        Useful function for converting seconds into a well-readable H:MM:SS
+        format.
+        """
+        
+        v = int(v)
+        secs = v % 60
+        v /= 60
+        mins = v % 60
+        v /= 60
+        hours = v
+        
+        if (hours > 0):
+            return "%d:%02d:%02d" % (hours, mins, secs)
+        else:
+            return "%0d:%02d" % (mins, secs)
+
+        
     def get_mime_types(self):
         """
         Returns supported MIME types as a list of strings. The Wild card '*'

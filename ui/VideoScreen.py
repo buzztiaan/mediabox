@@ -22,7 +22,10 @@ class VideoScreen(Widget):
         self.__screen.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#ff0000"))
         self.__screen.connect("expose-event", self.__on_expose)
         self.__screen.set_events(gtk.gdk.BUTTON_PRESS_MASK |
-                                 gtk.gdk.KEY_PRESS_MASK)
+                                 gtk.gdk.BUTTON_RELEASE_MASK |
+                                 gtk.gdk.POINTER_MOTION_MASK |
+                                 gtk.gdk.KEY_PRESS_MASK |
+                                 gtk.gdk.KEY_RELEASE_MASK)
 
         scr = self.__screen.get_screen()
         cmap = scr.get_rgb_colormap()

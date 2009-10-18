@@ -1,4 +1,5 @@
 from com import Player, msgs
+from ui.decorators import Gestures
 from ui.VideoScreen import VideoScreen
 from ui.Toolbar import Toolbar
 from ui.ImageButton import ImageButton
@@ -17,6 +18,7 @@ class VideoPlayer(Player):
     def __init__(self):
 
         self.__is_fullscreen = False
+        self.__volume = 50
 
         self.__player = None
         self.__context_id = 0
@@ -28,9 +30,12 @@ class VideoPlayer(Player):
         
         # video screen
         self.__screen = VideoScreen()
-        self.__screen.connect_clicked(self.__on_click_screen)
         self.add(self.__screen)
 
+        gestures = Gestures(self.__screen)
+        gestures.connect_tap(self.__on_tap)
+        gestures.connect_tap_tap(self.__on_tap_tap)
+        gestures.connect_swipe(self.__on_swipe)
 
         # volume slider
         self.__volume_slider = Slider(theme.mb_list_slider)
@@ -82,10 +87,26 @@ class VideoPlayer(Player):
         self.emit_message(msgs.MEDIA_ACT_NEXT)
 
 
-    def __on_click_screen(self, px, py):
+    def __on_tap(self, px, py):
+    
+        if (self.__player):
+            self.__player.pause()
+
+
+    def __on_tap_tap(self, px, py):
     
         self.__toggle_fullscreen()
         
+        
+    def __on_swipe(self, direction):
+    
+        if (self.__player):
+            if (direction < 0):
+                self.__player.rewind()
+            elif (direction > 0):
+                self.__player.forward()
+        #end if
+
 
     def __on_status_changed(self, ctx_id, status):
     
@@ -121,7 +142,9 @@ class VideoPlayer(Player):
     
         if (ctx_id == self.__context_id):
             self.__progress.set_position(pos, total)
-
+            self.__progress.set_message("%s / %s" \
+                                        % (self.seconds_to_hms(pos),
+                                           self.seconds_to_hms(total)))
 
     def __on_change_volume(self, v):
     
@@ -160,6 +183,7 @@ class VideoPlayer(Player):
             self.__volume_slider.set_visible(True)
             self.__toolbar.set_visible(True)
 
+        self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
         self.render()
 
 
@@ -226,4 +250,20 @@ class VideoPlayer(Player):
     def handle_INPUT_EV_FULLSCREEN(self):
     
         self.__toggle_fullscreen()
+
+
+    def handle_INPUT_EV_VOLUME_UP(self):
+    
+        self.__volume = min(100, self.__volume + 5)
+        self.__volume_slider.set_value(self.__volume / 100.0)
+        if (self.__player):
+            self.__player.set_volume(self.__volume)
+        
+        
+    def handle_INPUT_EV_VOLUME_DOWN(self):
+    
+        self.__volume = max(0, self.__volume - 5)
+        self.__volume_slider.set_value(self.__volume / 100.0)
+        if (self.__player):
+            self.__player.set_volume(self.__volume)
 

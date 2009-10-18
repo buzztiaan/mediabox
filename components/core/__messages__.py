@@ -47,6 +47,14 @@ def CORE_EV_APP_IDLE_END(): pass
 Gets emitted when the application wakes up from idle state.
 """
 
+def CORE_SVC_LAUNCH_APPLET(applet_id): pass
+"""
+Launches the applet specified by the applet ID.
+@since: 2009.10.18
+
+@param applet_id: applet ID string
+"""
+
 def CORE_EV_DEVICE_ADDED(device_id, device): pass
 """
 Gets emitted when a new storage device has been added. The device ID is a
@@ -299,6 +307,15 @@ Redraws the whole application UI. This action can be time-consuming, so use
 with care.
 """
 
+def UI_ACT_FULLSCREEN(v): pass
+"""
+Enters or leaves fullscreen mode.
+@since: 2009.10.18
+
+@param v: whether to enter (True) or leave (False) fullscreen mode.
+"""
+
+
 def UI_ACT_TALK(text_to_say): pass
 """
 Says the given text. This action does nothing unless a component makes use of
@@ -306,13 +323,6 @@ it for, e.g., providing talk navigation.
 @since: 0.96.5
 
 @param text_to_say: text string
-"""
-
-def UI_ACT_VIEW_MODE(mode): pass
-"""
-Changes the view mode of the UI.
-
-@param mode: view mode from L{mediabox.viewmodes}
 """
 
 def UI_ACT_SHOW_MESSAGE(text, subtext, icon): pass

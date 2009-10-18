@@ -1,3 +1,17 @@
+mediabox (2009.10.18) unstable; urgency=low
+
+  Finger gestures in the image viewer and video player
+  
+  Fullscreen mode in image viewer and video player
+  
+  Forward and rewind in the video player with swipe finger gestures
+  
+  Time display in audio and video player
+  
+  Preferences items can be put on dashboard for quick access
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 18 Oct 2009 22:30:00 +0200
+ 
 mediabox (2009.10.16) unstable; urgency=low
 
   Added option for deleting files

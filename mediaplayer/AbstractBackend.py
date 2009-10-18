@@ -547,7 +547,9 @@ class AbstractBackend(EventEmitter):
         @since: 0.96.5
         """
 
+        print "FORWARD"
         pos, total = self.__position
+        print pos, total
         if (pos > 0):
             print pos,
             pos = min(total - 1, pos + 30)

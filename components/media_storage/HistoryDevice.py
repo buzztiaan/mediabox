@@ -52,7 +52,7 @@ class HistoryDevice(Device):
         f.name = self.get_name()
         f.info = "History of visited places"
         f.path = "/"
-        f.mimetype = f.DIRECTORY
+        f.mimetype = f.DEVICE_ROOT
 
         return f
         
@@ -64,9 +64,16 @@ class HistoryDevice(Device):
 
     def get_contents(self, path, begin_at, end_at, cb, *args):
 
+        cnt = 0
         for f in self.__history:
+            if (cnt < begin_at): continue
+            if (end_at and cnt > end_at): break
             cb(f, *args)
+            cnt += 1
+        #end for
+        
         cb(None, *args)
+
 
 
     def handle_CORE_EV_FOLDER_VISITED(self, f):

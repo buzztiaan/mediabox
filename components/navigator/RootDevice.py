@@ -99,7 +99,8 @@ class RootDevice(Device):
 
         # get bookmarks
         self.__favorites = self.call_service(msgs.BOOKMARK_SVC_LIST, [])
-        self.__favorites.sort(lambda a,b:cmp(a.name, b.name))
+        self.__favorites.sort(lambda a,b:cmp((a.device_id, a.name),
+                                             (b.device_id, b.name)))
         
         return self.__favorites
 

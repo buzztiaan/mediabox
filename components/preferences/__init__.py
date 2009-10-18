@@ -6,3 +6,8 @@ def get_classes():
 
     return [ConfigTheme] #ConfigBackend]
 
+
+def get_devices():
+
+    from PrefsDevice import PrefsDevice
+    return [PrefsDevice]

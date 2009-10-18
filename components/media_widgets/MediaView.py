@@ -70,3 +70,11 @@ class MediaView(View):
         self.__current_player.load(f)
         self.set_title(f.name)
 
+
+    def handle_UI_ACT_FULLSCREEN(self, v):
+    
+        if (v):
+            self.fullscreen()
+        else:
+            self.unfullscreen()
+

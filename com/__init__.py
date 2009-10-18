@@ -9,6 +9,7 @@ Component subsystem for extending the application.
 import msgs
 from exc import *
 from Component import Component
+from Applet import Applet
 #from Viewer import Viewer
 from View import View
 from Player import Player

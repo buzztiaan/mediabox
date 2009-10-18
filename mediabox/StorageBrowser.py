@@ -619,9 +619,10 @@ class StorageBrowser(ThumbableGridView):
         if (not reload_only):
             self.__path_stack.append([folder, _STATUS_INCOMPLETE])
 
+        self.switch_item_set(folder.full_path)
+        
         if (full_reload):
             # reload list
-            self.switch_item_set(folder.full_path)
             self.clear_items()
 
             #header = HeaderItem(folder.name)
@@ -640,7 +641,7 @@ class StorageBrowser(ThumbableGridView):
 
         else:
             # don't reload list
-            self.switch_item_set(folder.full_path)
+            pass
 
         if (folder.folder_flags & folder.ITEMS_COMPACT):
             self.set_items_per_row(3)
@@ -692,6 +693,11 @@ class StorageBrowser(ThumbableGridView):
                 except:
                     print logging.stacktrace()
 
+                import gtk
+                gobject.timeout_add(1, lambda : False)
+                gtk.main_iteration(True)
+
+
             else:
                 #self.get_item(0).set_info("%d items" % len(self.get_files()))
                 #self.invalidate_item(0)
@@ -715,9 +721,10 @@ class StorageBrowser(ThumbableGridView):
                 self.__last_list_render_time = now
                 #self.invalidate_buffer()
                 self.render()
-                
+
                 if (not f):
                     return False
+            #end if
             
             return True
 
@@ -735,7 +742,6 @@ class StorageBrowser(ThumbableGridView):
         """
 
         cwd = self.get_current_folder()
-        self.__support_legacy_folder_flags(cwd, f)
 
         item = MediaItem(f, f.icon or "")
         item.connect_activated(self.__on_item_clicked, item)
@@ -764,40 +770,4 @@ class StorageBrowser(ThumbableGridView):
         if (self.__hilighted_file == f):
             self.set_hilight(idx)
         self.invalidate_item(idx)
-        
-        #self.render()
-
-        import gtk
-        #cnt = 0
-        gobject.timeout_add(10, lambda : False)
-        gtk.main_iteration(True)
-        #while (gtk.events_pending() and cnt < 10):
-        #    gtk.main_iteration(False)
-        #    cnt += 1
-
-
-    def __support_legacy_folder_flags(self, folder, f):
-        """
-        Translates the legacy flags to the new folder flags.
-        """
-        
-        if (folder.can_skip):
-            folder.folder_flags |= folder.ITEMS_SKIPPABLE
-            
-        if (folder.can_add_to_library):
-            folder.folder_flags |= folder.INDEXABLE
-
-        if (folder.can_add):
-            folder.folder_flags |= folder.ITEMS_ADDABLE
-
-        if (not f): return
-        
-        if (f.can_delete):
-            folder.folder_flags |= folder.ITEMS_DELETABLE
-
-        if (f.can_keep):
-            folder.folder_flags |= folder.ITEMS_DOWNLOADABLE
-
-        if (f.can_download):
-            folder.folder_flags |= folder.ITEMS_DOWNLOADABLE
 

@@ -147,6 +147,9 @@ class AudioPlayer(Player):
     
         if (ctx_id == self.__context_id):
             self.__progress.set_position(pos, total)
+            self.__progress.set_message("%s / %s" \
+                                        % (self.seconds_to_hms(pos),
+                                           self.seconds_to_hms(total)))
 
 
     def __on_change_volume(self, v):
