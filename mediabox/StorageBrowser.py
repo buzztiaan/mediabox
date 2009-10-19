@@ -634,11 +634,6 @@ class StorageBrowser(ThumbableGridView):
             #    buttons.append((header.BUTTON_ADD_TO_LIBRARY, theme.mb_item_btn_add))
             #header.set_buttons(*buttons)
             
-            if (folder.folder_flags & folder.ITEMS_SORTABLE):
-                self.set_drag_sort_enabled(True)
-            else:
-                self.set_drag_sort_enabled(False)
-
         else:
             # don't reload list
             pass
@@ -647,6 +642,11 @@ class StorageBrowser(ThumbableGridView):
             self.set_items_per_row(3)
         else:
             self.set_items_per_row(1)
+
+        #if (folder.folder_flags & folder.ITEMS_SORTABLE):
+        #    self.set_drag_sort_enabled(True)
+        #else:
+        #    self.set_drag_sort_enabled(False)
 
         # animate
         if (direction == self.GO_CHILD):
@@ -753,10 +753,10 @@ class StorageBrowser(ThumbableGridView):
         if (cwd.folder_flags & cwd.ITEMS_COMPACT):
             item.set_compact(True)        
 
-        if (cwd.folder_flags & cwd.ITEMS_SORTABLE):
-            item.set_grip_visible(True)
-        else:
-            item.set_grip_visible(False)
+        #if (cwd.folder_flags & cwd.ITEMS_SORTABLE):
+        #    item.set_grip_visible(True)
+        #else:
+        #    item.set_grip_visible(False)
     
         self.append_item(item)
 

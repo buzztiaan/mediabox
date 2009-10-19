@@ -10,6 +10,7 @@ from utils import mimetypes
 from utils import logging
 from mediabox import config as mb_config
 from utils.ItemScheduler import ItemScheduler
+import platforms
 from theme import theme
 
 import random
@@ -101,13 +102,9 @@ class Navigator(View):
         self.__btn_add.set_visible(False)
         self.__btn_add.connect_clicked(self.__on_btn_add)
 
-       
+
         self.__browser.set_root_device(RootDevice())
 
-
-        # menu
-        self.set_window_menu((None, "Settings", self.__on_menu_settings),
-                             (None, "FM Transmitter", self.__on_menu_fmtx))
 
 
     def __render_beta_mark(self, screen):
@@ -133,6 +130,25 @@ class Navigator(View):
 
         self.__toolbar.set_toolbar(*items)
 
+
+    def __update_menu(self):
+        """
+        Updates the contents of the window menu.
+        """
+
+        cwd = self.__browser.get_current_folder()
+        opts = []
+        
+        if (cwd.folder_flags & cwd.ITEMS_SORTABLE):
+            opts.append((None, "Rearrange", self.__on_menu_rearrange))
+            
+        opts.append((None, "Info", None))
+        
+        if (platforms.PLATFORM == platforms.MAEMO5):
+            opts.append((None, "FM Transmitter", self.__on_menu_fmtx))
+            
+        self.set_window_menu(*opts)
+
             
     def show(self):
     
@@ -143,6 +159,7 @@ class Navigator(View):
         #self.set_title(title)
 
         self.__update_toolbar()
+        self.__update_menu()
         self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
 
 
@@ -155,14 +172,24 @@ class Navigator(View):
             self.__tn_scheduler.halt()
 
 
-    def __on_menu_settings(self, *args):
+    def __on_menu_rearrange(self):
     
-        self.emit_message(msgs.UI_ACT_SELECT_VIEW, "Preferences")
+        def on_done():
+            self.__browser.set_drag_sort_enabled(False)
+            self.__update_toolbar()
+    
+        self.__browser.set_drag_sort_enabled(True)
+    
+        btn_done = ImageButton(theme.mb_btn_history_1,
+                               theme.mb_btn_history_2)
+        btn_done.connect_clicked(on_done)
+        self.__toolbar.set_toolbar(btn_done)
         
         
     def __on_menu_fmtx(self):
     
-        pass
+        import platforms
+        platforms.plugin_execute("libcpfmtx.so")
 
     
     def __on_click_now_playing(self):
@@ -209,6 +236,7 @@ class Navigator(View):
             self.emit_message(msgs.UI_ACT_TALK, acoustic_title)
             self.emit_message(msgs.CORE_EV_FOLDER_VISITED, f)
             self.__update_toolbar()
+            self.__update_menu()
         #end if
         
         self.__random_files = []

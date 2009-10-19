@@ -16,9 +16,6 @@ _LETTER_LENGTH_THRESHOLD = 5
 
 class ThumbableGridView(GridView):
 
-    #EVENT_ITEM_CLICKED = "item-clicked"
-
-
     def __init__(self):
     
         # the associated slider
@@ -35,6 +32,7 @@ class ThumbableGridView(GridView):
         
         
         GridView.__init__(self)
+        self.connect_button_pressed(self.__on_press_button)
         self.connect_button_released(self.__on_release_button)
         self.connect_pointer_moved(self.__on_pointer_moved)
         self.add_overlay_renderer(self.__render_letter)
@@ -76,27 +74,31 @@ class ThumbableGridView(GridView):
 
     def __on_clicked(self, px, py):
     
-        idx = self.get_item_at(px, py)
-        x, y = self.get_position_of_item(idx)
-        item = self.get_item(idx)
-        item.click_at(px - x, py - y)
-        
-        #self.emit_event(self.EVENT_ITEM_CLICKED, idx)
-        
+        if (not self.__has_drag_sort):
+            idx = self.get_item_at(px, py)
+            x, y = self.get_position_of_item(idx)
+            item = self.get_item(idx)
+            item.click_at(px - x, py - y)
+        #end if
+
         
     def __on_tap_and_hold(self, px, py):
 
-        idx = self.get_item_at(px, py)
-        x, y = self.get_position_of_item(idx)
-        item = self.get_item(idx)
-        item.tap_and_hold(px - x, py - y)
+        if (not self.__has_drag_sort):
+            idx = self.get_item_at(px, py)
+            x, y = self.get_position_of_item(idx)
+            item = self.get_item(idx)
+            item.tap_and_hold(px - x, py - y)
+        #end if
 
-        
-        #if (self.__has_drag_sort and px < 32):
-        #    idx = self.get_item_at(px, py)
-        #    self.float_item(idx, px, py)
-        #    self.invalidate()
-        #    self.render()
+
+    def __on_press_button(self, px, py):
+    
+        if (self.__has_drag_sort):
+            idx = self.get_item_at(px, py)
+            self.float_item(idx, px, py)
+            self.invalidate()
+            self.render()
 
 
     def __on_release_button(self, px, py):
@@ -119,10 +121,10 @@ class ThumbableGridView(GridView):
             self.render()
             
             w, h = self.get_size()
-            if (py < 30):
-                self.move(0, -10)
+            if (py < 60):
+                self.move(0, -30)
             elif (py > h - 30):
-                self.move(0, 10)
+                self.move(0, 60)
     
         
     def __on_drag_slider(self, percent):
@@ -192,4 +194,5 @@ class ThumbableGridView(GridView):
     def set_drag_sort_enabled(self, v):
     
         self.__has_drag_sort = v
+        self.__kscr.set_enabled(not v)
 

@@ -113,6 +113,12 @@ def request_connection():
         pass
 
 
+def plugin_execute(so_file):
+
+    import osso
+    plugin = osso.Plugin(_osso_ctx)
+    plugin.plugin_execute(so_file, True)
+
 
 if (get_product_code() == "SU-18"):
     # bad hack!

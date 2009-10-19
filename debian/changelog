@@ -1,3 +1,11 @@
+mediabox (2009.10.19) unstable; urgency=low
+
+  Support for the N900 FM transmitter
+  
+  Playlist items can be rearranged
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 18 Oct 2009 22:30:00 +0200
+
 mediabox (2009.10.18) unstable; urgency=low
 
   Finger gestures in the image viewer and video player
