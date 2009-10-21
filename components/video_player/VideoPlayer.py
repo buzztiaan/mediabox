@@ -239,8 +239,8 @@ class VideoPlayer(Player):
         uri = f.get_resource()
         try:
             self.__context_id = self.__player.load_video(uri)
-        except:
             self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
+        except:
             logging.error("error loading media file: %s\n%s",
                           uri, logging.stacktrace())
 
