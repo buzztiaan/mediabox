@@ -454,14 +454,14 @@ class File(object):
         self.__device.keep(self)
 
 
-    def swap(self, idx1, idx2):
+    def shift_file(self, pos, amount):
         """
-        Swaps two files in this folder.
-        @since: 0.96.5
+        Shifts the file at the given position by the given amount.
+        The shifting amount may be positive or negative.
+        @since: 2009.10.20
         
-        @param idx1: index of first file
-        @param idx2: index of second file
+        @param pos: index of file
+        @param amount: shifting amount
         """
         
-        self.__device.swap(self, idx1, idx2)
-
+        self.__device.shift_file(self, pos, amount)

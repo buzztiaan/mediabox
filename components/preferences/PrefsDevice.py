@@ -5,8 +5,8 @@ from theme import theme
 
 class PrefsDevice(Device):
 
-    CATEGORY = Device.CATEGORY_HIDDEN
-    TYPE = Device.TYPE_GENERIC
+    CATEGORY = Device.CATEGORY_CORE
+    TYPE = Device.TYPE_SYSTEM
 
 
     def __init__(self):
@@ -23,7 +23,7 @@ class PrefsDevice(Device):
         
     def get_name(self):
     
-        return "Preferences"
+        return "Settings"
         
 
     def get_icon(self):

@@ -280,6 +280,7 @@ class AudioPlayer(Player):
 
             self.__sliding_direction = self.SLIDE_LEFT
         #end if
+        self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 
         #self.render()
 

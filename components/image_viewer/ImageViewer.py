@@ -170,4 +170,6 @@ class ImageViewer(Player):
     def load(self, f):
 
         self.__image.load(f)
+        self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
         self.render()
+

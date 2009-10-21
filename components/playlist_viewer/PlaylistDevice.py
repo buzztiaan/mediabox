@@ -13,15 +13,15 @@ import os
 _PLAYLIST_DIR = os.path.join(values.USER_DIR, "playlists")
 
 _PLAYLIST_DEFAULT = "Playlist"
-_PLAYLIST_RECENT_50 = "50 Recently Played"
+_PLAYLIST_RECENT_50 = "Recent 50"
 _SPECIAL_PLAYLISTS = [_PLAYLIST_DEFAULT,
                       _PLAYLIST_RECENT_50]
 
 
 class PlaylistDevice(Device):
 
-    CATEGORY = Device.CATEGORY_INDEX
-    TYPE = Device.TYPE_GENERIC
+    CATEGORY = Device.CATEGORY_CORE
+    TYPE = Device.TYPE_SYSTEM
 
 
     def __init__(self):
@@ -49,7 +49,7 @@ class PlaylistDevice(Device):
         
     def get_name(self):
     
-        return "Lists"
+        return "Playlists"
         
         
     def get_icon(self):
@@ -57,9 +57,9 @@ class PlaylistDevice(Device):
         return theme.mb_viewer_playlist
 
 
-    def swap(self, f, idx1, idx2):
+    def shift_file(self, folder, pos, amount):
     
-        self.__current_list.swap(idx1, idx2)
+        self.__current_list.shift(pos, amount)
         self.__current_list.save()
 
 
@@ -225,8 +225,9 @@ class PlaylistDevice(Device):
         f = File(self)
         f.name = self.get_name()
         f.path = "/"
-        f.mimetype = f.DIRECTORY
-        f.folder_flags = f.ITEMS_DELETABLE | f.ITEMS_ADDABLE
+        f.mimetype = f.DEVICE_ROOT
+        f.folder_flags = f.ITEMS_DELETABLE | f.ITEMS_ADDABLE | f.ITEMS_COMPACT
+        f.icon = self.get_icon().get_path()
 
         return f
 
@@ -238,9 +239,10 @@ class PlaylistDevice(Device):
             self.__needs_playlist_reload = False
 
         if (folder.path == "/"):
-            folder.folder_flags = folder.ITEMS_ADDABLE
             if (len(self.__lists) > 1):
                 folder.folder_flags |= folder.ITEMS_DELETABLE
+            else:
+                folder.folder_flags -= folder.ITEMS_DELETABLE
                 
             self.__ls_playlists(begin_at, end_at, cb, *args)
             

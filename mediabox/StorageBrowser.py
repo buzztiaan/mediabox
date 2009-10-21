@@ -68,6 +68,8 @@ class StorageBrowser(ThumbableGridView):
         self.add_overlay_renderer(self.__render_search_box)
         self.add_overlay_renderer(self.__render_caps)
 
+        self.connect_item_shifted(self.__on_shift_item)
+
 
     def connect_folder_begin(self, cb, *args):
     
@@ -336,6 +338,11 @@ class StorageBrowser(ThumbableGridView):
         folder = self.get_current_folder()
         folder.delete_file(idx)
 
+
+    def __on_shift_item(self, pos, amount):
+    
+        folder = self.get_current_folder()
+        folder.shift_file(pos, amount)
 
     """
     def __on_swap_items(self, idx1, idx2):

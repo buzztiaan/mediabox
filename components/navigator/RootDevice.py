@@ -23,6 +23,7 @@ class RootDevice(Device):
         
         # table: type -> list of devices
         self.__device_lists = {
+            Device.TYPE_SYSTEM:  [],
             Device.TYPE_GENERIC: [],
             Device.TYPE_AUDIO:   [],
             Device.TYPE_VIDEO:   [],
@@ -64,7 +65,6 @@ class RootDevice(Device):
                     (b.TYPE, b.CATEGORY, b.get_name()))
 
 
-
     def __list_devices(self, dtype):
     
         devs = self.__device_lists[dtype]
@@ -80,7 +80,8 @@ class RootDevice(Device):
         for name, info, path, icon in [
             ("Music", "Browse Music Library", "/audio", theme.mb_device_audio),
             ("Videos", "Browse Video Library", "/video", theme.mb_device_video),
-            ("Pictures", "Browse Picture Library", "/image", theme.mb_device_image)
+            ("Pictures", "Browse Picture Library", "/image", theme.mb_device_image),
+            ("Storage & Network", "Browse storage and network", "/storage", theme.mb_device_folders),
         ]:
             f = File(self)
             f.name = name
@@ -112,8 +113,8 @@ class RootDevice(Device):
         items = []
     
         if (path.path == "/"):
-            items += self.__list_devices(Device.TYPE_GENERIC)
             items += self.__list_categories()
+            items += self.__list_devices(Device.TYPE_SYSTEM)
             items += self.__list_favorites()
 
         elif (path.path == "/audio"):
@@ -124,6 +125,9 @@ class RootDevice(Device):
 
         elif (path.path == "/image"):
             items += self.__list_devices(Device.TYPE_IMAGE)
+
+        elif (path.path == "/storage"):
+            items += self.__list_devices(Device.TYPE_GENERIC)
 
         
         cnt = 0

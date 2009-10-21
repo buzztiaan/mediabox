@@ -21,9 +21,9 @@ class MediaItem(Item):
 
         self.__file = f
         self.__icon = icon
-        self.__label = textutils.escape_xml(f.name)
+        self.__label = f.name #textutils.escape_xml(f.name)
         self.__letter = self.__label and unicode(self.__label)[0].upper() or " "
-        self.__sublabel = textutils.escape_xml(f.info)
+        self.__sublabel = f.info #textutils.escape_xml(f.info)
 
         Item.__init__(self)
         self.set_size(-1, 100)

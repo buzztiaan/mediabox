@@ -19,10 +19,10 @@ class NowPlaying(Widget):
         Widget.__init__(self)
         
         self.__lbl_action = Label("", theme.font_mb_tiny, theme.color_mb_text)
-        self.add(self.__lbl_action)
+        #self.add(self.__lbl_action)
         
         self.__lbl_title = Label("", theme.font_mb_plain, theme.color_mb_text)
-        self.add(self.__lbl_title)
+        #self.add(self.__lbl_title)
         
         
         
@@ -36,10 +36,10 @@ class NowPlaying(Widget):
         
         icon_size = h
         if (self.__icon):
-            screen.fit_pixbuf(self.__icon, x + 5, y, icon_size, icon_size)
+            screen.fit_pixbuf(self.__icon, x, y, icon_size, icon_size)
         
-        self.__lbl_action.set_pos(icon_size + 10, 12)
-        self.__lbl_title.set_pos(icon_size + 10, 40)
+        #self.__lbl_action.set_pos(icon_size + 10, 12)
+        #self.__lbl_title.set_pos(icon_size + 10, 40)
 
 
 

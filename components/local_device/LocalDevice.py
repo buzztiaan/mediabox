@@ -2,8 +2,6 @@ from com import msgs
 from storage import Device, File
 from ui.dialog import OptionDialog
 from utils import mimetypes
-from utils import maemo
-from utils import mmc
 from utils import logging
 from theme import theme
 
@@ -15,7 +13,7 @@ import gobject
 
 class LocalDevice(Device):
 
-    CATEGORY = Device.CATEGORY_CORE
+    CATEGORY = Device.CATEGORY_LOCAL
     TYPE = Device.TYPE_GENERIC
     
 
@@ -55,7 +53,7 @@ class LocalDevice(Device):
     
         f = File(self)
         f.is_local = True
-        f.path = "MENU"
+        f.path = "/"
         f.mimetype = f.DEVICE_ROOT
         f.resource = ""
         f.name = self.__name
@@ -64,8 +62,9 @@ class LocalDevice(Device):
         f.folder_flags = f.ITEMS_ENQUEUEABLE
 
         return f
-        
-        
+       
+
+    """
     def __ls_menu(self, cb, *args):
     
         for name, path, mimetype, emblem in \
@@ -93,8 +92,10 @@ class LocalDevice(Device):
         #end for
         
         cb(None, *args)
-                
-        
+    """
+    
+    
+    """
     def __ls_mmcs(self, cb, *args):
     
         for f in [ f for f in os.listdir("/media")
@@ -116,7 +117,8 @@ class LocalDevice(Device):
         #end for
         
         cb(None, *args)        
-
+    """
+    
 
     def __on_add_to_playlist(self, folder, f):
     
@@ -176,14 +178,6 @@ class LocalDevice(Device):
         if (os.path.isdir(item.resource)):
             item.acoustic_name = item.name + ", Folder"
             item.mimetype = item.DIRECTORY
-            #children = item.get_children()
-            #for c in children:
-            #    if (c.mimetype.startswith("audio/")
-            #        and c.mimetype != "application/x-music-folder"):
-            #        item.mimetype = "application/x-music-folder"
-            #        break
-            ##end for
-            #item.child_count = len(children)
             item.folder_flags = item.ITEMS_ENQUEUEABLE | \
                                 item.INDEXABLE | \
                                 item.ITEMS_SKIPPABLE
@@ -196,10 +190,9 @@ class LocalDevice(Device):
         
         return item
     
-        
-        
-    def ls_async(self, path, cb, *args):
-                   
+    
+    def get_contents(self, folder, begin_at, end_at, cb, *args):
+
         def comp(a, b):
             if (a.mimetype != b.mimetype):
                 if (a.mimetype == a.DIRECTORY):
@@ -210,43 +203,25 @@ class LocalDevice(Device):
                     return cmp(a.name.lower(), b.name.lower())
             else:
                 return cmp(a.name.lower(), b.name.lower())
-                
-                   
-        if (path == "MENU"):
-            return self.__ls_menu(cb, *args)
-            
-        elif (path == "MMC"):
-            return self.__ls_mmcs(cb, *args)
-    
-        #logging.debug("listing [%s]" % path)
+
+
         try:
-            files = [ f for f in os.listdir(path)
+            files = [ f for f in os.listdir(folder.path)
                       if not f.startswith(".") ]
         except:
             files = []
-        files.sort()
             
         items = []
+        cnt = -1
         for f in files:
+            cnt += 1
+            if (cnt < begin_at): continue
+            if (end_at and cnt > end_at): break
+                
             try:
-                item = self.get_file(os.path.join(path, f))
+                item = self.get_file(os.path.join(folder.path, f))
             except:
                 continue
-            #item = File(self)
-            #item.is_local = True
-            #item.can_add_to_library = True
-            #item.path = os.path.join(path, f)
-            #item.name = f
-            #item.parent = os.path.basename(path)
-            #item.resource = os.path.join(path, f)
-
-            #if (os.path.isdir(item.resource)):
-            #    item.mimetype = item.DIRECTORY
-            #    item.child_count = self.__get_child_count(item.path)
-            #else:
-            #    ext = os.path.splitext(f)[-1].lower()
-            #    item.mimetype = mimetypes.lookup_ext(ext)
-            #    #item.emblem = theme.filetype_image
 
             if (item.mimetype.startswith("audio/") or
                 item.mimetype.startswith("image/") or

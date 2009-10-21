@@ -2,6 +2,7 @@ from com import View, msgs
 from RootDevice import RootDevice
 from NowPlaying import NowPlaying
 from mediabox.StorageBrowser import StorageBrowser
+from ui.Button import Button
 from ui.ImageButton import ImageButton
 from ui.Slider import Slider
 from ui.Toolbar import Toolbar
@@ -69,6 +70,12 @@ class Navigator(View):
                                     lambda a,b:self.__browser.stop_scrolling())
         self.add(self.__browser)
 
+        # [Add] button
+        self.__btn_add = Button("Add New")
+        self.__btn_add.set_visible(False)
+        self.__btn_add.connect_clicked(self.__on_btn_add)
+        self.add(self.__btn_add)
+
         # beta version!
         self.__browser.add_overlay_renderer(self.__render_beta_mark)
 
@@ -85,10 +92,6 @@ class Navigator(View):
                                          theme.mb_btn_history_2)
         self.__btn_history.connect_clicked(self.__on_btn_history)
 
-        self.__btn_prefs = ImageButton(theme.mb_btn_prefs_1,
-                                       theme.mb_btn_prefs_2)
-        self.__btn_prefs.connect_clicked(self.__on_btn_prefs)
-
         self.__btn_bookmarks = ImageButton(theme.mb_btn_bookmark_1,
                                            theme.mb_btn_bookmark_2)
         self.__btn_bookmarks.connect_clicked(self.__on_btn_bookmarks)
@@ -96,11 +99,6 @@ class Navigator(View):
         self.__btn_back = ImageButton(theme.mb_btn_dir_up_1,
                                       theme.mb_btn_dir_up_2)
         self.__btn_back.connect_clicked(self.__on_btn_back)
-
-        self.__btn_add = ImageButton(theme.mb_btn_add_1,
-                                     theme.mb_btn_add_2)
-        self.__btn_add.set_visible(False)
-        self.__btn_add.connect_clicked(self.__on_btn_add)
 
 
         self.__browser.set_root_device(RootDevice())
@@ -122,12 +120,8 @@ class Navigator(View):
         cwd = self.__browser.get_current_folder()
         items = [self.__btn_home,
                  self.__btn_history,
-                 self.__btn_prefs,
                  self.__btn_back]
         
-        if (cwd.folder_flags & cwd.ITEMS_ADDABLE):
-            items.append(self.__btn_add)
-
         self.__toolbar.set_toolbar(*items)
 
 
@@ -208,6 +202,12 @@ class Navigator(View):
         self.__tn_scheduler.halt()
         
         self.set_title(f.name)
+        
+        if (f.folder_flags & f.ITEMS_ADDABLE):
+            self.__btn_add.set_visible(True)
+        else:
+            self.__btn_add.set_visible(False)
+        self.render()
 
 
     def __on_progress_folder(self, f, c):
@@ -318,16 +318,6 @@ class Navigator(View):
             self.__browser.load_folder(f, self.__browser.GO_CHILD, True)
 
 
-    def __on_btn_prefs(self):
-        """
-        Reacts on pressing the [Prefs] button.
-        """
-        
-        f = self.call_service(msgs.CORE_SVC_GET_FILE, "preferences:///")
-        if (f):
-            self.__browser.load_folder(f, self.__browser.GO_CHILD, False)
-
-
     def __on_btn_bookmarks(self):
         """
         Reacts on pressing the [Bookmarks] button.
@@ -380,7 +370,7 @@ class Navigator(View):
 
             self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
             self.emit_message(msgs.MEDIA_ACT_LOAD, f)
-            self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
+            #self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 
 
     def render_this(self):
@@ -389,26 +379,36 @@ class Navigator(View):
         if (w < h):
             # portrait mode
             if (self.__now_playing_box.is_visible()):
-                self.__now_playing_box.set_geometry(0, 0, w, 80)
-                self.__browser_slider.set_geometry(0, 80, 40, h - 70 - 80)
-                self.__browser.set_geometry(40, 80, w - 40, h - 70 - 80)
+                self.__now_playing_box.set_geometry(w - 80, h - 80, 80, 80)
+                self.__toolbar.set_geometry(0, h - 80, w - 80, 80)
             else:
-                self.__browser_slider.set_geometry(0, 0, 40, h - 70)
-                self.__browser.set_geometry(40, 0, w - 40, h - 70)
+                self.__toolbar.set_geometry(0, h - 80, w, 80)
+                
+            if (self.__btn_add.is_visible()):
+                self.__btn_add.set_geometry(40, 80, w - 40, 80)
+                self.__browser_slider.set_geometry(0, 80, 40, h - 80 - 80)
+                self.__browser.set_geometry(40, 80, w - 40, h - 80 - 80)
+            else:
+                self.__browser_slider.set_geometry(0, 0, 40, h - 80)
+                self.__browser.set_geometry(40, 0, w - 40, h - 80)
             
-            self.__toolbar.set_geometry(0, h - 70, w, 70)
 
         else:
             # landscape mode
             if (self.__now_playing_box.is_visible()):
-                self.__now_playing_box.set_geometry(0, h - 80, w - 70, 80)
-                self.__browser_slider.set_geometry(0, 0, 40, h - 80)
-                self.__browser.set_geometry(40, 0, w - 40 - 70, h - 80)
+                self.__now_playing_box.set_geometry(w - 80, h - 80, 80, 80)
+                self.__toolbar.set_geometry(w - 80, 0, 80, h - 80)
+            else:
+                self.__toolbar.set_geometry(w - 80, 0, 80, h)
+                
+            if (self.__btn_add.is_visible()):
+                self.__btn_add.set_geometry(0, 0, w - 80, 80)
+                self.__browser_slider.set_geometry(0, 80, 40, h - 80)
+                self.__browser.set_geometry(40, 80, w - 40 - 80, h - 80)
             else:
                 self.__browser_slider.set_geometry(0, 0, 40, h)
-                self.__browser.set_geometry(40, 0, w - 40 - 70, h)
-
-            self.__toolbar.set_geometry(w - 70, 0, 70, h)
+                self.__browser.set_geometry(40, 0, w - 40 - 80, h)
+ 
 
 
     def __go_previous(self):

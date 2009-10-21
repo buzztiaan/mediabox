@@ -25,7 +25,7 @@ class Device(Component):
     alphabetically.
     
     Storage devices are of type
-     - L{TYPE_PRIVATE}
+     - L{TYPE_SYSTEM}
      - L{TYPE_GENERIC}
      - L{TYPE_AUDIO}
      - L{TYPE_VIDEO}
@@ -33,8 +33,7 @@ class Device(Component):
      
     Viewers list devices of certain types. The video viewer e.g. only lists
     devices of type L{TYPE_VIDEO}, while the devices of type L{TYPE_GENERIC}
-    are listed by the folder viewer. Devices of L{TYPE_PRIVATE} are not listed
-    automatically.
+    are listed by the folder viewer.
 
     Every instance of a device has a unique device ID string that is returned by
     L{get_device_id}. This is ID is used by MediaBox to keep track of devices
@@ -56,7 +55,7 @@ class Device(Component):
     CATEGORY_OTHER = 5
     CATEGORY_HIDDEN = 6
     
-    #TYPE_PRIVATE = 0
+    TYPE_SYSTEM = 0
     TYPE_GENERIC = 1
     TYPE_AUDIO = 2
     TYPE_VIDEO = 3
@@ -193,13 +192,15 @@ class Device(Component):
         raise NotImplementedError
 
 
-    def swap(self, f, idx1, idx2):
+    def shift_file(self, f, pos, amount):
         """
-        Swaps two files in this folder.
-        @since: 0.96.5
+        Shifts the file at the given position by the given amount.
+        The shifting amount may be positive or negative.
+        @since: 2009.10.20
         
-        @param idx1: index of first file
-        @param idx2: index of second file
+        @param folder: file object representing the folder
+        @param pos: index of file
+        @param amount: shifting amount
         """
         
         pass

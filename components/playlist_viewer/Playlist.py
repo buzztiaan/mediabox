@@ -62,17 +62,17 @@ class Playlist(object):
         self.__is_modified = True
 
 
-    def swap(self, idx1, idx2):
+    def shift(self, pos, amount):
     
-        temp = self.__files[idx1]
-        self.__files[idx1] = self.__files[idx2]
-        self.__files[idx2] = temp
+        if (self.__current_pos != -1):
+            tmp = self.__files[self.__current_pos]
+        
+        f = self.__files.pop(pos)
+        self.__files.insert(pos + amount, f)
 
-        if (self.__current_pos == idx1):
-            self.__current_pos = idx2
-        elif (self.__current_pos == idx2):
-            self.__current_pos = idx1
-
+        if (self.__current_pos != -1):
+            self.__current_pos = self.__files.index(tmp)
+            
         self.__is_modified = True
 
 

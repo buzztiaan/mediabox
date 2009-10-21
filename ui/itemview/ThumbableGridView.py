@@ -30,6 +30,9 @@ class ThumbableGridView(GridView):
         # timeout handler for hiding the letter view
         self.__letter_timeout_handler = None
         
+        # handler for auto scrolling when dragging items
+        self.__autoscroll_handler = None
+        
         
         GridView.__init__(self)
         self.connect_button_pressed(self.__on_press_button)
@@ -107,7 +110,11 @@ class ThumbableGridView(GridView):
             self.float_item(-1)
             self.invalidate()
             self.render()
-            
+
+        if (self.__autoscroll_handler):
+            gobject.source_remove(self.__autoscroll_handler)
+            self.__autoscroll_handler = None
+
             
     def __on_pointer_moved(self, px, py):
     
@@ -120,12 +127,20 @@ class ThumbableGridView(GridView):
             self.invalidate()
             self.render()
             
+            if (self.__autoscroll_handler):
+                gobject.source_remove(self.__autoscroll_handler)
+                self.__autoscroll_handler = None
+            
             w, h = self.get_size()
-            if (py < 60):
-                self.move(0, -30)
-            elif (py > h - 30):
-                self.move(0, 60)
-    
+            if (py < 80):
+                self.__autoscroll_handler = gobject.timeout_add(
+                                                 50, self.__do_autoscroll, -30)
+                #self.move(0, -30)
+            elif (py > h - 80):
+                self.__autoscroll_handler = gobject.timeout_add(
+                                                 50, self.__do_autoscroll, 30)
+                #self.move(0, 60)
+
         
     def __on_drag_slider(self, percent):
 
@@ -142,6 +157,12 @@ class ThumbableGridView(GridView):
         self.__letter_visible = False
         self.render()
         
+
+    def __do_autoscroll(self, amount):
+    
+        self.move(0, amount)
+        return True
+
 
     def move(self, dx, dy):
     

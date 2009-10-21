@@ -186,11 +186,11 @@ def MEDIA_ACT_NEXT(): pass
 Instructs the current media player to skip to the next item.
 """
 
-def MEDIA_EV_LOADED(viewer, f): pass
+def MEDIA_EV_LOADED(player, f): pass
 """
 Gets emitted when a media player has loaded a file.
 
-@param viewer: the viewer that has loaded the file
+@param player: the player that has loaded the file
 @param f: file object
 """
 
