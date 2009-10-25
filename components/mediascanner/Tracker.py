@@ -25,10 +25,8 @@ class Tracker(Component):
     
         if (rebuild_index):
             self.__file_index.clear()
-        #    self.__tracker_update()
 
         self.__tracker_files(mediaroots)
-
         self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_FINISHED)
 
 
@@ -41,6 +39,7 @@ class Tracker(Component):
     def __find_mediaroot(self, path, mediaroots):
     
         for m, n in mediaroots:
+            if (m[0] == "/"): m = "file://" + m
             if (path.startswith(m)):
                 return m
             #end if
@@ -73,7 +72,7 @@ class Tracker(Component):
         for line in lines:
             path = line.strip()
             fullpath = "file://" + path
-            
+
             mediaroot = self.__find_mediaroot(fullpath, mediaroots)
             if (not mediaroot):
                 continue
@@ -84,9 +83,10 @@ class Tracker(Component):
                 self.__file_index.discover_file(mediaroot, f.full_path,
                                                 mtime, f.mimetype)
                 
-            if (cnt % 100 == 0):
-                self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_PROGRESS,
-                                    f.full_path)
+                if (cnt % 100 == 0):
+                    self.emit_message(msgs.MEDIASCANNER_EV_SCANNING_PROGRESS,
+                                      f.full_path)
+            #end if
             cnt += 1
         #end for
 
@@ -150,8 +150,8 @@ class Tracker(Component):
             #end for
         #end for
                 
-        #print "CURRENT", media
-        #print "NEW", added
-        #print "REMOVED", removed
+        print "\nCURRENT", media
+        print "\nNEW", added
+        print "\nREMOVED", removed
         return (media, added, removed)
 

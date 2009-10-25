@@ -232,6 +232,33 @@ class PlaylistDevice(Device):
         return f
 
 
+    def get_file(self, path):
+
+        if (self.__needs_playlist_reload):
+            self.__load_playlists()
+            self.__needs_playlist_reload = False
+
+        name = urlquote.unquote(path[1:])
+        pl = self.__lookup_playlist(name)
+        
+        if (pl):
+            f = File(self)
+            f.name = pl.get_name()
+            #f.info = "%d items" % pl.get_size()
+            f.path = path
+            f.mimetype = f.DIRECTORY
+            f.icon = theme.mb_viewer_playlist.get_path()
+            f.folder_flags = f.ITEMS_SKIPPABLE
+
+            if (pl.get_name() != _PLAYLIST_RECENT_50):
+                f.folder_flags |= f.ITEMS_SORTABLE
+                f.folder_flags |= f.ITEMS_DELETABLE | \
+                                  f.ITEMS_BULK_DELETABLE
+            return f
+        else:
+            return None
+
+
     def get_contents(self, folder, begin_at, end_at, cb, *args):
 
         if (self.__needs_playlist_reload):
@@ -334,10 +361,16 @@ class PlaylistDevice(Device):
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
 
 
+    def __on_put_on_dashboard(self, folder, f):
+    
+        f.bookmarked = True
+
+
     def get_file_actions(self, folder, f):
     
         options = []
         if (folder.path == "/"):
+            options.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
             if (f.name in _SPECIAL_PLAYLISTS):
                 options.append((None, "Clear List", self.__on_delete_playlist))
             else:

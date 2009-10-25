@@ -29,6 +29,9 @@ class Navigator(View):
         # the file that is currently playing    
         self.__current_file = None
 
+        # list of files for playing
+        self.__play_files = []
+
         # list for choosing random files from when in shuffle mode
         self.__random_files = []
         
@@ -193,6 +196,10 @@ class Navigator(View):
        
     def __on_open_file(self, f):
     
+        # update set of play files
+        self.__play_files = [ fl for fl in self.__browser.get_files()
+                              if not fl.mimetype.endswith("-folder") ]
+        
         self.__load_file(f)
 
 
@@ -385,7 +392,7 @@ class Navigator(View):
                 self.__toolbar.set_geometry(0, h - 80, w, 80)
                 
             if (self.__btn_add.is_visible()):
-                self.__btn_add.set_geometry(40, 80, w - 40, 80)
+                self.__btn_add.set_geometry(40, 0, w - 40, 80)
                 self.__browser_slider.set_geometry(0, 80, 40, h - 80 - 80)
                 self.__browser.set_geometry(40, 80, w - 40, h - 80 - 80)
             else:
@@ -413,16 +420,13 @@ class Navigator(View):
 
     def __go_previous(self):
 
-        playable_files = [ f for f in self.__browser.get_files()
-                           if not f.mimetype.endswith("-folder") ]
-
         try:
-            idx = playable_files.index(self.__current_file)
+            idx = self.__play_files.index(self.__current_file)
         except ValueError:
             return False
             
         if (idx > 0):
-            next_item = playable_files[idx - 1]
+            next_item = self.__play_files[idx - 1]
             self.__load_file(next_item)
             
             
@@ -467,21 +471,19 @@ class Navigator(View):
         
     def __play_next(self, wraparound):
     
-        playable_files = [ f for f in self.__browser.get_files()
-                           if not f.mimetype.endswith("-folder") ]
         try:
-            idx = playable_files.index(self.__current_file)
+            idx = self.__play_files.index(self.__current_file)
         except:
             idx = -1
         
 
-        if (idx + 1 < len(playable_files)):
-            next_item = playable_files[idx + 1]
+        if (idx + 1 < len(self.__play_files)):
+            next_item = self.__play_files[idx + 1]
             self.__load_file(next_item)
             return True
 
         elif (wraparound):
-            next_item = playable_files[0]
+            next_item = self.__play_files[0]
             self.__load_file(next_item)
             return True
             
@@ -497,8 +499,7 @@ class Navigator(View):
             pass
 
         if (not self.__random_files):
-            self.__random_files = [ f for f in self.__browser.get_files()
-                                    if not f.mimetype.endswith("-folder") ]
+            self.__random_files = self.__play_files[:]
 
         idx = random.randint(0, len(self.__random_files) - 1)
         next_item = self.__random_files.pop(idx)

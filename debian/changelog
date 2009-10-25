@@ -1,8 +1,14 @@
-mediabox (2009.10.21) unstable; urgency=low
+mediabox (2009.10.25) unstable; urgency=low
 
   Cleaned up dashboard screen
+  
+  Playlists can be put on dashbboard
+  
+  Shuffle and repeat settings can be changed
+  
+  Thumbnailers use org.freedesktop.thumbnailer service
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 21 Oct 2009 22:50:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 25 Oct 2009 12:00:00 +0200
  
 mediabox (2009.10.19) unstable; urgency=low
 

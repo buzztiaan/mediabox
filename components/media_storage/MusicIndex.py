@@ -178,6 +178,51 @@ class _MusicIndex(object):
         return albums
 
 
+    def __query(self, target, query):
+
+        def selector(item):
+            return (item[_GENRE] == genre or genre == "*") and \
+                   (item[_ARTIST] == artist or artist == "*") and \
+                   (item[_ALBUM] == album or album == "*")
+
+        genre = "*"
+        artist = "*"
+        album = "*"
+        for part in query.split(","):
+            idx = part.find("=")
+            key, value = part[:idx], part[idx + 1:]
+            if (key == "genre"): genre = value
+            elif (key == "artist"): artist = value
+            elif (key == "album"): album = value
+        #end for
+
+        self.__check_scanner()
+        tracks = self.__list_index(selector, target)
+        return tracks
+    
+
+    def query_genres(self, query):
+    
+        return self.__query(_GENRE, query)
+
+
+    def query_artist(self, query):
+    
+        return self.__query(_ARTIST, query)
+        
+
+    def query_albums(self, query):
+    
+        return self.__query(_ALBUM, query)
+
+
+    def query_files(self, query):
+    
+        return self.__query(_FILE_PATH, query)
+
+
+
+
     def list_files(self, album):
 
         self.__check_scanner()
@@ -198,10 +243,10 @@ class _MusicIndex(object):
 
             tags = tagreader.get_tags(f)
             title = (tags.get("TITLE") or f.name).encode("utf-8")
-            artist = (tags.get("ARTIST") or "unknown").encode("utf-8")
+            artist = (tags.get("ARTIST") or "unspecified").encode("utf-8")
             album = (tags.get("ALBUM") or "").encode("utf-8")
             try:
-                genre = (tags.get("GENRE") or "unknown").encode("utf-8")
+                genre = (tags.get("GENRE") or "unspecified").encode("utf-8")
             except:
                 genre = "unknown"
             if (not album):
@@ -225,10 +270,10 @@ class _MusicIndex(object):
 
         tags = tagreader.get_tags(f)
         title = (tags.get("TITLE") or f.name).encode("utf-8")
-        artist = (tags.get("ARTIST") or "unknown").encode("utf-8")
+        artist = (tags.get("ARTIST") or "unspecified").encode("utf-8")
         album = (tags.get("ALBUM") or "").encode("utf-8")
         try:
-            genre = (tags.get("GENRE") or "unknown").encode("utf-8")
+            genre = (tags.get("GENRE") or "unspecified").encode("utf-8")
         except:
             genre = "unknown"
         if (not album):

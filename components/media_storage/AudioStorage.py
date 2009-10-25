@@ -46,7 +46,7 @@ class AudioStorage(Device):
         
     def get_prefix(self):
     
-        return "library://audio-folders"
+        return "audio://folders"
         
         
     def get_name(self):

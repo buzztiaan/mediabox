@@ -135,13 +135,15 @@ class Device(Component):
     def get_root(self):
         """
         Returns the File object representing the root path of the device.
-        The returned path does not contain the device prefix.
         @since: 0.96
         
         @return: root file object
         """
     
-        raise NotImplementedError
+        try:
+            return self.get_file("/")
+        except:
+            import traceback; traceback.print_exc()
         
         
     def get_file(self, path):

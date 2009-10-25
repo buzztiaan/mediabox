@@ -1,5 +1,6 @@
 from com import Component, msgs
 from storage import Device
+from utils import logging
 
 
 class DirectoryService(Component):
@@ -48,6 +49,7 @@ class DirectoryService(Component):
             #print self.__prefixes, prefix, path
             return self.__prefixes[prefix].get_file(path)
         except:
+            print logging.stacktrace()
             return 0
 
 

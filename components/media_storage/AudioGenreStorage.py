@@ -28,7 +28,7 @@ class AudioGenreStorage(AudioArtistStorage):
        
     def get_prefix(self):
     
-        return "library://audio-genres"
+        return "audio://genres"
         
         
     def get_name(self):
@@ -40,107 +40,94 @@ class AudioGenreStorage(AudioArtistStorage):
     
         return theme.mb_device_genres
 
-
-
-    def get_root(self):
+        
+    def __make_genre(self, genre):
     
         f = File(self)
-        f.is_local = True
-        f.can_skip = True
-        f.path = "/"
-        f.mimetype = f.DEVICE_ROOT
-        f.resource = ""
-        f.name = self.get_name()
-        f.icon = self.get_icon().get_path()
-        f.info = "Browse your music library by genre"
-        
+        f.path = "/" + urlquote.quote(genre, "")
+        f.name = genre
+        f.acoustic_name = genre
+        f.mimetype = f.DIRECTORY
+        f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                         f.ITEMS_SKIPPABLE | \
+                         f.ITEMS_COMPACT
         return f
-          
-    
-    
-    def ls_async(self, path, cb, *args):
 
+
+    def __make_album(self, artist, album):
+    
+        f = self.call_service(msgs.CORE_SVC_GET_FILE,
+                              "audio://albums/%s/%s" \
+                              % (urlquote.quote(artist, ""),
+                                 urlquote.quote(album, "")))
+        return f
+
+
+    def get_file(self, path):
+
+        parts = [ p for p in path.split("/") if p ]
+        len_parts = len(parts)
+
+        f = None
+        if (len_parts == 0):
+            # root folder
+            f = File(self)
+            f.is_local = True
+            f.can_skip = True
+            f.path = "/"
+            f.mimetype = f.DEVICE_ROOT
+            f.resource = ""
+            f.name = self.get_name()
+            f.icon = self.get_icon().get_path()
+            f.info = "Browse your music library by genre"
+
+        elif (len_parts == 1):
+            # genre
+            genre = urlquote.unquote(parts[0])
+            f = self.__make_genre(genre)
+
+        return f
+        
+        
+    def get_contents(self, folder, begin_at, end_at, cb, *args):
+    
         self._check_for_updated_media()
+        path = folder.path
 
         if (not path.endswith("/")): path += "/"
         parts = [ p for p in path.split("/") if p ]
         len_parts = len(parts)
-        index = self.get_index()
-
+        
+        items = []
         if (len_parts == 0):
-            for genre in index.list_genres():
-                f = File(self)
-                f.path = path + urlquote.quote(genre, "")
-                f.name = genre
-                f.acoustic_name = genre
-                f.mimetype = f.DIRECTORY
-                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                                 f.ITEMS_SKIPPABLE
-
-                cb(f, *args)
+            # list genres
+            for genre in self.get_index().list_genres():
+                f = self.__make_genre(genre)
+                if (f): items.append(f)
             #end for
-            
-            cb(None, *args)                
             
         elif (len_parts == 1):
+            # list albums
             genre = urlquote.unquote(parts[0])
-            for album in index.list_albums_by_genre(genre):
-                #children = index.list_files(album)
-                #if (children):
-                #    f = self.call_service(msgs.CORE_SVC_GET_FILE, children[0])
-                #    tags = tagreader.get_tags(f)
-                #    artist = tags.get("ARTIST") or "unknown"
-                #else:
-                #    artist = "unknown"
-            
-                f = File(self)
-                f.is_local = True
-                f.path = path + urlquote.quote(album, "")
-                f.name = album
-                f.acoustic_name = f.name
-                #f.info = artist
-                f.mimetype = "application/x-music-folder"
-                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                                 f.ITEMS_SKIPPABLE
-
-                cb(f, *args)
+            for artist in self.get_index().list_artists():
+                query = "genre=%s,artist=%s" % (genre, artist)
+                for album in self.get_index().query_albums(query):
+                    f = self.__make_album(artist, album)
+                    if (f): items.append(f)
+                #end for
             #end for
-
-            cb(None, *args)
             
-        else:
-            album = urlquote.unquote(parts[1])
-
-            tracks = []
-            
-            for filepath in index.list_files(album):
-                f = self.call_service(msgs.CORE_SVC_GET_FILE, filepath)
-                
-                tags = tagreader.get_tags(f)
-                f.name = tags.get("TITLE") or f.name
-                f.acoustic_name = f.name
-                f.info = tags.get("ARTIST") or "unknown"
-                al = tags.get("ALBUM")
-                
-                try:
-                    trackno = tags.get("TRACKNUMBER")
-                    trackno = trackno.split("/")[0]
-                    trackno = int(trackno)
-                except:
-                    trackno = 0
-                f.index = trackno
-
-                tracks.append(f)
-            #end for
-
-            tracks.sort()
-            for trk in tracks:            
-                cb(trk, *args)
-            cb(None, *args)
-            
-        #end if        
-
-
+        #end if
+        
+        items.sort()
+        cnt = -1
+        for item in items:
+            cnt += 1
+            if (cnt < begin_at): continue
+            if (end_at and cnt > end_at): break
+            cb(item, *args)
+        #end for
+        cb(None, *args)
 
 
     def load(self, resource, maxlen, cb, *args):

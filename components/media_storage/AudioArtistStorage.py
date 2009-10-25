@@ -103,9 +103,7 @@ class AudioArtistStorage(Device):
         files = []
         for album in albums:
             for path in self.__index.list_files(album):
-                f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
-                if (f):
-                    files.append(f)
+                files.append(path)
             #end for
         #end for
 
@@ -114,7 +112,7 @@ class AudioArtistStorage(Device):
         
     def get_prefix(self):
     
-        return "library://audio-artists"
+        return "audio://artists"
         
         
     def get_name(self):
@@ -127,101 +125,103 @@ class AudioArtistStorage(Device):
         return theme.mb_device_artists
 
 
-    def get_root(self):
+    def __make_artist(self, artist):
     
         f = File(self)
-        f.is_local = True
-        f.can_skip = True
-        f.path = "/"
-        f.mimetype = f.DEVICE_ROOT
-        f.resource = ""
-        f.name = self.get_name()
-        f.icon = self.get_icon().get_path()
-        f.info = "Browse your music library by artist"
-        f.folder_flags = f.ITEMS_COMPACT
-        
+        f.path = "/" + urlquote.quote(artist, "")
+        f.name = artist
+        f.acoustic_name = f.name
+        f.mimetype = f.DIRECTORY
+        f.icon = theme.mb_device_artists.get_path()
+        f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                            f.ITEMS_SKIPPABLE | \
+                            f.ITEMS_COMPACT
         return f
-          
-    
-    
-    def ls_async(self, path, cb, *args):
 
+
+    def __make_album(self, artist, album):
+    
+        f = self.call_service(msgs.CORE_SVC_GET_FILE,
+                              "audio://albums/%s/%s" \
+                              % (urlquote.quote(artist, ""),
+                                 urlquote.quote(album, "")))
+        return f
+ 
+
+    def get_file(self, path):
+
+        parts = [ p for p in path.split("/") if p ]
+        len_parts = len(parts)
+
+        f = None
+        if (len_parts == 0):
+            # root folder
+            f = File(self)
+            f.is_local = True
+            f.can_skip = True
+            f.path = "/"
+            f.mimetype = f.DEVICE_ROOT
+            f.resource = ""
+            f.name = self.get_name()
+            f.icon = self.get_icon().get_path()
+            f.info = "Browse your music library by artist"
+            f.folder_flags = f.ITEMS_COMPACT
+            
+        elif (len_parts == 1):
+            # artist
+            artist = urlquote.unquote(parts[0])
+            f = self.__make_artist(artist)
+    
+        return f
+    
+    
+    def get_contents(self, folder, begin_at, end_at, cb, *args):
+    
         self._check_for_updated_media()
+        path = folder.path
 
         if (not path.endswith("/")): path += "/"
         parts = [ p for p in path.split("/") if p ]
         len_parts = len(parts)
         index = self.get_index()
-
+        
+        items = []
         if (len_parts == 0):
+            # list artists
             for artist in index.list_artists():
-                f = File(self)
-                f.path = path + urlquote.quote(artist, "")
-                f.name = artist
-                f.acoustic_name = f.name
-                f.mimetype = f.DIRECTORY
-                f.icon = theme.mb_device_artists.get_path()
-                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                                 f.ITEMS_SKIPPABLE
-
-                cb(f, *args)
+                f = self.__make_artist(artist)
+                if (f): items.append(f)
             #end for
             
-            cb(None, *args)
-
         elif (len_parts == 1):
+            # list albums
             artist = urlquote.unquote(parts[0])
             for album in ["All Tracks"] + index.list_albums_by_artist(artist):
-                f = File(self)
-                f.is_local = True
-                f.path = path + urlquote.quote(album, "")
-                f.name = album
-                f.acoustic_name = f.name
-                f.info = artist
-                f.mimetype = "application/x-music-folder"
-                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                                 f.ITEMS_SKIPPABLE
-
-                cb(f, *args)
+                f = self.__make_album(artist, album)
+                if (f): items.append(f)
             #end for
-            
-            cb(None, *args)
-            
-        elif (len_parts == 2):
-            artist = urlquote.unquote(parts[0])
-            album = urlquote.unquote(parts[1])
+        
+        items.sort()
+        cnt = -1
+        for item in items:
+            cnt += 1
+            if (cnt < begin_at): continue
+            if (end_at and cnt > end_at): break
+            cb(item, *args)
+        #end for
+        cb(None, *args)
+    
 
-            tracks = []
-            for f in self._list_files(artist, album):
-                tags = tagreader.get_tags(f)
-                f.name = tags.get("TITLE") or f.name
-                f.acoustic_name = f.name
-                f.info = tags.get("ARTIST") or "unknown"
-                al = tags.get("ALBUM") or "unknown"
-                
-                if (artist != f.info): continue
-                
-                try:
-                    trackno = tags.get("TRACKNUMBER")
-                    trackno = trackno.split("/")[0]
-                    trackno = int(trackno)
-                except:
-                    trackno = 0
-                    
-                # no sorting by track number in the "All Tracks" folder
-                if (album != "All Tracks"):
-                    f.index = trackno
+    def __on_put_on_dashboard(self, folder, f):
+    
+        f.bookmarked = True
 
-                tracks.append(f)
-            #end for
 
-            tracks.sort()
-            for trk in tracks:            
-                cb(trk, *args)
-            cb(None, *args)
-            
-        #end if        
-
+    def get_file_actions(self, folder, f):
+    
+        actions = []
+        actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+        return actions
 
 
 

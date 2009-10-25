@@ -1,7 +1,7 @@
 def get_classes():
 
     from Library import Library
-    return [Library]
+    return [] #Library]
 
 
 import __messages__

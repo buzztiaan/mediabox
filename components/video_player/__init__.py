@@ -1,7 +1,15 @@
+import platforms
+
 def get_classes():
 
     from VideoPlayer import VideoPlayer
-    from VideoThumbnailer import VideoThumbnailer
-    return [VideoPlayer,
-            VideoThumbnailer]
+    classes = [VideoPlayer]
+    if (platforms.PLATFORM == platforms.MAEMO5):
+        from OrgFreeDesktopThumbnailer import OrgFreeDesktopThumbnailer
+        classes.append(OrgFreeDesktopThumbnailer)
+    else:
+        from VideoThumbnailer import VideoThumbnailer
+        classes.append(VideoThumbnailer)
+        
+    return classes
 

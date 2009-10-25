@@ -65,8 +65,8 @@ class StorageBrowser(ThumbableGridView):
     
         ThumbableGridView.__init__(self)
         self.add_overlay_renderer(self.__render_message)
-        self.add_overlay_renderer(self.__render_search_box)
-        self.add_overlay_renderer(self.__render_caps)
+        #self.add_overlay_renderer(self.__render_search_box)
+        #self.add_overlay_renderer(self.__render_caps)
 
         self.connect_item_shifted(self.__on_shift_item)
 

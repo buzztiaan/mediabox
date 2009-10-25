@@ -29,7 +29,7 @@ class AudioAlbumStorage(AudioArtistStorage):
         
     def get_prefix(self):
     
-        return "library://audio-albums"
+        return "audio://albums"
         
         
     def get_name(self):
@@ -42,96 +42,141 @@ class AudioAlbumStorage(AudioArtistStorage):
         return theme.mb_device_audio
 
 
+    def __make_album(self, artist, album):
 
-    def get_root(self):
-    
         f = File(self)
         f.is_local = True
-        f.can_skip = True
-        f.path = "/"
-        f.mimetype = f.DIRECTORY
-        f.resource = ""
-        f.name = self.get_name()
-        f.info = "Browse your music library by album"
-        f.icon = self.get_icon().get_path()
-        f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
-        
+        f.path = "/" + urlquote.quote(artist, "") + \
+                 "/" + urlquote.quote(album, "")
+        f.name = album
+        f.acoustic_name = f.name
+        #f.info = artist
+        f.mimetype = "application/x-music-folder"
+        f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                         f.ITEMS_SKIPPABLE
+
         return f
-          
+        
+        
+    def __make_track(self, artist, album, resource):
     
-    
-    def ls_async(self, path, cb, *args):
+        f = self.call_service(msgs.CORE_SVC_GET_FILE, resource)
+        if (not f): return None
+        
+        tags = tagreader.get_tags(f)
+        f.name = tags.get("TITLE") or f.name
+        f.info = tags.get("ARTIST") or "unknown"
+        f.acoustic_name = f.name + ", by " + f.info
+        #f.path = "/" + urlquote.quote(artist, "") + \
+        #         "/" + urlquote.quote(album, "") + \
+        #         "/" + urlquote.quote(resource, "")
 
         try:
-            self._check_for_updated_media()
+            trackno = tags.get("TRACKNUMBER")
+            trackno = trackno.split("/")[0]
+            trackno = int(trackno)
         except:
-            from utils import logging
-            print logging.stacktrace()
+            trackno = 0
+        f.index = trackno
+        
+        return f       
+
+
+    def get_file(self, path):
+
+        parts = [ p for p in path.split("/") if p ]
+        len_parts = len(parts)
+        
+        f = None
+        if (len_parts == 0):
+            # root folder
+            f = File(self)
+            f.is_local = True
+            f.can_skip = True
+            f.path = "/"
+            f.mimetype = f.DIRECTORY
+            f.resource = ""
+            f.name = self.get_name()
+            f.info = "Browse your music library by album"
+            f.icon = self.get_icon().get_path()
+            f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT            
+            
+        elif (len_parts == 2):
+            # album
+            artist = urlquote.unquote(parts[0])
+            album = urlquote.unquote(parts[1])
+            f = self.__make_album(artist, album)
+
+        elif (len_parts == 3):
+            # track
+            artist = urlquote.unquote(parts[0])
+            album = urlquote.unquote(parts[1])
+            resource = urlquote.unquote(parts[1])
+            f = self.__make_track(artist, album, resource)
+        
+        return f
+
+   
+    def get_contents(self, folder, begin_at, end_at, cb, *args):
+    
+        self._check_for_updated_media()
+        path = folder.path
 
         if (not path.endswith("/")): path += "/"
         parts = [ p for p in path.split("/") if p ]
         len_parts = len(parts)
         index = self.get_index()
         
+        items = []
+        alphabetical = False
         if (len_parts == 0):
-            for album in index.list_albums():
-                #children = index.list_files(album)
-                #if (children):
-                #    f = self.call_service(msgs.CORE_SVC_GET_FILE, children[0])
-                #    tags = tagreader.get_tags(f)
-                #    artist = tags.get("ARTIST") or "unknown"
-                #else:
-                #    artist = "unknown"
-            
-                f = File(self)
-                f.is_local = True
-                f.path = path + urlquote.quote(album, "")
-                f.name = album
-                f.acoustic_name = f.name
-                #f.info = artist
-                f.mimetype = "application/x-music-folder"
-                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                                 f.ITEMS_SKIPPABLE
-
-
-                cb(f, *args)
+            # list albums
+            for artist in self.get_index().list_artists():
+                for album in self.get_index().list_albums_by_artist(artist):
+                    f = self.__make_album(artist, album)
+                    if (f): items.append(f)
+                #end for
             #end for
-
-            cb(None, *args)
             
+        elif (len_parts == 2):
+            # list tracks
+            artist = urlquote.unquote(parts[0])
+            album = urlquote.unquote(parts[1])
+            if (album == "All Tracks"):
+                album = "*"
+                alphabetical = True
+            query = "artist=%s,album=%s" % (artist, album)
+            for filepath in self.get_index().query_files(query):
+                f = self.__make_track(artist, album, filepath)
+                if (f): items.append(f)
+            #end for
+        #end if
+        
+        if (alphabetical):
+            items.sort(lambda a,b:cmp(a.name, b.name))
         else:
-            album = urlquote.unquote(parts[0])
-            tracks = []
-            
-            for filepath in index.list_files(album):
-                f = self.call_service(msgs.CORE_SVC_GET_FILE, filepath)
-                if (not f): continue
-                
-                tags = tagreader.get_tags(f)
-                f.name = tags.get("TITLE") or f.name
-                f.info = tags.get("ARTIST") or "unknown"
-                f.acoustic_name = f.name + ", by " + f.info
-                al = tags.get("ALBUM")
+            items.sort()
 
-                try:
-                    trackno = tags.get("TRACKNUMBER")
-                    trackno = trackno.split("/")[0]
-                    trackno = int(trackno)
-                except:
-                    trackno = 0
-                f.index = trackno
-
-                tracks.append(f)
-            #end for
-
-            tracks.sort()
-            for trk in tracks:            
-                cb(trk, *args)
-            cb(None, *args)
-            
-        #end if        
+        cnt = -1
+        for item in items:
+            cnt += 1
+            if (cnt < begin_at): continue
+            if (end_at and cnt > end_at): break
+            cb(item, *args)
+        #end for
+        cb(None, *args)
 
 
+    def __on_put_on_dashboard(self, folder, f):
+    
+        f.bookmarked = True
+
+
+    def get_file_actions(self, folder, f):
+    
+        actions = []
+        actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+        return actions
 
 
     def load(self, resource, maxlen, cb, *args):

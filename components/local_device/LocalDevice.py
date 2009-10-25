@@ -159,7 +159,7 @@ class LocalDevice(Device):
         actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
         actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
         if (f.mimetype == f.DIRECTORY):
-            actions.append((None, "Add to Library", self.__on_add_to_library))
+            pass #actions.append((None, "Add to Library", self.__on_add_to_library))
         else:
             actions.append((None, "Delete File", self.__on_delete_file))
         

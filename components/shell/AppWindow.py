@@ -263,7 +263,7 @@ class AppWindow(Component):
     
             self.__current_view = view
             self.__current_view.set_visible(True)
-            #self.__current_view.render()
+            self.__current_view.render()
         #end if
 
 

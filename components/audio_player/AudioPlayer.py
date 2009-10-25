@@ -8,6 +8,7 @@ from ui.Label import Label
 from ui.layout import HBox, VBox
 from ui.Pixmap import Pixmap
 import mediaplayer
+from mediabox.ShuffleBar import ShuffleBar
 from mediabox import tagreader
 from utils import logging
 from theme import theme
@@ -62,6 +63,9 @@ class AudioPlayer(Player):
         self.__volume_slider.connect_value_changed(self.__on_change_volume)
         self.add(self.__volume_slider)
         
+        # shuffle and repeat
+        self.__shuffle_bar = ShuffleBar()
+        self.add(self.__shuffle_bar)
 
         # toolbar
         self.__toolbar = Toolbar()
@@ -208,12 +212,12 @@ class AudioPlayer(Player):
             self.__trackinfo.set_geometry(42, cover_size + 60, w - 84, 80)
             self.__volume_slider.set_geometry(0, 0, 42, h - 70)
 
-
         else:
             # landscape mode
             cover_size = h - 90
             self.__toolbar.set_geometry(w - 70, 0, 70, h)
-            self.__progress.set_geometry(42 + 20, h - 50, w - (70 + 84 + 40), 32)
+            self.__shuffle_bar.set_geometry(42, h - 50, 128, 50)
+            self.__progress.set_geometry(42 + 20 + 128, h - 50, w - (70 + 84 + 40) - 128, 32)
             lbl_width = w - cover_size - 42 - 70
             self.__lbl_title.set_geometry(w - lbl_width - 70 + 10, 10,
                                           lbl_width - 20, 0)
@@ -221,6 +225,7 @@ class AudioPlayer(Player):
             self.__trackinfo.set_geometry(w - lbl_width - 70 + 10, 60,
                                           lbl_width - 20, 80)
             self.__volume_slider.set_geometry(0, 0, 42, h)
+            
 
 
         if (self.__cover):
