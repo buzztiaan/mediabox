@@ -85,6 +85,9 @@ class GstBackend(AbstractBackend):
 
         self.__player.set_state(gst.STATE_NULL)
         self.__player.set_property("uri", uri)
+        self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
+                                  gst.SEEK_FLAG_FLUSH,
+                                  0)
         self._report_aspect_ratio(16/9.0)
         
 
