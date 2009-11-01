@@ -738,8 +738,8 @@ class StorageBrowser(ThumbableGridView):
 
         cwd = self.get_current_folder()
         num_of_items = len(self.get_files())
-        cwd.get_contents(num_of_items, 0, on_child, self.__token, cwd, [])
         self.__token = (self.__token + 1) % 100
+        cwd.get_contents(num_of_items, 0, on_child, self.__token, cwd, [])
         
         
     def __add_file(self, f):
