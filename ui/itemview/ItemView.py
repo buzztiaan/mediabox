@@ -162,7 +162,8 @@ class ItemView(Widget):
 
     def set_hilight(self, pos):
         """
-        Hilights the item at the given position.
+        Hilights the item at the given position. Pass C{-1} to remove the
+        hilight.
         
         @param pos: the position of the item to hilight
         """
@@ -179,7 +180,7 @@ class ItemView(Widget):
     def set_cursor(self, pos):
         """
         Moves the cursor to the given position. The cursor can only be on at
-        most one item at a time.
+        most one item at a time. Pass C{-1} to remove the cursor.
         
         @param pos: the new cursor position
         """
