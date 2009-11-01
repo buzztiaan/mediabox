@@ -44,13 +44,7 @@ class AbstractBackend(EventEmitter):
     EVENT_ASPECT_CHANGED = "event-aspect-changed"
     EVENT_TAG_DISCOVERED = "event-tag-discovered"
    
-    # error codes
-    ERR_INVALID = 0
-    ERR_NOT_FOUND = 1
-    ERR_CONNECTION_TIMEOUT = 2
-    ERR_NOT_SUPPORTED = 3
-    ERR_SERVER_FULL = 4
-    
+   
     # remote control keys that can be sent to backends (for DVD navigation etc.)
     KEY_UP = 0
     KEY_DOWN = 1
