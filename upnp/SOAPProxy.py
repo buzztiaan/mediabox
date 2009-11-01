@@ -78,6 +78,11 @@ class SOAPProxy(object):
         self.__parse_scpd(scpdurl)
 
 
+    def __introspect__(self):
+    
+        return [ (n, a[0], a[1]) for n, a in self.__signatures.items() ]
+
+
     def __getattr__(self, name):
     
         def f(cb, *args):
