@@ -12,6 +12,7 @@ from Component import Component
 from Applet import Applet
 #from Viewer import Viewer
 from View import View
+from MediaOutput import MediaOutput
 from Player import Player
 from Thumbnailer import Thumbnailer
 from Widget import Widget
