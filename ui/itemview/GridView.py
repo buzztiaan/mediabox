@@ -369,7 +369,7 @@ class GridView(ItemView):
         #end if
         
         
-        
+    """
     def set_cursor(self, pos):
     
         prev_pos = self.get_cursor()
@@ -379,7 +379,7 @@ class GridView(ItemView):
         self.__render_item(pos)
         self.scroll_to_item(pos)
         self.render()
-        
+    """
         
     def float_item(self, pos, x = 0, y = 0):
         """
