@@ -1,4 +1,7 @@
+import platforms
+
 import gtk
+import gobject
 
 
 class InputDialog(gtk.Dialog):
@@ -6,6 +9,9 @@ class InputDialog(gtk.Dialog):
     def __init__(self, title):
     
         self.__inputs = []
+        
+        # list of value retrieving functions
+        self.__retrievers = []
     
         gtk.Dialog.__init__(self)
         self.set_title(title)
@@ -24,31 +30,55 @@ class InputDialog(gtk.Dialog):
 
     def add_input(self, label, default):
     
-        hbox = gtk.HBox()
-        hbox.show()
-        self.vbox.add(hbox)
+        vbox = gtk.VBox()
+        vbox.show()
+        self.vbox.add(vbox)
         
         lbl = gtk.Label(label)
         lbl.show()
-        hbox.add(lbl)
+        vbox.add(lbl)
         
         entry = gtk.Entry()
         entry.show()
-        hbox.add(entry)
+        vbox.add(entry)
         
-        self.__inputs.append(entry)
-        
+        self.__retrievers.append(lambda :entry.get_text())
+
+
+    def add_range(self, label, min_value, max_value, preset):
+
+        vbox = gtk.VBox()
+        vbox.show()
+        self.vbox.add(vbox)
+
+        lbl = gtk.Label(label)
+        lbl.show()
+        vbox.add(lbl)
+    
+        if (platforms.PLATFORM == platforms.MAEMO5):    
+            import hildon
+            scale = hildon.HScale()
+        else:
+            scale = gtk.HScale()
+
+        scale.set_range(min_value, max_value)
+        scale.set_value(preset)
+        scale.show()
+        vbox.add(scale)
+        self.__retrievers.append(lambda :scale.get_value())
+
+
         
     def get_values(self):
     
-        return [ i.get_text() for i in self.__inputs ]
+        return [ r() for r in self.__retrievers ]
 
 
     def run(self):
     
         self.show()
         resp = gtk.Dialog.run(self)
-        self.destroy()
+        gobject.idle_add(self.destroy)
         
         if (resp == gtk.RESPONSE_ACCEPT):
             return 0
