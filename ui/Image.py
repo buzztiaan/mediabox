@@ -3,7 +3,7 @@ from Widget import Widget
 
 class Image(Widget):
 
-    def __init__(self, pbuf):
+    def __init__(self, pbuf = None):
     
         self.__pbuf = pbuf
            
@@ -15,7 +15,7 @@ class Image(Widget):
     def set_image(self, pbuf):        
     
         self.__pbuf = pbuf
-        self.set_size(pbuf.get_width(), pbuf.get_height())
+        #self.set_size(pbuf.get_width(), pbuf.get_height())
 
         #self.render()
 
@@ -26,6 +26,6 @@ class Image(Widget):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        if (self.__pbuf):
-            screen.draw_pixbuf(self.__pbuf, x, y)
+        if (self.__pbuf and w > 0 and h > 0):
+            screen.fit_pixbuf(self.__pbuf, x, y, w, h)
 
