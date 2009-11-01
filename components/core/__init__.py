@@ -5,12 +5,14 @@ def get_classes():
     from AppletService import AppletService
     from BookmarkService import BookmarkService
     from DirectoryService import DirectoryService
+    from MediaOutputService import MediaOutputService
 
     return [Initialiser,
             IdleDetector,
             AppletService,
             BookmarkService,
-            DirectoryService]
+            DirectoryService,
+            MediaOutputService]
 
 
 

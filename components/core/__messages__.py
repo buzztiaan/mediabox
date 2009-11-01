@@ -254,7 +254,21 @@ given in seconds.
 """
 
 
+def MEDIA_ACT_SELECT_OUTPUT(output): pass
+"""
+Selects the given media output.
+@since: 2009.10.31
 
+@param output: a MediaOutput object
+"""
+
+def MEDIA_SVC_GET_OUTPUT(): pass
+"""
+Returns the currently selected media output.
+@since: 2009.10.31
+
+@return: a MediaOutput object
+"""
 
 
 def BOOKMARK_SVC_LIST(mimetypes): pass
