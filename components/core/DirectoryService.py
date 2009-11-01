@@ -49,7 +49,7 @@ class DirectoryService(Component):
             #print self.__prefixes, prefix, path
             return self.__prefixes[prefix].get_file(path)
         except:
-            print logging.stacktrace()
+            #print logging.stacktrace()
             return 0
 
 
