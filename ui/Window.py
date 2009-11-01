@@ -288,6 +288,11 @@ class Window(Widget):
         self.__window.set_title(title)
 
 
+    def close(self):
+    
+        self.send_event(self.EVENT_CLOSED)
+
+
     def __set_portrait_property(self, prop, value):
 
         self.__window.window.property_change(prop, "CARDINAL", 32,
