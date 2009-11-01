@@ -29,6 +29,8 @@ class MediaOutput(Component, EventEmitter):
     EVENT_ASPECT_CHANGED = "event-aspect-changed"
     EVENT_TAG_DISCOVERED = "event-tag-discovered"
     
+    
+    TITLE = "Without a Name"
 
     def __init__(self):
     

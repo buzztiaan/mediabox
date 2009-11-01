@@ -47,6 +47,9 @@ class MediaRenderer(MediaOutput):
     DEVICE_TYPES = ["urn:schemas-upnp-org:device:MediaRenderer:1"]
 
 
+    TITLE = "UPnP Device"
+    
+
     def __init__(self, descr):
     
         self.__is_playing = False        
@@ -60,6 +63,8 @@ class MediaRenderer(MediaOutput):
         self.__rendering_control = descr.get_service_proxy(_SERVICE_RENDERING_CONTROL_1)
         #print self.__media_renderer.__introspect__()        
         descr.subscribe(_SERVICE_AV_TRANSPORT_1, self.__on_signal)
+
+        self.TITLE = descr.get_friendly_name()
 
 
     def __on_signal(self, sig, ev_xml):

@@ -11,6 +11,9 @@ class LocalOutput(MediaOutput):
            component system and loaded dynamically by this component.
     """
 
+    TITLE = "Local"
+    
+
     def __init__(self):
     
         self.__backend = None
