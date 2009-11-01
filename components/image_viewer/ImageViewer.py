@@ -4,11 +4,16 @@ from ui.decorators import Gestures
 from ui.KineticScroller import KineticScroller
 from ui.Toolbar import Toolbar
 from ui.ImageButton import ImageButton
+from ui.dialog import InputDialog
 from theme import theme
 from utils import logging
 
+import gtk
 import gobject
 
+
+# maximum slideshow timeout in seconds
+_SLIDESHOW_MAX_TIMEOUT = 60
 
 class ImageViewer(Player):
 
@@ -16,6 +21,16 @@ class ImageViewer(Player):
 
         self.__is_fullscreen = False
         self.__zoom_handler = None
+
+        # whether the slideshow is playing
+        self.__is_playing = False
+        
+        # slideshow handler
+        self.__slideshow_handler = None
+
+        # slideshow timeout in milliseconds
+        self.__slideshow_timeout = 3000
+        
 
         Player.__init__(self)
         
@@ -55,10 +70,53 @@ class ImageViewer(Player):
                                    btn_next)
 
 
-    def __on_btn_play(self):
+    def __slideshow_timer(self):
     
-        if (self.__player):
-            self.__player.pause()
+        gtk.main_iteration(False)
+        
+        if (self.__is_playing and self.may_render()):
+            self.__image.slide_from_right()
+            self.emit_message(msgs.MEDIA_ACT_NEXT)
+            return True
+            
+        else:
+            self.__btn_play.set_images(theme.mb_btn_play_1,
+                                       theme.mb_btn_play_2)
+            self.__slideshow_handler = None
+            self.__is_playing = False
+            self.emit_message(msgs.MEDIA_EV_PAUSE)
+
+            return False
+
+
+
+    def __on_btn_play(self):
+
+        self.__is_playing = not self.__is_playing
+        if (self.__is_playing):
+            self.__btn_play.set_images(theme.mb_btn_pause_1,
+                                       theme.mb_btn_pause_2)
+
+            dlg = InputDialog("Slideshow Settings")
+            dlg.add_range("Seconds between slides:", 1, _SLIDESHOW_MAX_TIMEOUT, 3)
+            ret = dlg.run()
+
+            if (ret != 0): return
+
+            secs = dlg.get_values()[0]
+            self.__slideshow_timeout = int(secs * 1000)
+            
+            self.emit_message(msgs.MEDIA_EV_PLAY)
+
+            if (self.__slideshow_handler):
+                gobject.source_remove(self.__slideshow_handler)
+            self.__slideshow_handler = gobject.timeout_add(
+                                                      self.__slideshow_timeout,
+                                                      self.__slideshow_timer)
+
+        else:
+            self.__btn_play.set_images(theme.mb_btn_play_1,
+                                       theme.mb_btn_play_2)
 
 
     def __on_btn_previous(self):

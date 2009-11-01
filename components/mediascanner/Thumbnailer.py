@@ -41,7 +41,7 @@ class Thumbnailer(Component):
 
         
         
-        
+    """
     def __load_thumbnail(self, f, cb, *args):
     
         thumbnail_path = self.get_thumbnail_path(f)
@@ -52,9 +52,9 @@ class Thumbnailer(Component):
             
         else:
             self.__load_from_media(f, thumbnail_path, cb, *args)
+    """
 
-
-
+    """
     def __load_from_image(self, data, thumbnail_path):
                 
         def on_size_available(loader, width, height):
@@ -78,9 +78,9 @@ class Thumbnailer(Component):
         pbuf.save(thumbnail_path, "jpeg")
         del pbuf
         del loader
-        
+    """ 
 
-        
+    """ 
     def __load_from_uri(self, uri, thumbnail_path, cb, *args):
 
         def on_download(d, a, t, data):
@@ -103,9 +103,9 @@ class Thumbnailer(Component):
 
         else:
             Downloader(uri, on_download, [""])
+    """
 
-
-
+    """
     def __load_from_media(self, f, thumbnail_path, cb, *args):
     
         def on_generated():
@@ -125,7 +125,8 @@ class Thumbnailer(Component):
         #end for
         
         cb(thumbnail_path, *args)
-
+    """
+    
 
     def __copy_thumbnail(self, file1, file2):
         """
@@ -144,12 +145,12 @@ class Thumbnailer(Component):
 
         
 
-        
+    """
     def is_thumbnail_up_to_date(self, f):
-        """
+        ""
         Returns whether the thumbnail for the given file is up to date.
         Returns False if the thumbnail does not exist.
-        """
+        ""
                 
         thumb = self.get_thumbnail_path(f)
         broken = thumb + ".broken"
@@ -168,13 +169,15 @@ class Thumbnailer(Component):
 
         except:
             return False        
+    """
+    
 
-
+    """
     def mark_as_unavailable(self, f):
-        """
+        ""
         Marks the thumbnail for the given file as unavailable so that we
         don't try to thumbnail it again, unless the mtime has changed.
-        """
+        ""
         
         # simply touch it
         thumb = self.get_thumbnail_path(f) + ".broken"
@@ -183,12 +186,14 @@ class Thumbnailer(Component):
             open(thumb, "w")
         except:
             pass
+    """
 
 
+    """
     def unmark_as_unavailable(self, f):
-        """
+        ""
         Removes the thumbnail unavailability mark on the given file.
-        """
+        ""
         
         thumb = self.get_thumbnail_path(f) + ".broken"
         logging.debug("unmarking thumbnail for %s as broken: %s", f, thumb)
@@ -196,6 +201,7 @@ class Thumbnailer(Component):
             os.unlink(thumb)
         except:
             pass        
+    """
 
 
     def remove_thumbnail(self, f):
@@ -210,20 +216,21 @@ class Thumbnailer(Component):
             pass
         
 
+    """
     def has_thumbnail(self, f):
-        """
+        ""
         Returns whether a thumbnail exists for the given file.
-        """
+        ""
 
         thumb = self.get_thumbnail_path(f)
         return os.path.exists(thumb) and self.is_thumbnail_up_to_date(f)
-        
+    """
 
-        
+    """        
     def get_thumbnail_path(self, f):
-        """
+        ""
         Returns the path for the thumbnail for the given file.
-        """
+        ""
 
         thumb_fallback = os.path.join(self.__thumb_folder,
                                       f.thumbnail_md5 + ".jpg")
@@ -246,7 +253,7 @@ class Thumbnailer(Component):
             #end if
             thumb = os.path.join(prefix, f.thumbnail_md5 + ".jpg")
             return thumb
-
+    """
 
 
     def __register_thumbnailer(self, thumbnailer):
@@ -277,7 +284,10 @@ class Thumbnailer(Component):
         if (not handlers):
             return ("", True)
 
-        return handlers[0].make_quick_thumbnail(f)
+        try:
+            return handlers[0].make_quick_thumbnail(f)
+        except:
+            return ("", True)
 
         #if (self.has_thumbnail(f)):
         #    return self.get_thumbnail_path(f)
@@ -295,9 +305,14 @@ class Thumbnailer(Component):
             handlers = self.__mime_handlers.get(m1 + "/*")
 
         if (not handlers):
+            cb("", *args)
             return ""
 
-        handlers[0].make_thumbnail(f, cb, *cb_args)
+        try:
+            handlers[0].make_thumbnail(f, cb, *cb_args)
+        except:
+            cb("", *args)
+            return ""
 
         #self.__load_thumbnail(f, cb, *cb_args)
         return 0
@@ -309,9 +324,11 @@ class Thumbnailer(Component):
         return 0
 
 
+    """
     def handle_MEDIASCANNER_SVC_SET_THUMBNAIL(self, f, pbuf):
 
         thumbpath = self.__thumbnailer.get_thumbnail_path(f)
         pbuf.save(thumbpath, "jpeg")
         print "saving thumbnail for %s as %s" % (f.name, thumbpath)
         return thumbpath
+    """

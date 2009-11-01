@@ -254,12 +254,29 @@ given in seconds.
 """
 
 
-def MEDIA_ACT_SELECT_OUTPUT(output): pass
+def MEDIA_EV_OUTPUT_ADDED(output): pass
 """
-Selects the given media output.
-@since: 2009.10.31
+Gets emitted when a new output device is added.
+@since: 2009.11.01
 
 @param output: a MediaOutput object
+"""
+
+def MEDIA_EV_OUTPUT_REMOVED(output): pass
+"""
+Gets emitted when output device is removed.
+@since: 2009.11.01
+
+@param output: a MediaOutput object
+"""
+
+def MEDIA_ACT_SELECT_OUTPUT(output): pass
+"""
+Selects the given media output. Pass C{None} for the output to let the
+user choose.
+@since: 2009.10.31
+
+@param output: a MediaOutput object or C{None}
 """
 
 def MEDIA_SVC_GET_OUTPUT(): pass

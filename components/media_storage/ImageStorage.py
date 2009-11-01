@@ -1,6 +1,6 @@
 from com import msgs
-
 from storage import Device, File
+from utils import urlquote
 from utils import logging
 from theme import theme
 
@@ -16,7 +16,9 @@ class ImageStorage(Device):
 
     def __init__(self):
     
+        # table: folder -> [list of names]
         self.__folders = {}
+        
         self.__media_was_updated = False
     
         Device.__init__(self)
@@ -24,7 +26,6 @@ class ImageStorage(Device):
         
     def handle_MEDIASCANNER_EV_SCANNING_FINISHED(self):
     
-        #self.__update_media()
         self.__media_was_updated = True
 
 
@@ -47,7 +48,7 @@ class ImageStorage(Device):
         
     def get_prefix(self):
     
-        return "library://image"
+        return "images://"
         
         
     def get_name(self):
@@ -60,24 +61,50 @@ class ImageStorage(Device):
         return theme.mb_device_image
 
 
-    def get_root(self):
-    
+    def __make_folder(self, folder_name):
+
         f = File(self)
         f.is_local = True
+        f.path = "/" + urlquote.quote(folder_name, "")
         f.can_skip = True
-        f.path = "/"
-        f.mimetype = f.DEVICE_ROOT
+        f.mimetype = "application/x-image-folder"
         f.resource = ""
-        f.name = self.get_name()
-        f.info = "Browse your picture library"
-        f.icon = self.get_icon().get_path()
-        f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
-        
+        f.name = folder_name
+        f.acoustic_name = "Folder: " + f.name
+        f.info = "%d items" % len(self.__folders.get(folder_name, []))
+        f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                            f.ITEMS_SKIPPABLE | \
+                            f.ITEMS_COMPACT
+
         return f
-          
+
+
+    def get_file(self, path):
     
-    
-    def ls_async(self, path, cb, *args):
+        parts = [ p for p in path.split("/") if p ]
+        len_parts = len(parts)
+        
+        f = None
+        if (len_parts == 0):
+            f = File(self)
+            f.is_local = True
+            f.can_skip = True
+            f.path = "/"
+            f.mimetype = f.DEVICE_ROOT
+            f.resource = ""
+            f.name = self.get_name()
+            f.info = "Browse your picture library"
+            f.icon = self.get_icon().get_path()
+            f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
+            
+        elif (len_parts == 1):
+            folder_name = urlquote.unquote(parts[0])
+            f = self.__make_folder(folder_name)
+
+        return f
+
+
+    def get_contents(self, folder, begin_at, end_at, cb, *args):
 
         def folder_cmp(a, b):
             if (a == "All Pictures"):
@@ -91,36 +118,51 @@ class ImageStorage(Device):
         if (self.__media_was_updated):
             self.__update_media()
 
-    
-        if (path == "/"):
+        parts = [ p for p in folder.path.split("/") if p ]
+        len_parts = len(parts)
+               
+        items = []
+        if (len_parts == 0):
+            # list folders
             folders = self.__folders.keys()
             folders.sort(folder_cmp)
-            for folder in folders:
-                f = File(self)
-                f.is_local = True
-                f.path = "/" + folder
-                f.can_skip = True
-                f.mimetype = "application/x-image-folder"
-                f.resource = ""
-                f.name = folder
-                f.acoustic_name = "Folder: " + f.name
-                f.info = "%d items" % len(self.__folders.get(folder, []))
-                f.thumbnail = self.__find_image_in_folder(folder)
-                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                                 f.ITEMS_SKIPPABLE | \
-                                 f.ITEMS_COMPACT
-                
-                cb(f, *args)
-                
-        else:
-            images = self.__folders.get(path[1:], [])
+            for folder_name in folders:
+                f = self.__make_folder(folder_name)
+                if (f): items.append(f)
+            #end for
+            
+        elif (len_parts == 1):
+            # list images
+            folder_name = urlquote.unquote(parts[0])
+            images = self.__folders.get(folder_name, [])
             images.sort()
             for img in images:
-                #img.name = self.__get_name(img.path)
-                cb(img, *args)
+                items.append(img)
             #end for
+        #end if
+            
+        items.sort()
         
+        cnt = -1
+        for item in items:
+            cnt += 1
+            if (cnt < begin_at): continue
+            if (end_at and cnt > end_at): break
+            cb(item, *args)
+        #end for
         cb(None, *args)
+            
+            
+    def __on_put_on_dashboard(self, folder, f):
+    
+        f.bookmarked = True
+
+
+    def get_file_actions(self, folder, f):
+    
+        actions = []
+        actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+        return actions    
 
 
     def __find_image_in_folder(self, folder):

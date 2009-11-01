@@ -28,14 +28,25 @@ class ImageThumbnailer(Thumbnailer):
         if (thumb):
             return (thumb, True)
         elif (f.mimetype == "application/x-image-folder"):
-            return (theme.mb_thumbnail_image_folder.get_path(), True)
+            return (theme.mb_thumbnail_image_folder.get_path(), False)
         else:
             return (theme.mb_frame_image.get_path(), False)
         
         
     def make_thumbnail(self, f, cb, *args):
+
+        def on_loaded_folder(pbuf):
+            if (pbuf):
+                _PBUF.fill(0x00000000)
+                pixbuftools.draw_pbuf(_PBUF, theme.mb_thumbnail_image_folder, 0, 0)
+                pixbuftools.fit_pbuf(_PBUF, pbuf, 34, 30, 102, 70)
+                path = self._set_thumbnail(f, _PBUF)
+                del pbuf
+            else:
+                path = ""
+            cb(path, *args)
     
-        def on_loaded(pbuf):
+        def on_loaded_image(pbuf):
             if (pbuf):
                 _PBUF.fill(0x00000000)
                 pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_image, 0, 0)
@@ -46,6 +57,16 @@ class ImageThumbnailer(Thumbnailer):
                 path = ""
             cb(path, *args)
 
-        uri = f.resource
-        imageloader.load(uri, on_loaded)
+        if (f.mimetype == "application/x-image-folder"):
+            children = f.get_children()
+            if (children):
+                uri = children[0].resource
+                imageloader.load(uri, on_loaded_folder)
+            else:
+                cb("", *args)
+
+        else:
+            uri = f.resource
+            imageloader.load(uri, on_loaded_image)
+
 

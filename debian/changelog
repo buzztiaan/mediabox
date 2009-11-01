@@ -1,3 +1,9 @@
+mediabox (2009.11.1) unstable; urgency=low
+
+  Experimental output for UPnP MediaRenderer devices
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 01 Nov 2009 00:30:00 +0200
+
 mediabox (2009.10.25) unstable; urgency=low
 
   Cleaned up dashboard screen
@@ -7,8 +13,10 @@ mediabox (2009.10.25) unstable; urgency=low
   Shuffle and repeat settings can be changed
   
   Thumbnailers use org.freedesktop.thumbnailer service
+  
+  Slideshow in the image viewer
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 25 Oct 2009 12:00:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 27 Oct 2009 20:00:00 +0200
  
 mediabox (2009.10.19) unstable; urgency=low
 

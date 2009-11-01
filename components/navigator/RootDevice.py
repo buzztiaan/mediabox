@@ -165,7 +165,7 @@ class RootDevice(Device):
             if (device.TYPE in self.__device_lists):
                 self.__device_lists[device.TYPE].append(device)
             
-            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+            #self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
         #end if
 
 
@@ -178,6 +178,6 @@ class RootDevice(Device):
             if (device.TYPE in self.__device_lists):
                 self.__device_lists[device.TYPE].remove(device)
 
-            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+            #self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
 
         #end if

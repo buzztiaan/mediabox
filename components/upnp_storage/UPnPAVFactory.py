@@ -1,6 +1,7 @@
 from com import Component, msgs
 
 from AVDevice import AVDevice
+from MediaRenderer import MediaRenderer
 
 
 class UPnPAVFactory(Component):
@@ -32,6 +33,10 @@ class UPnPAVFactory(Component):
             self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
                                 u"discovered network storage \xbb%s\xab" \
                                 %  descr.get_friendly_name())
+
+        elif (device_type in MediaRenderer.DEVICE_TYPES):
+            print "Found MediaRenderer"
+            device = MediaRenderer(descr)
 
 
     def handle_SSDP_EV_DEVICE_GONE(self, uuid):

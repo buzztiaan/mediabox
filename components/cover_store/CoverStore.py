@@ -15,7 +15,7 @@ class CoverStore(Component):
         
     def handle_COVERSTORE_SVC_GET_COVER(self, f, cb, *args):
         
-        if (f.resource.startswith("/")):
+        if (f.resource.startswith("/") and os.path.exists(f.resource)):
             # it's a local file
             if (f.mimetype.endswith("-folder")):
                 # it's a directory

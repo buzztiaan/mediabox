@@ -110,43 +110,41 @@ class AVDevice(Device):
         return self.__description.get_friendly_name()
         
         
-    def get_root(self):
-    
-        f = File(self)
-        f.path = "0"
-        f.mimetype = f.DEVICE_ROOT
-        f.resource = ""
-        f.name = self.get_name()
-        f.icon = self.get_icon().get_path()
-        f.info = "UPnP network storage"
-        
-        return f    
-
-
     def get_file(self, path):
-
-        if (path.startswith("/")): path = path[1:]
-        didl, nil, nil, nil = self.__cds_proxy.Browse(None, path,
-                                                      "BrowseMetadata",
-                                                      "*", "0", "0", "")
-        entry = didl_lite.parse(didl)
-        ident, clss, child_count, res, title, artist, mimetype = entry[0]
-
-        url_base = self.__description.get_url_base()
-
-        f = File(self)
-        f.mimetype = mimetype
-        f.resource = res
-        f.name = title
-        f.info = artist
-        f.path = "/" + path
-
-        if (f.mimetype == f.DIRECTORY):
-            f.resource = ident
-            f.folder_flags = f.ITEMS_SKIPPABLE | f.ITEMS_ENQUEUEABLE
+    
+        f = None
+        if (path == "/"):
+            f = File(self)
+            f.path = "0"
+            f.mimetype = f.DEVICE_ROOT
+            f.resource = ""
+            f.name = self.get_name()
+            f.icon = self.get_icon().get_path()
+            f.info = "UPnP network storage"
+            
         else:
-            f.resource = urlparse.urljoin(url_base, res)
-        f.child_count = child_count
+            if (path.startswith("/")): path = path[1:]
+            didl, nil, nil, nil = self.__cds_proxy.Browse(None, path,
+                                                          "BrowseMetadata",
+                                                          "*", "0", "0", "")
+            entry = didl_lite.parse(didl)
+            ident, clss, child_count, res, title, artist, mimetype = entry[0]
+
+            url_base = self.__description.get_url_base()
+
+            f = File(self)
+            f.mimetype = mimetype
+            f.resource = res
+            f.name = title
+            f.info = artist
+            f.path = "/" + path
+
+            if (f.mimetype == f.DIRECTORY):
+                f.resource = ident
+                f.folder_flags = f.ITEMS_SKIPPABLE | f.ITEMS_ENQUEUEABLE
+            else:
+                f.resource = urlparse.urljoin(url_base, res)
+            f.child_count = child_count
 
         return f
 
@@ -157,6 +155,7 @@ class AVDevice(Device):
         f = File(self)
         f.mimetype = mimetype
         f.resource = res or urlparse.urljoin(url_base, ident)
+        print f.resource
         f.name = title
         f.artist = artist
         f.info = artist
@@ -245,7 +244,10 @@ class AVDevice(Device):
             if (entry):
                 if (begin_at <= counter[0] <= end_at):
                     item = self.__build_file(url_base, entry)
-                    ret = cb(item, *args)
+                    try:
+                        ret = cb(item, *args)
+                    except:
+                        import traceback; traceback.print_exc()
                     counter[0] += 1
                     return ret
 

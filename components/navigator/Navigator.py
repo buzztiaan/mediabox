@@ -7,6 +7,7 @@ from ui.ImageButton import ImageButton
 from ui.Slider import Slider
 from ui.Toolbar import Toolbar
 from ui.dialog import OptionDialog
+from ui.layout import Arrangement
 from utils import mimetypes
 from utils import logging
 from mediabox import config as mb_config
@@ -16,6 +17,58 @@ from theme import theme
 
 import random
 import time
+
+
+_LANDSCAPE_ARRANGEMENT = """
+  <arrangement>
+    <widget name="toolbar"
+            x1="-80" y1="0" x2="100%" y2="-80"/>
+    <widget name="now_playing"
+            x1="-80" y1="-80" x2="100%" y2="100%"/>
+
+    <if-visible name="btn_add">
+      <widget name="btn_add"
+              x1="0" y1="0" x2="-80" y2="80"/>
+      <widget name="slider"
+              x1="0" y1="80" x2="40" y2="100%"/>
+      <widget name="browser"
+              x1="40" y1="80" x2="-80" y2="100%"/>
+    </if-visible>
+
+    <if-invisible name="btn_add">
+      <widget name="slider"
+              x1="0" y1="0" x2="40" y2="100%"/>
+      <widget name="browser"
+              x1="40" y1="0" x2="-80" y2="100%"/>
+    </if-invisible>                
+  </arrangement>
+"""
+
+
+_PORTRAIT_ARRANGEMENT = """
+  <arrangement>
+    <widget name="toolbar"
+            x1="0" y1="-80" x2="-80" y2="100%"/>
+    <widget name="now_playing"
+            x1="-80" y1="-80" x2="100%" y2="100%"/>
+
+    <if-visible name="btn_add">
+      <widget name="btn_add"
+              x1="0" y1="0" x2="-80" y2="80"/>
+      <widget name="slider"
+              x1="0" y1="80" x2="40" y2="-80"/>
+      <widget name="browser"
+              x1="40" y1="80" x2="100%" y2="-80"/>
+    </if-visible>
+
+    <if-invisible name="btn_add">
+      <widget name="slider"
+              x1="0" y1="0" x2="40" y2="-80"/>
+      <widget name="browser"
+              x1="40" y1="0" x2="100%" y2="-80"/>
+    </if-invisible>                
+  </arrangement>
+"""
 
 
 class Navigator(View):
@@ -44,19 +97,21 @@ class Navigator(View):
         # scheduler for creating thumbnails one by one
         self.__tn_scheduler = ItemScheduler()
         
+        self.__root_dev = RootDevice()
+        
     
         View.__init__(self)
 
         # now-playing box
         self.__now_playing_box = NowPlaying()
-        self.__now_playing_box.set_visible(False)
-        self.add(self.__now_playing_box)
+        #self.__now_playing_box.set_visible(False)
+        #self.add(self.__now_playing_box)
         self.__now_playing_box.connect_clicked(self.__on_click_now_playing)
 
         # browser list slider
         self.__browser_slider = Slider(theme.mb_list_slider)
         self.__browser_slider.set_mode(Slider.VERTICAL)
-        self.add(self.__browser_slider)
+        #self.add(self.__browser_slider)
 
         
         # file browser
@@ -71,21 +126,21 @@ class Navigator(View):
         #self.__browser.connect_file_bookmarked(self.__on_bookmark_file)
         self.__browser_slider.connect_button_pressed(
                                     lambda a,b:self.__browser.stop_scrolling())
-        self.add(self.__browser)
+        #self.add(self.__browser)
 
         # [Add] button
         self.__btn_add = Button("Add New")
         self.__btn_add.set_visible(False)
         self.__btn_add.connect_clicked(self.__on_btn_add)
-        self.add(self.__btn_add)
+        #self.add(self.__btn_add)
 
         # beta version!
-        self.__browser.add_overlay_renderer(self.__render_beta_mark)
+        #self.__browser.add_overlay_renderer(self.__render_beta_mark)
 
 
         # toolbar
         self.__toolbar = Toolbar()
-        self.add(self.__toolbar)
+        #self.add(self.__toolbar)
 
         self.__btn_home = ImageButton(theme.mb_btn_home_1,
                                       theme.mb_btn_home_2)
@@ -104,8 +159,26 @@ class Navigator(View):
         self.__btn_back.connect_clicked(self.__on_btn_back)
 
 
-        self.__browser.set_root_device(RootDevice())
+        # arrangement
+        self.__arr = Arrangement()
+        self.__arr.connect_resized(self.__update_layout)
+        self.__arr.add(self.__browser_slider, "slider")
+        self.__arr.add(self.__browser, "browser")
+        self.__arr.add(self.__btn_add, "btn_add")
+        self.__arr.add(self.__toolbar, "toolbar")
+        self.__arr.add(self.__now_playing_box, "now_playing")
+        self.add(self.__arr)
 
+
+    def __update_layout(self):
+    
+        w, h = self.get_size()
+        if (w < h):
+            # portrait mode
+            self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)
+        else:
+            # landscape mode
+            self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
 
 
     def __render_beta_mark(self, screen):
@@ -135,6 +208,8 @@ class Navigator(View):
 
         cwd = self.__browser.get_current_folder()
         opts = []
+        
+        opts.append((None, "Select Output Device", self.__on_menu_select_output))
         
         if (cwd.folder_flags & cwd.ITEMS_SORTABLE):
             opts.append((None, "Rearrange", self.__on_menu_rearrange))
@@ -167,6 +242,11 @@ class Navigator(View):
             self.__tn_scheduler.resume()
         else:
             self.__tn_scheduler.halt()
+
+
+    def __on_menu_select_output(self):
+    
+        self.emit_message(msgs.MEDIA_ACT_SELECT_OUTPUT, None)
 
 
     def __on_menu_rearrange(self):
@@ -383,6 +463,8 @@ class Navigator(View):
     def render_this(self):
     
         w, h = self.get_size()
+        self.__arr.set_geometry(0, 0, w, h)
+        """
         if (w < h):
             # portrait mode
             if (self.__now_playing_box.is_visible()):
@@ -415,7 +497,7 @@ class Navigator(View):
             else:
                 self.__browser_slider.set_geometry(0, 0, 40, h)
                 self.__browser.set_geometry(40, 0, w - 40 - 80, h)
- 
+        """
 
 
     def __go_previous(self):
@@ -535,6 +617,11 @@ class Navigator(View):
             self.__is_searching = True
             self.__search_term = key
         #end if
+
+    
+    def handle_CORE_EV_APP_STARTED(self):
+
+        self.__browser.set_root_device(self.__root_dev)
 
 
     def handle_CORE_EV_SEARCH_CLOSED(self):

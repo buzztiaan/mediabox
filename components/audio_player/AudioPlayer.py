@@ -5,6 +5,7 @@ from ui.ProgressBar import ProgressBar
 from ui.Slider import Slider
 from ui.Image import Image
 from ui.Label import Label
+from ui.layout import Arrangement
 from ui.layout import HBox, VBox
 from ui.Pixmap import Pixmap
 import mediaplayer
@@ -14,6 +15,21 @@ from utils import logging
 from theme import theme
 
 
+_LANDSCAPE_ARRANGEMENT = """
+  <arrangement>
+    <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="-80"/>
+    <widget name="btn_nav" x1="-80" y1="-80" x2="100%" y2="100%"/>
+    <widget name="shuffle_bar" x1="42" y1="-50" x2="128" y2="100%"/>
+    <widget name="progress" x1="128" y1="-50" x2="-90" y2="100%"/>
+    <widget name="slider" x1="0" y1="0" x2="40" y2="100%"/>
+    
+    <widget name="cover" x1="50" y1="10" x2="48%" y2="-80"/>
+    <widget name="lbl_title" x1="50%" y1="10" x2="-90" y2="50"/>
+    <widget name="trackinfo" x1="50%" y1="60" x2="-90" y2="160"/>
+  </arrangement>
+"""
+
+
 class AudioPlayer(Player):
 
     def __init__(self):
@@ -21,27 +37,29 @@ class AudioPlayer(Player):
         self.__player = None
         self.__context_id = 0
         self.__volume = 50
-        
-        self.__cover = None
-        
+              
         self.__sliding_direction = self.SLIDE_LEFT
     
         Player.__init__(self)
         
+        # cover art
+        self.__cover_art = Image()
+        
         # title label
         self.__lbl_title = Label("-", theme.font_mb_headline,
                                  theme.color_mb_trackinfo_text)
-        self.add(self.__lbl_title)
+        #self.add(self.__lbl_title)
 
 
         # artist and album labels
         self.__trackinfo = VBox()
-        self.add(self.__trackinfo)
+        #self.add(self.__trackinfo)
         
         hbox = HBox()
         hbox.set_spacing(24)
         self.__trackinfo.add(hbox, True)
         img = Image(theme.mb_music_album)
+        img.set_size(48, 48)
         hbox.add(img, False)
         self.__lbl_album = Label("-", theme.font_mb_plain,
                                  theme.color_mb_trackinfo_text)
@@ -51,6 +69,7 @@ class AudioPlayer(Player):
         hbox.set_spacing(24)
         self.__trackinfo.add(hbox, True)
         img = Image(theme.mb_music_artist)
+        img.set_size(48, 48)
         hbox.add(img, False)
         self.__lbl_artist = Label("-", theme.font_mb_plain,
                                   theme.color_mb_trackinfo_text)
@@ -61,15 +80,21 @@ class AudioPlayer(Player):
         self.__volume_slider = Slider(theme.mb_list_slider)
         self.__volume_slider.set_mode(Slider.VERTICAL)
         self.__volume_slider.connect_value_changed(self.__on_change_volume)
-        self.add(self.__volume_slider)
+        #self.add(self.__volume_slider)
         
         # shuffle and repeat
         self.__shuffle_bar = ShuffleBar()
-        self.add(self.__shuffle_bar)
+        #self.add(self.__shuffle_bar)
+
+        # navigator button
+        self.__btn_navigator = ImageButton(theme.mb_btn_play_1,
+                                           theme.mb_btn_play_2)
+        self.__btn_navigator.connect_clicked(lambda *a:self.get_window().close())
+        #self.add(self.__btn_navigator)
 
         # toolbar
         self.__toolbar = Toolbar()
-        self.add(self.__toolbar)
+        #self.add(self.__toolbar)
         
         self.__btn_play = ImageButton(theme.mb_btn_play_1,
                                       theme.mb_btn_play_2)
@@ -88,14 +113,39 @@ class AudioPlayer(Player):
         btn_bookmark.connect_clicked(self.__on_btn_next)
 
 
+        # progress bar
         self.__progress = ProgressBar()
-        self.add(self.__progress)
+        #self.add(self.__progress)
         self.__progress.connect_changed(self.__on_seek)
 
         self.__toolbar.set_toolbar(btn_previous,
                                    self.__btn_play,
                                    btn_next)
                                    #btn_bookmark)
+
+        # arrangement
+        self.__arr = Arrangement()
+        self.__arr.connect_resized(self.__update_layout)
+        self.__arr.add(self.__toolbar, "toolbar")
+        self.__arr.add(self.__btn_navigator, "btn_nav")
+        self.__arr.add(self.__shuffle_bar, "shuffle_bar")
+        self.__arr.add(self.__progress, "progress")
+        self.__arr.add(self.__volume_slider, "slider")
+        self.__arr.add(self.__cover_art, "cover")
+        self.__arr.add(self.__lbl_title, "lbl_title")
+        self.__arr.add(self.__trackinfo, "trackinfo")
+        self.add(self.__arr)
+        
+        
+    def __update_layout(self):
+    
+        w, h = self.get_size()
+        if (w < h):
+            # portrait mode
+            self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)           
+        else:
+            # landscape mode
+            self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
 
         
     def get_mime_types(self):
@@ -168,10 +218,11 @@ class AudioPlayer(Player):
     def __on_loaded_cover(self, pbuf, ctx_id):
    
         if (pbuf and ctx_id == self.__context_id):
-            if (self.__cover):
-                del self.__cover
+            #if (self.__cover):
+            #    del self.__cover
 
-            self.__cover = pbuf
+            #self.__cover = pbuf
+            self.__cover_art.set_image(pbuf)
             self.render()
         #end if
 
@@ -199,35 +250,38 @@ class AudioPlayer(Player):
         screen = self.get_screen()
 
         screen.fill_area(x, y, w, h, theme.color_mb_background)
-        
+        self.__arr.set_geometry(0, 0, w, h)
 
+        """
         if (w < h):
             # portrait mode
             cover_size = w - 84
-            self.__toolbar.set_geometry(0, h - 70, w, 70)
-            self.__progress.set_geometry(42 + 20, h - (70 + 50), w - 84 - 40, 32)
+            self.__toolbar.set_geometry(0, h - 80, w - 80, 80)
+            self.__btn_navigator.set_geometry(w - 80, h - 80, 80, 80)
+            self.__progress.set_geometry(42 + 20, h - (80 + 50), w - 84 - 40, 32)
             lbl_width = w - cover_size - 42
             self.__lbl_title.set_geometry(42, cover_size + 20, w - 84, 0)
             self.__lbl_title.set_alignment(Label.CENTERED)
             self.__trackinfo.set_geometry(42, cover_size + 60, w - 84, 80)
-            self.__volume_slider.set_geometry(0, 0, 42, h - 70)
+            self.__volume_slider.set_geometry(0, 0, 42, h - 80)
 
         else:
             # landscape mode
             cover_size = h - 90
-            self.__toolbar.set_geometry(w - 70, 0, 70, h)
+            self.__toolbar.set_geometry(w - 80, 0, 80, h - 80)
+            self.__btn_navigator.set_geometry(w - 80, h - 80, 80, 80)
             self.__shuffle_bar.set_geometry(42, h - 50, 128, 50)
-            self.__progress.set_geometry(42 + 20 + 128, h - 50, w - (70 + 84 + 40) - 128, 32)
-            lbl_width = w - cover_size - 42 - 70
-            self.__lbl_title.set_geometry(w - lbl_width - 70 + 10, 10,
+            self.__progress.set_geometry(42 + 20 + 128, h - 50, w - (80 + 84 + 40) - 128, 32)
+            lbl_width = w - cover_size - 42 - 80
+            self.__lbl_title.set_geometry(w - lbl_width - 80 + 10, 10,
                                           lbl_width - 20, 0)
             self.__lbl_title.set_alignment(Label.LEFT)
-            self.__trackinfo.set_geometry(w - lbl_width - 70 + 10, 60,
+            self.__trackinfo.set_geometry(w - lbl_width - 80 + 10, 60,
                                           lbl_width - 20, 80)
             self.__volume_slider.set_geometry(0, 0, 42, h)
-            
+        """
 
-
+        """
         if (self.__cover):
             screen.fit_pixbuf(self.__cover,
                               x + 42, y + 10,
@@ -237,14 +291,15 @@ class AudioPlayer(Player):
                              "#000000")
             screen.fill_area(x + 44, y + 12, cover_size - 4, cover_size - 4,
                              "#aaaaaa")
-
+        """
 
 
         
         
     def load(self, f):
     
-        self.__player = mediaplayer.get_player_for_mimetype(f.mimetype)
+        self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
+        #self.__player = mediaplayer.get_player_for_mimetype(f.mimetype)
         self.__player.connect_status_changed(self.__on_change_player_status)
         self.__player.connect_position_changed(self.__on_update_position)
 
@@ -259,7 +314,7 @@ class AudioPlayer(Player):
         
         uri = f.get_resource()
         try:
-            self.__context_id = self.__player.load_audio(uri)
+            self.__context_id = self.__player.load_audio(f)
         except:
             logging.error("error loading media file: %s\n%s",
                           uri, logging.stacktrace())
