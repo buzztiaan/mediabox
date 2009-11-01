@@ -140,9 +140,9 @@ class _GenaSocket(object):
                     logging.error(logging.stacktrace())
             #end for
 
-            print 'signal emited', signal_name, signal_value
+            print 'signal emitted', signal_name, signal_value
 
-        event_instance.send_answer ( "HTTP/1.1 200 OK" )
+        event_instance.send_answer ("HTTP/1.1 200 OK")
 
         
     def __finish_event_processing (self, success):
