@@ -101,19 +101,32 @@ class ThumbableGridView(GridView):
             idx = self.get_item_at(px, py)
             self.float_item(idx, px, py)
             self.invalidate()
-            self.render()
+
+        else:
+            idx = self.get_item_at(px, py)
+            self.set_cursor(idx)
+            self.invalidate_item(idx)
+        
+        self.render()
 
 
     def __on_release_button(self, px, py):
 
+        csr = self.get_cursor()
+        if (csr != -1):
+            self.set_cursor(-1)
+            self.invalidate_item(csr)
+        
         if (self.has_floating_item()):
             self.float_item(-1)
             self.invalidate()
-            self.render()
+
+        self.render()
 
         if (self.__autoscroll_handler):
             gobject.source_remove(self.__autoscroll_handler)
             self.__autoscroll_handler = None
+
 
             
     def __on_pointer_moved(self, px, py):
@@ -140,6 +153,13 @@ class ThumbableGridView(GridView):
                 self.__autoscroll_handler = gobject.timeout_add(
                                                  50, self.__do_autoscroll, 30)
                 #self.move(0, 60)
+
+        else:
+            csr = self.get_cursor()
+            if (csr != -1):
+                self.set_cursor(-1)
+                self.invalidate_item(csr)
+
 
         
     def __on_drag_slider(self, percent):
