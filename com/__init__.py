@@ -8,14 +8,17 @@ Component subsystem for extending the application.
 
 import msgs
 from exc import *
-from Component import Component
+from Container import Container
+
 from Applet import Applet
+from Component import Component
+from Configurator import Configurator
+from Dialog import Dialog
 #from Viewer import Viewer
-from View import View
 from MediaOutput import MediaOutput
+#from MediaWidgetFactory import MediaWidgetFactory
 from Player import Player
 from Thumbnailer import Thumbnailer
+from View import View
 from Widget import Widget
-from Configurator import Configurator
-#from MediaWidgetFactory import MediaWidgetFactory
-from Container import Container
+

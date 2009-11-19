@@ -2,7 +2,7 @@
 
     F1              PREVIOUS_VIEWER -
     F2              NEXT_VIEWER     -
-#    F4              MENU            -
+    F4              MENU            -
     F6              FULLSCREEN      -
     F7              VOLUME_UP       -
     F8              VOLUME_DOWN     -
@@ -26,7 +26,7 @@
     RIGHT           RIGHT           -
     ENTER           ENTER           -
     MENU            GO_PARENT       -
-    F4              GO_PARENT       -
+#    F4              GO_PARENT       -
 
 
 [PLAYER]

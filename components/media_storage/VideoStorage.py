@@ -162,16 +162,4 @@ class VideoStorage(Device):
             cb(item, *args)
         #end for
         cb(None, *args)
-            
-            
-    def __on_put_on_dashboard(self, folder, f):
-    
-        f.bookmarked = True
-
-
-    def get_file_actions(self, folder, f):
-    
-        actions = []
-        actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
-        return actions    
 

@@ -1,6 +1,5 @@
-from com import View, msgs
+from com import Dialog, msgs
 from RootDevice import RootDevice
-from NowPlaying import NowPlaying
 from mediabox.StorageBrowser import StorageBrowser
 from ui.Button import Button
 from ui.ImageButton import ImageButton
@@ -22,13 +21,11 @@ import time
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
     <widget name="toolbar"
-            x1="-80" y1="0" x2="100%" y2="-80"/>
-    <widget name="now_playing"
-            x1="-80" y1="-80" x2="100%" y2="100%"/>
+            x1="-80" y1="0" x2="100%" y2="100%"/>
 
     <if-visible name="btn_add">
       <widget name="btn_add"
-              x1="0" y1="0" x2="-80" y2="80"/>
+              x1="40" y1="0" x2="-80" y2="80"/>
       <widget name="slider"
               x1="0" y1="80" x2="40" y2="100%"/>
       <widget name="browser"
@@ -48,13 +45,11 @@ _LANDSCAPE_ARRANGEMENT = """
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
     <widget name="toolbar"
-            x1="0" y1="-80" x2="-80" y2="100%"/>
-    <widget name="now_playing"
-            x1="-80" y1="-80" x2="100%" y2="100%"/>
+            x1="0" y1="-80" x2="100%" y2="100%"/>
 
     <if-visible name="btn_add">
       <widget name="btn_add"
-              x1="0" y1="0" x2="-80" y2="80"/>
+              x1="0" y1="0" x2="100%" y2="80"/>
       <widget name="slider"
               x1="0" y1="80" x2="40" y2="-80"/>
       <widget name="browser"
@@ -71,11 +66,7 @@ _PORTRAIT_ARRANGEMENT = """
 """
 
 
-class Navigator(View):
-
-    ICON = theme.mb_viewer_audio
-    TITLE = "Navigator"
-    PRIORITY = 0
+class Navigator(Dialog):
 
     def __init__(self):
     
@@ -100,13 +91,7 @@ class Navigator(View):
         self.__root_dev = RootDevice()
         
     
-        View.__init__(self)
-
-        # now-playing box
-        self.__now_playing_box = NowPlaying()
-        #self.__now_playing_box.set_visible(False)
-        #self.add(self.__now_playing_box)
-        self.__now_playing_box.connect_clicked(self.__on_click_now_playing)
+        Dialog.__init__(self)
 
         # browser list slider
         self.__browser_slider = Slider(theme.mb_list_slider)
@@ -166,7 +151,6 @@ class Navigator(View):
         self.__arr.add(self.__browser, "browser")
         self.__arr.add(self.__btn_add, "btn_add")
         self.__arr.add(self.__toolbar, "toolbar")
-        self.__arr.add(self.__now_playing_box, "now_playing")
         self.add(self.__arr)
 
 
@@ -201,10 +185,11 @@ class Navigator(View):
         self.__toolbar.set_toolbar(*items)
 
 
+    """
     def __update_menu(self):
-        """
+        ""
         Updates the contents of the window menu.
-        """
+        ""
 
         cwd = self.__browser.get_current_folder()
         opts = []
@@ -220,24 +205,27 @@ class Navigator(View):
             opts.append((None, "FM Transmitter", self.__on_menu_fmtx))
             
         self.set_window_menu(*opts)
-
-            
+    """
+    
+    
+    """
     def show(self):
     
-        View.show(self)
+        SubView.show(self)
         names = [ p.name for p in self.__browser.get_path() ]
         #title = u" \u00bb ".join(names)
         title = names[-1]
         #self.set_title(title)
 
         self.__update_toolbar()
-        self.__update_menu()
+        #self.__update_menu()
         self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
-
+    """
+    
 
     def _visibility_changed(self):
         
-        View._visibility_changed(self)
+        Dialog._visibility_changed(self)
         if (self.is_visible()):
             self.__tn_scheduler.resume()
         else:
@@ -267,20 +255,17 @@ class Navigator(View):
     
         import platforms
         platforms.plugin_execute("libcpfmtx.so")
-
-    
-    def __on_click_now_playing(self):
-    
-        self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
-            
+          
        
     def __on_open_file(self, f):
     
         # update set of play files
         self.__play_files = [ fl for fl in self.__browser.get_files()
                               if not fl.mimetype.endswith("-folder") ]
+        self.__random_files = []
         
         self.__load_file(f)
+        self.set_visible(False)
 
 
     def __on_begin_folder(self, f):
@@ -288,12 +273,13 @@ class Navigator(View):
         self.__tn_scheduler.new_schedule(5, self.__on_load_thumbnail)
         self.__tn_scheduler.halt()
         
-        self.set_title(f.name)
+        #self.set_title(f.name)
         
         if (f.folder_flags & f.ITEMS_ADDABLE):
             self.__btn_add.set_visible(True)
         else:
             self.__btn_add.set_visible(False)
+        self.__update_layout()
         self.render()
 
 
@@ -315,19 +301,17 @@ class Navigator(View):
 
         if (self.__browser.is_visible()):
             names = [ p.name for p in self.__browser.get_path() ]
-            #title = u" \u00bb ".join(names)
-            title = names[-1]
+            title = u" \u00bb ".join(names)
+            #title = names[-1]
             names.reverse()
             acoustic_title = "Entering " + " in ".join(names)
-            #self.set_title(title)
+            self.set_title(title)
             self.emit_message(msgs.UI_ACT_TALK, acoustic_title)
             self.emit_message(msgs.CORE_EV_FOLDER_VISITED, f)
             self.__update_toolbar()
-            self.__update_menu()
+            #self.__update_menu()
         #end if
-        
-        self.__random_files = []
-        
+
         if (self.is_visible()):
             self.__tn_scheduler.resume()
 
@@ -392,6 +376,7 @@ class Navigator(View):
         Reacts on pressing the [Home] button.
         """
 
+        self.emit_message(msgs.SSDP_ACT_SEARCH_DEVICES)
         self.__browser.go_root()
         
         
@@ -451,13 +436,16 @@ class Navigator(View):
             applet_id = f.resource
             self.call_service(msgs.CORE_SVC_LAUNCH_APPLET, applet_id)
 
+        elif (f.mimetype == f.CONFIGURATOR):
+            cfg_name = f.resource
+            self.emit_message(msgs.UI_ACT_SHOW_DIALOG, cfg_name)
+
         else:
             if (not f.mimetype in mimetypes.get_image_types()):
                 self.emit_message(msgs.MEDIA_ACT_STOP)
-
             self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
             self.emit_message(msgs.MEDIA_ACT_LOAD, f)
-            #self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
+            self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
 
 
     def render_this(self):
@@ -585,6 +573,8 @@ class Navigator(View):
 
         idx = random.randint(0, len(self.__random_files) - 1)
         next_item = self.__random_files.pop(idx)
+        print self.__random_files
+        print idx, "->", next_item
         self.__load_file(next_item)
         
         return True
@@ -633,30 +623,6 @@ class Navigator(View):
         self.__search_term = ""
 
     
-    def handle_MEDIA_EV_LOADED(self, viewer, f):
-    
-        icon, is_final = self.call_service(msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, f)
-        self.__now_playing_box.set_playing(icon, f)
-        self.__now_playing_box.set_action("Loaded:")
-        self.__now_playing_box.set_visible(True)
-        self.render()
-
-
-    def handle_MEDIA_EV_PLAY(self):
-    
-        self.__now_playing_box.set_action("Playing:")
-
-
-    def handle_MEDIA_EV_PAUSE(self):
-    
-        self.__now_playing_box.set_action("Paused:")
-
-
-    def handle_MEDIA_EV_EOF(self):
-    
-        self.__now_playing_box.set_action("Loaded:")
-
-
     def handle_MEDIA_ACT_PREVIOUS(self):
     
         self.__go_previous()
@@ -764,4 +730,10 @@ class Navigator(View):
     
         if (self.is_active()):
             self.__browser.go_parent()
+
+
+    def handle_INPUT_EV_MENU(self):
+    
+        #if (self.is_active()):
+        self.emit_message(msgs.MEDIA_ACT_SELECT_OUTPUT, None)
 

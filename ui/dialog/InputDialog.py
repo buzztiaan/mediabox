@@ -57,7 +57,7 @@ class InputDialog(gtk.Dialog):
     
         if (platforms.PLATFORM == platforms.MAEMO5):    
             import hildon
-            scale = hildon.HScale()
+            scale = hildon.GtkHScale()
         else:
             scale = gtk.HScale()
 

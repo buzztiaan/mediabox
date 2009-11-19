@@ -112,3 +112,8 @@ class MediaOutput(Component, EventEmitter):
     
         pass
 
+
+    def set_window(self, xid):
+    
+        pass
+

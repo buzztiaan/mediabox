@@ -1,4 +1,5 @@
 from com import View, Player, msgs
+from theme import theme
 
 
 class MediaView(View):
@@ -15,7 +16,8 @@ class MediaView(View):
         
     
         View.__init__(self)
-
+        self.connect_clicked(self.__on_btn_navigator)
+        
 
     def __register_player(self, player):
     
@@ -29,6 +31,11 @@ class MediaView(View):
         # add player widget
         player.set_visible(False)
         self.add(player)
+
+
+    def __on_btn_navigator(self):
+    
+        self.emit_message(msgs.UI_ACT_SELECT_VIEW, "Navigator")
 
 
     def render_this(self):
@@ -68,13 +75,5 @@ class MediaView(View):
         self.__current_player = handlers[0]
         self.__current_player.set_visible(True)
         self.__current_player.load(f)
-        self.set_title(f.name)
-
-
-    def handle_UI_ACT_FULLSCREEN(self, v):
-    
-        if (v):
-            self.fullscreen()
-        else:
-            self.unfullscreen()
-
+        #self.set_title(f.name)
+        self.render()

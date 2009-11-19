@@ -32,6 +32,9 @@ class File(object):
     FILE = "application/x-other"
     """MIME type for unknown file types"""
 
+    CONFIGURATOR = "application/x-configurator"
+    """MIME type for configurators"""
+
     DIRECTORY = "application/x-folder"
     """MIME type for folders"""
     

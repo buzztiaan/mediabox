@@ -31,27 +31,6 @@ class SSDPMonitor(Component):
         self.__discovery_monitor = None
     
         Component.__init__(self)
-
-
-    def handle_CORE_EV_APP_STARTED(self):
-    
-        self.handle_ACT_SEARCH_DEVICES()
-        
-
-    def handle_ACT_SEARCH_DEVICES(self):
-    
-        # initialize monitor if needed
-        if (not self.__monitoring):
-            logging.info("SSDP Monitor waking up")
-            nsock, dsock = ssdp.open_sockets()
-            gobject.timeout_add(0, self.__discovery_chain, dsock, 0)
-            gobject.io_add_watch(nsock, gobject.IO_IN, self.__check_ssdp)
-            self.__discovery_monitor = gobject.io_add_watch(dsock, gobject.IO_IN, self.__check_ssdp)            
-            self.__monitoring = True
-        
-        else:
-            ssdp.discover_devices()
-
             
 
     def __discovery_chain(self, sock, i):
@@ -164,3 +143,22 @@ class SSDPMonitor(Component):
                 del self.__processing[uuid]
             self.emit_message(msgs.SSDP_EV_DEVICE_GONE, uuid)
 
+
+    def handle_CORE_EV_APP_STARTED(self):
+    
+        self.handle_SSDP_ACT_SEARCH_DEVICES()
+        
+
+    def handle_SSDP_ACT_SEARCH_DEVICES(self):
+    
+        # initialize monitor if needed
+        if (not self.__monitoring):
+            logging.info("SSDP Monitor waking up")
+            nsock, dsock = ssdp.open_sockets()
+            gobject.timeout_add(0, self.__discovery_chain, dsock, 0)
+            gobject.io_add_watch(nsock, gobject.IO_IN, self.__check_ssdp)
+            self.__discovery_monitor = gobject.io_add_watch(dsock, gobject.IO_IN, self.__check_ssdp)            
+            self.__monitoring = True
+        
+        else:
+            ssdp.discover_devices()

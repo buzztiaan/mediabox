@@ -2,14 +2,12 @@
 Base class for configurator components.
 """
 
-from Applet import Applet
+from Dialog import Dialog
 
 
-class Configurator(Applet):
+class Configurator(Dialog):
     """
     Base class for configurator components.
-    Components derived from this class are shown as pages in the
-    preferences viewer.
     
     The following properties have to be specified:
      - C{ICON} - theme reference to the icon which appears in the viewer
@@ -59,5 +57,5 @@ class Configurator(Applet):
 
     def __init__(self):
 
-        Applet.__init__(self)
-
+        Dialog.__init__(self)
+        self.set_title(self.TITLE)

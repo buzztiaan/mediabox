@@ -73,7 +73,7 @@ class Tracker(Component):
             path = line.strip()
             fullpath = "file://" + path
 
-            mediaroot = self.__find_mediaroot(fullpath, mediaroots)
+            mediaroot = "/" #self.__find_mediaroot(fullpath, mediaroots)
             if (not mediaroot):
                 continue
 

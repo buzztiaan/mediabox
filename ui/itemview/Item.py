@@ -15,6 +15,9 @@ class Item(EventEmitter):
     Abstract base class for items.
     """
 
+    EVENT_CLICKED = "event-clicked"
+    
+
     def __init__(self):
     
         self.__size = (240, 80)
@@ -22,6 +25,11 @@ class Item(EventEmitter):
         self.__is_marked = False
 
         EventEmitter.__init__(self)
+
+
+    def connect_clicked(self, cb, *args):
+    
+        self._connect(self.EVENT_CLICKED, cb, *args)
 
 
     def get_letter(self):
@@ -81,7 +89,7 @@ class Item(EventEmitter):
         Override this method to handle clicks on the item.
         """
     
-        pass
+        self.emit_event(self.EVENT_CLICKED)
 
 
     def tap_and_hold(self, px, py):

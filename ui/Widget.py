@@ -31,7 +31,7 @@ class Widget(EventEmitter):
     __instances = []
 
     # event zones; table: ident -> (window, x, y, w, h, tstamp, cb)
-    _zones = {}
+    #_zones = {}
 
         
 
@@ -42,13 +42,16 @@ class Widget(EventEmitter):
         """
     
         # known actors
-        self.__actors_stack = []
+        #self.__actors_stack = []
+    
+        # younger widgets have precedence over older ones in event handling
+        #self.__age_tstamp = 0
     
         self.__children = []
         self.__parent = None
     
         self.__locked_zone = None
-        self.__need_to_check_zones = False
+        #self.__need_to_check_zones = False
         
         self.__is_enabled = True
         self.__is_frozen = False
@@ -69,15 +72,16 @@ class Widget(EventEmitter):
 
         EventEmitter.__init__(self)
 
-          
+
+    """
     def push_actor(self, w):
-        """
+        ""
         Pushes an actor widget onto the actors stack. All but the topmost actor
         on the stack are frozen.
         @since: 0.96.5
         
         @param w: a widget
-        """
+        ""
         
         if (self.__parent):
             self.__parent.push_actor(w)
@@ -87,10 +91,10 @@ class Widget(EventEmitter):
         
         
     def pop_actor(self):
-        """
+        ""
         Pops the topmost actor widget from the actors stack.
         @since: 0.96.5
-        """
+        ""
         
         if (self.__parent):
             self.__parent.pop_actor()
@@ -107,7 +111,8 @@ class Widget(EventEmitter):
                 actor.set_frozen(True)
 
             self.__actors_stack[-1].set_frozen(False)
-            
+    """
+   
             
     def grab_focus(self):
         """
@@ -117,26 +122,58 @@ class Widget(EventEmitter):
         win = self.get_window()
         win._input_focus_widget = self
         
+        
+    def _find_zone_at(self, px, py, ev_name):
+    
+        #print "CHECKING", self
+        if (self.is_frozen() or not self.is_visible()):
+            return None
+            
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        if (not x <= px <= x + w or not y <= py <= y + h):
+            return None
+            
+        #print "CHILDREN", self.__children
+        for i in range(len(self.__children) - 1, -1, -1):
+            c = self.__children[i]
+            zone = c._find_zone_at(px, py, ev_name)
+            #print "CHILD", c, zone
+            if (zone):
+                return zone
+        #end for
+        
+        if (self.has_events): #(ev_name)):
+            return self.__on_action
+        else:
+            return None
+        
+        
           
     def _handle_event(self, ev, px, py, *args):
     
         zone = None
-        zone_tstamp = 0
+        #zone_tstamp = -1
         
         if (ev == Widget.EVENT_BUTTON_PRESS):
-            for w in self._zones:
-                if (w.is_frozen()):
+            zone = self._find_zone_at(px, py, ev)
+            print "ZONE", px, py, zone
+                
+            """
+            for wdgt in self._zones:
+                if (wdgt.is_frozen()):
                     continue
-                #print self._zones[w]
-                window, x, y, w, h, tstamp, cb = self._zones[w]
+                
+                window, x, y, w, h, tstamp, cb = self._zones[wdgt]
 
                 if (window != self.get_window()):
                     continue
-            #for x, y, w, h, tstamp, cb in self._zones.values():
+
                 if (x <= px <= x + w and y <= py <= y + h and tstamp > zone_tstamp):
                     zone = cb
                     zone_tstamp = tstamp
             #end for
+            """
         
             if (zone):            
                 self.__locked_zone = zone
@@ -231,7 +268,7 @@ class Widget(EventEmitter):
         self.__children.append(child)
         child.set_parent(self)
         child.set_screen(self.get_screen())
-        self.__check_zone()
+        #self.__check_zone()
         
         
     def remove(self, child):
@@ -243,7 +280,7 @@ class Widget(EventEmitter):
     
         self.__children.remove(child)
         child.set_visible(False)
-        self.__check_zone()
+        #self.__check_zone()
         
         
     def set_parent(self, parent):
@@ -255,6 +292,7 @@ class Widget(EventEmitter):
         """
     
         self.__parent = parent
+        self.__age_tstamp = time.time()
         
         
     def get_parent(self):
@@ -322,7 +360,7 @@ class Widget(EventEmitter):
         """
     
         #print "ZONE", x, y, w, h, ident, self.get_window()
-        self._zones[ident] = (self.get_window(), x, y, w, h, time.time(), self.__on_action)
+        self._zones[ident] = (self.get_window(), x, y, w, h, self.__age_tstamp, self.__on_action)
         
         #if (self.__event_sensor):
         #    self.__event_sensor.set_zone(ident, x, y, w, h, time.time(),
@@ -348,7 +386,7 @@ class Widget(EventEmitter):
         
         self.__is_enabled = value
         #print self, value
-        self.__check_zone()
+        #self.__check_zone()
         
         for c in self.__children:
             c.set_enabled(value)
@@ -411,7 +449,7 @@ class Widget(EventEmitter):
                 f(c)
     
         self.__is_visible = value
-        self.__check_zones()
+        #self.__check_zones()
         f(self)
 
 
@@ -452,7 +490,7 @@ class Widget(EventEmitter):
     def _set_can_be_visible(self, value):
     
         self.__can_be_visible = value
-        self.__check_zone()
+        #self.__check_zone()
                 
         for c in self.__children:
             c._set_can_be_visible(value)
@@ -475,6 +513,7 @@ class Widget(EventEmitter):
         return (self.__screen and self.is_visible() and not self.is_frozen())
         
 
+    """
     def __check_zone(self):
     
         # don't check zone when widget does not have event handlers
@@ -495,16 +534,20 @@ class Widget(EventEmitter):
         self.__check_zone()
         for c in self.__children:
             c.__check_zones()
+    """
+
 
         
+    """
     def _connect(self, etype, cb, *args):
-        """
+        ""
         Connects a callback to an event type. This is a low-level function
         and should only be used when implementing new widgets.
-        """
+        ""
     
         EventEmitter._connect(self, etype, cb, *args)
         self.__check_zone()
+    """
 
 
     def connect_clicked(self, cb, *args):
@@ -596,7 +639,7 @@ class Widget(EventEmitter):
     
         if ((x, y) != self.__position):
             self.__position = (x, y)
-            self.__need_to_check_zones = True
+            #self.__need_to_check_zones = True
             #self.__check_zones()
         
         
@@ -638,7 +681,8 @@ class Widget(EventEmitter):
     
         if ((w, h) != self.__size):
             self.__size = (w, h)
-            self.__check_zone()
+            #self.__need_to_check_zones = True
+            #self.__check_zone()
         
         
     def get_size(self):
@@ -717,8 +761,8 @@ class Widget(EventEmitter):
             return
         
         logging.debug("rendering widget %s", `self`)
-        if (self.__need_to_check_zones):
-            self.__check_zones()
+        #if (self.__need_to_check_zones):
+        #    self.__check_zones()
 
         self.render_this()
 
@@ -763,7 +807,7 @@ class Widget(EventEmitter):
         self.__parent = parent
         self.set_screen(real_screen)
         self.set_pos(real_x, real_y)
-        self.__check_zones()
+        #self.__check_zones()
         
         
     def skip_next_render(self):

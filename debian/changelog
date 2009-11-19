@@ -1,8 +1,20 @@
+mediabox (2009.11.12) unstable; urgency=low
+
+  Bug fixes and cleaning up
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 12 Nov 2009 22:45:00 +0100
+
+mediabox (2009.11.2) unstable; urgency=low
+
+  Some cleaning up
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Mon, 02 Nov 2009 22:30:00 +0100
+
 mediabox (2009.11.1) unstable; urgency=low
 
   Experimental output for UPnP MediaRenderer devices
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 01 Nov 2009 00:30:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 01 Nov 2009 13:15:00 +0100
 
 mediabox (2009.10.25) unstable; urgency=low
 
@@ -16,7 +28,7 @@ mediabox (2009.10.25) unstable; urgency=low
   
   Slideshow in the image viewer
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 27 Oct 2009 20:00:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 27 Oct 2009 20:00:00 +0100
  
 mediabox (2009.10.19) unstable; urgency=low
 

@@ -21,6 +21,11 @@ class EventEmitter(object):
         return (len(self.__handlers) > 0)
 
 
+    def has_event(self, ev_name):
+    
+        return (ev_name in self.__handlers)
+
+
     def set_events_blocked(self, v):
     
         """
@@ -55,6 +60,6 @@ class EventEmitter(object):
                 a = args + u_args
                 cb(*a)
             except:
-                pass
+                import traceback; traceback.print_exc()
         #end for
 

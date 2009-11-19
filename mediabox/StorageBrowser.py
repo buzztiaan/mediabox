@@ -412,8 +412,6 @@ class StorageBrowser(ThumbableGridView):
                 found = True
         #end for
         
-        #if (self.__path_stack and self.__path_stack[-1][1] == _STATUS_INVALID):
-        #    self.reload_current_folder()
         if (found and not self.__is_bulk_operation):
             self.reload_current_folder()
     

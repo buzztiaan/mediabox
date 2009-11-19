@@ -17,7 +17,7 @@ class Toolbar(Widget):
 
         Widget.__init__(self)
         self.__box = Box()
-        self.__box.set_spacing(32)
+        self.__box.set_spacing(56)
         self.__box.set_halign(self.__box.HALIGN_CENTER)
         self.__box.set_valign(self.__box.VALIGN_CENTER)
         self.add(self.__box)        
@@ -35,8 +35,8 @@ class Toolbar(Widget):
         if (not self.__bg_pmap or (w, h) != self.get_size()):
             self.__bg_pmap = Pixmap(None, w, h)
             self.__bg_pmap.fill_area(0, 0, w, h, theme.color_mb_background)
-            self.__bg_pmap.draw_frame(theme.mb_panel, 0, 0, w, h, True,
-                                      Pixmap.LEFT | Pixmap.TOP | Pixmap.RIGHT)
+            #self.__bg_pmap.draw_frame(theme.mb_panel, 0, 0, w, h, True,
+            #                          Pixmap.LEFT | Pixmap.TOP | Pixmap.RIGHT)
     
             self.__box.set_size(w, h)
 

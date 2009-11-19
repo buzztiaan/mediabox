@@ -34,9 +34,12 @@ class NowPlaying(Widget):
         
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         
-        icon_size = h
+        icon_size = min(w, h)
         if (self.__icon):
-            screen.fit_pixbuf(self.__icon, x, y, icon_size, icon_size)
+            screen.fit_pixbuf(self.__icon, x, y + 80, icon_size, icon_size)
+        
+        screen.draw_pixbuf(theme.mb_btn_previous_1, x, y)
+        screen.draw_pixbuf(theme.mb_btn_next_1, x, y + h - 80)
         
         #self.__lbl_action.set_pos(icon_size + 10, 12)
         #self.__lbl_title.set_pos(icon_size + 10, 40)

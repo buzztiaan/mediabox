@@ -5,6 +5,10 @@ from theme import theme
 
 
 class ShuffleBar(HBox):
+    """
+    A simple control bar widget where the user can control shuffle and repeat
+    modes.
+    """
 
     def __init__(self):
     
@@ -40,7 +44,11 @@ class ShuffleBar(HBox):
     def render_this(self):
     
         HBox.render_this(self)
-    
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
         repeat_mode = config.repeat_mode()
         self.__btn_repeat.set_value(repeat_mode)
 

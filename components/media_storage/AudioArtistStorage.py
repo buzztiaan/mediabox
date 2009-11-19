@@ -210,19 +210,33 @@ class AudioArtistStorage(Device):
             cb(item, *args)
         #end for
         cb(None, *args)
+
+
+
+    """
+    def __on_add_to_playlist(self, folder, f):
     
+        self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
+
 
     def __on_put_on_dashboard(self, folder, f):
-    
+        
         f.bookmarked = True
+
+
+    def __on_add_to_library(self, folder, f):
+    
+        self.emit_message(msgs,LIBRARY_ACT_ADD_MEDIAROOT, f)
 
 
     def get_file_actions(self, folder, f):
     
         actions = []
+        actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
         actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+        
         return actions
-
+    """
 
 
     def load(self, resource, maxlen, cb, *args):

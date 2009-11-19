@@ -16,6 +16,7 @@ class GstBackend(AbstractBackend):
         
         self.__is_eof = False
         self.__player = None
+        self.__window_id = 0
         
         
         AbstractBackend.__init__(self)

@@ -207,6 +207,16 @@ class Device(Component):
         
         pass
 
+    
+    def __on_add_to_playlist(self, folder, f):
+    
+        self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
+
+
+    def __on_put_on_dashboard(self, folder, f):
+        
+        f.bookmarked = True
+
 
     def get_file_actions(self, folder, f):
         """
@@ -218,8 +228,12 @@ class Device(Component):
         @return: list of (icon, action_name, callback) tuples
         """
     
-        return []
-
+        actions = []
+        actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
+        if (not f.bookmarked):
+            actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+        
+        return actions
 
 
     def ls(self, path):

@@ -4,6 +4,15 @@ from utils import logging
 from theme import theme
 
 
+_TYPE_MAP = {
+    Device.TYPE_SYSTEM:  "/",
+    Device.TYPE_GENERIC: "/storage",
+    Device.TYPE_AUDIO:   "/audio",
+    Device.TYPE_VIDEO:   "/video",
+    Device.TYPE_IMAGE:   "/image"
+}
+
+
 class RootDevice(Device):
     """
     Device for uniting all devices in one directory list.
@@ -48,7 +57,7 @@ class RootDevice(Device):
     
         return theme.mb_device_n800
         
-        
+    """
     def get_root(self):
     
         f = File(self)
@@ -57,7 +66,8 @@ class RootDevice(Device):
         f.mimetype = f.DEVICE_ROOT
         f.folder_flags = f.ITEMS_COMPACT
         return f
-
+    """
+    
 
     def __device_comparator(self, a, b):
 
@@ -106,10 +116,29 @@ class RootDevice(Device):
         return self.__favorites
 
 
+    def get_file(self, path):
+
+        f = None    
+        if (path == "/"):
+            f = File(self)
+            f.name = self.get_name()
+            f.path = "/"
+            f.mimetype = f.DEVICE_ROOT
+            f.folder_flags = f.ITEMS_COMPACT
+        
+        else:
+            for c in self.__list_categories():
+                if (c.path == path):
+                    f = c
+                    break
+            #end fir
+        #end if
+
+        return f
+        
 
     def get_contents(self, path, begin_at, end_at, cb, *args):
-    
-    
+
         items = []
     
         if (path.path == "/"):
@@ -140,6 +169,11 @@ class RootDevice(Device):
         cb(None, *args)       
 
 
+    def __on_add_to_playlist(self, folder, f):
+    
+        self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
+
+
     def __on_remove_from_dashboard(self, folder, f):
     
         logging.debug("removing from dashboard: %s", f.name)
@@ -151,6 +185,9 @@ class RootDevice(Device):
     
         options = []
         if (f in self.__favorites):
+            if (not f.full_path.startswith("playlist://")):
+                options.append((None, "Add to Playlist",
+                                self.__on_add_to_playlist))
             options.append((None, "Remove from Dashboard",
                             self.__on_remove_from_dashboard))
 
@@ -165,7 +202,8 @@ class RootDevice(Device):
             if (device.TYPE in self.__device_lists):
                 self.__device_lists[device.TYPE].append(device)
             
-            #self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+            folder = self.get_file(_TYPE_MAP[device.TYPE])
+            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
         #end if
 
 
@@ -178,6 +216,6 @@ class RootDevice(Device):
             if (device.TYPE in self.__device_lists):
                 self.__device_lists[device.TYPE].remove(device)
 
-            #self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
-
+            folder = self.get_file(_TYPE_MAP[device.TYPE])
+            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
         #end if

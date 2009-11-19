@@ -4,6 +4,7 @@ from ui.decorators import Gestures
 from ui.KineticScroller import KineticScroller
 from ui.Toolbar import Toolbar
 from ui.ImageButton import ImageButton
+from ui.layout import Arrangement
 from ui.dialog import InputDialog
 from theme import theme
 from utils import logging
@@ -14,6 +15,31 @@ import gobject
 
 # maximum slideshow timeout in seconds
 _SLIDESHOW_MAX_TIMEOUT = 60
+
+
+_LANDSCAPE_ARRANGEMENT = """
+  <arrangement>
+    <if-visible name="toolbar">
+      <widget name="btn_nav" x1="0" y1="-80" x2="80" y2="100%"/>
+      <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
+      <widget name="image" x1="0" y1="0" x2="-80" y2="100%"/>
+    </if-visible>
+    
+    <!-- fullscreen mode -->
+    <if-invisible name="toolbar">
+      <widget name="image" x1="0%" y1="0%" x2="100%" y2="100%"/>
+    </if-invisible>
+  </arrangement>
+"""
+
+_PORTRAIT_ARRANGEMENT = """
+  <arrangement>
+    <widget name="screen" x1="0" y1="0" x2="100%" y2="-80"/>
+    <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
+    <widget name="btn_nav" x1="-80" y1="0" x2="100%" y2="80"/>
+  </arrangement>
+"""
+
 
 class ImageViewer(Player):
 
@@ -35,7 +61,7 @@ class ImageViewer(Player):
         Player.__init__(self)
         
         self.__image = Image()
-        self.add(self.__image)
+        #self.add(self.__image)
         
         kscr = KineticScroller(self.__image)
         
@@ -46,16 +72,19 @@ class ImageViewer(Player):
         gestures.connect_tap_hold(self.__on_tap_hold)
         gestures.connect_tap_tap(self.__on_tap_tap)
         gestures.connect_swipe(self.__on_swipe)
+
+
+        # navigator button
+        self.__btn_navigator = ImageButton(theme.mb_btn_history_1,
+                                           theme.mb_btn_history_2)
+        self.__btn_navigator.connect_clicked(
+             lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "Navigator"))
+
         
-        
-        # toolbar elements
+        # toolbar
         self.__btn_play = ImageButton(theme.mb_btn_play_1,
                                       theme.mb_btn_play_2)
         self.__btn_play.connect_clicked(self.__on_btn_play)
-        
-        # toolbar
-        self.__toolbar = Toolbar()
-        self.add(self.__toolbar)
 
         btn_previous = ImageButton(theme.mb_btn_previous_1,
                                    theme.mb_btn_previous_2)
@@ -65,9 +94,29 @@ class ImageViewer(Player):
                                theme.mb_btn_next_2)
         btn_next.connect_clicked(self.__on_btn_next)
 
+        self.__toolbar = Toolbar()
         self.__toolbar.set_toolbar(btn_previous,
                                    self.__btn_play,
                                    btn_next)
+
+
+        # arrangement
+        self.__arr = Arrangement()
+        self.__arr.connect_resized(self.__update_layout)
+        self.__arr.add(self.__image, "image")
+        self.__arr.add(self.__toolbar, "toolbar")
+        self.__arr.add(self.__btn_navigator, "btn_nav")
+        #self.__arr.add(self.__volume_slider, "slider")
+        self.add(self.__arr)
+
+
+    def __update_layout(self):
+    
+        w, h = self.get_size()
+        if (w < h):
+            self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
+        else:
+            self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
 
 
     def __slideshow_timer(self):
@@ -199,25 +248,18 @@ class ImageViewer(Player):
             self.__toolbar.set_visible(True)
         
         self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
+        self.__update_layout()
         self.render()
 
 
     def render_this(self):
-    
-        w, h = self.get_size()
-        if (self.__is_fullscreen):
-            # fullscreen mode
-            self.__image.set_geometry(0, 0, w, h)
-        
-        elif (w < h):
-            # portrait mode
-            self.__image.set_geometry(0, 0, w, h - 70)
-            self.__toolbar.set_geometry(0, h - 70, w, 70)
 
-        else:
-            # landscape mode
-            self.__image.set_geometry(0, 0, w - 70, h)
-            self.__toolbar.set_geometry(w - 70, 0, 70, h)        
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        screen.fill_area(x, y, w, h, theme.color_mb_background)
+        self.__arr.set_geometry(0, 0, w, h)    
         
         
     def get_mime_types(self):

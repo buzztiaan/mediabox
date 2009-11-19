@@ -5,12 +5,45 @@ from ui.Toolbar import Toolbar
 from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
 from ui.Slider import Slider
+from ui.layout import Arrangement
 import mediaplayer
 import platforms
 from theme import theme
 from utils import logging
 
 import gobject
+
+
+_LANDSCAPE_ARRANGEMENT = """
+  <arrangement>
+    <if-visible name="toolbar">
+      <widget name="btn_nav" x1="0" y1="-80" x2="80" y2="100%"/>
+      <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
+
+      <widget name="screen" x1="40" y1="0" x2="-80" y2="-80"/>
+      <widget name="progress" x1="90" y1="-50" x2="-90" y2="-10"/>
+      <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
+    </if-visible>
+    
+    <!-- fullscreen mode -->
+    <if-invisible name="toolbar">
+      <widget name="screen" x1="0%" y1="0%" x2="100%" y2="100%"/>
+    </if-invisible>
+  </arrangement>
+"""
+
+# hmm, there is no such thing as portrait mode video. Fremantle either does not
+# rotate or will just crash hard, depending on firmware version
+_PORTRAIT_ARRANGEMENT = """
+  <arrangement>
+    <widget name="btn_nav" x1="-80" y1="0" x2="100%" y2="80"/>
+    <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
+
+    <widget name="screen" x1="40" y1="0" x2="100%" y2="-80"/>
+    <widget name="progress" x1="50" y1="-90" x2="-50" y2="-130"/>
+    <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
+  </arrangement>
+"""
 
 
 class VideoPlayer(Player):
@@ -30,7 +63,7 @@ class VideoPlayer(Player):
         
         # video screen
         self.__screen = VideoScreen()
-        self.add(self.__screen)
+        #self.add(self.__screen)
 
         gestures = Gestures(self.__screen)
         gestures.connect_tap(self.__on_tap)
@@ -41,14 +74,21 @@ class VideoPlayer(Player):
         self.__volume_slider = Slider(theme.mb_list_slider)
         self.__volume_slider.set_mode(Slider.VERTICAL)
         self.__volume_slider.connect_value_changed(self.__on_change_volume)
-        self.add(self.__volume_slider)
+        #self.add(self.__volume_slider)
 
 
         # progress bar
         self.__progress = ProgressBar()
-        self.add(self.__progress)
         self.__progress.connect_changed(self.__on_seek)
-        
+        #self.add(self.__progress)
+
+
+        # navigator button
+        self.__btn_navigator = ImageButton(theme.mb_btn_history_1,
+                                           theme.mb_btn_history_2)
+        self.__btn_navigator.connect_clicked(
+             lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "Navigator"))
+
         
         # toolbar elements
         self.__btn_play = ImageButton(theme.mb_btn_play_1,
@@ -65,10 +105,30 @@ class VideoPlayer(Player):
         
         # toolbar
         self.__toolbar = Toolbar()
-        self.add(self.__toolbar)
+        #self.add(self.__toolbar)
         self.__toolbar.set_toolbar(btn_previous,
                                    self.__btn_play,
                                    btn_next)
+
+
+        # arrangement
+        self.__arr = Arrangement()
+        self.__arr.connect_resized(self.__update_layout)
+        self.__arr.add(self.__screen, "screen")
+        self.__arr.add(self.__toolbar, "toolbar")
+        self.__arr.add(self.__btn_navigator, "btn_nav")
+        self.__arr.add(self.__progress, "progress")
+        self.__arr.add(self.__volume_slider, "slider")
+        self.add(self.__arr)
+
+
+    def __update_layout(self):
+    
+        w, h = self.get_size()
+        if (w < h):
+            self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
+        else:
+            self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
 
 
     def __on_btn_play(self):
@@ -173,17 +233,18 @@ class VideoPlayer(Player):
     
         self.__is_fullscreen = not self.__is_fullscreen
         if (self.__is_fullscreen):
-            #self.fullscreen()
             self.__progress.set_visible(False)
             self.__volume_slider.set_visible(False)
             self.__toolbar.set_visible(False)
+            self.__btn_navigator.set_visible(False)
         else:
-            #self.unfullscreen()
             self.__progress.set_visible(True)
             self.__volume_slider.set_visible(True)
             self.__toolbar.set_visible(True)
+            self.__btn_navigator.set_visible(True)
 
         self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
+        self.__update_layout()
         self.render()
 
 
@@ -194,24 +255,7 @@ class VideoPlayer(Player):
         screen = self.get_screen()
         
         screen.fill_area(x, y, w, h, theme.color_mb_background)
-        
-        if (self.__is_fullscreen):
-            # fullscreen mode
-            self.__screen.set_geometry(0, 0, w, h)
-        
-        elif (w < h):
-            # portrait mode
-            self.__screen.set_geometry(42, 0, w - 42, h - 70 - 70)
-            self.__progress.set_geometry(20, h - 70 - 50, w - 40, 32)
-            self.__volume_slider.set_geometry(0, 0, 42, h - 70 - 70)
-            self.__toolbar.set_geometry(0, h - 70, w, 70)
-
-        else:
-            # landscape mode
-            self.__screen.set_geometry(42, 0, w - 70 - 42, h - 70)
-            self.__progress.set_geometry(42, h - 50, w - 70 - 84, 32)
-            self.__volume_slider.set_geometry(0, 0, 42, h)
-            self.__toolbar.set_geometry(w - 70, 0, 70, h)
+        self.__arr.set_geometry(0, 0, w, h)
         
         
     def get_mime_types(self):
@@ -221,7 +265,8 @@ class VideoPlayer(Player):
         
     def load(self, f):
 
-        self.__player = mediaplayer.get_player_for_mimetype(f.mimetype)
+        self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
+        #self.__player = mediaplayer.get_player_for_mimetype(f.mimetype)
         self.__player.connect_status_changed(self.__on_status_changed)
         self.__player.connect_position_changed(self.__on_update_position)
         
@@ -238,7 +283,7 @@ class VideoPlayer(Player):
         
         uri = f.get_resource()
         try:
-            self.__context_id = self.__player.load_video(uri)
+            self.__context_id = self.__player.load_video(f)
             self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
         except:
             logging.error("error loading media file: %s\n%s",

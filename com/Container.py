@@ -16,20 +16,29 @@ class Container(Component):
     The Container loads and instantiates components.
     """
     
-    def __init__(self, paths, whitelist = []):
+    def __init__(self, plugins):
         """
         @param paths: paths where to look for components
         """
     
         self.__components = []
         self.__devices = []
-        self.__whitelist = whitelist
+        self.__whitelist = [] # whitelist
         
         Component.__init__(self)
         
-        for p in paths:
-            if (os.path.exists(p)):
-                self.load_path(p)
+        mods = self.__load_modules(plugins)
+        for mod in mods:
+            self.__register_messages(mod)
+        for mod in mods:
+            self.__load_components(mod)
+        
+        #for path in plugins:
+        #    self.load_module(path)
+        
+        #for p in paths:
+        #    if (os.path.exists(p)):
+        #        self.load_path(p)
 
         for c in self.__components:
             self.emit_message(msgs.COM_EV_COMPONENT_LOADED, c)
@@ -38,11 +47,11 @@ class Container(Component):
             self.emit_message(msgs.CORE_EV_DEVICE_ADDED, dev.get_device_id(), dev)
 
 
-        
+    """
     def __find_modules(self, path):
-        """
+        ""
         Returns a list of the modules of all components under the given path.
-        """
+        ""
         
         modules = []
 
@@ -68,7 +77,8 @@ class Container(Component):
         #end for
 
         return modules
-
+    """
+    
 
     def __load_module(self, path):
         """
@@ -157,14 +167,13 @@ class Container(Component):
 
             
 
-
-
+    """
     def load_path(self, path):
-        """
+        ""
         Loads all components from the given path.
         
         @param path: path of components directory
-        """
+        ""
         
         #self.__components = []
         #self.__devices = []
@@ -175,4 +184,19 @@ class Container(Component):
         for mod in mods:
             self.emit_message(msgs.COM_EV_LOADING_MODULE, mod.__name__)
             self.__load_components(mod)
+    """
 
+
+    def __load_modules(self, paths):
+    
+        return [ self.__load_module(path) for path in paths ]
+
+
+    def load_module(self, path):
+    
+        mod = self.__load_module(path)
+        if (mod):
+            self.__register_messages(mod)
+            #self.emit_message(msgs.COM_EV_LOADING_MODULE, mod.__name__)
+            self.__load_components(mod)
+        #end if

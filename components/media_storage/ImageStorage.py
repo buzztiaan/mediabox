@@ -153,18 +153,6 @@ class ImageStorage(Device):
         cb(None, *args)
             
             
-    def __on_put_on_dashboard(self, folder, f):
-    
-        f.bookmarked = True
-
-
-    def get_file_actions(self, folder, f):
-    
-        actions = []
-        actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
-        return actions    
-
-
     def __find_image_in_folder(self, folder):
     
         imgs = self.__folders.get(folder)

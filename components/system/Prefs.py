@@ -28,6 +28,9 @@ class Prefs(Configurator):
     DESCRIPTION = "Configure the device hardware"
 
 
+    def __repr__(self): return "system.DisplayPrefs"
+
+
     def __init__(self):
     
         Configurator.__init__(self)

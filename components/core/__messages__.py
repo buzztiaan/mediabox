@@ -361,6 +361,7 @@ def UI_ACT_SHOW_MESSAGE(text, subtext, icon): pass
 Displays an overlay message. The message is displayed until
 L{UI_ACT_HIDE_MESSAGE} is called.
 
+
 @param text: title text
 @param subtext: message text
 @param icon: pixbuf object or C{None}
@@ -383,6 +384,14 @@ def UI_EV_DEVICE_SELECTED(device_id): pass
 Gets emitted when a storage device has been selected.
 
 @param device_id: device ID string
+"""
+
+def UI_ACT_SHOW_DIALOG(name): pass
+"""
+Shows the dialog window given by its name.
+@since: 2009.11.17
+
+@param name: name of the dialog window
 """
 
 def UI_ACT_SELECT_VIEW(name): pass

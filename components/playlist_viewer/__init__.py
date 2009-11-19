@@ -1,8 +1,7 @@
 def get_devices():
 
-    #from PlaylistViewer import PlaylistViewer
     from PlaylistDevice import PlaylistDevice
-    return [PlaylistDevice] #PlaylistViewer]
+    return [PlaylistDevice]
 
 
 import __messages__

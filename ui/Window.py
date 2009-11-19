@@ -2,7 +2,9 @@ from Widget import Widget
 from ui import try_rgba
 from Pixmap import Pixmap
 from Widget import Widget
+from utils.MiniXML import MiniXML
 import platforms
+from theme import theme
 
 import gtk
 import os
@@ -13,23 +15,27 @@ class Window(Widget):
     Base class for windows.
     """
 
+    TYPE_TOPLEVEL = 0
+    TYPE_DIALOG = 1
+
+
     EVENT_CLOSED = "event-closed"
     
 
-    def __init__(self, is_toplevel, hide_cursor = False):
+    def __init__(self, win_type):
         """
         Creates a new window.
         
-        @param is_toplevel: whether the window is a toplevel window
-        @param hide_cursor: whether to hide the mouse pointer cursor
+        @param win_type: type of window
         """
     
+        self.__type = win_type
         self.__size = (0, 0)
         self.__fixed = None
     
         Widget.__init__(self)
     
-        if (is_toplevel):
+        if (self.__type == self.TYPE_TOPLEVEL):
             if (platforms.PLATFORM in (platforms.MAEMO5, platforms.MER)):
                 import hildon
                 self.__window = hildon.StackableWindow()
@@ -43,9 +49,8 @@ class Window(Widget):
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
                 self.__window.set_default_size(800, 480)
             
-        else:
+        elif (self.__type == self.TYPE_DIALOG):
             self.__window = gtk.Dialog()
-
 
         self.__window.connect("configure-event", self.__on_configure)
         self.__window.connect("expose-event", self.__on_expose)
@@ -70,25 +75,29 @@ class Window(Widget):
         self.__window.set_app_paintable(True)
         self.__window.realize()
 
-        self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
+        if (platforms.PLATFORM == platforms.MAEMO5):
+            self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
 
+        """
         if (platforms.PLATFORM in (platforms.MAEMO5, platforms.MER)):
-            import hildon
             # we need to notify Maemo5 that we want to use the volume keys
             self.__window.window.property_change("_HILDON_ZOOM_KEY_ATOM",
                                                  "XA_INTEGER", 32,
                                                  gtk.gdk.PROP_MODE_REPLACE,
                                                  [1])                
-
+        """
 
         self.__fixed = gtk.Fixed()
         self.__fixed.show()
-        if (is_toplevel):
+
+        if (self.__type == self.TYPE_TOPLEVEL):
             self.__window.add(self.__fixed)
         else:
             self.__window.vbox.add(self.__fixed)
+        
         self.__screen = None
 
+        """
         # hide mouse cursor
         if (hide_cursor):
             pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 8, 8)
@@ -97,7 +106,8 @@ class Window(Widget):
             self.__window.window.set_cursor(csr)
             del pbuf
         #end if
-
+        """
+                
         self.set_window(self)
 
 
@@ -174,7 +184,7 @@ class Window(Widget):
         else:
             key = gtk.gdk.keyval_name(keyval)
 
-        self.emit_event(self.EVENT_KEY_PRESSED, key)
+        self.send_event(self.EVENT_KEY_PRESSED, key)
         
         # kill queued events
         if (key in ["Up", "Down", "Left", "Right"]):
@@ -187,9 +197,6 @@ class Window(Widget):
 
     def __on_key_released(self, src, ev):
 
-        return True
-
-    """
         keyval = ev.keyval
         c = gtk.gdk.keyval_to_unicode(keyval)
         if (c > 31):
@@ -197,10 +204,9 @@ class Window(Widget):
         else:
             key = gtk.gdk.keyval_name(keyval)
 
-        self.send_event(self.EVENT_KEY_RELEASE, key)
+        self.send_event(self.EVENT_KEY_RELEASED, key)
                 
         return True
-    """
 
 
     def connect_closed(self, cb, *args):
@@ -221,7 +227,7 @@ class Window(Widget):
     def set_pos(self, x, y):
     
         Widget.set_pos(self, 0, 0)
-        self.__window.move(x, y)
+        #self.__window.move(x, y)
         
         
     def set_size(self, w, h):
@@ -266,16 +272,6 @@ class Window(Widget):
     def present(self):
     
         self.__window.present()
-        
-        
-    def fullscreen(self):
-    
-        self.__window.fullscreen()
-
-
-    def unfullscreen(self):
-    
-        self.__window.unfullscreen()
 
 
     def iconify(self):
@@ -283,14 +279,17 @@ class Window(Widget):
         self.__window.iconify()
 
 
+    def set_fullscreen(self, v):
+    
+        if (v):
+            self.__window.fullscreen()
+        else:
+            self.__window.unfullscreen()
+
+
     def set_title(self, title):
     
         self.__window.set_title(title)
-
-
-    def close(self):
-    
-        self.send_event(self.EVENT_CLOSED)
 
 
     def __set_portrait_property(self, prop, value):
@@ -323,25 +322,68 @@ class Window(Widget):
         #end if
 
 
-    def set_window_menu(self, *items):
+    def set_menu_xml(self, xml, bindings):
         """
-        Sets the window menu.
-        @since: 2009.10
+        Sets the window menu from a XML description.
+        @since 2009.11.19
+        
+        @param xml: XML description of the menu
+        @param bindings: dictionary mapping XML node IDs to callback handlers
         """
-        
-        if (platforms.PLATFORM == platforms.MAEMO5):
-            import hildon
-            menu = hildon.AppMenu()
-        
-            for item in items:
-                icon, label, callback = item
+    
+        import hildon
 
-                btn = gtk.Button(label)
-                btn.connect("clicked", lambda x, cb:cb(), callback)
+        dom = MiniXML(xml).get_dom()        
+        menu = hildon.AppMenu()
+        
+        for node in dom.get_children():
+            name = node.get_name()
+            if (name == "item"):
+                item_id = node.get_attr("id")
+                item_label = node.get_attr("label")
+                callback = bindings.get(item_id)
+
+                btn = hildon.GtkButton(gtk.HILDON_SIZE_AUTO)
+                btn.set_label(item_label)
+                if (callback):
+                    btn.connect("clicked",
+                                lambda x, cb:cb(), callback)
                 menu.append(btn)
-            #end for
 
-            menu.show_all()            
-            self.__window.set_app_menu(menu)
-        #end if
+            elif (name == "choice"):
+                choice_id = node.get_attr("id")
+                choice_selected = int(node.get_attr("selected") or "0")
+                callback = bindings.get(choice_id)
+ 
+                group = None
+                cnt = 0
+                for option in node.get_children():
+                    item_label = option.get_attr("label")
+                    item_icon = option.get_attr("icon")
+                    
+                    btn = hildon.GtkRadioButton(gtk.HILDON_SIZE_AUTO, group)
+                    btn.set_mode(False)
+                    
+                    if (callback):
+                        btn.connect("clicked",
+                                    lambda x, i, cb:cb(i), cnt, callback)
+                    if (item_label):
+                        btn.set_label(item_label)
+                    if (item_icon):
+                        img = gtk.Image()
+                        img.set_from_pixbuf(getattr(theme, item_icon))
+                        btn.set_image(img)
+
+                    if (cnt == choice_selected):
+                        btn.set_active(True)
+
+                    menu.add_filter(btn)
+                    group = btn
+                    cnt += 1
+                #end for
+            #end if
+        #end for
+
+        menu.show_all()            
+        self.__window.set_app_menu(menu)
 

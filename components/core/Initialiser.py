@@ -1,6 +1,8 @@
 from com import Component, msgs
 from mediabox import config
 from theme import theme
+import platforms
+from mediabox import values
 
 
 class Initialiser(Component):
@@ -19,3 +21,9 @@ class Initialiser(Component):
             # theme could not be loaded; using default theme
             pass
 
+        # satisfy maemo activation framework
+        if (platforms.PLATFORM == platforms.MAEMO4):
+            platforms.create_osso_context(values.OSSO_NAME, "1.0", False)
+            
+        elif (platforms.PLATFORM == platforms.MAEMO5):
+            platforms.create_osso_context(values.OSSO_NAME, "1.0", False)

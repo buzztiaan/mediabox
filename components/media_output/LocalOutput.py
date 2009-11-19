@@ -17,6 +17,7 @@ class LocalOutput(MediaOutput):
     def __init__(self):
     
         self.__backend = None
+        self.__window_id = 0
     
         MediaOutput.__init__(self)
 
@@ -53,6 +54,7 @@ class LocalOutput(MediaOutput):
     def load_video(self, f):
     
         self.__load_backend_for(f.mimetype)
+        self.__backend.set_window(self.__window_id)
         return self.__backend.load_video(f.get_resource())
 
         
@@ -103,4 +105,12 @@ class LocalOutput(MediaOutput):
     
         if (self.__backend):
             self.__backend.set_volume(vol)
+
+
+    def set_window(self, xid):
+    
+        self.__window_id = xid
+
+        if (self.__backend):
+            self.__backend.set_window(xid)
 

@@ -62,4 +62,6 @@ class MediaOutputService(Component):
                 self.__current_output = self.__outputs[choice]
             #end if
         #end if
+        
+        self.emit_message(msgs.MEDIA_ACT_STOP)
 
