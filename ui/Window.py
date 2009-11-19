@@ -331,6 +331,7 @@ class Window(Widget):
         @param bindings: dictionary mapping XML node IDs to callback handlers
         """
     
+        if (platforms.PLATFORM != platforms.MAEMO5): return
         import hildon
 
         dom = MiniXML(xml).get_dom()        
