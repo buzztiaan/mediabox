@@ -503,6 +503,8 @@ class Pixmap(object):
         tw, th = text_extents(text, font)
         tx = x + (w - tw) / 2
         ty = y + (h - th) / 2
+
+        if (tx < x): tx = x
         self.draw_text(text, font, tx, ty, color, use_markup)
 
                                     
