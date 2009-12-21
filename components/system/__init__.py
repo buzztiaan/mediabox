@@ -3,9 +3,9 @@ import platforms
 
 def get_classes():
     from VolumeMount import VolumeMount
-    from Prefs import Prefs
+    #from Prefs import Prefs
 
-    classes = [VolumeMount, Prefs]
+    classes = [VolumeMount] #, Prefs]
     if (platforms.PLATFORM in [platforms.MAEMO4, platforms.MAEMO5]):
         from Headset import Headset
         from DisplayLight import DisplayLight

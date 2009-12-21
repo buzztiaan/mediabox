@@ -228,10 +228,15 @@ class Gestures(EventEmitter):
             direction = _DIRECTION_W
         elif (dx < 0 and dy < 0):
             direction = _DIRECTION_NW
+        else:
+            return
             
-        self.__twirl(direction)
+        #self.__twirl(direction)
         self.__swipe(direction)
-        self.__state = _TRANSITIONS[(self.__state, _ACTION_MOTION)]
+        try:
+            self.__state = _TRANSITIONS[(self.__state, _ACTION_MOTION)]
+        except:
+            pass
         self.__detect_event()
 
 

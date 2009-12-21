@@ -26,8 +26,8 @@ class ConfigTheme(Configurator):
         self.__list = ThumbableGridView()
         self.add(self.__list)
         
-        title = LabelItem("Select a Theme:")
-        self.__list.append_item(title)
+        #title = LabelItem("Select a Theme:")
+        #self.__list.append_item(title)
                   
         self.__update_list()
         
@@ -55,6 +55,7 @@ class ConfigTheme(Configurator):
         w, h = self.get_size()
         themes = theme.list_themes()
         self.__themes = []
+        idx = 0
         for name, preview, title, description, author in themes:
             try:
                 img = gtk.gdk.pixbuf_new_from_file(preview)
@@ -65,11 +66,13 @@ class ConfigTheme(Configurator):
             item.set_size(w, 80)
             item.connect_clicked(self.__on_item_clicked, preview, name, title)
             
-            idx = self.__list.append_item(item)
+            self.__list.append_item(item)
             self.__themes.append((name, title))
             
-            #if (name == config.theme()):
-            #    self.__list.hilight(idx)
+            if (name == config.theme()):
+                self.__list.set_hilight(idx)
+
+            idx += 1
         #end for
 
 

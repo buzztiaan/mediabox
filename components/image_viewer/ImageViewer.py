@@ -4,6 +4,7 @@ from ui.decorators import Gestures
 from ui.KineticScroller import KineticScroller
 from ui.Toolbar import Toolbar
 from ui.ImageButton import ImageButton
+from ui.EventBox import EventBox
 from ui.layout import Arrangement
 from ui.dialog import InputDialog
 from theme import theme
@@ -34,7 +35,7 @@ _LANDSCAPE_ARRANGEMENT = """
 
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
-    <widget name="screen" x1="0" y1="0" x2="100%" y2="-80"/>
+    <widget name="image" x1="0" y1="0" x2="100%" y2="-80"/>
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
     <widget name="btn_nav" x1="-80" y1="0" x2="100%" y2="80"/>
   </arrangement>
@@ -61,6 +62,7 @@ class ImageViewer(Player):
         Player.__init__(self)
         
         self.__image = Image()
+        self.__image.add_overlay(self.__overlay_nav_button)
         #self.add(self.__image)
         
         kscr = KineticScroller(self.__image)
@@ -75,8 +77,8 @@ class ImageViewer(Player):
 
 
         # navigator button
-        self.__btn_navigator = ImageButton(theme.mb_btn_history_1,
-                                           theme.mb_btn_history_2)
+        self.__btn_navigator = EventBox()#ImageButton(theme.mb_btn_history_1,
+                                         #  theme.mb_btn_history_2)
         self.__btn_navigator.connect_clicked(
              lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "Navigator"))
 
@@ -244,8 +246,10 @@ class ImageViewer(Player):
         
         if (self.__is_fullscreen):
             self.__toolbar.set_visible(False)
+            self.__btn_navigator.set_visible(False)
         else:
             self.__toolbar.set_visible(True)
+            self.__btn_navigator.set_visible(True)
         
         self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
         self.__update_layout()
@@ -258,8 +262,15 @@ class ImageViewer(Player):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        screen.fill_area(x, y, w, h, theme.color_mb_background)
+        #screen.fill_area(x, y, w, h, theme.color_mb_background)
         self.__arr.set_geometry(0, 0, w, h)    
+
+
+    def __overlay_nav_button(self, screen, x, y, w, h):
+    
+        if (not self.__is_fullscreen):
+            bx, by = self.__btn_navigator.get_screen_pos()
+            screen.draw_pixbuf(theme.mb_btn_navigator_1, bx, by)
         
         
     def get_mime_types(self):

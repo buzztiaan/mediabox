@@ -59,7 +59,7 @@ class LocalDevice(Device):
         f.name = self.__name
         f.info = "Browse the filesystem"
         f.icon = self.get_icon().get_path()
-        f.folder_flags = f.ITEMS_ENQUEUEABLE
+        f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
 
         return f
        
@@ -180,7 +180,8 @@ class LocalDevice(Device):
             item.mimetype = item.DIRECTORY
             item.folder_flags = item.ITEMS_ENQUEUEABLE | \
                                 item.INDEXABLE | \
-                                item.ITEMS_SKIPPABLE
+                                item.ITEMS_SKIPPABLE | \
+                                item.ITEMS_COMPACT
             
         else:
             item.acoustic_name = os.path.splitext(item.name)[0]

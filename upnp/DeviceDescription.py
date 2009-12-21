@@ -12,6 +12,16 @@ import urlparse
 _NS_DESCR = "urn:schemas-upnp-org:device-1-0"
 
 
+def _urljoin(a, b):
+
+    if (b.startswith("/")):
+        return urlparse.urljoin(a, b)
+    else:
+        if (a[-1] != "/"): a += "/"
+        return a + b
+
+
+
 class DeviceDescription(object):
     """
     Class for representing a UPnP device description. The service proxies are
@@ -62,13 +72,14 @@ class DeviceDescription(object):
         try:
             self.__parse_description(dom)
         except:
-            import traceback; traceback.print_exc()
+            logging.error("invalid UPnP device description:\n%s", str(dom))
         
         
         
     def __parse_description(self, dom):
     
         print "parse descr"
+       
         self.__url_base = dom.get_pcdata("{%s}URLBase" % _NS_DESCR).strip()
         if (not self.__url_base):
             # some devices make life hard and don't tell about their URL base
@@ -89,12 +100,12 @@ class DeviceDescription(object):
         svclist = device.get_child("{%s}serviceList" % _NS_DESCR)
         for service in svclist.get_children():
             svctype = service.get_pcdata("{%s}serviceType" % _NS_DESCR)
-            scpd_url = urlparse.urljoin(self.__url_base,
-                                  service.get_pcdata("{%s}SCPDURL" % _NS_DESCR))
-            ctrl_url = urlparse.urljoin(self.__url_base,
-                               service.get_pcdata("{%s}controlURL" % _NS_DESCR))
-            event_url = urlparse.urljoin(self.__url_base,
-                              service.get_pcdata("{%s}eventSubURL" % _NS_DESCR))
+            scpd_url = _urljoin(self.__url_base,
+                             service.get_pcdata("{%s}SCPDURL" % _NS_DESCR))
+            ctrl_url = _urljoin(self.__url_base,
+                             service.get_pcdata("{%s}controlURL" % _NS_DESCR))
+            event_url = _urljoin(self.__url_base,
+                             service.get_pcdata("{%s}eventSubURL" % _NS_DESCR))
             
             self.__services[svctype] = (scpd_url, ctrl_url, event_url)
             
@@ -104,8 +115,8 @@ class DeviceDescription(object):
         # read icon if available
         icons = device.get_child("{%s}iconList" % _NS_DESCR)
         if (icons):
-            self.__icon_url = urlparse.urljoin(self.__url_base,
-                                               self.__load_icon(icons))
+            self.__icon_url = _urljoin(self.__url_base,
+                                       self.__load_icon(icons))
 
 
     def __load_icon(self, node):
@@ -133,10 +144,15 @@ class DeviceDescription(object):
             #end if        
 
         icons = node.get_children()
+        print "UPnP icons:", icons
         icons.sort(icon_comparator)
-        preferred_icon = icons[-1]
 
-        return preferred_icon.get_pcdata("{%s}url" % _NS_DESCR)
+        if (icons):
+            preferred_icon = icons[-1]
+            return preferred_icon.get_pcdata("{%s}url" % _NS_DESCR)
+        else:
+            # iconList may be empty
+            return ""
 
 
     def get_url_base(self):

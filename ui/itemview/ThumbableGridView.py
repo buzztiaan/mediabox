@@ -20,10 +20,7 @@ class ThumbableGridView(GridView):
     
         # the associated slider
         self.__slider = None
-        
-        # whether we have drag-sort enabled
-        self.__has_drag_sort = False
-        
+               
         # whether the letter is visible
         self.__letter_visible = False
         
@@ -77,17 +74,15 @@ class ThumbableGridView(GridView):
 
     def __on_clicked(self, px, py):
     
-        if (not self.__has_drag_sort):
-            idx = self.get_item_at(px, py)
-            x, y = self.get_position_of_item(idx)
-            item = self.get_item(idx)
-            item.click_at(px - x, py - y)
-        #end if
+        idx = self.get_item_at(px, py)
+        x, y = self.get_position_of_item(idx)
+        item = self.get_item(idx)
+        item.click_at(px - x, py - y)
 
         
     def __on_tap_and_hold(self, px, py):
 
-        if (not self.__has_drag_sort):
+        if (not self.has_floating_item()):
             idx = self.get_item_at(px, py)
             x, y = self.get_position_of_item(idx)
             item = self.get_item(idx)
@@ -97,9 +92,12 @@ class ThumbableGridView(GridView):
 
     def __on_press_button(self, px, py):
     
-        if (self.__has_drag_sort):
-            idx = self.get_item_at(px, py)
+        idx = self.get_item_at(px, py)
+        item = self.get_item(idx)
+        
+        if (px < 80 and item.is_draggable()):
             self.float_item(idx, px, py)
+            self.__kscr.set_enabled(False)
             self.invalidate()
 
         else:
@@ -119,6 +117,7 @@ class ThumbableGridView(GridView):
         
         if (self.has_floating_item()):
             self.float_item(-1)
+            self.__kscr.set_enabled(True)
             self.invalidate()
 
         self.render()
@@ -134,11 +133,12 @@ class ThumbableGridView(GridView):
         if (self.has_floating_item()):
             floating_idx = self.get_floating_item()
             new_idx = self.get_item_at(px, py)
-            self.shift_item(floating_idx, new_idx - floating_idx)
+            if (0 <= new_idx < self.count_items()):
+                self.shift_item(floating_idx, new_idx - floating_idx)
 
-            self.float_item(new_idx, px, py)
-            self.invalidate()
-            self.render()
+                self.float_item(new_idx, px, py)
+                self.invalidate()
+                self.render()
             
             if (self.__autoscroll_handler):
                 gobject.source_remove(self.__autoscroll_handler)
@@ -182,6 +182,11 @@ class ThumbableGridView(GridView):
     
         self.move(0, amount)
         return True
+
+
+    def stop_scrolling(self):
+    
+        self.__kscr.stop_scrolling()
 
 
     def move(self, dx, dy):
@@ -230,10 +235,4 @@ class ThumbableGridView(GridView):
     def connect_item_menu_opened(self, cb, *args):
         
         print "connect_item_menu_opened"
-
-        
-    def set_drag_sort_enabled(self, v):
-    
-        self.__has_drag_sort = v
-        self.__kscr.set_enabled(not v)
 

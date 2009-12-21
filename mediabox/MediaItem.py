@@ -13,9 +13,7 @@ class MediaItem(Item):
 
 
     def __init__(self, f, icon):
-
-        self.__grip_visible = False
-        
+       
         # whether this item is rendered compact
         self.__is_compact = False
 
@@ -70,12 +68,6 @@ class MediaItem(Item):
         self._invalidate_cached_pixmap()
         
          
-    def set_grip_visible(self, v):
-        
-        self.__grip_visible = v
-        self._invalidate_cached_pixmap()
-        
-
     def set_compact(self, v):
     
         self.__is_compact = v
@@ -104,10 +96,7 @@ class MediaItem(Item):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
             # render selection frame
-            if (self.is_marked()):
-                pmap.fill_area(0, 0, w, h, "#ffffff60")
-
-            elif (self.is_hilighted()):
+            if (self.is_marked() or self.is_hilighted()):
                 pmap.draw_frame(theme.mb_selection_frame,
                                 4, 0, w - 8, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
@@ -118,7 +107,7 @@ class MediaItem(Item):
             except:
                 pass
             else:
-                pmap.fit_pixbuf(pbuf, 0, 0, w, h - 20)
+                pmap.fit_pixbuf(pbuf, 0, 0, w, h - 24)
                 del pbuf
 
             #pbuf = thumbnail.render_on_pixbuf(self.__icon, self.__file.mimetype)
@@ -136,8 +125,8 @@ class MediaItem(Item):
 
             # render text
             pmap.set_clip_rect(5, 0, w - 10, h)
-            pmap.draw_centered_text(self.__label, theme.font_mb_listitem,
-                                    5, h - 20, w - 10, 20,
+            pmap.draw_centered_text(self.__label, theme.font_mb_plain,
+                                    5, h - 24, w - 10, 24,
                                     theme.color_mb_listitem_text)
             pmap.set_clip_rect()
             
@@ -165,16 +154,13 @@ class MediaItem(Item):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
             # render selection frame
-            if (self.is_marked()):
-                pmap.fill_area(0, 0, w, h, "#ffffff60")
-            
-            elif (self.is_hilighted()):
+            if (self.is_marked() or self.is_hilighted()):
                 pmap.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
 
             # render grip
-            if (self.__grip_visible):
-                pmap.draw_pixbuf(theme.mb_item_grip, 0, 0)
+            if (self.is_draggable()):
+                pmap.draw_pixbuf(theme.mb_item_grip, 8, (h - 80) / 2)
                 offset = 32
             else:
                 offset = 4
@@ -205,7 +191,7 @@ class MediaItem(Item):
             
             # render text
             pmap.set_clip_rect(0, 0, w - 80, h)
-            pmap.draw_text(self.__label, theme.font_mb_listitem,
+            pmap.draw_text(self.__label, theme.font_mb_plain,
                            offset, 20,
                            theme.color_mb_listitem_text)
             pmap.draw_text(self.__sublabel, theme.font_mb_tiny,

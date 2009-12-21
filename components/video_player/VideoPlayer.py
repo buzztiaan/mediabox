@@ -17,12 +17,12 @@ import gobject
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
     <if-visible name="toolbar">
-      <widget name="btn_nav" x1="0" y1="-80" x2="80" y2="100%"/>
+      <widget name="btn_nav" x1="0" y1="-64" x2="64" y2="100%"/>
       <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
 
-      <widget name="screen" x1="40" y1="0" x2="-80" y2="-80"/>
+      <widget name="screen" x1="40" y1="0" x2="-80" y2="-64"/>
       <widget name="progress" x1="90" y1="-50" x2="-90" y2="-10"/>
-      <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
+      <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
     </if-visible>
     
     <!-- fullscreen mode -->
@@ -36,7 +36,7 @@ _LANDSCAPE_ARRANGEMENT = """
 # rotate or will just crash hard, depending on firmware version
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
-    <widget name="btn_nav" x1="-80" y1="0" x2="100%" y2="80"/>
+    <widget name="btn_nav" x1="-64" y1="0" x2="100%" y2="64"/>
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
 
     <widget name="screen" x1="40" y1="0" x2="100%" y2="-80"/>
@@ -247,6 +247,14 @@ class VideoPlayer(Player):
         self.__update_layout()
         self.render()
 
+
+    def _visibility_changed(self):
+    
+        if (self.is_visible()):
+            self.emit_message(msgs.ASR_ACT_FORCE_LANDSCAPE, True)
+        else:
+            self.emit_message(msgs.ASR_ACT_FORCE_LANDSCAPE, False)
+            
 
     def render_this(self):
     

@@ -216,122 +216,6 @@ class StorageBrowser(ThumbableGridView):
         if (choice != -1):
             callbacks[choice](cwd, f)
             
-        """
-        idx = self.get_items().index(item)
-    
-        options = []
-
-        if (not f.bookmarked):
-            options.append((None, "Put on Dashboard",
-                            self.EVENT_FILE_BOOKMARKED))
-    
-        if (cwd.folder_flags & cwd.ITEMS_ENQUEUEABLE):
-            options.append((None, "Add to a Playlist",
-                            self.EVENT_FILE_ENQUEUED))
-
-        if (f.folder_flags & f.INDEXABLE):
-            options.append((None, "Add to Media Library",
-                            self.EVENT_FILE_ADDED_TO_LIBRARY))
-
-        if (cwd.folder_flags & cwd.ITEMS_DELETABLE):
-            options.append((None, "Delete",
-                            self.EVENT_FILE_REMOVED))
-
-        if (not options):
-            return
-            
-        dlg = OptionDialog("Options")
-        for icon, label, ev in options:
-            dlg.add_option(icon, label)
-            
-        if (dlg.run() != 0):
-            return
-
-        choice = dlg.get_choice()
-        if (choice != -1):
-            ev = options[choice][2]
-
-            if (ev == self.EVENT_FILE_ENQUEUED):
-                pass
-            
-            elif (ev == self.EVENT_FILE_REMOVED):
-                self.__remove_item(idx)
-            
-            self.emit_event(ev, f)
-        #end if
-        """
-
-
-    """
-    def __on_item_button_pressed(self, button, item):
-    
-        idx = self.get_items().index(item)
-
-        print "BUTTON", button, idx
-        if (button == item.BUTTON_PLAY):
-            f = item.get_file()
-            self.set_hilight(idx)
-            self.render()
-            if (f.mimetype.endswith("-folder")):
-                self.load_folder(f, self.GO_CHILD)
-            else:
-                self.send_event(self.EVENT_FILE_OPENED, f)
-
-        elif (button == item.BUTTON_OPEN):
-            print "OPEN"
-            f = item.get_file()
-            self.insert_folder(f)
-
-
-        
-    def __on_item_button(self, item, idx, button):
-
-        if (idx == -1): return
-        
-        if (button == item.BUTTON_PLAY):
-            f = item.get_file()
-            self.set_hilight(idx)
-            self.render()
-            if (f.mimetype.endswith("-folder")):
-                self.load_folder(f, self.GO_CHILD)
-            else:
-                self.send_event(self.EVENT_FILE_OPENED, f)
-
-        elif (button == item.BUTTON_OPEN):
-            f = item.get_file()
-            self.insert_folder(f)
-
-        elif (button == item.BUTTON_ENQUEUE):
-            if (idx == 0):
-                f = self.get_current_folder()
-            else:
-                f = item.get_file()
-            self.send_event(self.EVENT_FILE_ENQUEUED, f)
-
-        elif (button == item.BUTTON_REMOVE):
-            self.__remove_item(idx - 1)
-
-        elif (button == item.BUTTON_REMOVE_PRECEDING):
-            a = 0
-            b = idx - 1
-            self.begin_bulk_operation()
-            print a, b, len(range(a, b + 1))
-            for i in range(a, b + 1):
-                self.__remove_item(0)
-            self.end_bulk_operation()
-
-        elif (button == item.BUTTON_REMOVE_SUCCEEDING):
-            a = idx - 1
-            b = len(self.get_items()) - 1 - 1
-            self.begin_bulk_operation()
-            for i in range(a, b + 1):
-                self.__remove_item(a)
-            self.end_bulk_operation()
-
-        elif (button == item.BUTTON_ADD_TO_LIBRARY):
-            f = self.get_current_folder()
-            self.send_event(self.EVENT_FILE_ADDED_TO_LIBRARY, f)
-    """
 
     def __remove_item(self, idx):
 
@@ -343,15 +227,6 @@ class StorageBrowser(ThumbableGridView):
     
         folder = self.get_current_folder()
         folder.shift_file(pos, amount)
-
-    """
-    def __on_swap_items(self, idx1, idx2):
-    
-        folder = self.get_current_folder()
-        if (folder):
-            # -1 because there's a header item
-            folder.swap(idx1 - 1, idx2 - 1)
-    """
 
         
     def set_root_device(self, device):
@@ -644,7 +519,7 @@ class StorageBrowser(ThumbableGridView):
             pass
 
         if (folder.folder_flags & folder.ITEMS_COMPACT):
-            self.set_items_per_row(3)
+            self.set_items_per_row(2)
         else:
             self.set_items_per_row(1)
 
@@ -758,10 +633,8 @@ class StorageBrowser(ThumbableGridView):
         if (cwd.folder_flags & cwd.ITEMS_COMPACT):
             item.set_compact(True)        
 
-        #if (cwd.folder_flags & cwd.ITEMS_SORTABLE):
-        #    item.set_grip_visible(True)
-        #else:
-        #    item.set_grip_visible(False)
+        if (cwd.folder_flags & cwd.ITEMS_SORTABLE):
+            item.set_draggable(True)
     
         self.append_item(item)
 

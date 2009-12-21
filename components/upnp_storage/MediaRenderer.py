@@ -9,6 +9,10 @@ import time
 _SERVICE_RENDERING_CONTROL_1 = "urn:schemas-upnp-org:service:RenderingControl:1"
 _SERVICE_AV_TRANSPORT_1 = "urn:schemas-upnp-org:service:AVTransport:1"
 
+_SERVICE_RENDERING_CONTROL_2 = "urn:schemas-upnp-org:service:RenderingControl:2"
+_SERVICE_AV_TRANSPORT_2 = "urn:schemas-upnp-org:service:AVTransport:2"
+
+
 
 def _get_my_ip():
     """
@@ -44,7 +48,8 @@ class MediaRenderer(MediaOutput):
     """
 
     # supported UPnP device types
-    DEVICE_TYPES = ["urn:schemas-upnp-org:device:MediaRenderer:1"]
+    DEVICE_TYPES = ["urn:schemas-upnp-org:device:MediaRenderer:1",
+                    "urn:schemas-upnp-org:device:MediaRenderer:2"]
 
 
     TITLE = "UPnP Device"
@@ -58,11 +63,21 @@ class MediaRenderer(MediaOutput):
 
     
         MediaOutput.__init__(self)
-    
-        self.__av_transport = descr.get_service_proxy(_SERVICE_AV_TRANSPORT_1)
-        self.__rendering_control = descr.get_service_proxy(_SERVICE_RENDERING_CONTROL_1)
-        #print self.__media_renderer.__introspect__()        
-        descr.subscribe(_SERVICE_AV_TRANSPORT_1, self.__on_signal)
+
+        dtype = descr.get_device_type()
+        if (dtype == "urn:schemas-upnp-org:device:MediaRenderer:1"):
+            self.__av_transport = descr.get_service_proxy(_SERVICE_AV_TRANSPORT_1)
+            self.__rendering_control = descr.get_service_proxy(_SERVICE_RENDERING_CONTROL_1)
+            #print self.__media_renderer.__introspect__()        
+            descr.subscribe(_SERVICE_AV_TRANSPORT_1, self.__on_signal)
+
+        elif (dtype == "urn:schemas-upnp-org:device:MediaRenderer:2"):
+            self.__av_transport = descr.get_service_proxy(_SERVICE_AV_TRANSPORT_2)
+            self.__rendering_control = descr.get_service_proxy(_SERVICE_RENDERING_CONTROL_2)
+            print "INTRO", self.__av_transport.__introspect__()
+            #print self.__media_renderer.__introspect__()        
+            descr.subscribe(_SERVICE_AV_TRANSPORT_2, self.__on_signal)
+
 
         self.TITLE = descr.get_friendly_name()
 

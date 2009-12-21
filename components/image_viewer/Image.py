@@ -1,4 +1,4 @@
-from ui.MultiTouchWidget import MultiTouchWidget
+from ui.Widget import Widget
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from io.Downloader import Downloader
 from utils.Observable import Observable
@@ -21,12 +21,9 @@ _ZOOM_LEVELS = [12, 15, 18, 22, 25, 31, 36, 43, 50, 63, 75, 88, 100,
 # read this many bytes at once
 _CHUNK_SIZE = 50000
 
-# the font for comments, etc.
-_FONT = "Nokia Sans Cn 22"
 
 
-
-class Image(MultiTouchWidget, Observable):
+class Image(Widget, Observable):
     """
     Class for rendering images.
     """    
@@ -72,10 +69,6 @@ class Image(MultiTouchWidget, Observable):
         # render completely new when this flag is set, e.g. after zooming
         self.__invalidated = True
 
-        # save-under buffers (for rendering icons, etc)
-        # a buffer is a tuple (pixmap, x, y, w, h)
-        self.__save_unders = []
-
         # flag for marking new images that have not been rendered to screen yet
         self.__is_new_image = False
                
@@ -88,16 +81,7 @@ class Image(MultiTouchWidget, Observable):
         self.__zoom_fit = 0
         self.__zoom_100 = 0
 
-        """
-        # distance between fingers in multitouch mode
-        self.__multitouch_distance = 0
-        self.__multitouch_zoom_value = 0
-        self.__is_multitouch = False
-        """
-
-        self.__timer_tstamp = 0
         self.__current_file = ""
-        self.__banner = None
 
         # the loader contains the complete image
         self.__loader = None
@@ -125,20 +109,22 @@ class Image(MultiTouchWidget, Observable):
         
         # amount by which the image is dragged
         self.__drag_amount = 0
-                
         
-        MultiTouchWidget.__init__(self)
+        # rendering overlays
+        self.__overlays = []        
         
-        # multitouch detection doesn't work too well yet...
-        #self.connect_multitouch_started(self.__on_begin_multitouch)
-        #self.connect_multitouch_stopped(self.__on_end_multitouch)
-        #self.connect_multitouch_moved(self.__on_move_multitouch)
-
+        Widget.__init__(self)
+        
         # create a client-side pixmap for scaling
         self.__buffer = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,
                                        True, 8,
                                        gtk.gdk.screen_width(),
                                        gtk.gdk.screen_height())
+
+
+    def add_overlay(self, overlay):
+        
+        self.__overlays.append(overlay)
 
 
     def __copy_image_buffer(self, buf1, buf2):
@@ -174,40 +160,10 @@ class Image(MultiTouchWidget, Observable):
         else:
             self.__copy_image_buffer(self.__offscreen, screen)
         
-        """
-        # render progress bar
-        if (self.__progress > 0 and w > 0):
-            p = self.__progress / 100.0
-            px = x
-            py = y + h
-            pw = int(w * p)
-            ph = 16
-            self.__copy_image_buffer(self.__offscreen, TEMPORARY_PIXMAP)
-            #TEMPORARY_PIXMAP.copy_pixmap(self.__offscreen, px, py, px, py,
-            #                             pw, ph)
-            TEMPORARY_PIXMAP.fill_area(px, py, pw, ph, "#80808060")
-            screen.copy_pixmap(TEMPORARY_PIXMAP, px, py, px, py, pw, ph)
-        """
-
-        """
-        # render multitouch fingers
-        if (self.__is_multitouch):
-            f1, f2 = self.get_fingers()
-            fx1, fy1 = f1
-            fx2, fy2 = f2
-            fx = min(fx1, fx2)
-            fy = min(fy1, fy2)
-            fw = abs(fx1 - fx2)
-            fh = abs(fy1 - fy2)            
-            #screen.draw_line(x + fx1, y + fy1, x + fx2, y + fy2, "#ff0000")
-            if (fw > 1 and fh > 1):
-                screen.fill_area(x + fx, y + fy, fw, fh, "#ff000044")
-        """
-        
 
     def set_size(self, w, h):
     
-        MultiTouchWidget.set_size(self, w, h)
+        Widget.set_size(self, w, h)
 
         if ((w, h) != self.__visible_size):
             self.__visible_size = (w, h)
@@ -227,37 +183,6 @@ class Image(MultiTouchWidget, Observable):
         self.__invalidated = True
         #self.__offscreen.fill_area(0, 0, 800, 480, self.__bg_color)
         
-    """
-    def __on_begin_multitouch(self):
-    
-        self.__is_multitouch = True
-        self.__multitouch_zoom_value = self.__zoom_value
-        self.__multitouch_distance = 0
-
-
-    def __on_end_multitouch(self):
-    
-        self.__is_multitouch = False
-        
-        
-    def __on_move_multitouch(self, fx1, fy1, fx2, fy2):
-    
-        x = min(fx1, fx2)
-        y = min(fy1, fy2)
-        w = abs(fx1 - fx2)
-        h = abs(fy1 - fy2)
-
-        import math
-        distance = math.sqrt(w * w + h * h)        
-
-        if (self.__multitouch_distance > 1):
-            factor = distance / self.__multitouch_distance
-            zoom_value = self.__multitouch_zoom_value * factor
-            print zoom_value
-            self.zoom(0, zoom_value)
-        else:
-            self.__multitouch_distance = distance
-    """
 
     def __hi_quality_render(self):
 
@@ -504,6 +429,8 @@ class Image(MultiTouchWidget, Observable):
         #self.render()
         if (self.may_render()):
             self.render_at(TEMPORARY_PIXMAP, x, y)
+            for o in self.__overlays:
+                o(TEMPORARY_PIXMAP, x, y, width, height)
             screen.copy_pixmap(TEMPORARY_PIXMAP, x, y, x, y, width, height)
             self.update_observer(self.OBS_RENDERED)
 

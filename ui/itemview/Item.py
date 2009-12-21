@@ -23,6 +23,7 @@ class Item(EventEmitter):
         self.__size = (240, 80)
         self.__is_hilighted = False
         self.__is_marked = False
+        self.__is_draggable = False
 
         EventEmitter.__init__(self)
 
@@ -68,6 +69,16 @@ class Item(EventEmitter):
     def is_marked(self):
     
         return self.__is_marked
+
+
+    def set_draggable(self, v):
+    
+        self.__is_draggable = v
+        
+        
+    def is_draggable(self):
+    
+        return self.__is_draggable
 
 
     def render_at(self, cnv, x, y):

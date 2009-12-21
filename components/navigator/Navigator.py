@@ -25,7 +25,7 @@ _LANDSCAPE_ARRANGEMENT = """
 
     <if-visible name="btn_add">
       <widget name="btn_add"
-              x1="40" y1="0" x2="-80" y2="80"/>
+              x1="0" y1="0" x2="-80" y2="80"/>
       <widget name="slider"
               x1="0" y1="80" x2="40" y2="100%"/>
       <widget name="browser"
@@ -265,7 +265,7 @@ class Navigator(Dialog):
         self.__random_files = []
         
         self.__load_file(f)
-        self.set_visible(False)
+        #self.set_visible(False)
 
 
     def __on_begin_folder(self, f):
@@ -446,7 +446,8 @@ class Navigator(Dialog):
             self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
             self.emit_message(msgs.MEDIA_ACT_LOAD, f)
             self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
-
+            self.set_visible(False)
+            
 
     def render_this(self):
     
@@ -735,5 +736,6 @@ class Navigator(Dialog):
     def handle_INPUT_EV_MENU(self):
     
         #if (self.is_active()):
-        self.emit_message(msgs.MEDIA_ACT_SELECT_OUTPUT, None)
+        #self.emit_message(msgs.MEDIA_ACT_SELECT_OUTPUT, None)
+        self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "FMTXDialog")
 

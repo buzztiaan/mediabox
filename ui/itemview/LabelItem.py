@@ -20,7 +20,7 @@ class LabelItem(Item):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
             pmap.set_clip_rect(0, 0, w, h)
-            pmap.draw_text(self.__label, theme.font_mb_tiny,
+            pmap.draw_text(self.__label, theme.font_mb_headline,
                            10, 10,
                            theme.color_mb_listitem_text)
             pmap.set_clip_rect()

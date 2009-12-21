@@ -28,5 +28,5 @@ class Button(ImageButton):
         w, h = self.get_size()
 
         cnv.draw_centered_text(self.__label, theme.font_mb_plain,
-                               0, 0, w, h, "#000000")
+                               0, 0, w, h, theme.color_mb_button_text)
 

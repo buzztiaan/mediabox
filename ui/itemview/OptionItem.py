@@ -48,7 +48,7 @@ class OptionItem(Item):
 
             pmap.set_clip_rect(0, 0, w, h)
             name = self.__names[self.__current_choice]
-            pmap.draw_text(name, theme.font_mb_tiny,
+            pmap.draw_text(name, theme.font_mb_plain,
                            10, 10,
                            theme.color_mb_listitem_text)
             pmap.set_clip_rect()

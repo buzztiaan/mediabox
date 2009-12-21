@@ -44,25 +44,26 @@ class AudioArtistStorage(Device):
 
         def f():
             # add new files to index
+            self.__index.clear()
             total_length = len(added)
             cnt = 0
-            for path in added:
+            for path in media:
                 cnt += 1
-                percent = int((cnt / float(total_length)) * 100)
-                self.emit_message(msgs.UI_ACT_SHOW_MESSAGE,
-                                  "Updating Index",
-                                  #"- %s -" % folder.name,
-                                  "- %d%% complete -" % (percent),
-                                  self.get_icon())
+                #percent = int((cnt / float(total_length)) * 100)
+                #self.emit_message(msgs.UI_ACT_SHOW_MESSAGE,
+                #                  "Updating Index",
+                #                  #"- %s -" % folder.name,
+                #                  "- %d%% complete -" % (percent),
+                #                  self.get_icon())
                                 
                 #self.__index.remove_file(path)
                 self.__index.add_file(path)
             #end for
             
             # delete removed files from index
-            for path in removed:
-                self.__index.remove_file(path)
-            #end for
+            #for path in removed:
+            #    self.__index.remove_file(path)
+            ##end for
 
             self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
           
@@ -72,8 +73,8 @@ class AudioArtistStorage(Device):
                                  ["audio/"])
         print "ADDED", added
         print "REMOVED", removed
-        if (not media):
-            self.__index.clear()
+        #if (not media):
+        #    self.__index.clear()
         #finished = threading.Event()
         #gobject.idle_add(f)        
         #threads.wait_for(lambda :finished.isSet())

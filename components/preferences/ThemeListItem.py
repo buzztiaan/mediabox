@@ -41,9 +41,9 @@ class ThemeListItem(Item):
                 info += "\nby " + self.__author
 
             pmap.set_clip_rect(0, 0, w, h)
-            pmap.draw_text(self.__label, theme.font_mb_listitem,
-                            128, 10, theme.color_mb_listitem_text)
-            pmap.draw_text(info, theme.font_mb_listitem,
+            pmap.draw_text(self.__label, theme.font_mb_headline,
+                            128, 2, theme.color_mb_listitem_text)
+            pmap.draw_text(info, theme.font_mb_plain,
                             128, 30, theme.color_mb_listitem_subtext)
             pmap.set_clip_rect()
         #end if

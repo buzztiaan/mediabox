@@ -27,9 +27,9 @@ class ButtonItem(Item):
                             pmap.LEFT | pmap.RIGHT)
 
             pmap.set_clip_rect(5, 5, w - 10, h - 10)
-            pmap.draw_centered_text(self.__label, theme.font_mb_tiny,
+            pmap.draw_centered_text(self.__label, theme.font_mb_plain,
                                     0, 0, w, h,
-                                    theme.color_mb_listitem_text)
+                                    theme.color_mb_button_text)
             pmap.set_clip_rect()
         #end if
         

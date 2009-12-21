@@ -15,6 +15,9 @@ MEDIA_VIDEO = 1
 MEDIA_AUDIO = 2
 MEDIA_IMAGE = 4
 
+ORIENTATION_LANDSCAPE = "landscape"
+ORIENTATION_PORTRAIT = "portrait"
+
 
 _cfg = Config("",
               [("current_device", Config.STRING, ""),
@@ -23,6 +26,7 @@ _cfg = Config("",
                              ["/home/user/MyDocs",
                               "/media"]),
                ("mediaroot_types", Config.INTEGER_LIST, []),
+               ("orientation", Config.STRING, ORIENTATION_LANDSCAPE),
                ("repeat_mode", Config.STRING, REPEAT_MODE_NONE),
                ("shuffle_mode", Config.STRING, SHUFFLE_MODE_NONE),
                ("scan_at_startup", Config.BOOL, True),
@@ -85,6 +89,15 @@ def set_mediaroot(l):
     _cfg["mediaroot"] = roots
     _cfg["mediaroot_types"] = mtypes
 
+
+def orientation():
+
+    return _cfg["orientation"]
+    
+    
+def set_orientation(o):
+
+    _cfg["orientation"] = o
 
 
 def repeat_mode():

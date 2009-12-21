@@ -23,6 +23,8 @@ class Widget(EventEmitter):
     
     SLIDE_LEFT = 0
     SLIDE_RIGHT = 1
+    SLIDE_UP = 2
+    SLIDE_DOWN = 3
     
     # static lock for animations
     __animation_lock = threading.Event()
@@ -63,6 +65,9 @@ class Widget(EventEmitter):
         
         self.__position = (0, 0)
         self.__size = (0, 0)
+
+        # render overlay handlers
+        self.__overlayers = []
         
         self.__clip_rect = None
         
@@ -157,7 +162,7 @@ class Widget(EventEmitter):
         
         if (ev == Widget.EVENT_BUTTON_PRESS):
             zone = self._find_zone_at(px, py, ev)
-            print "ZONE", px, py, zone
+            #print "ZONE", px, py, zone
                 
             """
             for wdgt in self._zones:
@@ -247,6 +252,11 @@ class Widget(EventEmitter):
         """
         
         return self.__animation_lock.isSet()
+
+    
+    def add_overlayer(self, overlayer):
+    
+        self.__overlayers.append(overlayer)
 
 
     def get_children(self):
@@ -736,6 +746,20 @@ class Widget(EventEmitter):
         pass
 
 
+    def render_overlays(self, screen):
+        """
+        Invokes the registered overlay handlers on the given screen. The screen
+        is usually an offscreen buffer.
+        """
+        
+        for o in self.__overlayers:
+            try:
+                o(self, screen)
+            except:
+                pass
+        #end for
+
+
     def overlay_this(self):
         """
         Widgets may override this method for overlay effects. This method is
@@ -992,4 +1016,62 @@ class Widget(EventEmitter):
         scr_x, scr_y = self.get_screen_pos()
         screen = self.get_screen()
         self.animate(50, fx, [0, w])
+
+
+    def fx_slide_vertical(self, buf, x, y, w, h, direction):
+
+        def fx(params):
+            from_y, to_y = params
+            dy = (to_y - from_y) / 3
+
+            if (dy > 0):
+                if (direction == self.SLIDE_UP):
+                    screen.move_area(scr_x + x, scr_y + y + dy,
+                                     w, h - dy,
+                                     0, -dy)
+                    screen.copy_pixmap(buf,
+                                       x, y + from_y,
+                                       scr_x + x, scr_y + y + h - dy,
+                                       w, dy)
+                else:
+                    screen.move_area(scr_x + x, scr_y + y,
+                                     w, h - dy,
+                                     0, dy)
+                    screen.copy_pixmap(buf,
+                                       x, y + h - from_y - dy,
+                                       scr_x + x, scr_y + y,
+                                       w, dy)
+
+                params[0] = from_y + dy
+                params[1] = to_y
+                return True
+
+            else:
+                dy = to_y - from_y
+                if (direction == self.SLIDE_UP):
+                    screen.move_area(scr_x + x, scr_y + y + dy,
+                                     w, h - dy,
+                                     0, -dy)
+                    screen.copy_pixmap(buf,
+                                       x, y + from_y,
+                                       scr_x + x,
+                                       scr_y + y + h - dy,
+                                       w, dy)
+                else:
+                    screen.move_area(scr_x + x, scr_y + y,
+                                     w, h - dy,
+                                     0, dy)
+                    screen.copy_pixmap(buf,
+                                       x, y + h - from_y,
+                                       scr_y + x, scr_y + y,
+                                       w, dy)
+                
+                return False
+
+
+        if (not self.may_render()): return
+
+        scr_x, scr_y = self.get_screen_pos()
+        screen = self.get_screen()
+        self.animate(50, fx, [0, h])
 

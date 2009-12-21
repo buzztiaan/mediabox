@@ -16,12 +16,12 @@ from theme import theme
 
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
-    <widget name="btn_nav" x1="0" y1="-80" x2="80" y2="100%"/>
+    <widget name="btn_nav" x1="0" y1="-64" x2="64" y2="100%"/>
     <widget name="progress" x1="90" y1="-50" x2="-90" y2="-10"/>
     <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
-    <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
+    <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
     
-    <widget name="cover" x1="50" y1="10" x2="48%" y2="-80"/>
+    <widget name="cover" x1="50" y1="10" x2="48%" y2="-64"/>
     <widget name="lbl_title" x1="50%" y1="10" x2="-90" y2="50"/>
     <widget name="trackinfo" x1="50%" y1="60" x2="-90" y2="160"/>
   </arrangement>
@@ -30,7 +30,7 @@ _LANDSCAPE_ARRANGEMENT = """
 
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
-    <widget name="btn_nav" x1="-80" y1="0" x2="100%" y2="80"/>
+    <widget name="btn_nav" x1="-64" y1="0" x2="100%" y2="64"/>
     <widget name="progress" x1="50" y1="-130" x2="-50" y2="-90"/>
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
     <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
@@ -95,8 +95,8 @@ class AudioPlayer(Player):
         #self.add(self.__volume_slider)
         
         # navigator button
-        self.__btn_navigator = ImageButton(theme.mb_btn_play_1,
-                                           theme.mb_btn_play_2)
+        self.__btn_navigator = ImageButton(theme.mb_btn_navigator_1,
+                                           theme.mb_btn_navigator_2)
         self.__btn_navigator.connect_clicked(self.__on_btn_navigator)
         #self.add(self.__btn_navigator)
 
@@ -177,12 +177,18 @@ class AudioPlayer(Player):
     
         if (ctx_id == self.__context_id):
             if (status == self.__player.STATUS_PLAYING):
+                self.__btn_play.set_images(theme.mb_btn_pause_1,
+                                           theme.mb_btn_pause_2)
                 self.emit_message(msgs.MEDIA_EV_PLAY)
 
             elif (status == self.__player.STATUS_STOPPED):
+                self.__btn_play.set_images(theme.mb_btn_play_1,
+                                           theme.mb_btn_play_2)
                 self.emit_message(msgs.MEDIA_EV_PAUSE)
 
             elif (status == self.__player.STATUS_EOF):
+                self.__btn_play.set_images(theme.mb_btn_play_1,
+                                           theme.mb_btn_play_2)
                 self.emit_message(msgs.MEDIA_EV_EOF)
                 self.emit_message(msgs.MEDIA_ACT_NEXT)
 
@@ -245,7 +251,7 @@ class AudioPlayer(Player):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        #screen.fill_area(x, y, w, h, theme.color_mb_background)
+        screen.fill_area(x, y, w, h, theme.color_mb_background)
         self.__arr.set_geometry(0, 0, w, h)
         
         
@@ -306,16 +312,18 @@ class AudioPlayer(Player):
 
     def handle_INPUT_EV_VOLUME_UP(self):
     
-        self.__volume = min(100, self.__volume + 5)
-        self.__volume_slider.set_value(self.__volume / 100.0)
-        if (self.__player):
-            self.__player.set_volume(self.__volume)
+        if (self.is_visible()):
+            self.__volume = min(100, self.__volume + 5)
+            self.__volume_slider.set_value(self.__volume / 100.0)
+            if (self.__player):
+                self.__player.set_volume(self.__volume)
         
         
     def handle_INPUT_EV_VOLUME_DOWN(self):
-    
-        self.__volume = max(0, self.__volume - 5)
-        self.__volume_slider.set_value(self.__volume / 100.0)
-        if (self.__player):
-            self.__player.set_volume(self.__volume)
+
+        if (self.is_visible()):    
+            self.__volume = max(0, self.__volume - 5)
+            self.__volume_slider.set_value(self.__volume / 100.0)
+            if (self.__player):
+                self.__player.set_volume(self.__volume)
 

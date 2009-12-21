@@ -1,11 +1,18 @@
 #
 # Fonts
 #
-font_mb_headline: Nokia Sans bold 22
-font_mb_plain:    Nokia Sans Cn 16
-font_mb_tiny:     Nokia Sans Cn 13
+font_mb_headline: Nokia Sans bold 20
+font_mb_plain:    Nokia Sans Cn 18
+font_mb_tiny:     Nokia Sans Cn 12
 font_mb_micro:    Nokia Sans Cn 10
 font_mb_list_letter: Nokia Sans bold 42
+
+
+#
+# Buttons
+#
+color_mb_button_text: #ffffff
+
 
 #
 # Background
@@ -103,4 +110,17 @@ color_mb_image_background_fullscreen: #101010
 # Sleep Timer
 #
 font_mb_clocksetter: Nokia Sans bold 96
+
+
+#
+# FM Scale
+#
+color_fmradio_scale_ticks1: #ffffff
+color_fmradio_scale_ticks2: #20789b
+color_fmradio_scale_bg: #000005
+color_fmradio_scale_text: #ffffff
+color_fmradio_scale_needle: #ff000060
+font_fmradio_scale: Sans 20
+font_fmradio_scale_station: Sans 18
+color_fmradio_scale_station: #00ff00
 

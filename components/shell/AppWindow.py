@@ -110,6 +110,7 @@ class AppWindow(Component, Window):
         
     def __on_menu_fmtx(self):
     
+        #self.__show_dialog("FMTXDialog")
         import platforms
         platforms.plugin_execute("libcpfmtx.so")
 

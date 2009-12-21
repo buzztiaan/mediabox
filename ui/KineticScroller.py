@@ -42,8 +42,6 @@ class KineticScroller(EventEmitter, Observable):
 
     def __init__(self, child):
     
-        self.__is_enabled = True
-    
         self.__is_click = False
         self.__is_button_pressed = False        
     
@@ -56,6 +54,7 @@ class KineticScroller(EventEmitter, Observable):
         self.__drag_pointer = (0, 0)
         self.__drag_begin = 0
         self.__pointer = (0, 0)
+        self.__drag_threshold = _DRAG_THRESHOLD
                 
         # whether kinetic scrolling is enabled
         self.__kinetic_enabled = True
@@ -102,9 +101,14 @@ class KineticScroller(EventEmitter, Observable):
         self._connect(self.EVENT_TAP_AND_HOLD, cb, *args)
 
 
-    def set_enabled(self, v):
+    def set_drag_threshold(self, t):
+        """
+        Sets the threshold amount for registering motions as dragging.
+        
+        @param t: threshold in pixels
+        """
     
-        self.__is_enabled = v
+        self.__drag_threshold = t
 
 
     def impulse(self, force_x, force_y):
@@ -150,6 +154,7 @@ class KineticScroller(EventEmitter, Observable):
         #    return False
         #else:
         #    self.__impulse_point = now
+        
         if (self.__is_dragging or (abs(delta_sx) < 1 and abs(delta_sy) < 1)):
             # shut down impulse handler when not needed to save battery
             self.__impulse_handler_running = False
@@ -171,7 +176,7 @@ class KineticScroller(EventEmitter, Observable):
             # it will block
             #gtk.main_iteration(False)
             gobject.timeout_add(0, self.__impulse_handler)
-
+        
 
     def __begin_tap_and_hold(self):
     
@@ -200,7 +205,7 @@ class KineticScroller(EventEmitter, Observable):
                 
         
     def __on_button_pressed(self, px, py):
-       
+    
         self.__pointer = (px, py)
         self.__is_button_pressed = True
 
@@ -224,7 +229,7 @@ class KineticScroller(EventEmitter, Observable):
         
         if (self.__is_click):
             click_duration = (time.time() - self.__click_begin) * 1000
-            print "click duration:", click_duration, "ms"
+            #print "click duration:", click_duration, "ms"
             if (click_duration > _CLICK_THRESHOLD):
                 self.emit_event(self.EVENT_CLICKED, px, py)
         #end if
@@ -234,7 +239,7 @@ class KineticScroller(EventEmitter, Observable):
         self.__scrolling = False
      
         # start up impulse handler if not running
-        if (self.__is_enabled and not self.__impulse_handler_running):
+        if (not self.__impulse_handler_running):
             self.__impulse_handler_running = True
             self.__impulse_handler()
 
@@ -242,6 +247,7 @@ class KineticScroller(EventEmitter, Observable):
     def __on_drag(self, px, py):
 
         if (not self.__is_button_pressed): return
+
 
         prev_px, prev_py = self.__pointer
         self.__pointer = (px, py)
@@ -251,8 +257,8 @@ class KineticScroller(EventEmitter, Observable):
 
 
         # begin dragging
-        if (not self.__is_dragging and (abs(dx) > _DRAG_THRESHOLD or \
-                                        abs(dy) > _DRAG_THRESHOLD)):
+        if (not self.__is_dragging and (abs(dx) > self.__drag_threshold or \
+                                        abs(dy) > self.__drag_threshold)):
             self.__abort_tap_and_hold()
             self.__is_click = False
             self.__is_dragging = True
@@ -278,9 +284,8 @@ class KineticScroller(EventEmitter, Observable):
             
             self.__impulse_point = now
             self.__drag_pointer = (px, py)
-                       
-            if (self.__is_enabled and
-                (abs(self.__delta_s[0]) > 0.1 or abs(self.__delta_s[1]) > 0.1)):
+            
+            if (abs(self.__delta_s[0]) > 0.1 or abs(self.__delta_s[1]) > 0.1):
                 
                 if (not self.__scrolling):
                     self.emit_event(self.EVENT_SCROLLING_STARTED)

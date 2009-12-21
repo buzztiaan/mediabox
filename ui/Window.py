@@ -78,14 +78,14 @@ class Window(Widget):
         if (platforms.PLATFORM == platforms.MAEMO5):
             self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
 
-        """
+        
         if (platforms.PLATFORM in (platforms.MAEMO5, platforms.MER)):
             # we need to notify Maemo5 that we want to use the volume keys
             self.__window.window.property_change("_HILDON_ZOOM_KEY_ATOM",
                                                  "XA_INTEGER", 32,
                                                  gtk.gdk.PROP_MODE_REPLACE,
                                                  [1])                
-        """
+        
 
         self.__fixed = gtk.Fixed()
         self.__fixed.show()
