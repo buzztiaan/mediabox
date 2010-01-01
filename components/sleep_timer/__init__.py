@@ -1,5 +1,5 @@
 def get_classes():
 
-    from Prefs import Prefs
-    return [] #Prefs]
+    #from SleepTimerPrefs import SleepTimerPrefs
+    return [] #SleepTimerPrefs]
 

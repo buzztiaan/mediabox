@@ -23,7 +23,7 @@ class CoverStore(Component):
                 if (cover):
                     imageloader.load(cover, cb, *args)
                 else:
-                    cb(theme.mb_unknown_album, *args)
+                    cb(None, *args)
                     
             else:
                 # it's a regular file
@@ -35,13 +35,13 @@ class CoverStore(Component):
                     if (embedded):
                         imageloader.load_data(embedded, cb, *args)
                     else:
-                        cb(theme.mb_unknown_album, *args)
+                        cb(None, *args)
 
                 #end if   
 
         else:
             # it's a remote file
-            cb(theme.mb_unknown_album, *args)
+            cb(None, *args)
         
     
         # tell the message bus that we handled this service call

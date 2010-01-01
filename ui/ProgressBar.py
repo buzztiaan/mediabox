@@ -82,11 +82,11 @@ class ProgressBar(Widget):
         #pbuf2 = theme.mb_progress.subpixbuf(5, 0, 5, 64)
     
         self.__bg_pmap = Pixmap(None, w, h)
-        self.__bg_pmap.fill_area(0, 0, w, h, "#000000")
+        self.__bg_pmap.fill_area(0, 0, w, h, theme.color_mb_background)
         #self.__bg_pmap.copy_pixmap(screen, x, y, 0, 0, w, h)
         
         self.__progress_pmap = Pixmap(None, w, h)
-        self.__progress_pmap.fill_area(0, 0, w, h, "#000000")
+        self.__progress_pmap.fill_area(0, 0, w, h, theme.color_mb_background)
         #self.__progress_pmap.copy_pixmap(screen, x, y, 0, 0, w, h)
         
         #self.__bg_pmap.draw_pixbuf(pbuf1, 0, 0, w, h, True)

@@ -3,10 +3,10 @@ import time
 
 NAME = "MediaBox"
 OSSO_NAME = "de.pycage.mediabox"
-VERSION = "2009.11svn"
+VERSION = "2010.01svn"
 
 AUTHORS = ["Martin Grimme  <martin.grimme@lintegra.de>"]
-COPYRIGHT = "\xc2\xa9 2007 - 2009 Martin Grimme"
+COPYRIGHT = "\xc2\xa9 2007 - 2010 Martin Grimme"
 
 USER_DIR = os.path.expanduser("~/.mediabox")
 MEDIABOX_DIR = os.path.join(os.path.dirname(__file__), "..")

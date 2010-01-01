@@ -22,7 +22,12 @@ class ButtonItem(Item):
         if (is_new):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
-            pmap.draw_frame(theme.mb_button_1, 4, 4, w - 8, h - 8,
+            if (self.is_marked()):
+                btn_pbuf = theme.mb_button_2
+            else:
+                btn_pbuf = theme.mb_button_1
+
+            pmap.draw_frame(btn_pbuf, 4, 4, w - 8, h - 8,
                             pmap.TOP | pmap.BOTTOM |
                             pmap.LEFT | pmap.RIGHT)
 

@@ -18,7 +18,7 @@ class GenericThumbnailer(Thumbnailer):
     def make_quick_thumbnail(self, f):
 
         if (f.mimetype == "application/x-folder"):    
-            return (theme.mb_filetype_folder.get_path(), True)
+            return (theme.mb_folder_normal.get_path(), True)
         else:
-            return (theme.mb_filetype_unknown.get_path(), True)
+            return (theme.mb_file_unknown.get_path(), True)
 

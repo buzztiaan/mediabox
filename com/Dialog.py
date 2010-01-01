@@ -13,6 +13,8 @@ class Dialog(Component, Window):
     """
     Base class for dialog components.
     Dialogs can be brought up via the UI_ACT_SHOW_DIALOG(name) message.
+    Every dialog must have a unique class name among all dialogs. Alternatively,
+    you may override the C{__repr__} method for returning a unique name.
 
     @since: 2009.11.17
     """

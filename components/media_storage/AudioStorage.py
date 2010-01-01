@@ -1,13 +1,9 @@
 from com import msgs
 
 from storage import Device, File
+from utils import urlquote
 from utils import logging
-from mediabox import tagreader
 from theme import theme
-
-import os
-import commands
-
 
 
 class AudioStorage(Device):
@@ -18,31 +14,8 @@ class AudioStorage(Device):
 
     def __init__(self):
     
-        self.__albums = []
-        self.__media_was_updated = False
-    
         Device.__init__(self)
         
-        
-    def handle_MEDIASCANNER_EV_SCANNING_FINISHED(self):
-    
-        #self.__update_media()
-        self.__media_was_updated = True
-
-
-    def __update_media(self):
-    
-        self.__albums = []
-
-        media, nil, nil = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
-                                            [File.DIRECTORY])
-        for f in media:
-            self.__albums.append(f)
-        #end for
-        self.__albums.sort()
-        
-        self.__media_was_updated = False
-          
         
     def get_prefix(self):
     
@@ -51,122 +24,108 @@ class AudioStorage(Device):
         
     def get_name(self):
     
-        return "Music Folders"
+        return "Folders"
 
 
     def get_icon(self):
     
-        return theme.mb_device_folders
+        return theme.mb_folder_normal
 
 
-    def get_root(self):
-    
+    def __make_folder(self, folder_name):
+
         f = File(self)
         f.is_local = True
-        f.path = "/"
+        f.path = "/" + urlquote.quote(folder_name, "")
         f.can_skip = True
-        f.mimetype = f.DEVICE_ROOT
+        f.mimetype = f.DIRECTORY
         f.resource = ""
-        f.name = self.get_name()
-        f.icon = self.get_icon().get_path()
-        f.info = "Browse your music library by folders"
-        
+        f.name = folder_name
+        f.acoustic_name = "Folder: " + f.name
+        #f.info = "%d items" % len(self.__folders.get(folder_name, []))
+        f.folder_flags = f.ITEMS_ENQUEUEABLE | \
+                         f.ITEMS_SKIPPABLE
+
         return f
 
 
     def get_file(self, path):
     
-        f = File(self)
-    
-    
-    def ls_async(self, path, cb, *args):
-    
-        if (self.__media_was_updated):
-            self.__update_media()
-    
-        if (path == "/"):
-            for album in self.__albums:
-                f = File(self)
-                f.is_local = True
-                f.name = album.name
-                f.acoustic_name = f.name
-                f.info = album.info
-                f.mimetype = "application/x-music-folder"
-                f.thumbnail_md5 = album.md5
-                f.path = album.path
-                f.resource = album.resource
-                f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                                 f.ITEMS_SKIPPABLE
+        parts = [ p for p in path.split("/") if p ]
+        len_parts = len(parts)
+        
+        f = None
+        if (len_parts == 0):
+            f = File(self)
+            f.is_local = True
+            f.can_skip = True
+            f.path = "/"
+            f.mimetype = f.DEVICE_ROOT
+            f.resource = ""
+            f.name = self.get_name()
+            f.info = "Browse your music by folders"
+            f.icon = self.get_icon().get_path()
+            f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
+            
+        elif (len_parts == 1):
+            folder_name = urlquote.unquote(parts[0])
+            f = self.__make_folder(folder_name)
 
-                cb(f, *args)
-            #end for
-            
-            cb(None, *args)
-            
-        else:
-            album = None
-            for a in self.__albums:
-                if (a.path == path):
-                    album = a
-                    break
-            #end for
-            
-            if (not album): return
+        return f      
 
-            tracks = []
-            for f in album.get_children():
-                if (not f.mimetype.startswith("audio")):
-                    continue
-                                   
-                tags = tagreader.get_tags(f)
-                f.name = tags.get("TITLE") or f.name
-                f.info = tags.get("ARTIST") or "unknown"
-                try:
-                    trackno = tags.get("TRACKNUMBER")
-                    trackno = trackno.split("/")[0]
-                    trackno = int(trackno)
-                except:
-                    trackno = 0
-                f.index = trackno
-                f.thumbnail_md5 = album.thumbnail_md5
+
+    def get_contents(self, folder, begin_at, end_at, cb, *args):
+
+        def folder_cmp(a, b):
+            if (a == "All Tracks"):
+                return -1
+            if (b == "All Tracks"):
+                return 1
+            else:
+                return cmp(a, b)
+
+
+        parts = [ p for p in folder.path.split("/") if p ]
+        len_parts = len(parts)
+               
+        items = []
+        if (len_parts == 0):
+            # list folders
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                                    "File.Folder of File.Type='audio'")
+            res.add(("All Tracks",))
+            for folder_name, in res:
+                f = self.__make_folder(folder_name)
+                if (f): items.append(f)
+            #end for
+                       
+        elif (len_parts == 1):
+            # list videos
+            folder_name = urlquote.unquote(parts[0])
+            if (folder_name == "All Tracks"):
+                query = "File.Path of File.Type='audio'"
+                query_args = ()
+            else:
+                query = "File.Path of and File.Type='audio' File.Folder='%s'"
+                query_args = (folder_name,)
                 
-                tracks.append(f)
-            #end for
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                                    query, *query_args)
+            for path, in res:
+                f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
+                if (f):
+                    items.append(f)
+            #end if
+        #end if
             
-            tracks.sort()
-            for trk in tracks:
-                cb(trk, *args)
-            cb(None, *args)
-
-
-        #end if        
-
-
-
-
-    def load(self, resource, maxlen, cb, *args):
-    
-        fd = open(resource, "r")
-        fd.seek(0, 2)
-        total_size = fd.tell()
-        fd.seek(0)
-        read_size = 0
-        while (True):
-            d = fd.read(65536)
-            read_size += len(d)
-            
-            try:
-                cb(d, read_size, total_size, *args)
-            except:
-                break
-            
-            if (d and maxlen > 0 and read_size >= maxlen):
-                try:
-                    cb("", read_size, total_size, *args)
-                except:
-                    pass
-                break
-            elif (not d):
-                break
-        #end while
+        items.sort()
+        
+        cnt = -1
+        for item in items:
+            cnt += 1
+            if (cnt < begin_at): continue
+            if (end_at and cnt > end_at): break
+            cb(item, *args)
+        #end for
+        cb(None, *args)
 

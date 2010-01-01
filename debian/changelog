@@ -1,8 +1,34 @@
-mediabox (2009.11.12) unstable; urgency=low
+mediabox (2009.01.01) unstable; urgency=low
+
+  Theme graphics
+  
+  Fixed portrait mode image viewer
+  
+  Fixed portrait mode video player (will only play sound in portrait mode, but
+  at least no longer crashes the app)
+  
+  Volume/zoom keys can be swapped in portrait mode
+  
+  Compact view has four columns of icons in landscape mode
+  
+  Support for enhanced LRC lyrics with Karaoke-style highlighting
+  
+  A semaphore between video player and video thumbnailer helps avoid system
+  crashes with both struggling for the DSP
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Fri, 01 Jan 2010 23:00:00 +0100
+
+mediabox (2009.12.27) unstable; urgency=low
+
+  New file index implementation
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 27 Dec 2009 13:00:00 +0100
+
+mediabox (2009.12.22) unstable; urgency=low
 
   Bug fixes and cleaning up
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 12 Nov 2009 22:45:00 +0100
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 22 Dec 2009 18:45:00 +0100
 
 mediabox (2009.11.2) unstable; urgency=low
 

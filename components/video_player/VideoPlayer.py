@@ -12,6 +12,7 @@ from theme import theme
 from utils import logging
 
 import gobject
+import gtk
 
 
 _LANDSCAPE_ARRANGEMENT = """
@@ -33,14 +34,15 @@ _LANDSCAPE_ARRANGEMENT = """
 """
 
 # hmm, there is no such thing as portrait mode video. Fremantle either does not
-# rotate or will just crash hard, depending on firmware version
+# rotate or will just crash, depending on firmware version
+# we simply hide the video screen while in portrait mode and play sound only
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
     <widget name="btn_nav" x1="-64" y1="0" x2="100%" y2="64"/>
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
 
     <widget name="screen" x1="40" y1="0" x2="100%" y2="-80"/>
-    <widget name="progress" x1="50" y1="-90" x2="-50" y2="-130"/>
+    <widget name="progress" x1="50" y1="-130" x2="-50" y2="-90"/>
     <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
   </arrangement>
 """
@@ -51,6 +53,7 @@ class VideoPlayer(Player):
     def __init__(self):
 
         self.__is_fullscreen = False
+        self.__is_portrait = False
         self.__volume = 50
 
         self.__player = None
@@ -58,6 +61,7 @@ class VideoPlayer(Player):
         self.__is_playing = False
         
         self.__blanking_handler = None
+        
 
         Player.__init__(self)
         
@@ -84,8 +88,8 @@ class VideoPlayer(Player):
 
 
         # navigator button
-        self.__btn_navigator = ImageButton(theme.mb_btn_history_1,
-                                           theme.mb_btn_history_2)
+        self.__btn_navigator = ImageButton(theme.mb_btn_navigator_1,
+                                           theme.mb_btn_navigator_2)
         self.__btn_navigator.connect_clicked(
              lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "Navigator"))
 
@@ -132,8 +136,10 @@ class VideoPlayer(Player):
 
 
     def __on_btn_play(self):
-    
+
         if (self.__player):
+            if (not self.__is_playing):
+                self.__wait_for_dsp()
             self.__player.pause()
 
 
@@ -149,8 +155,9 @@ class VideoPlayer(Player):
 
     def __on_tap(self, px, py):
     
-        if (self.__player):
-            self.__player.pause()
+        #if (self.__player):
+        #    self.__player.pause()
+        self.__toggle_fullscreen()
 
 
     def __on_tap_tap(self, px, py):
@@ -175,6 +182,7 @@ class VideoPlayer(Player):
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)
                 self.__is_playing = True
+                self.__progress.set_message("")
                 self.emit_message(msgs.MEDIA_EV_PLAY)
                 
                 # we need manual unblanking on Maemo5 for videos
@@ -188,12 +196,14 @@ class VideoPlayer(Player):
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
                 self.__is_playing = False
+                self.call_service(msgs.VIDEOPLAYER_SVC_RELEASE_DSP)
                 self.emit_message(msgs.MEDIA_EV_PAUSE)
 
             elif (status == self.__player.STATUS_EOF):
                 self.__btn_play.set_images(theme.mb_btn_play_1,
                                            theme.mb_btn_play_2)
                 self.__is_playing = False
+                self.call_service(msgs.VIDEOPLAYER_SVC_RELEASE_DSP)
                 self.emit_message(msgs.MEDIA_EV_EOF)
 
 
@@ -248,12 +258,14 @@ class VideoPlayer(Player):
         self.render()
 
 
+    """
     def _visibility_changed(self):
     
         if (self.is_visible()):
             self.emit_message(msgs.ASR_ACT_FORCE_LANDSCAPE, True)
         else:
             self.emit_message(msgs.ASR_ACT_FORCE_LANDSCAPE, False)
+    """
             
 
     def render_this(self):
@@ -265,16 +277,32 @@ class VideoPlayer(Player):
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         self.__arr.set_geometry(0, 0, w, h)
         
+        if (self.__is_portrait):
+            screen.draw_centered_text("Video cannot be displayed in\n" \
+                                      "portrait mode.",
+                                      theme.font_mb_plain,
+                                      0, h / 2 - 80, w, 0, theme.color_mb_text)
+
         
     def get_mime_types(self):
     
         return ["video/*"]        
 
+
+    def __wait_for_dsp(self):
+
+        self.__progress.set_message("Waiting for DSP")
+        self.call_service(msgs.VIDEOPLAYER_SVC_LOCK_DSP)
+        self.__progress.set_message("")
+
+
         
     def load(self, f):
 
+        self.render()
+        self.__wait_for_dsp()
+
         self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
-        #self.__player = mediaplayer.get_player_for_mimetype(f.mimetype)
         self.__player.connect_status_changed(self.__on_status_changed)
         self.__player.connect_position_changed(self.__on_update_position)
         
@@ -291,14 +319,44 @@ class VideoPlayer(Player):
         
         uri = f.get_resource()
         try:
+            self.__progress.set_message("Loading")
             self.__context_id = self.__player.load_video(f)
             self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
         except:
+            self.__progress.set_message("Error")
             logging.error("error loading media file: %s\n%s",
                           uri, logging.stacktrace())
 
+        #self.render()
+
+
+    def handle_MEDIA_ACT_PAUSE(self):
+    
+        if (self.__player):
+            if (not self.__is_playing):
+                self.__wait_for_dsp()
+            self.__player.pause()
+                
+
+
+    def handle_MEDIA_ACT_STOP(self):
+    
+        if (self.__player):
+            self.__player.stop()
+
+
+    def handle_ASR_EV_LANDSCAPE(self):
+
+        self.__is_portrait = False
+        self.__screen.set_visible(True)
         self.render()
         
+        
+    def handle_ASR_EV_PORTRAIT(self):
+
+        self.__is_portrait = True
+        self.__screen.set_visible(False)
+        self.render()
         
         
     def handle_INPUT_EV_FULLSCREEN(self):

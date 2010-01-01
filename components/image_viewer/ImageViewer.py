@@ -21,7 +21,7 @@ _SLIDESHOW_MAX_TIMEOUT = 60
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
     <if-visible name="toolbar">
-      <widget name="btn_nav" x1="0" y1="-80" x2="80" y2="100%"/>
+      <widget name="btn_nav" x1="0" y1="-64" x2="64" y2="100%"/>
       <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
       <widget name="image" x1="0" y1="0" x2="-80" y2="100%"/>
     </if-visible>
@@ -37,7 +37,12 @@ _PORTRAIT_ARRANGEMENT = """
   <arrangement>
     <widget name="image" x1="0" y1="0" x2="100%" y2="-80"/>
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
-    <widget name="btn_nav" x1="-80" y1="0" x2="100%" y2="80"/>
+    <widget name="btn_nav" x1="-64" y1="0" x2="100%" y2="64"/>
+
+    <!-- fullscreen mode -->
+    <if-invisible name="toolbar">
+      <widget name="image" x1="0%" y1="0%" x2="100%" y2="100%"/>
+    </if-invisible>
   </arrangement>
 """
 
@@ -70,15 +75,14 @@ class ImageViewer(Player):
         gestures = Gestures(self.__image)
         gestures.connect_twirl(self.__on_twirl_gesture, kscr)
         gestures.connect_release(self.__on_release, kscr)
-        gestures.connect_hold(self.__on_hold)
-        gestures.connect_tap_hold(self.__on_tap_hold)
+        #gestures.connect_hold(self.__on_hold)
+        #gestures.connect_tap_hold(self.__on_tap_hold)
         gestures.connect_tap_tap(self.__on_tap_tap)
         gestures.connect_swipe(self.__on_swipe)
 
 
         # navigator button
-        self.__btn_navigator = EventBox()#ImageButton(theme.mb_btn_history_1,
-                                         #  theme.mb_btn_history_2)
+        self.__btn_navigator = EventBox()
         self.__btn_navigator.connect_clicked(
              lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "Navigator"))
 
@@ -283,4 +287,21 @@ class ImageViewer(Player):
         self.__image.load(f)
         self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
         self.render()
+
+
+    def handle_MEDIA_ACT_PAUSE(self):
+    
+        self.__on_btn_play()
+
+
+    def handle_INPUT_EV_VOLUME_UP(self):
+    
+        if (self.is_visible() and self.__image):
+            self.__image.zoom_in(False)
+        
+        
+    def handle_INPUT_EV_VOLUME_DOWN(self):
+
+        if (self.is_visible() and self.__image):
+            self.__image.zoom_out(False) 
 

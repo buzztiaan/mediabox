@@ -54,7 +54,7 @@ class PlaylistDevice(Device):
         
     def get_icon(self):
     
-        return theme.mb_viewer_playlist
+        return theme.mb_folder_playlist
 
 
     def shift_file(self, folder, pos, amount):
@@ -69,20 +69,15 @@ class PlaylistDevice(Device):
         """
         
         dlg = InputDialog("Create New List")
-        dlg.add_input("Enter name of list:", "")
+        dlg.add_input("Name:", "")
         resp = dlg.run()
         name = dlg.get_values()[0]
-
-        #resp, name = self.call_service(msgs.DIALOG_SVC_TEXT_INPUT,
-        #                               "Create New List",
-        #                               "Enter name of list:")
 
         names = [ n for n, pl in self.__lists ]
         if (resp == 0 and name):
             if (name in names):
-                self.call_service(msgs.DIALOG_SVC_ERROR,
-                                  "Error",
-                                  u"There is already a playlist with name " \
+                self.emit_message(msgs.UI_ACT_SHOW_INFO,
+                                  u"There is already a list with name " \
                                   u"\xbb%s\xab." % name)
 
                 return None
@@ -96,11 +91,11 @@ class PlaylistDevice(Device):
                         
         #end if
 
-
+    """
     def delete_file(self, folder, idx):
-        """
+        ""
         Removes a playlist or a file from a playlist.
-        """
+        ""
     
         if (folder.path == "/"):
             playlists = [ pl for n, pl in self.__lists ]
@@ -125,7 +120,7 @@ class PlaylistDevice(Device):
             self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
 
         #end if
-
+    """
 
     def __ensure_special_playlists(self):
         """
@@ -247,7 +242,7 @@ class PlaylistDevice(Device):
             #f.info = "%d items" % pl.get_size()
             f.path = path
             f.mimetype = f.DIRECTORY
-            f.icon = theme.mb_viewer_playlist.get_path()
+            f.icon = theme.mb_folder_playlist.get_path()
             f.folder_flags = f.ITEMS_SKIPPABLE
 
             if (pl.get_name() != _PLAYLIST_RECENT_50):
@@ -305,7 +300,7 @@ class PlaylistDevice(Device):
             #f.info = "%d items" % pl.get_size()
             f.path = "/" + urlquote.quote(f.name)
             f.mimetype = f.DIRECTORY
-            f.icon = theme.mb_viewer_playlist.get_path()
+            f.icon = theme.mb_folder_playlist.get_path()
             f.folder_flags = f.ITEMS_SKIPPABLE
 
             if (pl.get_name() != _PLAYLIST_RECENT_50):
@@ -352,6 +347,16 @@ class PlaylistDevice(Device):
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
 
 
+    def __on_clear_playlist(self, folder, f):
+    
+        playlists = [ pl for n, pl in self.__lists if f.name == n ]
+        pl = playlists[0]       
+        
+        pl.clear()
+        pl.save()
+        self.emit_message(msgs.UI_ACT_SHOW_INFO, u"\xbb%s\xab cleared." % f.name)
+
+
     def __on_delete_item(self, folder, f):
     
         pl = self.__current_list
@@ -371,14 +376,14 @@ class PlaylistDevice(Device):
         options = []
         if (folder.path == "/"):
             options.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
-            if (f.name in _SPECIAL_PLAYLISTS):
-                options.append((None, "Clear List", self.__on_delete_playlist))
-            else:
-                options.append((None, "Delete", self.__on_delete_playlist))
-                options.append((None, "Rename", self.__on_delete_playlist))
+            options.append((None, "Clear List", self.__on_clear_playlist))
+
+            if (not f.name in _SPECIAL_PLAYLISTS):
+                options.append((None, "Delete List", self.__on_delete_playlist))
+                #options.append((None, "Rename", self.__on_delete_playlist))
 
         else:
-            options.append((None, "Delete", self.__on_delete_item))
+            options.append((None, "Remove from List", self.__on_delete_item))
 
         return options
         
@@ -406,7 +411,6 @@ class PlaylistDevice(Device):
         
             playlists = [ pl for n, pl in self.__lists
                           if not n in [_PLAYLIST_RECENT_50] ]
-            print "DLG", playlists, self.__lists
             for pl in playlists:
                 dlg.add_option(None, pl.get_name())
             if (dlg.run() == 0):
@@ -419,8 +423,9 @@ class PlaylistDevice(Device):
         #end if
 
         if (playlist):
-            self.call_service(msgs.NOTIFY_SVC_SHOW_INFO,
-                          u"adding \xbb%s\xab to %s" % (f.name, pl.get_name()))
+            self.emit_message(msgs.UI_ACT_SHOW_INFO,
+                          u"Adding \xbb%s\xab to %s" \
+                          % (f.name, playlist.get_name()))
             self.__add_item_to_playlist(playlist, f)
 
             playlist.save()

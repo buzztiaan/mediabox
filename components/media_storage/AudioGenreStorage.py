@@ -1,6 +1,4 @@
 from com import msgs
-from AudioArtistStorage import AudioArtistStorage
-from MusicIndex import MusicIndex
 from storage import Device, File
 from utils import urlquote
 from utils import logging
@@ -15,7 +13,7 @@ import threading
 
 
 
-class AudioGenreStorage(AudioArtistStorage):
+class AudioGenreStorage(Device):
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_AUDIO
@@ -23,7 +21,7 @@ class AudioGenreStorage(AudioArtistStorage):
 
     def __init__(self):
     
-        AudioArtistStorage.__init__(self)
+        Device.__init__(self)
 
        
     def get_prefix(self):
@@ -38,7 +36,7 @@ class AudioGenreStorage(AudioArtistStorage):
 
     def get_icon(self):
     
-        return theme.mb_device_genres
+        return theme.mb_folder_genre
 
         
     def __make_genre(self, genre):
@@ -48,6 +46,7 @@ class AudioGenreStorage(AudioArtistStorage):
         f.name = genre
         f.acoustic_name = genre
         f.mimetype = f.DIRECTORY
+        f.icon = theme.mb_folder_genre.get_path()
         f.folder_flags = f.ITEMS_ENQUEUEABLE | \
                          f.ITEMS_SKIPPABLE | \
                          f.ITEMS_COMPACT
@@ -91,7 +90,6 @@ class AudioGenreStorage(AudioArtistStorage):
         
     def get_contents(self, folder, begin_at, end_at, cb, *args):
     
-        self._check_for_updated_media()
         path = folder.path
 
         if (not path.endswith("/")): path += "/"
@@ -101,7 +99,9 @@ class AudioGenreStorage(AudioArtistStorage):
         items = []
         if (len_parts == 0):
             # list genres
-            for genre in self.get_index().list_genres():
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                                    "Audio.Genre of File.Type='audio'")
+            for genre, in res:
                 f = self.__make_genre(genre)
                 if (f): items.append(f)
             #end for
@@ -109,14 +109,14 @@ class AudioGenreStorage(AudioArtistStorage):
         elif (len_parts == 1):
             # list albums
             genre = urlquote.unquote(parts[0])
-            for artist in self.get_index().list_artists():
-                query = "genre=%s,artist=%s" % (genre, artist)
-                for album in self.get_index().query_albums(query):
-                    f = self.__make_album(artist, album)
-                    if (f): items.append(f)
-                #end for
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                         "Audio.Artist, Audio.Album of and File.Type='audio'" \
+                         "Audio.Genre='%s'",
+                         genre)
+            for artist, album in res:
+                f = self.__make_album(artist, album)
+                if (f): items.append(f)
             #end for
-            
         #end if
         
         items.sort()

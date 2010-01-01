@@ -37,6 +37,12 @@ class Playlist(object):
         self.__name = name
         # TODO: remove file of previous name
         self.__is_modified = True
+
+
+    def clear(self):
+    
+        self.__files = []
+        self.__is_modified = True
               
         
     def get_files(self):

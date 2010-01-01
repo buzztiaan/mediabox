@@ -1,9 +1,9 @@
 #
 # Fonts
 #
-font_mb_headline: Nokia Sans bold 20
-font_mb_plain:    Nokia Sans Cn 18
-font_mb_tiny:     Nokia Sans Cn 12
+font_mb_headline: Nokia Sans bold 22
+font_mb_plain:    Nokia Sans Cn 16
+font_mb_tiny:     Nokia Sans Cn 13
 font_mb_micro:    Nokia Sans Cn 10
 font_mb_list_letter: Nokia Sans bold 42
 

@@ -832,7 +832,20 @@ class Widget(EventEmitter):
         self.set_screen(real_screen)
         self.set_pos(real_x, real_y)
         #self.__check_zones()
+
+
+    def render_buffered(self, buf):
+        """
+        Renders this widget on screen using the given buffer for flicker-free
+        rendering.
         
+        @param buf: offscreen buffer
+        """
+
+        w, h = self.get_size()
+        self.render_at(buf)
+        self.get_screen().copy_buffer(buf, 0, 0, 0, 0, w, h)
+
         
     def skip_next_render(self):
         """

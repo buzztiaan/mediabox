@@ -39,10 +39,7 @@ class StorageBrowser(ThumbableGridView):
 
         # timestamp of the last list rendering
         self.__last_list_render_time = 0
-
-        # range of subfolder, if any
-        self.__subfolder_range = None
-        
+       
         # callback for loading thumbnails
         self.__thumbnailer = lambda *f:None
         
@@ -175,13 +172,13 @@ class StorageBrowser(ThumbableGridView):
 
     def __on_item_clicked(self, item):
     
-        idx = self.get_items().index(item)
+        #idx = self.get_items().index(item)
     
-        self.set_cursor(idx)
-        self.set_hilight(idx)
+        #self.set_cursor(idx)
+        #self.set_hilight(idx)
         #self.invalidate_item(idx)
-        self.invalidate()
-        self.render()
+        #self.invalidate()
+        #self.render()
 
         f = item.get_file()
         
@@ -440,10 +437,7 @@ class StorageBrowser(ThumbableGridView):
 
         
     def go_parent(self):
-    
-        #if (self.__subfolder_range):
-        #    self.__close_subfolder()
-        
+       
         if (len(self.__path_stack) > 1):
             self.__path_stack.pop()
             path, status = self.__path_stack.pop()
@@ -458,7 +452,8 @@ class StorageBrowser(ThumbableGridView):
         Reloads the current folder.
         """
         
-        self.load_folder(self.get_current_folder(), self.GO_NEW)  
+        if (self.get_current_folder()):
+            self.load_folder(self.get_current_folder(), self.GO_PARENT)
         
         
     def load_folder(self, folder, direction, force_reload = False):
@@ -470,7 +465,6 @@ class StorageBrowser(ThumbableGridView):
         @param force_reload: whether to force reloading the folder
         """
 
-        self.emit_event(self.EVENT_FOLDER_BEGIN, folder)
 
         # are we just reloading the same folder?
         reload_only = False
@@ -500,6 +494,8 @@ class StorageBrowser(ThumbableGridView):
             self.__path_stack.append([folder, _STATUS_INCOMPLETE])
 
         self.switch_item_set(folder.full_path)
+        self.set_cursor(-1)
+        self.emit_event(self.EVENT_FOLDER_BEGIN, folder)
         
         if (full_reload):
             # reload list
@@ -517,16 +513,6 @@ class StorageBrowser(ThumbableGridView):
         else:
             # don't reload list
             pass
-
-        if (folder.folder_flags & folder.ITEMS_COMPACT):
-            self.set_items_per_row(2)
-        else:
-            self.set_items_per_row(1)
-
-        #if (folder.folder_flags & folder.ITEMS_SORTABLE):
-        #    self.set_drag_sort_enabled(True)
-        #else:
-        #    self.set_drag_sort_enabled(False)
 
         # animate
         if (direction == self.GO_CHILD):
@@ -581,7 +567,10 @@ class StorageBrowser(ThumbableGridView):
             else:
                 #self.get_item(0).set_info("%d items" % len(self.get_files()))
                 #self.invalidate_item(0)
-                self.set_message("")
+                if (len(self.get_files()) > 0):
+                    self.set_message("")
+                else:
+                    self.set_message("Folder contains no media")
                 
                 # mark folder as complete
                 self.__path_stack[-1][1] = _STATUS_OK

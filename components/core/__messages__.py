@@ -321,6 +321,25 @@ Gets emitted when the list of bookmarks changes.
 """
 
 
+def THUMBNAIL_SVC_LOOKUP_THUMBNAIL(f): pass
+"""
+Looks up a thumbnail for the given file.
+
+@param f: file object
+@return: path of thumbnail file and whether the thumbnail is final
+"""
+
+def THUMBNAIL_SVC_LOAD_THUMBNAIL(f, cb, *args): pass
+"""
+Loads a thumbnail for the given file asynchronously, invoking the given callback
+when a thumbnail has been found or was created.
+
+@param f: file object
+@param cb: callback handler
+@param args: variable list of arguments to the callback handler
+"""
+
+
 def UI_ACT_FREEZE(): pass
 """
 Freezes UI updates globally. No parts of the UI are redrawn during a freeze.
@@ -354,6 +373,14 @@ it for, e.g., providing talk navigation.
 @since: 0.96.5
 
 @param text_to_say: text string
+"""
+
+def UI_ACT_SHOW_INFO(text): pass
+"""
+Displays an info notification.
+@since: 2009.12.22
+
+@param text: text to display
 """
 
 def UI_ACT_SHOW_MESSAGE(text, subtext, icon): pass

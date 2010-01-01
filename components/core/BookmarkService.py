@@ -8,6 +8,13 @@ import os
 
 _BOOKMARK_FILE = os.path.join(values.USER_DIR, "bookmarks")
 
+# provide some useful initial bookmarks
+_INITIAL_BOOKMARKS = """
+file:///home/user/MyDocs
+file:///media/mmc1
+preferences:///Tour
+"""
+
 
 class BookmarkService(Component):
     """
@@ -27,6 +34,13 @@ class BookmarkService(Component):
         
     
         Component.__init__(self)
+
+        if (not os.path.exists(_BOOKMARK_FILE)):
+            try:
+                open(_BOOKMARK_FILE, "w").write(_INITIAL_BOOKMARKS)
+            except:
+                pass
+        #end if
         
         
     def __load_bookmarks(self):

@@ -80,6 +80,11 @@ class GridView(ItemView):
         #end if
 
 
+    def get_items_per_row(self):
+    
+        return self.__items_per_row
+
+
 
     def set_background(self, color):
         """
@@ -94,6 +99,15 @@ class GridView(ItemView):
             w, h = self.__background.get_size()
             self.__background.fill_area(0, 0, w, h, color)
             self.invalidate()
+
+
+    def _reload(self):
+
+        self.__bg_color.reload()
+        self.set_background(self.__bg_color)
+        self.invalidate()
+        for item in self.get_items():
+            item._invalidate_cached_pixmap()
 
 
     def invalidate(self):
@@ -240,6 +254,9 @@ class GridView(ItemView):
             # render only if not floating
             if (idx != self.__floating_item):
                 item.render_at(self.__buffer, item_x, item_y)
+            else:
+                self.__buffer.fill_area(item_x, item_y, item_w, item_h,
+                                        "#66666620")
         #end if
         
         

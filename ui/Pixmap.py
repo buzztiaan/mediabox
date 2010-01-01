@@ -107,6 +107,8 @@ class Pixmap(object):
     LEFT = 4
     RIGHT = 8
     
+    CENTER = 16
+    
 
     def __init__(self, pmap, w = 0, h = 0):
         """
@@ -507,6 +509,49 @@ class Pixmap(object):
         if (tx < x): tx = x
         self.draw_text(text, font, tx, ty, color, use_markup)
 
+
+    def draw_formatted_text(self, text, font, x, y, w, h, color,
+                            alignment = LEFT, use_markup = False):
+        """
+        Renders the given text string with automatic line wrapping.
+        @since: 2009.12.27
+
+        @param text: text string
+        @param font: font
+        @param x y: coordinates of top-left corner
+        @param color: text color
+        @param alignment: one of C{LEFT}, C{RIGHT}, or C{CENTER}
+        @param use_markup: whether text contains Pango markup
+        """ 
+
+        align_map = {self.LEFT: pango.ALIGN_LEFT,
+                     self.RIGHT: pango.ALIGN_RIGHT,
+                     self.CENTER: pango.ALIGN_CENTER}
+
+        _reload(font, color)
+        self.__layout.set_font_description(font)
+        self.__layout.set_width(w * pango.SCALE)
+        self.__layout.set_justify(True)
+        self.__layout.set_alignment(align_map.get(alignment, pango.ALIGN_LEFT))
+        self.__layout.set_text("")
+        self.__layout.set_markup("")
+        if (use_markup):
+            self.__layout.set_markup(text)
+        else:
+            self.__layout.set_text(text)
+        self.__gc.set_foreground(self.__cmap.alloc_color(str(color)))
+        
+        rect_a, rect_b = self.__layout.get_extents()
+        nil, nil, w, h = rect_b
+        w /= pango.SCALE
+        h /= pango.SCALE
+        w = min(w, self.__width - x)
+        h = min(h, self.__height - y)
+        
+        self.__pixmap.draw_layout(self.__gc, x, y, self.__layout)
+
+        self.__to_buffer(x, y, w, h)
+
                                     
 
     def draw_text(self, text, font, x, y, color, use_markup = False):
@@ -522,6 +567,9 @@ class Pixmap(object):
 
         _reload(font, color)
         self.__layout.set_font_description(font)
+        self.__layout.set_width(-1)
+        self.__layout.set_justify(False)
+        self.__layout.set_alignment(pango.ALIGN_LEFT)
         self.__layout.set_text("")
         self.__layout.set_markup("")
         if (use_markup):

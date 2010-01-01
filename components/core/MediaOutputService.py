@@ -52,7 +52,7 @@ class MediaOutputService(Component):
             self.__current_output = output
 
         elif (output == None):
-            dlg = OptionDialog("Select Output Device")
+            dlg = OptionDialog("Select Media Renderer")
             for output in self.__outputs:
                 dlg.add_option(None, output.TITLE)
             #end for

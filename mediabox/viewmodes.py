@@ -1,3 +1,0 @@
-NORMAL = 0
-FULLSCREEN = 1
-

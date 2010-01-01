@@ -28,7 +28,7 @@ class PrefsDevice(Device):
 
     def get_icon(self):
     
-        return theme.mb_viewer_prefs
+        return theme.mb_folder_prefs
      
      
     def __make_configurator(self, c):
@@ -53,7 +53,7 @@ class PrefsDevice(Device):
         if (len_parts == 0):
             f = File(self)
             f.name = self.get_name()
-            f.info = "Preferences"
+            f.info = "Change the configuration"
             f.path = "/"
             f.icon = self.get_icon().get_path()
             f.mimetype = f.DEVICE_ROOT
@@ -95,7 +95,7 @@ class PrefsDevice(Device):
         cb(None, *args)
  
 
-    def __on_put_on_dashboard(self, folder, f):
+    def __on_put_on_shelve(self, folder, f):
     
         f.bookmarked = True
 
@@ -103,7 +103,7 @@ class PrefsDevice(Device):
     def get_file_actions(self, folder, f):
     
         actions = []
-        actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+        actions.append((None, "Put on Shelve", self.__on_put_on_shelve))
 
         return actions
 

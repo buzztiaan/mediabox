@@ -28,9 +28,9 @@ class ImageThumbnailer(Thumbnailer):
         if (thumb):
             return (thumb, True)
         elif (f.mimetype == "application/x-image-folder"):
-            return (theme.mb_thumbnail_image_folder.get_path(), False)
+            return (theme.mb_folder_image_album.get_path(), False)
         else:
-            return (theme.mb_frame_image.get_path(), False)
+            return (theme.mb_file_image.get_path(), False)
         
         
     def make_thumbnail(self, f, cb, *args):
@@ -38,8 +38,9 @@ class ImageThumbnailer(Thumbnailer):
         def on_loaded_folder(pbuf):
             if (pbuf):
                 _PBUF.fill(0x00000000)
-                pixbuftools.draw_pbuf(_PBUF, theme.mb_thumbnail_image_folder, 0, 0)
-                pixbuftools.fit_pbuf(_PBUF, pbuf, 34, 30, 102, 70)
+                pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_image_album, 0, 0)
+                # TODO: the frame coords should really be supplied by the theme
+                pixbuftools.fit_pbuf(_PBUF, pbuf, 49, 38, 79, 42)
                 path = self._set_thumbnail(f, _PBUF)
                 del pbuf
             else:

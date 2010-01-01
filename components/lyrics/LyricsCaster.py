@@ -28,7 +28,6 @@ class LyricsCaster(Component):
         Component.__init__(self)
         
         
-        
     def handle_MEDIA_EV_LOADED(self, v, f):
     
         self.__clear_lyrics()
@@ -43,8 +42,15 @@ class LyricsCaster(Component):
             self.__position_handler = gobject.timeout_add(
                                                     100, self.__check_position)
             self.__position = 0
+
             
     def handle_MEDIA_EV_PAUSE(self):
+
+        if (self.__position_handler):
+            gobject.source_remove(self.__position_handler)
+
+
+    def handle_MEDIA_EV_EOF(self):
 
         if (self.__position_handler):
             gobject.source_remove(self.__position_handler)
@@ -53,7 +59,7 @@ class LyricsCaster(Component):
     def handle_MEDIA_EV_POSITION(self, pos, total):
         
         if (self.__lyrics):
-            self.__position = pos
+            self.__position = pos * 1000
 
 
     def __check_position(self):
@@ -96,7 +102,8 @@ class LyricsCaster(Component):
             #endif
         #end for
         
-        if (not found):
+        if (not found and self.__current_line != ("", 0, 0)):
+            self.__current_line = ("", 0, 0)
             self.emit_message(msgs.MEDIA_EV_LYRICS, "", 0, 0)
         
             

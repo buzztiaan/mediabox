@@ -38,6 +38,7 @@ class ThumbableGridView(GridView):
         self.add_overlay_renderer(self.__render_letter)
         
         self.__kscr = KineticScroller(self)
+        self.__kscr.connect_scrolling_started(self.__on_scrolling_started)
         self.__kscr.connect_clicked(self.__on_clicked)
         self.__kscr.connect_tap_and_hold(self.__on_tap_and_hold)
 
@@ -72,6 +73,15 @@ class ThumbableGridView(GridView):
         #end if
 
 
+    def __on_scrolling_started(self):
+    
+        csr = self.get_cursor()
+        if (csr != -1):
+            self.set_cursor(-1)
+            self.invalidate_item(csr)
+            self.render()
+
+
     def __on_clicked(self, px, py):
     
         idx = self.get_item_at(px, py)
@@ -87,6 +97,13 @@ class ThumbableGridView(GridView):
             x, y = self.get_position_of_item(idx)
             item = self.get_item(idx)
             item.tap_and_hold(px - x, py - y)
+
+            csr = self.get_cursor()
+            if (csr != -1):
+                self.set_cursor(-1)
+                self.invalidate_item(csr)
+                self.render()
+            #end if
         #end if
 
 
@@ -94,13 +111,16 @@ class ThumbableGridView(GridView):
     
         idx = self.get_item_at(px, py)
         item = self.get_item(idx)
+        w, h = self.get_size()
         
-        if (px < 80 and item.is_draggable()):
-            self.float_item(idx, px, py)
+        if (px > w - 80 and item.is_draggable()):
+            # handle drag-sorting
+            self.float_item(idx, px - w, py)
             self.__kscr.set_enabled(False)
             self.invalidate()
 
         else:
+            # handle clicking
             idx = self.get_item_at(px, py)
             self.set_cursor(idx)
             self.invalidate_item(idx)
@@ -131,12 +151,14 @@ class ThumbableGridView(GridView):
     def __on_pointer_moved(self, px, py):
     
         if (self.has_floating_item()):
+            # handle drag-sorting
             floating_idx = self.get_floating_item()
             new_idx = self.get_item_at(px, py)
             if (0 <= new_idx < self.count_items()):
+                w, h = self.get_size()
                 self.shift_item(floating_idx, new_idx - floating_idx)
 
-                self.float_item(new_idx, px, py)
+                self.float_item(new_idx, px - w, py)
                 self.invalidate()
                 self.render()
             
@@ -148,17 +170,12 @@ class ThumbableGridView(GridView):
             if (py < 80):
                 self.__autoscroll_handler = gobject.timeout_add(
                                                  50, self.__do_autoscroll, -30)
-                #self.move(0, -30)
+
             elif (py > h - 80):
                 self.__autoscroll_handler = gobject.timeout_add(
                                                  50, self.__do_autoscroll, 30)
-                #self.move(0, 60)
 
-        else:
-            csr = self.get_cursor()
-            if (csr != -1):
-                self.set_cursor(-1)
-                self.invalidate_item(csr)
+        #end if
 
 
         
@@ -201,11 +218,7 @@ class ThumbableGridView(GridView):
             self.__kscr.stop_scrolling()
         
         # position slider
-        if (self.__slider):
-            w, h = self.get_size()
-            total_w, total_h = self.get_total_size()
-            percent = self.get_offset() / float(total_h - h)
-            self.__slider.set_value(1.0 - percent)
+        self.__update_slider()
 
         if (self.__letter_timeout_handler):
             gobject.source_remove(self.__letter_timeout_handler)
@@ -213,6 +226,31 @@ class ThumbableGridView(GridView):
                                                       self.__on_letter_timeout)
 
         return (dx, dy)
+
+
+    def switch_item_set(self, s):
+    
+        GridView.switch_item_set(self, s)
+        self.__update_slider()            
+
+    def clear_items(self):
+    
+        GridView.clear_items(self)
+        self.__update_slider()
+
+
+    def __update_slider(self):
+
+        if (self.__slider):
+            w, h = self.get_size()
+            total_w, total_h = self.get_total_size()
+            if (total_h <= h):
+                percent = 0.0
+            else:
+                percent = self.get_offset() / float(total_h - h)
+            self.__slider.set_value(1.0 - percent)
+        #end if    
+    
 
         
     def associate_with_slider(self, slider):

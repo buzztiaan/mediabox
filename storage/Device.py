@@ -213,7 +213,7 @@ class Device(Component):
         self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
 
 
-    def __on_put_on_dashboard(self, folder, f):
+    def __on_put_on_shelve(self, folder, f):
         
         f.bookmarked = True
 
@@ -231,7 +231,7 @@ class Device(Component):
         actions = []
         actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
         if (not f.bookmarked):
-            actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+            actions.append((None, "Put on Shelve", self.__on_put_on_shelve))
         
         return actions
 

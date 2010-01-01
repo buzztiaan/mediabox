@@ -31,9 +31,10 @@ class CheckBoxItem(Item):
             pmap.draw_pixbuf(pbuf, 4, 4)
 
             pmap.set_clip_rect(5, 5, w - 10, h - 10)
-            pmap.draw_text(self.__label, theme.font_mb_plain,
-                           pbuf.get_width() + 10, 10,
-                           theme.color_mb_listitem_text)
+            offset = pbuf.get_width() + 10
+            pmap.draw_formatted_text(self.__label, theme.font_mb_plain,
+                                     offset, 8, w - offset - 10, h - 8,
+                                     theme.color_mb_listitem_text)
             pmap.set_clip_rect()
         #end if
         

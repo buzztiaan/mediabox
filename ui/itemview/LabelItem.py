@@ -7,8 +7,21 @@ class LabelItem(Item):
     def __init__(self, text):
     
         self.__label = text
+        self.__font = theme.font_mb_plain
         
         Item.__init__(self)
+        
+        
+    def set_font(self, font):
+    
+        self.__font = font
+        self._invalidate_cached_pixmap()
+    
+    
+    def set_text(self, text):
+    
+        self.__label = text
+        self._invalidate_cached_pixmap()
         
         
     def render_at(self, cnv, x, y):
@@ -20,9 +33,9 @@ class LabelItem(Item):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
             pmap.set_clip_rect(0, 0, w, h)
-            pmap.draw_text(self.__label, theme.font_mb_headline,
-                           10, 10,
-                           theme.color_mb_listitem_text)
+            pmap.draw_formatted_text(self.__label, self.__font,
+                                     4, 4, w - 8, h - 8,
+                                     theme.color_mb_listitem_text)
             pmap.set_clip_rect()
         #end if
         

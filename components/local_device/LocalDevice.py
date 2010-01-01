@@ -10,6 +10,20 @@ import commands
 import gobject
 
 
+# some beautifications of places (table: path -> (name, info, icon))
+_BEAUTIFUL_PLACES = {
+    "/media/mmc1": ("SD card", "", theme.mb_folder_microsd),
+    "/home/user/MyDocs": ("My Documents", "", theme.mb_folder_mydocs),
+    "/media/mmc1/DCIM": ("Camera Folder", "", theme.mb_folder_dcim),
+    "/home/user/MyDocs/DCIM": ("Camera Folder", "", theme.mb_folder_dcim),
+    "/home/user/MyDocs/.sounds": ("Audio Clips", "", theme.mb_folder_audioclips),
+    "/home/user/MyDocs/.videos": ("Video Clips", "", theme.mb_folder_videoclips),
+    "/home/user/MyDocs/.images": ("Pictures", "", theme.mb_folder_imageclips),
+}
+
+
+_DOTTED_WHITELIST = [".sounds", ".videos", ".images"]
+
 
 class LocalDevice(Device):
 
@@ -19,7 +33,7 @@ class LocalDevice(Device):
 
     def __init__(self):
     
-        self.__name = commands.getoutput("hostname")
+        self.__name = "Filesystem" #commands.getoutput("hostname")
         Device.__init__(self)
         
         
@@ -46,7 +60,7 @@ class LocalDevice(Device):
 
     def get_icon(self):
     
-        return theme.mb_device_nit
+        return theme.mb_folder_device
 
 
     def get_root(self):
@@ -59,82 +73,14 @@ class LocalDevice(Device):
         f.name = self.__name
         f.info = "Browse the filesystem"
         f.icon = self.get_icon().get_path()
-        f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
+        f.folder_flags = f.ITEMS_ENQUEUEABLE # | f.ITEMS_COMPACT
 
         return f
-       
-
-    """
-    def __ls_menu(self, cb, *args):
-    
-        for name, path, mimetype, emblem in \
-          [("Memory Cards", "MMC", File.DIRECTORY, None),
-           ("Audio Clips", "/home/user/MyDocs/.sounds", File.DIRECTORY, theme.mb_filetype_audio),
-           ("Video Clips", "/home/user/MyDocs/.videos", File.DIRECTORY, theme.mb_filetype_video),
-           ("Images", "/home/user/MyDocs/.images", File.DIRECTORY, theme.mb_filetype_image),
-           ("Documents", maemo.IS_MAEMO and "/home/user/MyDocs/.documents"
-                                        or os.path.expanduser("~"),
-                                        File.DIRECTORY, None),
-           ("System", "/", File.DIRECTORY, None)]:
-            item = File(self)
-            item.is_local = True
-            item.can_add_to_library = True
-            item.path = path
-            item.resource = path
-            #item.child_count = self.__get_child_count(path)
-            item.name = name
-            item.acoustic_name = item.name
-            item.mimetype = mimetype
-            item.folder_flags = item.ITEMS_ENQUEUEABLE | \
-                                item.INDEXABLE
-
-            cb(item, *args)
-        #end for
-        
-        cb(None, *args)
-    """
-    
-    
-    """
-    def __ls_mmcs(self, cb, *args):
-    
-        for f in [ f for f in os.listdir("/media")
-                   if os.path.isdir(os.path.join("/media", f)) ]:
-            path = os.path.join("/media", f)
-            item = File(self)
-            item.is_local = True
-            item.path = path
-            item.resource = path
-            item.mtime = os.path.getmtime(path)
-            #item.child_count = self.__get_child_count(path)            
-            item.name = mmc.get_label(path)
-            item.acoustic_name = item.name + ", Volume"
-            item.mimetype = File.DIRECTORY
-            item.folder_flags = item.ITEMS_ENQUEUEABLE | \
-                                item.INDEXABLE
-
-            cb(item, *args)
-        #end for
-        
-        cb(None, *args)        
-    """
     
 
     def __on_add_to_playlist(self, folder, f):
     
         self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
-
-
-    """
-    def __on_put_on_dashboard(self, folder, f):
-        
-        f.bookmarked = True
-
-
-    def __on_add_to_library(self, folder, f):
-    
-        self.emit_message(msgs,LIBRARY_ACT_ADD_MEDIAROOT, f)
-    """
 
 
     def __on_delete_file(self, folder, f):
@@ -148,6 +94,7 @@ class LocalDevice(Device):
             if (choice == 0):
                 try:
                     os.unlink(f.resource)
+                    self.emit_message(msgs.FILEINDEX_SVC_REMOVE, f.resource)
                 except:
                     pass
                 self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
@@ -180,14 +127,19 @@ class LocalDevice(Device):
             item.mimetype = item.DIRECTORY
             item.folder_flags = item.ITEMS_ENQUEUEABLE | \
                                 item.INDEXABLE | \
-                                item.ITEMS_SKIPPABLE | \
-                                item.ITEMS_COMPACT
+                                item.ITEMS_SKIPPABLE
             
         else:
             item.acoustic_name = os.path.splitext(item.name)[0]
             ext = os.path.splitext(path)[-1].lower()
             item.mimetype = mimetypes.lookup_ext(ext)
-            item.info = mimetypes.mimetype_to_name(item.mimetype)
+            item.info = mimetypes.mimetype_to_name(item.mimetype) + " file"
+        
+        if (item.resource in _BEAUTIFUL_PLACES):
+            name, info, icon = _BEAUTIFUL_PLACES[item.resource]
+            item.name = name
+            item.info = info
+            item.icon = icon.get_path()
         
         return item
     
@@ -208,17 +160,12 @@ class LocalDevice(Device):
 
         try:
             files = [ f for f in os.listdir(folder.path)
-                      if not f.startswith(".") ]
+                      if not f.startswith(".") or f in _DOTTED_WHITELIST ]
         except:
             files = []
             
         items = []
-        cnt = -1
         for f in files:
-            cnt += 1
-            if (cnt < begin_at): continue
-            if (end_at and cnt > end_at): break
-                
             try:
                 item = self.get_file(os.path.join(folder.path, f))
             except:
@@ -233,8 +180,13 @@ class LocalDevice(Device):
         
         items.sort(comp)
         
-        for i in items:
-            cb(i, *args)
+        cnt = -1
+        for item in items:
+            cnt += 1
+            if (cnt < begin_at): continue
+            if (end_at and cnt > end_at): break
+            cb(item, *args)
+        #end for
         cb(None, *args)
         
         

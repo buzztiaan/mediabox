@@ -14,32 +14,8 @@ class VideoStorage(Device):
 
     def __init__(self):
     
-        self.__folders = {}
-        self.__media_was_updated = False
-    
         Device.__init__(self)
         
-        
-    def handle_MEDIASCANNER_EV_SCANNING_FINISHED(self):
-    
-        self.__media_was_updated = True
-
-
-    def __update_media(self):
-
-        self.__folders = {"All Videos": []}
-        media, nil, nil = self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
-                                            ["video/"])
-        for f in media:
-            parent = f.parent
-            if (not parent in self.__folders):
-                self.__folders[parent] = []
-            self.__folders[parent].append(f)
-            self.__folders["All Videos"].append(f)
-        #end for
-        
-        self.__media_was_updated = False
-          
         
     def get_prefix(self):
     
@@ -53,23 +29,7 @@ class VideoStorage(Device):
 
     def get_icon(self):
     
-        return theme.mb_device_video
-
-
-    def get_root(self):
-    
-        f = File(self)
-        f.is_local = True
-        f.can_skip = True
-        f.path = "/"
-        f.mimetype = f.DEVICE_ROOT
-        f.resource = ""
-        f.name = self.get_name()
-        f.info = "Browse your video library"
-        f.icon = self.get_icon().get_path()
-        f.folder_flags = f.ITEMS_ENQUEUEABLE
-        
-        return f
+        return theme.mb_folder_video
 
 
     def __make_folder(self, folder_name):
@@ -81,8 +41,9 @@ class VideoStorage(Device):
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = folder_name
+        f.icon = theme.mb_folder_videoclips.get_path()
         f.acoustic_name = "Folder: " + f.name
-        f.info = "%d items" % len(self.__folders.get(folder_name, []))
+        #f.info = "%d items" % len(self.__folders.get(folder_name, []))
         f.folder_flags = f.ITEMS_ENQUEUEABLE | \
                          f.ITEMS_SKIPPABLE | \
                          f.ITEMS_COMPACT
@@ -126,30 +87,37 @@ class VideoStorage(Device):
                 return cmp(a, b)
 
 
-        if (self.__media_was_updated):
-            self.__update_media()
-
         parts = [ p for p in folder.path.split("/") if p ]
         len_parts = len(parts)
                
         items = []
         if (len_parts == 0):
             # list folders
-            folders = self.__folders.keys()
-            folders.sort(folder_cmp)
-            for folder_name in folders:
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                                    "File.Folder of File.Type='video'")
+            res.add(("All Videos",))
+            for folder_name, in res:
                 f = self.__make_folder(folder_name)
                 if (f): items.append(f)
             #end for
-            
+                       
         elif (len_parts == 1):
             # list videos
             folder_name = urlquote.unquote(parts[0])
-            videos = self.__folders.get(folder_name, [])
-            videos.sort()
-            for vid in videos:
-                items.append(vid)
-            #end for
+            if (folder_name == "All Videos"):
+                query = "File.Path of File.Type='video'"
+                query_args = ()
+            else:
+                query = "File.Path of and File.Type='video' File.Folder='%s'"
+                query_args = (folder_name,)
+                
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                                    query, *query_args)
+            for path, in res:
+                f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
+                if (f):
+                    items.append(f)
+            #end if
         #end if
             
         items.sort()

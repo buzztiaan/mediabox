@@ -14,7 +14,7 @@ import gobject
 import time
 
 
-class Prefs(Configurator):
+class SleepTimerPrefs(Configurator):
     """
     Configurator for setting sleep and wake up times.
     """

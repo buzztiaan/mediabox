@@ -8,6 +8,10 @@ from theme import theme
 
 import gtk
 import os
+try:
+    import hildon
+except:
+    hildon = None
 
 
 class Window(Widget):
@@ -37,11 +41,9 @@ class Window(Widget):
     
         if (self.__type == self.TYPE_TOPLEVEL):
             if (platforms.PLATFORM in (platforms.MAEMO5, platforms.MER)):
-                import hildon
                 self.__window = hildon.StackableWindow()
 
             elif (platforms.PLATFORM == platforms.MAEMO4):
-                import hildon
                 self.__window = hildon.Window()
                 self.__window.fullscreen()
                 
@@ -322,6 +324,25 @@ class Window(Widget):
         #end if
 
 
+    def set_busy(self, value):
+        """
+        Marks this window as busy. Depending on the platform this can e.g.
+        change the mouse cursor or display a throbber animation in the title
+        bar.
+        @since: 2009.12.29
+        
+        @param value: whether this window is busy
+        """
+        
+        if (hildon):
+            hildon.hildon_gtk_window_set_progress_indicator(self.__window,
+                                                            value and 1 or 0) 
+        else:
+            csr = gtk.gdk.Cursor(value and gtk.gdk.WATCH or gtk.gdk.LEFT_PTR)
+            self.__window.window.set_cursor(csr)
+        #end if
+
+
     def set_menu_xml(self, xml, bindings):
         """
         Sets the window menu from a XML description.
@@ -332,7 +353,6 @@ class Window(Widget):
         """
     
         if (platforms.PLATFORM != platforms.MAEMO5): return
-        import hildon
 
         dom = MiniXML(xml).get_dom()        
         menu = hildon.AppMenu()

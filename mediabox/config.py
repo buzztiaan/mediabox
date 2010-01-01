@@ -27,6 +27,7 @@ _cfg = Config("",
                               "/media"]),
                ("mediaroot_types", Config.INTEGER_LIST, []),
                ("orientation", Config.STRING, ORIENTATION_LANDSCAPE),
+               ("portrait_swap_volume", Config.BOOL, True),
                ("repeat_mode", Config.STRING, REPEAT_MODE_NONE),
                ("shuffle_mode", Config.STRING, SHUFFLE_MODE_NONE),
                ("scan_at_startup", Config.BOOL, True),
@@ -99,6 +100,16 @@ def set_orientation(o):
 
     _cfg["orientation"] = o
 
+
+def portrait_swap_volume():
+
+    return _cfg["portrait_swap_volume"]
+    
+    
+def set_portrait_swap_volume(v):
+
+    _cfg["portrait_swap_volume"] = v
+    
 
 def repeat_mode():
 

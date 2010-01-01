@@ -1,5 +1,6 @@
 from Component import Component
 from mediabox import config
+from utils import logging
 import msgs
 
 import os
@@ -19,6 +20,13 @@ class Thumbnailer(Component):
     def __init__(self):
     
         Component.__init__(self)
+ 
+        # create directory for thumbnails if it doesn't exist yet
+        try:
+            if (not os.path.exists(self.__THUMB_FOLDER)):
+                os.makedirs(self.__THUMB_FOLDER)
+        except:
+            pass
         
         
     def get_mime_types(self):
@@ -62,16 +70,26 @@ class Thumbnailer(Component):
 
 
     def _set_thumbnail(self, f, pbuf):
+        """
+        Saves the given pixbuf as thumbnail for the given file.
+        Thumbnailers may use this method for caching thumbnails.
+        """
     
         path = self.__get_thumbnail_path(f)
         try:
-            pbuf.save(path, "jpeg")
+            pbuf.save(path, "png")
             return path
         except:
+            logging.error("cannot save thumbnail:\n%s", logging.stacktrace())
             return ""
         
         
     def _get_thumbnail(self, f):
+        """
+        Returns the path of a cached thumbnail for the given file. Returns
+        an empty string if no thumbnail was found.
+        Thumbnailers may use this method for caching thumbnails.
+        """
     
         path = self.__get_thumbnail_path(f)
         if (os.path.exists(path)):
@@ -89,12 +107,12 @@ class Thumbnailer(Component):
     
     def __get_thumbnail_path(self, f):
         """
-        Returns the path for the thumbnail for the given file.
+        Returns the full path for the thumbnail for the given file.
         """
 
         md5 = f.thumbnail_md5
         thumb_fallback = os.path.join(self.__THUMB_FOLDER,
-                                      md5 + ".jpg")
+                                      md5 + ".png")
         if (not self.__STORE_ON_MEDIUM):
             return thumb_fallback
 
@@ -115,6 +133,6 @@ class Thumbnailer(Component):
                 #end if
             #end if
             
-            thumb = os.path.join(prefix, md5 + ".jpg")
+            thumb = os.path.join(prefix, md5 + ".png")
             return thumb
 

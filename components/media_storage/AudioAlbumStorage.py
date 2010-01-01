@@ -1,6 +1,5 @@
 from com import msgs
 from AudioArtistStorage import AudioArtistStorage
-from MusicIndex import MusicIndex
 from storage import Device, File
 from utils import urlquote
 from utils import logging
@@ -15,7 +14,7 @@ import threading
 
 
 
-class AudioAlbumStorage(AudioArtistStorage):
+class AudioAlbumStorage(Device):
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_AUDIO
@@ -23,7 +22,7 @@ class AudioAlbumStorage(AudioArtistStorage):
 
     def __init__(self):
     
-        AudioArtistStorage.__init__(self)
+        Device.__init__(self)
 
 
         
@@ -39,15 +38,24 @@ class AudioAlbumStorage(AudioArtistStorage):
 
     def get_icon(self):
     
-        return theme.mb_device_audio
+        return theme.mb_folder_audio
 
 
     def __make_album(self, artist, album):
 
         f = File(self)
         f.is_local = True
-        f.path = "/" + urlquote.quote(artist, "") + \
-                 "/" + urlquote.quote(album, "")
+        print artist, album
+        try:
+            ar = urlquote.quote(artist, "")
+        except:
+            ar = "?"
+        try:
+            al = urlquote.quote(album, "")
+        except:
+            al = "?"
+        f.path = "/" + ar + \
+                 "/" + al
         f.name = album
         f.acoustic_name = f.name
         #f.info = artist
@@ -119,37 +127,44 @@ class AudioAlbumStorage(AudioArtistStorage):
    
     def get_contents(self, folder, begin_at, end_at, cb, *args):
     
-        self._check_for_updated_media()
         path = folder.path
 
         if (not path.endswith("/")): path += "/"
         parts = [ p for p in path.split("/") if p ]
         len_parts = len(parts)
-        index = self.get_index()
         
         items = []
         alphabetical = False
         if (len_parts == 0):
             # list albums
-            for artist in self.get_index().list_artists():
-                for album in self.get_index().list_albums_by_artist(artist):
-                    f = self.__make_album(artist, album)
-                    if (f): items.append(f)
-                #end for
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                              "Audio.Artist, Audio.Album of File.Type='audio'")
+            for artist, album in res:
+                if (not album): continue
+                f = self.__make_album(artist, album)
+                if (f): items.append(f)
             #end for
-            
+                         
         elif (len_parts == 2):
             # list tracks
             artist = urlquote.unquote(parts[0])
             album = urlquote.unquote(parts[1])
             if (album == "All Tracks"):
-                album = "*"
+                query = "File.Path of and File.Type='audio' Audio.Artist='%s'"
+                query_args = (artist,)
                 alphabetical = True
-            query = "artist=%s,album=%s" % (artist, album)
-            for filepath in self.get_index().query_files(query):
+            else:
+                query = "File.Path of and and File.Type='audio' " \
+                        "Audio.Artist='%s' Audio.Album='%s'"
+                query_args = (artist, album)
+            
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                                    query, *query_args)
+            for filepath, in res:
                 f = self.__make_track(artist, album, filepath)
                 if (f): items.append(f)
-            #end for
+            #end for                
+            
         #end if
         
         if (alphabetical):

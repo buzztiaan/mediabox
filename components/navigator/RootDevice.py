@@ -50,24 +50,13 @@ class RootDevice(Device):
         
     def get_name(self):
     
-        return "MediaBox"
+        return "Shelve"
         
         
     def get_icon(self):
     
-        return theme.mb_device_n800
-        
-    """
-    def get_root(self):
-    
-        f = File(self)
-        f.name = self.get_name()
-        f.path = "/"
-        f.mimetype = f.DEVICE_ROOT
-        f.folder_flags = f.ITEMS_COMPACT
-        return f
-    """
-    
+        return None
+          
 
     def __device_comparator(self, a, b):
 
@@ -88,10 +77,10 @@ class RootDevice(Device):
     
         out = []
         for name, info, path, icon in [
-            ("Music", "Browse Music Library", "/audio", theme.mb_device_audio),
-            ("Videos", "Browse Video Library", "/video", theme.mb_device_video),
-            ("Pictures", "Browse Picture Library", "/image", theme.mb_device_image),
-            ("Storage & Network", "Browse storage and network", "/storage", theme.mb_device_folders),
+            ("Music", "Browse Music Library", "/audio", theme.mb_folder_audio),
+            ("Videos", "Browse Video Library", "/video", theme.mb_folder_video),
+            ("Pictures", "Browse Picture Library", "/image", theme.mb_folder_image),
+            ("Storage & Network", "Browse storage and network", "/storage", theme.mb_folder_storage),
         ]:
             f = File(self)
             f.name = name
@@ -174,9 +163,9 @@ class RootDevice(Device):
         self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
 
 
-    def __on_remove_from_dashboard(self, folder, f):
+    def __on_remove_from_shelve(self, folder, f):
     
-        logging.debug("removing from dashboard: %s", f.name)
+        logging.debug("removing from shelve: %s", f.name)
         f.bookmarked = False
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
 
@@ -188,8 +177,8 @@ class RootDevice(Device):
             if (not f.full_path.startswith("playlist://")):
                 options.append((None, "Add to Playlist",
                                 self.__on_add_to_playlist))
-            options.append((None, "Remove from Dashboard",
-                            self.__on_remove_from_dashboard))
+            options.append((None, "Remove from Shelve",
+                            self.__on_remove_from_shelve))
 
         return options
 

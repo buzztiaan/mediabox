@@ -1,5 +1,4 @@
 from com import msgs
-from MusicIndex import MusicIndex
 from storage import Device, File
 from utils import urlquote
 from utils import logging
@@ -23,92 +22,11 @@ class AudioArtistStorage(Device):
     
     _media_was_updated = [False]
     
-    __index = MusicIndex()
 
     def __init__(self):
     
 
         Device.__init__(self)
-
-        
- 
-    def handle_MEDIASCANNER_EV_SCANNING_FINISHED(self):
-    
-        #self.__index.schedule_scanner(self.__update_media)
-        #self.__update_media()
-        #self.__index.save()
-        self._media_was_updated[0] = True
-
-
-    def __update_media(self):
-
-        def f():
-            # add new files to index
-            self.__index.clear()
-            total_length = len(added)
-            cnt = 0
-            for path in media:
-                cnt += 1
-                #percent = int((cnt / float(total_length)) * 100)
-                #self.emit_message(msgs.UI_ACT_SHOW_MESSAGE,
-                #                  "Updating Index",
-                #                  #"- %s -" % folder.name,
-                #                  "- %d%% complete -" % (percent),
-                #                  self.get_icon())
-                                
-                #self.__index.remove_file(path)
-                self.__index.add_file(path)
-            #end for
-            
-            # delete removed files from index
-            #for path in removed:
-            #    self.__index.remove_file(path)
-            ##end for
-
-            self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
-          
-
-        media, added, removed = \
-                self.call_service(msgs.MEDIASCANNER_SVC_GET_MEDIA,
-                                 ["audio/"])
-        print "ADDED", added
-        print "REMOVED", removed
-        #if (not media):
-        #    self.__index.clear()
-        #finished = threading.Event()
-        #gobject.idle_add(f)        
-        #threads.wait_for(lambda :finished.isSet())
-        f()
-        
-        
-    def _check_for_updated_media(self):
-    
-        if (self._media_was_updated[0]):
-            self.__update_media()
-            self.__index.save()
-            self._media_was_updated[0] = False
-
-        
-    def get_index(self):
-    
-        return self.__index
-        
-        
-    def _list_files(self, artist, album):
-
-        if (album == "All Tracks"):
-            albums = self.__index.list_albums_by_artist(artist)
-        else:
-            albums = [album]
-            
-        files = []
-        for album in albums:
-            for path in self.__index.list_files(album):
-                files.append(path)
-            #end for
-        #end for
-
-        return files
 
         
     def get_prefix(self):
@@ -123,7 +41,7 @@ class AudioArtistStorage(Device):
 
     def get_icon(self):
     
-        return theme.mb_device_artists
+        return theme.mb_folder_artist
 
 
     def __make_artist(self, artist):
@@ -133,7 +51,7 @@ class AudioArtistStorage(Device):
         f.name = artist
         f.acoustic_name = f.name
         f.mimetype = f.DIRECTORY
-        f.icon = theme.mb_device_artists.get_path()
+        f.icon = theme.mb_folder_artist.get_path()
         f.folder_flags = f.ITEMS_ENQUEUEABLE | \
                             f.ITEMS_SKIPPABLE | \
                             f.ITEMS_COMPACT
@@ -178,30 +96,34 @@ class AudioArtistStorage(Device):
     
     def get_contents(self, folder, begin_at, end_at, cb, *args):
     
-        self._check_for_updated_media()
         path = folder.path
 
         if (not path.endswith("/")): path += "/"
         parts = [ p for p in path.split("/") if p ]
         len_parts = len(parts)
-        index = self.get_index()
         
         items = []
         if (len_parts == 0):
             # list artists
-            for artist in index.list_artists():
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                                    "Audio.Artist of File.Type='audio'")
+            for artist, in res:
                 f = self.__make_artist(artist)
                 if (f): items.append(f)
-            #end for
-            
+            #end for                                    
+                       
         elif (len_parts == 1):
             # list albums
             artist = urlquote.unquote(parts[0])
-            for album in ["All Tracks"] + index.list_albums_by_artist(artist):
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                      "Audio.Album of and File.Type='audio' Audio.Artist='%s'",
+                      artist)
+            res.add(("All Tracks",))
+            for album, in res:
                 f = self.__make_album(artist, album)
                 if (f): items.append(f)
             #end for
-        
+                                    
         items.sort()
         cnt = -1
         for item in items:

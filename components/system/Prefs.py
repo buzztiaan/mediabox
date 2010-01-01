@@ -9,15 +9,15 @@ import os
 
 
 _DESCRIPTIONS = {"no":
-                 "The display switches off normally when the device goes into\n"
+                 "The display switches off normally when the device goes into "
                  "powersaving.",
                  "yes":
-                 "The display does not switch off and the device does not go\n"
+                 "The display does not switch off and the device does not go "
                  "into powersaving, unless the menu panel is open.",
                  "playing":
                  "The display does not switch off while playing media.",
                  "ac":
-                 "The display doesn't turn off when the device is powered by\n"
+                 "The display doesn't turn off when the device is powered by "
                  "powered by the AC adapter."}
 
 
@@ -46,16 +46,10 @@ class Prefs(Configurator):
                            "yes", "yes")
         chbox.connect_changed(self.__on_select_display_lit)
         self.__list.append_item(chbox)
-
-
-        lbl = LabelItem("Orientation:")
-        self.__list.append_item(lbl)
-        
-        chbox = OptionItem("Landscape", "landscape",
-                           "Portrait", "portrait")
-        chbox.connect_changed(self.__on_select_orientation)
-        self.__list.append_item(chbox)
-
+      
+        self.__label_lit = LabelItem("")
+        self.__list.append_item(self.__label_lit)
+        chbox.select_by_value(config.get_display_lit())
         
 
     def render_this(self):
@@ -66,19 +60,8 @@ class Prefs(Configurator):
         
     def __on_select_display_lit(self, value):
     
-        self.__list.invalidate()
-        self.__list.render()
         config.set_display_lit(value)
         self.__label_lit.set_text(_DESCRIPTIONS[value])
-
-
-    def __on_select_orientation(self, value):
-
         self.__list.invalidate()
         self.__list.render()
-    
-        if (value == "landscape"):
-            self.emit_message(msgs.ASR_EV_LANDSCAPE)
-        else:
-            self.emit_message(msgs.ASR_EV_PORTRAIT)
 

@@ -1,6 +1,7 @@
 from com import Configurator, msgs
 from ui.itemview import ThumbableGridView
 from ui.itemview import LabelItem
+from ui.itemview import CheckBoxItem
 from ui.itemview import OptionItem
 from mediabox import config
 from theme import theme
@@ -11,9 +12,9 @@ import os
 
 class RotationPrefs(Configurator):
 
-    ICON = theme.mb_device_nit
-    TITLE = "Orientation"
-    DESCRIPTION = "Configure the device orientation"
+    ICON = theme.prefs_icon_asr
+    TITLE = "Display Orientation"
+    DESCRIPTION = "Configure the display orientation"
 
 
     def __init__(self):
@@ -26,8 +27,8 @@ class RotationPrefs(Configurator):
         self.__list = ThumbableGridView()
         self.add(self.__list)
         
-        lbl = LabelItem("Orientation:")
-        self.__list.append_item(lbl)
+        #lbl = LabelItem("Orientation:")
+        #self.__list.append_item(lbl)
         
         chbox = OptionItem("Landscape Mode", config.ORIENTATION_LANDSCAPE,
                            "Portrait Mode", config.ORIENTATION_PORTRAIT)
@@ -35,7 +36,15 @@ class RotationPrefs(Configurator):
         chbox.select_by_value(config.orientation())
         self.__list.append_item(chbox)
 
-        
+        # abusing empty label for space... TODO: implement space item :)
+        lbl = LabelItem("")
+        self.__list.append_item(lbl)
+
+        chk = CheckBoxItem("Swap volume/zoom keys in portrait mode",
+                           config.portrait_swap_volume())
+        chk.connect_checked(self.__on_check_swap)
+        self.__list.append_item(chk)
+
 
     def render_this(self):
     
@@ -55,6 +64,13 @@ class RotationPrefs(Configurator):
             self.emit_message(msgs.ASR_EV_PORTRAIT)
             self.__is_portrait == True
         config.set_orientation(value)
+
+
+    def __on_check_swap(self, v):
+    
+        config.set_portrait_swap_volume(v)
+        self.__list.invalidate()
+        self.__list.render()
 
 
     def handle_CORE_EV_APP_STARTED(self):

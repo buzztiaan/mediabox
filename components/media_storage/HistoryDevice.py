@@ -38,19 +38,19 @@ class HistoryDevice(Device):
         
     def get_name(self):
     
-        return "History"
+        return "Recently Visited Folders"
         
 
     def get_icon(self):
     
-        return theme.mb_device_folders
+        return None
         
         
     def get_root(self):
     
         f = File(self)
         f.name = self.get_name()
-        f.info = "History of visited places"
+        f.info = "History of recently visited folders"
         f.path = "/"
         f.mimetype = f.DEVICE_ROOT
 

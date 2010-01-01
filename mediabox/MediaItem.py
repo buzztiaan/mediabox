@@ -1,5 +1,4 @@
 from ui.itemview.Item import Item
-from mediabox import thumbnail
 from utils import textutils
 from theme import theme
 
@@ -107,7 +106,7 @@ class MediaItem(Item):
             except:
                 pass
             else:
-                pmap.fit_pixbuf(pbuf, 0, 0, w, h - 24)
+                pmap.fit_pixbuf(pbuf, 4, 4, w - 8, h - 32)
                 del pbuf
 
             #pbuf = thumbnail.render_on_pixbuf(self.__icon, self.__file.mimetype)
@@ -126,7 +125,7 @@ class MediaItem(Item):
             # render text
             pmap.set_clip_rect(5, 0, w - 10, h)
             pmap.draw_centered_text(self.__label, theme.font_mb_plain,
-                                    5, h - 24, w - 10, 24,
+                                    5, h - 26, w - 10, 26,
                                     theme.color_mb_listitem_text)
             pmap.set_clip_rect()
             
@@ -144,13 +143,6 @@ class MediaItem(Item):
         pmap, is_new = self._get_cached_pixmap()
         
         if (is_new):
-            #print "FULL RENDER", self.__label
-
-            #if (self.is_marked()):
-            #    pmap.fill_area(0, 0, w, h, "#ff0000")
-            #if (self.is_hilighted()):
-            #    pmap.fill_area(0, 0, w, h, "#0000ff")
-            #else:
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
             # render selection frame
@@ -160,10 +152,12 @@ class MediaItem(Item):
 
             # render grip
             if (self.is_draggable()):
-                pmap.draw_pixbuf(theme.mb_item_grip, 8, (h - 80) / 2)
-                offset = 32
+                pmap.draw_pixbuf(theme.mb_item_grip, w - 32, (h - 80) / 2)
+                clip_rect = (0, 0, w - 34, h)
             else:
-                offset = 4
+                clip_rect = (0, 0, w, h)
+            
+            offset = 4
             
             # render icon
             try:
@@ -187,10 +181,10 @@ class MediaItem(Item):
             #    icon = theme.mb_item_fav_1
             #pmap.draw_pixbuf(icon, offset, 0)
             
-            offset += 130
+            offset = 134
             
             # render text
-            pmap.set_clip_rect(0, 0, w - 80, h)
+            pmap.set_clip_rect(*clip_rect)
             pmap.draw_text(self.__label, theme.font_mb_plain,
                            offset, 20,
                            theme.color_mb_listitem_text)
@@ -200,11 +194,11 @@ class MediaItem(Item):
             pmap.set_clip_rect()
             
             # render button
-            if (self.__file.mimetype.endswith("-folder")):
-                btn = theme.mb_item_btn_open
-            else:
-                btn = theme.mb_item_btn_play
-            pmap.draw_pixbuf(btn, w - 60, (h - 42) / 2)
+            #if (self.__file.mimetype.endswith("-folder")):
+            #    btn = theme.mb_item_btn_open
+            #else:
+            #    btn = theme.mb_item_btn_play
+            #pmap.draw_pixbuf(btn, w - 60, (h - 42) / 2)
         #end if
         
         # copy to the given canvas
@@ -218,15 +212,13 @@ class MediaItem(Item):
         
     def click_at(self, px, py):
     
-        w, h = self.get_size()
-        if (self.__is_compact):
-            self.emit_event(self.EVENT_ACTIVATED)
-        elif (w - 80 <= px <= w):
-            self.emit_event(self.EVENT_ACTIVATED)
+        self.emit_event(self.EVENT_ACTIVATED)
+        #w, h = self.get_size()
+        #if (self.__is_compact):
+        #    self.emit_event(self.EVENT_ACTIVATED)
+        #elif (w - 80 <= px <= w):
+        #    self.emit_event(self.EVENT_ACTIVATED)
 
-        #elif (px < 60):
-        #    self.__file.bookmarked = not self.__file.bookmarked
-            
             
     def tap_and_hold(self, px, py):
     

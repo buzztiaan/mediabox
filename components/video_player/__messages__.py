@@ -1,0 +1,4 @@
+def VIDEOPLAYER_SVC_LOCK_DSP(): pass
+
+def VIDEOPLAYER_SVC_RELEASE_DSP(): pass
+

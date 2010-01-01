@@ -91,7 +91,7 @@ def get_tags(f):
         else:
             prefix = os.path.join(medium, ".mediabox", "idtags")
 
-    if (not os.path.exists(prefix)):
+    if (not os.path.exists(prefix) and _USE_CACHE):
         try:
             os.makedirs(prefix)
         except:

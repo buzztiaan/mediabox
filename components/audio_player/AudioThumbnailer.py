@@ -9,6 +9,9 @@ _PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
 
 
 class AudioThumbnailer(Thumbnailer):
+    """
+    Thumbnailer for audio-related media.
+    """
 
     def __init__(self):
     
@@ -31,20 +34,24 @@ class AudioThumbnailer(Thumbnailer):
             is_final = not f.is_local
             
             if (f.mimetype == "application/x-music-folder"):
-                thumb = theme.mb_frame_music.get_path()
+                thumb = theme.mb_folder_music_album.get_path()
             else:
-                thumb = theme.mb_filetype_audio.get_path()
+                thumb = theme.mb_file_audio.get_path()
             
             return (thumb, is_final)
 
 
     def make_thumbnail(self, f, cb, *args):
     
-        def on_loaded(pbuf):
+        def on_loaded(pbuf, mimetype):
             if (pbuf):
                 _PBUF.fill(0x00000000)
-                pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_music, 0, 0)
-                pixbuftools.fit_pbuf(_PBUF, pbuf, 7, 7, 142, 102)
+                pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_music_album, 0, 0)
+                pixbuftools.fit_pbuf(_PBUF, pbuf, 25, 5, 106, 106)
+                if (mimetype != "application/x-music-folder"):
+                    pixbuftools.fit_pbuf(_PBUF, theme.mb_file_audio,
+                                         80, 40, 80, 80)
+                    
                 path = self._set_thumbnail(f, _PBUF)
                 del pbuf
             else:
@@ -55,8 +62,11 @@ class AudioThumbnailer(Thumbnailer):
             children = f.get_children()
             if (children):
                 self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
-                                  children[0], on_loaded)
+                                  children[0], on_loaded, f.mimetype)
+            else:
+                cb("", *args)
+                
         else:
             self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
-                              f, on_loaded)
+                              f, on_loaded, f.mimetype)
         

@@ -1,4 +1,4 @@
-from com import Thumbnailer
+from com import Thumbnailer, msgs
 import platforms
 from ui import pixbuftools
 from utils import urlquote
@@ -25,6 +25,7 @@ class OrgFreeDesktopThumbnailer(Thumbnailer):
     
         # table: handle -> (uri, f, cb, args)
         self.__handles = {}
+        
     
         Thumbnailer.__init__(self)
         
@@ -34,10 +35,8 @@ class OrgFreeDesktopThumbnailer(Thumbnailer):
         
         self.__thumbnailer.connect_to_signal("Finished", self.__on_finish)
         self.__thumbnailer.connect_to_signal("Error", self.__on_error)
-   
-    
-        
-        
+
+
     def get_mime_types(self):
     
         return ["video/*"]
@@ -50,40 +49,41 @@ class OrgFreeDesktopThumbnailer(Thumbnailer):
             return (thumb, True)
         else:
             is_final = not f.is_local
-            return (theme.mb_frame_video.get_path(), is_final)
+            return (theme.mb_file_video.get_path(), is_final)
 
 
     def make_thumbnail(self, f, cb, *args):
     
+        self.call_service(msgs.VIDEOPLAYER_SVC_LOCK_DSP)
+
         uri = "file://" + urlquote.quote(f.resource)
         handle = self.__thumbnailer.Queue([uri], ["video/mp4"], 0)
-        self.__handles[handle] = (uri, f, cb, args)
+        self.__handles[int(handle)] = (uri, f, cb, args)
         print "Got Handle", handle, "for", uri
 
 
     def __on_finish(self, handle):
-    
-        print "finished thumbnailing", handle
-        try:
-            uri, f, cb, args = self.__handles[handle]
-            del self.__handles[handle]
-            thumbpath = self.__get_osso_thumbnail(uri)
-            path = self.__save_thumbnail(f, thumbpath)
-            cb(path, *args)
-        except:
-            print logging.stacktrace()
-            pass
 
-        
+        self.call_service(msgs.VIDEOPLAYER_SVC_RELEASE_DSP)
+    
+        handle = int(handle)
+        print "finished thumbnailing", handle
+        uri, f, cb, args = self.__handles[handle]
+        del self.__handles[handle]
+        thumbpath = self.__get_osso_thumbnail(uri)
+        try:
+            path = self.__save_thumbnail(f, thumbpath)
+        except:
+            #print logging.stacktrace()
+            path = ""
+
+        cb(path, *args)
+
+
     def __on_error(self, handle, failed_uris, err, err_msg):
     
+        handle = int(handle)
         print "Thumbnailing failed for", handle, failed_uris, err_msg
-        try:
-            uri, f, cb, args = self.__handles[handle]
-            del self.__handles[handle]
-            cb("", *args)
-        except:
-            pass
 
 
     def __get_osso_thumbnail(self, uri):

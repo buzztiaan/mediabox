@@ -1,7 +1,7 @@
 def get_devices():
 
     from utils import maemo
-    #from AudioStorage import AudioStorage
+    from AudioStorage import AudioStorage
     from AudioAlbumStorage import AudioAlbumStorage
     from AudioArtistStorage import AudioArtistStorage
     from AudioGenreStorage import AudioGenreStorage
@@ -13,7 +13,7 @@ def get_devices():
     #from BookmarkDevice import VideoBookmarkDevice
     #from BookmarkDevice import ImageBookmarkDevice
     
-    devices = [#AudioStorage,
+    devices = [AudioStorage,
                AudioAlbumStorage,
                AudioArtistStorage,
                AudioGenreStorage,

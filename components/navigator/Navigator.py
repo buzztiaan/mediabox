@@ -14,6 +14,7 @@ from utils.ItemScheduler import ItemScheduler
 import platforms
 from theme import theme
 
+import gobject
 import random
 import time
 
@@ -75,6 +76,7 @@ class Navigator(Dialog):
 
         # list of files for playing
         self.__play_files = []
+        self.__play_folder = None
 
         # list for choosing random files from when in shuffle mode
         self.__random_files = []
@@ -84,6 +86,8 @@ class Navigator(Dialog):
         
         self.__key_hold_down_timestamp = 0
         self.__skip_letter = False
+        
+        self.__is_portrait = False
 
         # scheduler for creating thumbnails one by one
         self.__tn_scheduler = ItemScheduler()
@@ -185,6 +189,23 @@ class Navigator(Dialog):
         self.__toolbar.set_toolbar(*items)
 
 
+    def __update_items_per_row(self, folder):
+
+        w, h = self.get_size()
+        
+        if (folder and folder.folder_flags & folder.ITEMS_COMPACT):
+            if (self.__is_portrait):
+                self.__browser.set_items_per_row(2)
+            else:
+                self.__browser.set_items_per_row(4)
+        else:
+            self.__browser.set_items_per_row(1)
+            
+        self.__browser.invalidate()
+        #self.__browser.render()
+
+
+
     """
     def __update_menu(self):
         ""
@@ -258,12 +279,7 @@ class Navigator(Dialog):
           
        
     def __on_open_file(self, f):
-    
-        # update set of play files
-        self.__play_files = [ fl for fl in self.__browser.get_files()
-                              if not fl.mimetype.endswith("-folder") ]
-        self.__random_files = []
-        
+            
         self.__load_file(f)
         #self.set_visible(False)
 
@@ -274,13 +290,16 @@ class Navigator(Dialog):
         self.__tn_scheduler.halt()
         
         #self.set_title(f.name)
+        self.set_busy(True)
         
         if (f.folder_flags & f.ITEMS_ADDABLE):
             self.__btn_add.set_visible(True)
         else:
             self.__btn_add.set_visible(False)
+                       
         self.__update_layout()
         self.render()
+        self.__update_items_per_row(f)
 
 
     def __on_progress_folder(self, f, c):
@@ -289,7 +308,7 @@ class Navigator(Dialog):
 
         item = self.__browser.get_items()[-1]
         thumbpath, is_final = \
-          self.call_service(msgs.MEDIASCANNER_SVC_LOOKUP_THUMBNAIL, c)
+          self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
 
         item.set_icon(thumbpath)
         
@@ -299,18 +318,18 @@ class Navigator(Dialog):
 
     def __on_complete_folder(self, f):
 
-        if (self.__browser.is_visible()):
-            names = [ p.name for p in self.__browser.get_path() ]
-            title = u" \u00bb ".join(names)
-            #title = names[-1]
-            names.reverse()
-            acoustic_title = "Entering " + " in ".join(names)
-            self.set_title(title)
-            self.emit_message(msgs.UI_ACT_TALK, acoustic_title)
-            self.emit_message(msgs.CORE_EV_FOLDER_VISITED, f)
-            self.__update_toolbar()
-            #self.__update_menu()
-        #end if
+        self.set_busy(False)
+        
+        names = [ p.name for p in self.__browser.get_path() ]
+        #title = u" \u00bb ".join(names)
+        title = names[-1]
+        names.reverse()
+        acoustic_title = "Entering " + " in ".join(names)
+        self.set_title(title)
+        self.emit_message(msgs.UI_ACT_TALK, acoustic_title)
+        self.emit_message(msgs.CORE_EV_FOLDER_VISITED, f)
+        self.__update_toolbar()
+        #self.__update_menu()
 
         if (self.is_visible()):
             self.__tn_scheduler.resume()
@@ -361,14 +380,15 @@ class Navigator(Dialog):
     def __on_load_thumbnail(self, item, f):
 
         def on_loaded(thumbpath):
-            self.__update_thumbnail(item, thumbpath)
+            if (thumbpath):
+                self.__update_thumbnail(item, thumbpath)
             
             #if (self.is_visible()):
             self.__tn_scheduler.resume()
     
         # load thumbnail
         self.__tn_scheduler.halt()
-        self.call_service(msgs.MEDIASCANNER_SVC_LOAD_THUMBNAIL, f, on_loaded)
+        self.call_service(msgs.THUMBNAIL_SVC_LOAD_THUMBNAIL, f, on_loaded)
         
 
     def __on_btn_home(self):
@@ -406,6 +426,7 @@ class Navigator(Dialog):
         """
 
         self.__browser.go_parent()
+        #self.__update_items_per_row(self.__browser.get_current_folder())
 
             
             
@@ -429,64 +450,34 @@ class Navigator(Dialog):
         Loads the given file.
         """
 
-        self.__current_file = f
-        self.__browser.hilight_file(f)
+        #if (f.mimetype == "application/x-applet"):
+        #    applet_id = f.resource
+        #    self.call_service(msgs.CORE_SVC_LAUNCH_APPLET, applet_id)
 
-        if (f.mimetype == "application/x-applet"):
-            applet_id = f.resource
-            self.call_service(msgs.CORE_SVC_LAUNCH_APPLET, applet_id)
-
-        elif (f.mimetype == f.CONFIGURATOR):
+        if (f.mimetype == f.CONFIGURATOR):
             cfg_name = f.resource
             self.emit_message(msgs.UI_ACT_SHOW_DIALOG, cfg_name)
 
         else:
-            if (not f.mimetype in mimetypes.get_image_types()):
-                self.emit_message(msgs.MEDIA_ACT_STOP)
-            self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
+            #if (not f.mimetype in mimetypes.get_image_types()):
+            self.emit_message(msgs.MEDIA_ACT_STOP)
             self.emit_message(msgs.MEDIA_ACT_LOAD, f)
-            self.emit_message(msgs.UI_ACT_SELECT_VIEW, "MediaView")
+
+            # update set of play files
+            self.__current_file = f
+            self.__play_files = [ fl for fl in self.__browser.get_files()
+                                  if not fl.mimetype.endswith("-folder") ]
+            self.__play_folder = self.__browser.get_current_folder()
+            self.__random_files = []
+            self.__browser.hilight_file(f)
+
             self.set_visible(False)
-            
+                    
 
     def render_this(self):
     
         w, h = self.get_size()
         self.__arr.set_geometry(0, 0, w, h)
-        """
-        if (w < h):
-            # portrait mode
-            if (self.__now_playing_box.is_visible()):
-                self.__now_playing_box.set_geometry(w - 80, h - 80, 80, 80)
-                self.__toolbar.set_geometry(0, h - 80, w - 80, 80)
-            else:
-                self.__toolbar.set_geometry(0, h - 80, w, 80)
-                
-            if (self.__btn_add.is_visible()):
-                self.__btn_add.set_geometry(40, 0, w - 40, 80)
-                self.__browser_slider.set_geometry(0, 80, 40, h - 80 - 80)
-                self.__browser.set_geometry(40, 80, w - 40, h - 80 - 80)
-            else:
-                self.__browser_slider.set_geometry(0, 0, 40, h - 80)
-                self.__browser.set_geometry(40, 0, w - 40, h - 80)
-            
-
-        else:
-            # landscape mode
-            if (self.__now_playing_box.is_visible()):
-                self.__now_playing_box.set_geometry(w - 80, h - 80, 80, 80)
-                self.__toolbar.set_geometry(w - 80, 0, 80, h - 80)
-            else:
-                self.__toolbar.set_geometry(w - 80, 0, 80, h)
-                
-            if (self.__btn_add.is_visible()):
-                self.__btn_add.set_geometry(0, 0, w - 80, 80)
-                self.__browser_slider.set_geometry(0, 80, 40, h - 80)
-                self.__browser.set_geometry(40, 80, w - 40 - 80, h - 80)
-            else:
-                self.__browser_slider.set_geometry(0, 0, 40, h)
-                self.__browser.set_geometry(40, 0, w - 40 - 80, h)
-        """
 
 
     def __go_previous(self):
@@ -580,6 +571,10 @@ class Navigator(Dialog):
         
         return True
 
+
+    def handle_CORE_EV_THEME_CHANGED(self):
+    
+        self.render()
       
 
     def handle_CORE_EV_FOLDER_INVALIDATED(self, folder):
@@ -612,7 +607,7 @@ class Navigator(Dialog):
     
     def handle_CORE_EV_APP_STARTED(self):
 
-        self.__browser.set_root_device(self.__root_dev)
+        gobject.idle_add(self.__browser.set_root_device, self.__root_dev)
 
 
     def handle_CORE_EV_SEARCH_CLOSED(self):
@@ -623,6 +618,20 @@ class Navigator(Dialog):
         self.__is_searching = False
         self.__search_term = ""
 
+
+    def handle_ASR_EV_PORTRAIT(self):
+        
+        self.__is_portrait = True
+        self.set_visible(False)
+        self.__update_items_per_row(self.__browser.get_current_folder())
+
+
+    def handle_ASR_EV_LANDSCAPE(self):
+
+        self.__is_portrait = False
+        self.set_visible(False)
+        self.__update_items_per_row(self.__browser.get_current_folder())
+                    
     
     def handle_MEDIA_ACT_PREVIOUS(self):
     

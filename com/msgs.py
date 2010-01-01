@@ -14,7 +14,7 @@ Import this module to get access to all known message types::
       
       def handle_CORE_EV_APP_STARTED(self):
       
-          self.call_service(msgs.NOTIFY_SVC_SHOW_MESSAGE,
+          self.call_service(msgs.UI_ACT_SHOW_INFO,
                             "Application started")
 
   

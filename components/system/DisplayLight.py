@@ -10,7 +10,6 @@ class DisplayLight(Component):
     def __init__(self):
 
         Component.__init__(self)
-        #self.__devstate = platforms.get_device_state()
         
         self.__timeout_handler = None
 
@@ -36,26 +35,9 @@ class DisplayLight(Component):
             self.__disable_light()
 
 
-    """
-    def handle_UI_EV_VIEWER_CHANGED(self, idx):    
-
-        lit = config.get_display_lit()
-        if (lit == "yes"):
-            if (idx != -1):
-                # viewer; may keep display on
-                self.__enable_light()
-            else:
-                # main menu; may not keep display on
-                self.__disable_light()
-                
-        elif (lit == "no"):
-            self.__disable_light()
-    """
-
-
     def __enable_light(self):
 
-        #print "enabling light"
+        print "enabling light"
         if (not self.__timeout_handler):
             self.__timeout_handler = gobject.timeout_add(23000,
                                                          self.__keep_display_on)
@@ -63,7 +45,7 @@ class DisplayLight(Component):
                                                          
     def __disable_light(self):
 
-        #print "disabling light"
+        print "disabling light"
         if (self.__timeout_handler):
             gobject.source_remove(self.__timeout_handler)
             self.__timeout_handler = None
@@ -71,10 +53,7 @@ class DisplayLight(Component):
 
     def __keep_display_on(self):
     
-        # dbus-send --system --print-reply --dest=com.nokia.mce 
-        #     /com/nokia/mce/request
-        #     com.nokia.mce.request.req_display_blanking_pause
-        #self.__devstate.display_blanking_pause()
+        print "inhibiting screen blanking"
         platforms.inhibit_screen_blanking()
         return True
 

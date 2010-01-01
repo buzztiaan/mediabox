@@ -2,7 +2,12 @@ import platforms
 
 import gtk
 import gobject
-
+try:
+    import hildon
+except:
+    hildon = None
+    
+    
 
 class InputDialog(gtk.Dialog):
 
@@ -16,7 +21,13 @@ class InputDialog(gtk.Dialog):
         gtk.Dialog.__init__(self)
         self.set_title(title)
         
-        btn = gtk.Button("OK")
+        if (hildon):
+            btn = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT,
+                                hildon.BUTTON_ARRANGEMENT_VERTICAL,
+                                "OK")
+        else:
+            btn = gtk.Button("OK")
+            
         btn.connect("clicked", lambda x: self.response(gtk.RESPONSE_ACCEPT))
         btn.show()
         self.action_area.add(btn)
@@ -52,11 +63,11 @@ class InputDialog(gtk.Dialog):
         self.vbox.add(vbox)
 
         lbl = gtk.Label(label)
+        lbl.set_alignment(0.0, 0.5)
         lbl.show()
         vbox.add(lbl)
     
-        if (platforms.PLATFORM == platforms.MAEMO5):    
-            import hildon
+        if (hildon):    
             scale = hildon.GtkHScale()
         else:
             scale = gtk.HScale()

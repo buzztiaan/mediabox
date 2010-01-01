@@ -30,8 +30,13 @@ class ThemeListItem(Item):
         w, h = self.get_size()
         
         pmap, is_new = self._get_cached_pixmap()
-        if (is_new):        
+        if (is_new):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
+
+            # render selection frame
+            if (self.is_marked() or self.is_hilighted()):
+                pmap.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True,
+                                pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
 
             icon_y = (h - self.__preview.get_height()) / 2
             pmap.draw_pixbuf(self.__preview, 8, icon_y)
@@ -41,9 +46,9 @@ class ThemeListItem(Item):
                 info += "\nby " + self.__author
 
             pmap.set_clip_rect(0, 0, w, h)
-            pmap.draw_text(self.__label, theme.font_mb_headline,
+            pmap.draw_text(self.__label, theme.font_mb_plain,
                             128, 2, theme.color_mb_listitem_text)
-            pmap.draw_text(info, theme.font_mb_plain,
+            pmap.draw_text(info, theme.font_mb_tiny,
                             128, 30, theme.color_mb_listitem_subtext)
             pmap.set_clip_rect()
         #end if
@@ -61,7 +66,7 @@ class ThemeListItem(Item):
     def click_at(self, px, py):
     
         w, h = self.get_size()
-        if (px >= w - 80):
-            print "CLICK"
-            self.emit_event(self.EVENT_CLICKED)
+        #if (px >= w - 80):
+        print "CLICK"
+        self.emit_event(self.EVENT_CLICKED)
         

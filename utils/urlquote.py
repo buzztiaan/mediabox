@@ -10,6 +10,7 @@ always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 _safemaps = {}
 
 def quote(s, safe = '/'):
+    s = str(s)
     cachekey = (safe, always_safe)
     try:
         safe_map = _safemaps[cachekey]
