@@ -50,7 +50,7 @@ class RootDevice(Device):
         
     def get_name(self):
     
-        return "Shelve"
+        return "Shelf"
         
         
     def get_icon(self):
@@ -162,9 +162,9 @@ class RootDevice(Device):
         self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
 
 
-    def __on_remove_from_shelve(self, folder, f):
+    def __on_remove_from_shelf(self, folder, f):
     
-        logging.debug("removing from shelve: %s", f.name)
+        logging.debug("removing from shelf: %s", f.name)
         f.bookmarked = False
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
 
@@ -176,8 +176,8 @@ class RootDevice(Device):
             if (not f.full_path.startswith("playlist://")):
                 options.append((None, "Add to Playlist",
                                 self.__on_add_to_playlist))
-            options.append((None, "Remove from Shelve",
-                            self.__on_remove_from_shelve))
+            options.append((None, "Remove from Shelf",
+                            self.__on_remove_from_shelf))
 
         return options
 

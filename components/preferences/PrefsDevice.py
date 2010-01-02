@@ -98,7 +98,7 @@ class PrefsDevice(Device):
         cb(None, *args)
  
 
-    def __on_put_on_shelve(self, folder, f):
+    def __on_put_on_shelf(self, folder, f):
     
         f.bookmarked = True
 
@@ -106,7 +106,7 @@ class PrefsDevice(Device):
     def get_file_actions(self, folder, f):
     
         actions = []
-        actions.append((None, "Put on Shelve", self.__on_put_on_shelve))
+        actions.append((None, "Put on Shelf", self.__on_put_on_shelf))
 
         return actions
 

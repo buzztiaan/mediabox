@@ -369,7 +369,7 @@ class PlaylistDevice(Device):
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
 
 
-    def __on_put_on_shelve(self, folder, f):
+    def __on_put_on_shelf(self, folder, f):
     
         f.bookmarked = True
 
@@ -378,7 +378,7 @@ class PlaylistDevice(Device):
     
         options = []
         if (folder.path == "/"):
-            options.append((None, "Put on Shelve", self.__on_put_on_shelve))
+            options.append((None, "Put on Shelf", self.__on_put_on_shelf))
             options.append((None, "Clear List", self.__on_clear_playlist))
 
             if (not f.name in _SPECIAL_PLAYLISTS):
