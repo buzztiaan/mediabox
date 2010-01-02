@@ -44,8 +44,11 @@ class ComponentListItem(Item):
             try:
                 icon = self.__component.ICON
             except:
-                icon = None
-                
+                try:
+                    icon = self.__component.get_icon()
+                except:
+                    icon = None
+
             if (icon):
                 pmap.fit_pixbuf(icon, 8, (h - 80) / 2, 80, 80)
 

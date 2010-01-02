@@ -47,9 +47,9 @@ class ThemeListItem(Item):
 
             pmap.set_clip_rect(0, 0, w, h)
             pmap.draw_text(self.__label, theme.font_mb_plain,
-                            128, 2, theme.color_mb_listitem_text)
+                            128, 2, theme.color_list_item_text)
             pmap.draw_text(info, theme.font_mb_tiny,
-                            128, 30, theme.color_mb_listitem_subtext)
+                            128, 30, theme.color_list_item_subtext)
             pmap.set_clip_rect()
         #end if
 

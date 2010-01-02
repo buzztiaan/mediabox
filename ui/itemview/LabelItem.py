@@ -35,7 +35,7 @@ class LabelItem(Item):
             pmap.set_clip_rect(0, 0, w, h)
             pmap.draw_formatted_text(self.__label, self.__font,
                                      4, 4, w - 8, h - 8,
-                                     theme.color_mb_listitem_text)
+                                     theme.color_list_item_text)
             pmap.set_clip_rect()
         #end if
         
