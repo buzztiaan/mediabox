@@ -13,10 +13,8 @@ def get_classes():
         from TrackerScanner import TrackerScanner
         classes.append(TrackerScanner)
 
-    else:
-        from SimpleScanner import SimpleScanner
-        classes.append(SimpleScanner)
-
+    from SimpleScanner import SimpleScanner
+    classes.append(SimpleScanner)
 
     return classes
     

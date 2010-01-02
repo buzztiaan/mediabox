@@ -230,7 +230,7 @@ class ShoutcastDirectory(Device):
                                                          genre)
                     station.info = "Bitrate: %s kb\n" \
                                    "Now playing: %s" % (bitrate, now_playing)
-                    station.icon = theme.shoutcast_station
+                    station.icon = theme.shoutcast_station.get_path()
                     stations.append(station)
 
         except:

@@ -43,10 +43,11 @@ class GstBackend(AbstractBackend):
                     idx = line.find("=")
                     uri = line[idx + 1:].strip()
                     print "LOADING", uri
+                    self.__player.set_property("uri", "")
                     self.__player.set_property("uri", uri)
-                    self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
-                                              gst.SEEK_FLAG_FLUSH,
-                                              0)
+                    #self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
+                    #                          gst.SEEK_FLAG_FLUSH,
+                    #                          0)
                     self._play()
                 #end if
             #end if
@@ -122,6 +123,7 @@ class GstBackend(AbstractBackend):
         
 
         self.__player.set_state(gst.STATE_NULL)
+        self.__start_gst()
         if (uri.endswith(".pls")):
             # playbin2 does read PLS files
             self.__load_pls(uri)

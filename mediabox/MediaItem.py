@@ -189,7 +189,7 @@ class MediaItem(Item):
                            offset, 20,
                            theme.color_list_item_text)
             pmap.draw_text(self.__sublabel, theme.font_mb_tiny,
-                           offset, h - 40,
+                           offset, 40,
                            theme.color_list_item_subtext)
             pmap.set_clip_rect()
             

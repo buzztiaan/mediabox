@@ -10,7 +10,7 @@ _DOTTED_WHITELIST = [".images", ".sounds", ".videos"]
 
 class SimpleScanner(Component):
     """
-    File file scanner component, walking the home directory.
+    File scanner component, walking directories on demand.
     """
 
     def __init__(self):
@@ -39,10 +39,10 @@ class SimpleScanner(Component):
 
 
 
-    def __scan(self):
+    def __scan(self, scanpath):
 
         paths = []
-        for dirpath, dirnames, files in os.walk(self.__homedir):
+        for dirpath, dirnames, files in os.walk(scanpath):
             #print "scanning", dirpath
             for f in files:
                 path = os.path.join(dirpath, f)
@@ -58,13 +58,21 @@ class SimpleScanner(Component):
         gobject.idle_add(self.__file_walker, paths)        
 
 
+    """
     def handle_CORE_EV_APP_STARTED(self):
 
         if (config.scan_at_startup()):
             self.__scan()
+    """
+    
 
-
+    """
     def handle_FILEINDEX_ACT_SCAN(self):
     
         self.__scan()
+    """
+    
+    def handle_FILEINDEX_ACT_SCAN_FOLDER(self, path):
+    
+        self.__scan(path)
 
