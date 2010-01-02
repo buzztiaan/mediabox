@@ -1,11 +1,11 @@
-mediabox (2009.01.02) unstable; urgency=low
+mediabox (2010.01.02) unstable; urgency=low
 
   Added simple PLS support to GstBackend (good enough for playing SHOUTcast
   radio)
 
  -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 02 Jan 2010 16:00:00 +0100
 
-mediabox (2009.01.01) unstable; urgency=low
+mediabox (2010.01.01) unstable; urgency=low
 
   Theme graphics
   
