@@ -7,6 +7,9 @@ import os
 
 
 class CoverStore(Component):
+    """
+    Component for retrieving and providing cover art.
+    """
 
     def __init__(self):
     

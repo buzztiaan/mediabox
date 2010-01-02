@@ -12,8 +12,6 @@ class IdleDetector(Component):
     """
     Component responsible for putting the application into idle mode for saving
     battery.
-    
-    @todo: don't go idle when on AC
     """
 
     def __init__(self):

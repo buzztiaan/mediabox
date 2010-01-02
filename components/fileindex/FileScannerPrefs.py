@@ -10,6 +10,9 @@ import time
 
 
 class FileScannerPrefs(Configurator):
+    """
+    Configurator for file indexing.
+    """
 
     ICON = theme.prefs_icon_fileindex
     TITLE = "Media Indexing"

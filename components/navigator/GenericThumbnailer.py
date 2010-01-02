@@ -3,6 +3,9 @@ from theme import theme
 
 
 class GenericThumbnailer(Thumbnailer):
+    """
+    Thumbnailer for generic non-media files and folders.
+    """
 
     def __init__(self):
     

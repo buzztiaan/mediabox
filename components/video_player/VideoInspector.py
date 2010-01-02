@@ -4,6 +4,9 @@ import os
 
 
 class VideoInspector(FileInspector):
+    """
+    File inspector for video metadata.
+    """
 
     def __init__(self):
     

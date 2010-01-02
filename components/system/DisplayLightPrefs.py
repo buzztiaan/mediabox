@@ -22,6 +22,9 @@ _DESCRIPTIONS = {"no":
 
 
 class DisplayLightPrefs(Configurator):
+    """
+    Configurator for setting the display light behavior.
+    """
 
     ICON = theme.prefs_icon_displaylight
     TITLE = "Display Light"

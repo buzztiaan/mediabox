@@ -4,6 +4,9 @@ import os
 
 
 class ImageInspector(FileInspector):
+    """
+    File inspector for image metadata.
+    """
 
     def __init__(self):
     

@@ -5,6 +5,9 @@ import os
 
 
 class AudioInspector(FileInspector):
+    """
+    File inspector for audio metadata.
+    """
 
     def __init__(self):
     

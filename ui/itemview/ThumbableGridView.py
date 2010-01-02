@@ -56,7 +56,7 @@ class ThumbableGridView(GridView):
             letter = item.get_letter()
             
             if (letter):
-                tw, th = text_extents(letter, theme.font_mb_list_letter)
+                tw, th = text_extents(letter, theme.font_list_letter)
                 tx = (w - tw) / 2
                 ty = (h - th) / 2
                 border_width = 10
@@ -66,9 +66,9 @@ class ThumbableGridView(GridView):
                 by = (h - bh) / 2
                 
                 screen.fill_area(bx, by, bw, bh,
-                                 theme.color_mb_list_letter_background)
-                screen.draw_text(letter, theme.font_mb_list_letter, tx, ty,
-                                 theme.color_mb_list_letter)
+                                 theme.color_list_letter_background)
+                screen.draw_text(letter, theme.font_list_letter, tx, ty,
+                                 theme.color_list_letter)
             #end if
         #end if
 

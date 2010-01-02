@@ -7,6 +7,9 @@ from theme import theme
 
 
 class VideoStorage(Device):
+    """
+    Storage device for browsing video folders.
+    """
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_VIDEO

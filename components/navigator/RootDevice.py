@@ -15,7 +15,7 @@ _TYPE_MAP = {
 
 class RootDevice(Device):
     """
-    Device for uniting all devices in one directory list.
+    Storage device for uniting all devices in one directory list.
     """
 
     CATEGORY = Device.CATEGORY_INDEX
@@ -101,7 +101,6 @@ class RootDevice(Device):
         self.__favorites = self.call_service(msgs.BOOKMARK_SVC_LIST, [])
         self.__favorites.sort(lambda a,b:cmp((a.device_id, a.name),
                                              (b.device_id, b.name)))
-        
         return self.__favorites
 
 

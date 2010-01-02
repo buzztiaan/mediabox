@@ -4,6 +4,9 @@ from utils import logging
 
 
 class MediaOutputService(Component):
+    """
+    Component for selecting the media renderer.
+    """
 
     def __init__(self):
 

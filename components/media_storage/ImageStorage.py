@@ -9,6 +9,9 @@ import os
 
 
 class ImageStorage(Device):
+    """
+    Storage device for browsing image folders.
+    """
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_IMAGE

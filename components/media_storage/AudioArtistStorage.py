@@ -15,6 +15,9 @@ import threading
 
 
 class AudioArtistStorage(Device):
+    """
+    Storage device for browsing music artists.
+    """
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_AUDIO

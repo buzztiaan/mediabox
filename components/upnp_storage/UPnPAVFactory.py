@@ -7,8 +7,7 @@ from MediaRenderer import MediaRenderer
 class UPnPAVFactory(Component):
     """
     Factory component for creating UPnP AV storage devices.
-    This component monitors SSDP events and creates or removes storage devices
-    accordingly.
+    This component monitors SSDP events and creates/removes devices accordingly.
     """
 
     def __init__(self):

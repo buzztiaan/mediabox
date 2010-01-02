@@ -10,6 +10,9 @@ _PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
 
 
 class ImageThumbnailer(Thumbnailer):
+    """
+    Thumbnailer for image media.
+    """
 
     def __init__(self):
     

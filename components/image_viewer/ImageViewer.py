@@ -48,6 +48,9 @@ _PORTRAIT_ARRANGEMENT = """
 
 
 class ImageViewer(Player):
+    """
+    Player component for viewing images.
+    """
 
     def __init__(self):      
 
@@ -68,6 +71,7 @@ class ImageViewer(Player):
         
         self.__image = Image()
         self.__image.add_overlay(self.__overlay_nav_button)
+        self.__image.set_background(theme.color_image_viewer_background)
         #self.add(self.__image)
         
         kscr = KineticScroller(self.__image)
@@ -251,9 +255,11 @@ class ImageViewer(Player):
         if (self.__is_fullscreen):
             self.__toolbar.set_visible(False)
             self.__btn_navigator.set_visible(False)
+            self.__image.set_background(theme.color_image_viewer_background_fullscreen)
         else:
             self.__toolbar.set_visible(True)
             self.__btn_navigator.set_visible(True)
+            self.__image.set_background(theme.color_image_viewer_background)
         
         self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
         self.__update_layout()

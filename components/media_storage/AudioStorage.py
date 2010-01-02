@@ -7,6 +7,9 @@ from theme import theme
 
 
 class AudioStorage(Device):
+    """
+    Storage device for browsing music folders.
+    """
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_AUDIO

@@ -26,6 +26,9 @@ _DOTTED_WHITELIST = [".sounds", ".videos", ".images"]
 
 
 class LocalDevice(Device):
+    """
+    Storage device for browsing the local filesystem.
+    """
 
     CATEGORY = Device.CATEGORY_LOCAL
     TYPE = Device.TYPE_GENERIC

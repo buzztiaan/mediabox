@@ -1,0 +1,13 @@
+color_list_item_text: #000000
+color_list_item_subtext: #888888
+
+font_list_letter: Nokia Sans bold 42
+color_list_letter: #eeeeee
+color_list_letter_background: #000000a0
+
+font_list_message: Nokia Sans Cn 15
+color_list_message: #eeeeee
+color_list_message_background: #000000a0
+
+font_list_search_term: Nokia Sans Cn 26
+

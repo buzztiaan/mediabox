@@ -15,7 +15,8 @@ _BLACKLIST = ["media:///",
 
 class HistoryDevice(Device):
     """
-    Device for collecting and listing the runtime history of visited folders.
+    Storage device for collecting and listing the history of recently visited
+    folders.
     """
 
     CATEGORY = Device.CATEGORY_HIDDEN

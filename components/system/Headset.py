@@ -14,6 +14,9 @@ _HEADPHONE_SYS = "/sys/devices/platform/gpio-switch/headphone/state"
 
 
 class Headset(Component):
+    """
+    Component for monitoring the headset status.
+    """
 
     def __init__(self):
     

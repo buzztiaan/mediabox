@@ -4,6 +4,9 @@ from theme import theme
 
 
 class PrefsDevice(Device):
+    """
+    Storage device for browsing the configurators.
+    """
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_SYSTEM

@@ -15,7 +15,7 @@ _SHOUTCAST_BASE = "http://www.shoutcast.com"
 class IRadioStorage(Device):
 
     CATEGORY = Device.CATEGORY_WAN
-    TYPE = Device.TYPE_PRIVATE
+    TYPE = Device.TYPE_AUDIO
 
 
     def __init__(self):

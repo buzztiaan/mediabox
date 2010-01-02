@@ -5,13 +5,16 @@ import mediaplayer
 class LocalOutput(MediaOutput):
     """
     Media output device for playing on the local device.
+    """
     
+    TITLE = "Local"
+    
+    """
     @todo: For now, this just passes stuff through to the mediaplayer modules.
            Eventually, the mediaplayer backends should be integrated into the
            component system and loaded dynamically by this component.
     """
 
-    TITLE = "Local"
     
 
     def __init__(self):
@@ -27,6 +30,7 @@ class LocalOutput(MediaOutput):
         self.__backend = mediaplayer.get_player_for_mimetype(mimetype)
         self.__backend.connect_status_changed(self.__on_change_status)
         self.__backend.connect_position_changed(self.__on_change_position)
+        self.__backend.connect_tag_discovered(self.__on_tags)
         self.__backend.connect_error(self.__on_error)
         
         
@@ -38,6 +42,11 @@ class LocalOutput(MediaOutput):
     def __on_change_position(self, ctx_id, pos, total):
     
         self.emit_event(self.EVENT_POSITION_CHANGED, ctx_id, pos, total)
+
+
+    def __on_tags(self, ctx_id, tags):
+    
+        self.emit_event(self.EVENT_TAG_DISCOVERED, ctx_id, tags)
 
 
     def __on_error(self, ctx_id, err):

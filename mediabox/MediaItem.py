@@ -126,7 +126,7 @@ class MediaItem(Item):
             pmap.set_clip_rect(5, 0, w - 10, h)
             pmap.draw_centered_text(self.__label, theme.font_mb_plain,
                                     5, h - 26, w - 10, 26,
-                                    theme.color_mb_listitem_text)
+                                    theme.color_list_item_text)
             pmap.set_clip_rect()
             
         #end if
@@ -187,10 +187,10 @@ class MediaItem(Item):
             pmap.set_clip_rect(*clip_rect)
             pmap.draw_text(self.__label, theme.font_mb_plain,
                            offset, 20,
-                           theme.color_mb_listitem_text)
+                           theme.color_list_item_text)
             pmap.draw_text(self.__sublabel, theme.font_mb_tiny,
                            offset, h - 40,
-                           theme.color_mb_listitem_subtext)
+                           theme.color_list_item_subtext)
             pmap.set_clip_rect()
             
             # render button

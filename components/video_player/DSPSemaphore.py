@@ -5,10 +5,8 @@ import gtk
 
 class DSPSemaphore(Component):
     """
-    Only one client must access the DSP at a time for playing video. If two
-    clients attempt to play a video at the same time, the device will crash.
-    This semaphore avoids conflicts between the video player and the video
-    thumbnailer.
+    This semaphore avoids DSP conflicts between the video player and the video
+    thumbnailer. Conflicts that may crash the device.
     """
 
     def __init__(self):

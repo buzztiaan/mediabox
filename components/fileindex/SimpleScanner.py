@@ -9,6 +9,9 @@ _DOTTED_WHITELIST = [".images", ".sounds", ".videos"]
 
 
 class SimpleScanner(Component):
+    """
+    File file scanner component, walking the home directory.
+    """
 
     def __init__(self):
     

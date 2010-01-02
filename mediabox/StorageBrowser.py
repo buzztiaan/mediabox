@@ -125,16 +125,16 @@ class StorageBrowser(ThumbableGridView):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
        
-        tw, th = text_extents(self.__message, theme.font_mb_listitem)
+        tw, th = text_extents(self.__message, theme.font_list_message)
         bw = tw + 20
         bh = th + 6
         tx = (w - bw) / 2 + (bw - tw) / 2
         ty = (h - bh) + (bh - th) / 2
 
         screen.fill_area((w - bw) / 2, h - bh,
-                         bw, bh, theme.color_mb_list_letter_background)
-        screen.draw_text(self.__message, theme.font_mb_listitem, tx, ty,
-                         theme.color_mb_list_letter)
+                         bw, bh, theme.color_list_message_background)
+        screen.draw_text(self.__message, theme.font_list_message, tx, ty,
+                         theme.color_list_message)
 
 
     def __render_search_box(self, screen):

@@ -3,6 +3,9 @@ from theme import theme
 
 
 class VideoThumbnailer(Thumbnailer):
+    """
+    Thumbnailer for creating video thumbnails.
+    """
 
     def __init__(self):
     

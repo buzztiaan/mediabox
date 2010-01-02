@@ -9,7 +9,7 @@ import time
 
 class TrackerScanner(Component):
     """
-    FileScanner that uses tracker for finding files.
+    File scanner component that uses tracker for finding files.
     """
 
     def __init__(self):

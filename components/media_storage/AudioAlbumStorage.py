@@ -15,6 +15,9 @@ import threading
 
 
 class AudioAlbumStorage(Device):
+    """
+    Storage device for browsing music albums.
+    """
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_AUDIO

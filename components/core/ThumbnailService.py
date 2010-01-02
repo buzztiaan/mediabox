@@ -5,7 +5,8 @@ from utils import logging
 
 class ThumbnailService(Component):
     """
-    Component for creating and looking up thumbnail previews.
+    Component for creating and looking up thumbnail previews, delegating
+    thumbnail creation to Thumbnailer components.
     """
 
     def __init__(self):

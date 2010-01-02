@@ -45,7 +45,7 @@ class Container(Component):
 
         for dev in self.__devices:
             self.emit_message(msgs.CORE_EV_DEVICE_ADDED, dev.get_device_id(), dev)
-
+            self.emit_message(msgs.COM_EV_COMPONENT_LOADED, dev)
 
     """
     def __find_modules(self, path):

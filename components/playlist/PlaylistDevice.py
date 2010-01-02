@@ -19,6 +19,9 @@ _SPECIAL_PLAYLISTS = [_PLAYLIST_DEFAULT,
 
 
 class PlaylistDevice(Device):
+    """
+    Storage device for browsing and manipulating playlists.
+    """
 
     CATEGORY = Device.CATEGORY_CORE
     TYPE = Device.TYPE_SYSTEM

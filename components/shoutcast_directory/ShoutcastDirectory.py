@@ -14,7 +14,10 @@ _SHOUTCAST_BASE = "http://yp.shoutcast.com"
 
 
 
-class ShoutcastStorage(Device):
+class ShoutcastDirectory(Device):
+    """
+    Storage device for browsing the SHOUTcast internet radio directory.
+    """
 
     CATEGORY = Device.CATEGORY_WAN
     TYPE = Device.TYPE_AUDIO

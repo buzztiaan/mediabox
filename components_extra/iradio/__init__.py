@@ -1,4 +1,6 @@
 def get_devices():
 
-    from IRadio import IRadio
-    return [IRadio]
+    from ShoutcastStorage import ShoutcastStorage
+    return [ShoutcastStorage]
+    #from IRadio import IRadio
+    #return [IRadio]

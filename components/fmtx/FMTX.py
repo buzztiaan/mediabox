@@ -7,6 +7,9 @@ import dbus
 #dbus-send --system --print-reply --dest=com.nokia.FMTx /com/nokia/fmtx/default org.freedesktop.DBus.Properties.Get string:'com.nokia.FMTx.Device' string:'rds_ps'
 
 class FMTX(Component):
+    """
+    Component for sending RDS song information over the FM transmitter.
+    """
 
     def __init__(self):
     
@@ -74,7 +77,6 @@ class FMTX(Component):
     
         self.__is_playing = False
 
-        
         
     def handle_MEDIA_EV_EOF(self):
 

@@ -6,7 +6,7 @@ import gobject
 
 class FileUndertaker(Component):
     """
-    This component removes dead entries from the file index.
+    Component for removing dead entries from the file index.
     """
 
     def __init__(self):

@@ -68,6 +68,9 @@ _PORTRAIT_ARRANGEMENT = """
 
 
 class Navigator(Dialog):
+    """
+    Navigator dialog for browsing media.
+    """
 
     def __init__(self):
     

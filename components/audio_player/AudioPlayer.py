@@ -43,6 +43,9 @@ _PORTRAIT_ARRANGEMENT = """
 
 
 class AudioPlayer(Player):
+    """
+    Player component for playing audio files.
+    """
 
     def __init__(self):
     
@@ -67,36 +70,20 @@ class AudioPlayer(Player):
         
         # title label
         self.__lbl_title = Label("-", theme.font_mb_headline,
-                                 theme.color_mb_trackinfo_text)
+                                 theme.color_audio_player_trackinfo_title)
         self.__lbl_title.set_alignment(Label.CENTERED)
         self.__trackinfo.add(self.__lbl_title, True)
 
 
         # artist and album labels
-        #self.add(self.__trackinfo)
-        
-        #hbox = HBox()
-        #hbox.set_spacing(24)
-        #self.__trackinfo.add(hbox, True)
-        #img = Image(theme.mb_music_album)
-        #img.set_size(48, 48)
-        #hbox.add(img, False)
         self.__lbl_album = Label("-", theme.font_mb_plain,
-                                 theme.color_mb_trackinfo_text)
+                                 theme.color_audio_player_trackinfo_album)
         self.__lbl_album.set_alignment(Label.CENTERED)
-        #hbox.add(self.__lbl_album, True)
         self.__trackinfo.add(self.__lbl_album, True)
 
-        #hbox = HBox()
-        #hbox.set_spacing(24)
-        #self.__trackinfo.add(hbox, True)
-        #img = Image(theme.mb_music_artist)
-        #img.set_size(48, 48)
-        #hbox.add(img, False)
         self.__lbl_artist = Label("-", theme.font_mb_plain,
-                                  theme.color_mb_trackinfo_text)
+                                  theme.color_audio_player_trackinfo_artist)
         self.__lbl_artist.set_alignment(Label.CENTERED)
-        #hbox.add(self.__lbl_artist, True)
         self.__trackinfo.add(self.__lbl_artist, True)
         
         
@@ -230,6 +217,22 @@ class AudioPlayer(Player):
             self.emit_message(msgs.MEDIA_EV_POSITION, pos, total)
 
 
+    def __on_discovered_tags(self, ctx_id, tags):
+    
+        if (ctx_id == self.__context_id):
+            title = tags.get("TITLE")
+            album = tags.get("ALBUM")
+            artist = tags.get("ARTIST")
+            
+            if (title):
+                self.__lbl_title.set_text(title)
+            if (album):
+                self.__lbl_album.set_text(album)
+            if (artist):
+                self.__lbl_artist.set_text(artist)
+        #end if
+        
+
     def __on_change_volume(self, v):
     
         if (self.__player):
@@ -309,7 +312,7 @@ class AudioPlayer(Player):
         self.__buffer.draw_frame(theme.mb_lyrics_box, bx, by, bw, bh, True)
         self.__buffer.draw_formatted_text(text, theme.font_mb_headline,
                                             bx + 8, by + 8, bw - 16, bh - 16,
-                                            "#ffffff",
+                                            color_audio_player_lyrics,
                                             self.__buffer.LEFT,
                                             True)
 
@@ -360,6 +363,7 @@ class AudioPlayer(Player):
         self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
         self.__player.connect_status_changed(self.__on_change_player_status)
         self.__player.connect_position_changed(self.__on_update_position)
+        self.__player.connect_tag_discovered(self.__on_discovered_tags)
         self.__player.connect_error(self.__on_error)
 
         """

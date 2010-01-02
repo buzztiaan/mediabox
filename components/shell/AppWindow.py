@@ -259,6 +259,8 @@ class AppWindow(Component, Window):
         mimetype = f.mimetype
         handlers = self.__mime_handlers.get(mimetype)
 
+        print "LOAD", f, mimetype, handlers
+
         if (not handlers):
             m1, m2 = mimetype.split("/")
             handlers = self.__mime_handlers.get(m1 + "/*")

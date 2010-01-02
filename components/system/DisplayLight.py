@@ -6,6 +6,9 @@ import gobject
 
 
 class DisplayLight(Component):
+    """
+    Component for keeping the display light on.
+    """
 
     def __init__(self):
 

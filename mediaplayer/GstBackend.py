@@ -26,7 +26,35 @@ class GstBackend(AbstractBackend):
     
         from theme import theme
         return theme.mb_backend_gstreamer
+
+
+    def __load_pls(self, uri):
+    
+        def on_load(d, amount, total, data):
+            if (d):
+                data[0] += d
+            else:
+                print "PLS DATA:"
+                print data[0]
+                filelines = [ l for l in data[0].splitlines()
+                              if l.startswith("File") ]
+                if (filelines):
+                    line = filelines[0]
+                    idx = line.find("=")
+                    uri = line[idx + 1:].strip()
+                    print "LOADING", uri
+                    self.__player.set_property("uri", uri)
+                    self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
+                                              gst.SEEK_FLAG_FLUSH,
+                                              0)
+                    self._play()
+                #end if
+            #end if
+    
+        from io.Downloader import Downloader
+        dl = Downloader(uri, on_load, [""])
         
+
 
     def __start_gst(self):
 
@@ -58,9 +86,17 @@ class GstBackend(AbstractBackend):
             self._report_error(self.ERR_INVALID, "")
 
         elif (t == gst.MESSAGE_TAG):
-            #print message
-            pass
-
+            tags = message.parse_tag()
+            for key in tags.keys():
+                print key, tags[key]
+                if (key == "title"):
+                    self._report_tag("TITLE", tags[key])
+                elif (key == "artist"):
+                    self._report_tag("ARTIST", tags[key])
+                elif (key == "album"):
+                    self._report_tag("ALBUM", tags[key])
+            #end for
+            
 
     def __on_sync_message(self, bus, message):
     
@@ -83,12 +119,17 @@ class GstBackend(AbstractBackend):
        
         if (uri.startswith("/")): uri = "file://" + uri
         uri = uri.replace("\"", "\\\"")
+        
 
         self.__player.set_state(gst.STATE_NULL)
-        self.__player.set_property("uri", uri)
-        self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
-                                  gst.SEEK_FLAG_FLUSH,
-                                  0)
+        if (uri.endswith(".pls")):
+            # playbin2 does read PLS files
+            self.__load_pls(uri)
+        else:
+            self.__player.set_property("uri", uri)
+            self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
+                                      gst.SEEK_FLAG_FLUSH,
+                                      0)
         self._report_aspect_ratio(16/9.0)
         
 

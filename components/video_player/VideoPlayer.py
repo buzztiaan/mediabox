@@ -49,6 +49,9 @@ _PORTRAIT_ARRANGEMENT = """
 
 
 class VideoPlayer(Player):
+    """
+    Player component for playing videos.
+    """
 
     def __init__(self):
 
@@ -61,13 +64,13 @@ class VideoPlayer(Player):
         self.__is_playing = False
         
         self.__blanking_handler = None
+        self.__load_failed_handler = None
         
 
         Player.__init__(self)
         
         # video screen
         self.__screen = VideoScreen()
-        #self.add(self.__screen)
 
         gestures = Gestures(self.__screen)
         gestures.connect_tap(self.__on_tap)
@@ -78,13 +81,11 @@ class VideoPlayer(Player):
         self.__volume_slider = Slider(theme.mb_list_slider)
         self.__volume_slider.set_mode(Slider.VERTICAL)
         self.__volume_slider.connect_value_changed(self.__on_change_volume)
-        #self.add(self.__volume_slider)
 
 
         # progress bar
         self.__progress = ProgressBar()
         self.__progress.connect_changed(self.__on_seek)
-        #self.add(self.__progress)
 
 
         # navigator button
@@ -109,7 +110,6 @@ class VideoPlayer(Player):
         
         # toolbar
         self.__toolbar = Toolbar()
-        #self.add(self.__toolbar)
         self.__toolbar.set_toolbar(btn_previous,
                                    self.__btn_play,
                                    btn_next)
@@ -181,6 +181,10 @@ class VideoPlayer(Player):
             if (status == self.__player.STATUS_PLAYING):
                 self.__btn_play.set_images(theme.mb_btn_pause_1,
                                            theme.mb_btn_pause_2)
+                
+                if (self.__load_failed_handler):
+                    gobject.source_remove(self.__load_failed_handler)
+
                 self.__is_playing = True
                 self.__progress.set_message("")
                 self.emit_message(msgs.MEDIA_EV_PLAY)
@@ -188,7 +192,7 @@ class VideoPlayer(Player):
                 # we need manual unblanking on Maemo5 for videos
                 if (not self.__blanking_handler and
                       platforms.PLATFORM == platforms.MAEMO5):
-                    self.__blanking_handler = gobject.timeout_add(25000,
+                    self.__blanking_handler = gobject.timeout_add(23000,
                                                       self.__inhibit_blanking)
                 #end if
                                            
@@ -296,6 +300,11 @@ class VideoPlayer(Player):
         self.__progress.set_message("")
 
 
+    def __on_load_failed(self):
+    
+        self.__load_failed_handler = None
+        self.call_service(msgs.VIDEOPLAYER_SVC_RELEASE_DSP)
+
         
     def load(self, f):
 
@@ -316,6 +325,13 @@ class VideoPlayer(Player):
             maemo.request_connection()
         #end if
         """
+
+        # loading may fail, so we need to setup a handler that frees the DSP
+        # semaphore after some time
+        if (self.__load_failed_handler):
+                    gobject.source_remove(self.__load_failed_handler)
+        self.__load_failed_handler = gobject.timeout_add(30000,
+                                                         self.__on_load_failed)
         
         uri = f.get_resource()
         try:
@@ -326,8 +342,6 @@ class VideoPlayer(Player):
             self.__progress.set_message("Error")
             logging.error("error loading media file: %s\n%s",
                           uri, logging.stacktrace())
-
-        #self.render()
 
 
     def handle_MEDIA_ACT_PAUSE(self):

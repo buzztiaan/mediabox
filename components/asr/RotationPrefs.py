@@ -11,6 +11,9 @@ import os
 
 
 class RotationPrefs(Configurator):
+    """
+    Configurator for display rotation.
+    """
 
     ICON = theme.prefs_icon_asr
     TITLE = "Display Orientation"

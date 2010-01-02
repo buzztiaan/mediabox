@@ -27,7 +27,7 @@ _CACHE_DIR = os.path.join(values.USER_DIR, "upnpcache")
 
 class AVDevice(Device):
     """
-    Class representing a UPnP device with ContentDirectory.
+    Storage device representing a UPnP device with ContentDirectory.
     """
 
     CATEGORY = Device.CATEGORY_LAN
