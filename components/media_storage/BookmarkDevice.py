@@ -32,7 +32,7 @@ class _BookmarkDevice(Device):
 
     def get_icon(self):
     
-        return theme.mb_device_bookmarks
+        return None
         
         
     def get_root(self):

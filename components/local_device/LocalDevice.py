@@ -115,7 +115,7 @@ class LocalDevice(Device):
         actions = Device.get_file_actions(self, folder, f)
 
         if (f.mimetype == f.DIRECTORY):
-            actions.append((None, "Add to File Index", self.__on_add_to_file_index))
+            actions.append((None, "Scan for Media", self.__on_add_to_file_index))
         else:
             actions.append((None, "Delete File", self.__on_delete_file))
         

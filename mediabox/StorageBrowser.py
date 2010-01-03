@@ -532,7 +532,7 @@ class StorageBrowser(ThumbableGridView):
             self.emit_event(self.EVENT_FOLDER_COMPLETE, folder)
 
         # now is a good time to collect garbage
-        import gc; gc.collect()    
+        #import gc; gc.collect()    
       
         
     def complete_current_folder(self):
@@ -585,8 +585,12 @@ class StorageBrowser(ThumbableGridView):
                 #self.send_event(self.EVENT_FOLDER_OPENED,
                 #                self.get_current_folder())
 
+                # now is a good time to collect garbage
+                import gc; gc.collect()    
+
+
             now = time.time()
-            if (not f or now > self.__last_list_render_time + 1.0):
+            if (not f or len(self.get_files()) % 10 == 0): #now > self.__last_list_render_time + 1.0):
                 self.__last_list_render_time = now
                 #self.invalidate_buffer()
                 self.render()

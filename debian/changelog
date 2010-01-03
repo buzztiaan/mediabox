@@ -1,7 +1,17 @@
+mediabox (2010.01.03) unstable; urgency=low
+
+  Optimizations
+  
+  Added new user's tour explaining the most important features of MediaBox
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 03 Jan 2010 13:00:00 +0100
+
 mediabox (2010.01.02) unstable; urgency=low
 
   Added simple PLS support to GstBackend (good enough for playing SHOUTcast
   radio)
+  
+  Added option for manual file indexing
 
  -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 02 Jan 2010 16:00:00 +0100
 

@@ -19,7 +19,7 @@ class VideoScreen(Widget):
         # video screen
         self.__screen = gtk.DrawingArea()
         self.__screen.set_double_buffered(False)
-        self.__screen.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#ff0000"))
+        self.__screen.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
         self.__screen.connect("expose-event", self.__on_expose)
         self.__screen.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                                  gtk.gdk.BUTTON_RELEASE_MASK |

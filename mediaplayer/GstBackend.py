@@ -89,7 +89,7 @@ class GstBackend(AbstractBackend):
         elif (t == gst.MESSAGE_TAG):
             tags = message.parse_tag()
             for key in tags.keys():
-                print key, tags[key]
+                print key #, tags[key]
                 if (key == "title"):
                     self._report_tag("TITLE", tags[key])
                 elif (key == "artist"):

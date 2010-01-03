@@ -9,8 +9,8 @@ class PrefsComponents(Configurator):
     Configurator for listing the currently loaded components.
     """
 
-    ICON = theme.mb_folder_prefs
-    TITLE = "Components"
+    ICON = theme.prefs_icon_system
+    TITLE = "Components Info"
     DESCRIPTION = "View the loaded components"
 
 
@@ -46,7 +46,7 @@ class PrefsComponents(Configurator):
             iface = "- no public interface -"
         
         self.call_service(msgs.UI_ACT_SHOW_INFO,
-                          iface)
+                          iface.strip())
 
 
     def render_this(self):
