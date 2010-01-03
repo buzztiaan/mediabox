@@ -1,0 +1,357 @@
+BEGIN Getting Started With MediaBox
+This is a quick tour to get you started with MediaBox.
+
+In this tour you can
+
+ • tap on the left side of screen to go back to the previous page
+ 
+ • tap on the right side of screen to advance to the next page
+ 
+ • tap on top of this window to leave the tour
+END
+
+
+BEGIN The Navigator
+IMAGE illus/navigator.jpg
+The navigator window lets you browse your media by tapping on icons.
+The toolbar to the right has three buttons:
+
+ • HOME
+    takes you to the start folder (the shelf)
+ 
+ • HISTORY
+    shows a list of recently visited folders
+   
+ • BACK
+    takes you back to the previous folder
+END
+
+
+BEGIN The Shelf
+IMAGE illus/shelf.jpg
+The start folder in the navigator is called the shelf. This is where you have access to
+
+ • music, videos, pictures
+ • the filesystem and UPnP media shares
+ • playlists
+ • MediaBox settings
+ • ... and your shortcuts
+
+By default MediaBox is preconfigured with shortcuts for your Documents folder, your SD card, and this tour.
+END
+
+
+BEGIN Putting Items on the Shelf
+IMAGE illus/add-to-shelf.jpg
+Tap and hold on an item in the navigator that you want to put on the shelf. In the popup menu choose the option
+
+ → Add to Shelf
+ 
+Likewise, to remove an item from the shelf, tap and hold on it and choose the option
+
+ → Remove from Shelf
+ 
+You can put almost any item in the navigator on the shelf for quick access.
+END
+
+
+BEGIN Playing Media
+IMAGE illus/player.jpg
+Find the media item you want to play in the navigator.
+
+Shortly tap on the icon to play the media file. This will open the media player and hide the navigator.
+
+To go back to the navigator, tap on the NAVIGATOR button in the bottom-left corner.
+END
+
+
+BEGIN Controlling Playback
+IMAGE illus/player-controls.jpg
+The player toolbar has three buttons:
+
+ • PREVIOUS
+   skips to the previous media file
+   
+ • PLAY / PAUSE
+   pauses and resumes playback
+   
+ • NEXT
+   skips to the next media file
+   
+In the image viewer, PLAY / PAUSE starts and stops the slideshow.
+END
+
+
+BEGIN Seeking
+IMAGE illus/seek.jpg
+The video and music players have a seek bar where you can tap to skip to any position in the file.
+
+Not all media files support seeking.
+
+Tip: You can fine-tune the position by dragging. The seeking starts only after you release the screen.
+END
+
+
+BEGIN Volume Control and Zooming
+The INCREMENT and DECREMENT buttons on top of your device can be used for controlling the audio volume, or in the image viewer, for zooming in and out.
+
+You can also control the audio volume with the volume slider on the left side of the screen in the music and video players.
+END
+
+
+BEGIN Fullscreen Mode
+The image viewer and video player have a fullscreen mode.
+
+Double-tap on the screen to go fullscreen, or back.
+END
+
+
+BEGIN Filling Playlists
+You can add a media item to a playlist by tapping and holding on it. In the popup menu, choose the option
+
+ → Add to Playlist
+ 
+After that you will be asked to which playlist you want to add the file. The playlist "Playlist" always exists, regardless whether you have created new playlists.
+
+You can add folders to playlists, too. Adding a folder automatically adds all the items inside that folder.
+END
+
+
+BEGIN Creating, Clearing, and Deleting Playlists
+Press the
+ → Add New
+button in the Playlists folder to create a new playlist. Enter a name for the list.
+
+Tap and hold on a playlist to open its popup menu. Choose
+ → Clear List
+from the menu to remove all items from the playlist.
+
+Tap and hold on a playlist to open its popup menu. Choose
+ → Delete List
+from the menu to delete the playlist.
+
+The preconfigured special lists cannot be deleted.
+END
+
+
+BEGIN Removing Items from a Playlist
+Tap and hold on an item in a playlist to open its menu. Choose
+
+ → Remove from List
+
+from the popup menu in order to remove it from the list.
+END
+
+
+BEGIN Arranging Items in a Playlist
+IMAGE illus/sort-playlist.jpg
+Playlist items can be rearranged.
+
+To change the order of items in a playlist, drag an item by holding down its ridged area on the right side. Move the item to where you want it and release it.
+
+If you move the item to the top or bottom of the screen, the list of items will scroll in that direction automatically.
+END
+
+
+BEGIN The "Recent 50" List
+IMAGE illus/recent50.jpg
+The special list "Recent 50" lists the 50 recently played media files.
+
+The list is sorted in chronological order, the most recent items first.
+
+Playing an item from the list moves it to the top of that list.
+
+This list can be cleared but not removed.
+END
+
+
+BEGIN Tip: Use Playlists as Folders
+Playlists on the shelf can be used as folders for grouping your stuff together.
+
+Simply create a new playlist, put it on the shelf, and use this playlist as target when adding items to playlist.
+
+Furthermore you can sort playlists in any way you like.
+END
+
+
+BEGIN Browsing the Local Filesystem
+IMAGE illus/filesystem.jpg
+Go to [Storage & Network → Filesystem]
+for browsing the local Linux filesystem. MediaBox only shows files that it recognizes as media files.
+
+Browsing the filesystem is for advanced users. For regular users, the two folders
+
+ [home → user → MyDocs (My Documents)]
+and
+ [media → mmc1 (SD card)]
+ 
+already have shortcuts on the shelf.
+END
+
+
+BEGIN Deleting Files
+While browsing the local filesystem under
+
+ [Storage & Network → Filesystem]
+ 
+you can delete files by selecting
+
+ → Delete File
+ 
+from their popup menu and confirming with YES.
+
+Deleting a file removes it from the device. Be careful with this function. You cannot delete files that belong to the operating system, but you can, e.g., delete your ringtones.
+END
+
+
+BEGIN Shuffle and Repeat
+IMAGE illus/shuffle-repeat.jpg
+In the media player window, tap on the title bar to open the application menu.
+
+The repeat and shuffle options are (from left to right):
+
+ • no repeat
+ • loop over
+ • repeat the same item over and over
+ 
+ • linear playback without shuffling
+ • shuffled playback
+END
+
+
+BEGIN Tip: How to shuffle over all your music
+Enable shuffled playback.
+
+Then go to [Music → Folders → All Tracks]
+in the navigator and start playing a track.
+END
+
+
+BEGIN Internet Radio
+You can browse the SHOUTcast internet radio directory under
+
+ [Music → SHOUTcast Radio]
+ 
+The SHOUTcast (http://www.shoutcast.com) directory lists thousands of internet radio stations of various genres.
+
+Tip: You can put stations you like on the shelf for quick access.
+END
+
+
+BEGIN Browsing UPnP/DLNA Media Shares
+UPnP media shares in your network appear in
+
+ [Storage & Network]
+
+You can browse UPnP shares normally like the local filesystem.
+
+MediaBox supports playing music, videos, and viewing images from UPnP media shares.
+
+MediaBox may not be compatible with all UPnP media shares.
+END
+
+
+BEGIN Playing on UPnP Media Renderers (1)
+You can play music and videos on compatible UPnP media renderers in your network, e.g. for watching a movie on the big TV screen, or listening to music on your HiFi set.
+
+In the media player tap on the window title to open the application menu. Choose
+
+ → Select Media Renderer
+ 
+from there and select your media renderer device from a list.
+
+MediaBox may not be compatible with all UPnP media renderers.
+END
+
+
+BEGIN Playing on UPnP Media Renderers (2)
+Note:
+
+Streaming media from your device to a renderer causes a lot of network traffic and may decrease your device's battery life.
+
+You can also direct media from a media share to a media renderer, in which case MediaBox will only act as remote control without impact on battery life.
+END
+
+
+BEGIN Transmitting to a FM Radio
+IMAGE illus/fmtx.jpg
+The N900 is equipped with a FM transmitter in sales regions where permitted by law.
+
+Select → FM Transmitter
+from the application menu to configure it.
+
+MediaBox sends song title information via RDS text. 
+
+RDS song information is limited to 64 characters and not supported by many RDS-capable FM radios. Many radios will only display the station name ("MediaBox").
+END
+
+
+BEGIN Music Lyrics
+IMAGE illus/lyrics.jpg
+Timed LRC and A2-enhanced LRC format music lyrics are automatically displayed in the audio player if available.
+
+Put a LRC lyrics file with same name but with extension .lrc next to a music file to enable lyrics for that file.
+
+Plain text lyrics and lyrics embedded in ID tags are currently not supported.
+END
+
+
+BEGIN Portrait Mode Operation
+IMAGE illus/portrait-mode.jpg
+Portrait mode can be enabled in the settings
+
+ [Settings → Display Orientation]
+ 
+You can choose whether the INCREMENT and DECREMENT keys on top of the device get swapped in portrait mode.
+
+Video playback is not supported in portrait mode and you will only hear sound. This is a current limitation of the Maemo OS.
+END
+
+
+BEGIN Tip: Quick Access For Switching Orientation
+Put the
+
+ → Display Orientation
+ 
+configurator icon on the shelf for accessing it quickly to switch display orientations.
+END
+
+
+BEGIN The File Index (1)
+MediaBox maintains an index over your media files.
+
+This lets you, for instance, browse your music by artist, or gives you quick access to all your videos without you having to locate them in the filesystem.
+
+Files that no longer exist get automatically removed from the index when you start MediaBox.
+END
+
+
+BEGIN The File Index (2)
+On the N900, the built-in tracker file indexer is consulted for a list of available media files.
+
+However, it may take some time until tracker discovers a particular file.
+
+If you don't want to wait, or don't use tracker for MediaBox at all, you can tell MediaBox to scan particular folders for media files immediately.
+
+To do so, find the folder under [Storage & Network → Filesystem] and tap and hold on it to open its popup menu. Select
+
+ → Scan for Media
+ 
+from the menu.
+END
+
+
+BEGIN The File Index (3)
+It is possible to disable automatic file indexing altogether and only use manual scanning.
+
+If you want to disable automatic indexing, go to
+
+ [Settings → Media Indexing]
+ 
+and uncheck the checkbox
+
+ → Always update index at startup
+ 
+From now on, you have to scan folders manually if you want to put them in the index.
+END
+
