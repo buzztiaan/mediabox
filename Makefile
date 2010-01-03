@@ -63,8 +63,8 @@ install-maemo:
 purge:
 	rm -rf ${PURGE_FILES}
 	
-install: install-lib install-maemo
-#install: install-lib install-maemo py-compile
+#install: install-lib install-maemo
+install: install-lib install-maemo py-compile
 	@true
 
 
