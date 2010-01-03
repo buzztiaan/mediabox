@@ -312,7 +312,7 @@ class AudioPlayer(Player):
         self.__buffer.draw_frame(theme.mb_lyrics_box, bx, by, bw, bh, True)
         self.__buffer.draw_formatted_text(text, theme.font_mb_headline,
                                             bx + 8, by + 8, bw - 16, bh - 16,
-                                            color_audio_player_lyrics,
+                                            theme.color_audio_player_lyrics,
                                             self.__buffer.LEFT,
                                             True)
 

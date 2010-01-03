@@ -32,7 +32,7 @@ class AudioStorage(Device):
 
     def get_icon(self):
     
-        return theme.mb_folder_normal
+        return theme.mb_folder_audioclips
 
 
     def __make_folder(self, folder_name):
@@ -45,6 +45,7 @@ class AudioStorage(Device):
         f.resource = ""
         f.name = folder_name
         f.acoustic_name = "Folder: " + f.name
+        f.icon = theme.mb_folder_audioclips.get_path()
         #f.info = "%d items" % len(self.__folders.get(folder_name, []))
         f.folder_flags = f.ITEMS_ENQUEUEABLE | \
                          f.ITEMS_SKIPPABLE
