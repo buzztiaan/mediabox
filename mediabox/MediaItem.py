@@ -101,11 +101,8 @@ class MediaItem(Item):
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
            
             # render icon
-            try:
-                pbuf = gtk.gdk.pixbuf_new_from_file(self.__icon)
-            except:
-                pass
-            else:
+            pbuf = self.__load_pixbuf(self.__icon)
+            if (pbuf):
                 pmap.fit_pixbuf(pbuf, 4, 4, w - 8, h - 32)
                 del pbuf
 
@@ -160,11 +157,8 @@ class MediaItem(Item):
             offset = 4
             
             # render icon
-            try:
-                pbuf = gtk.gdk.pixbuf_new_from_file(self.__icon)
-            except:
-                pass
-            else:
+            pbuf = self.__load_pixbuf(self.__icon)
+            if (pbuf):
                 pmap.fit_pixbuf(pbuf, offset, 5, 120, h - 10)
                 del pbuf
                 
@@ -223,4 +217,28 @@ class MediaItem(Item):
     def tap_and_hold(self, px, py):
     
         self.emit_event(self.EVENT_MENU_OPENED)
+
+
+    def __load_pixbuf(self, path):
+
+        if (not path): return None
+        
+        try:
+            if (path.startswith("data://")):
+                import base64
+                data = base64.b64decode(path[7:])
+                loader = gtk.gdk.PixbufLoader()
+                loader.write(data)
+                loader.close()
+                pbuf = loader.get_pixbuf()
+                del loader
+            
+            else:
+                pbuf = gtk.gdk.pixbuf_new_from_file(path)
+
+        except:
+            import traceback; traceback.print_exc()
+            return None
+
+        return pbuf
 

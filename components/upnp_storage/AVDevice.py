@@ -15,6 +15,7 @@ import urlparse
 import os
 import gtk
 import gzip
+import base64
 
 
 _NS_DESCR = "urn:schemas-upnp-org:device-1-0"
@@ -94,13 +95,10 @@ class AVDevice(Device):
         if (not self.__icon):
             icon_url = self.__description.get_icon_url(96, 96)
             if (icon_url):
-                loader = gtk.gdk.PixbufLoader()
-                loader.write(urllib.urlopen(icon_url).read())
-                loader.close()
-                self.__icon = loader.get_pixbuf()
-                del loader
+                data = urllib.urlopen(icon_url).read()
+                self.__icon = "data://" + base64.b64encode(data)
             else:
-                self.__icon = theme.mb_folder_upnp_mediaserver
+                self.__icon = theme.mb_folder_upnp_mediaserver.get_path()
            
         return self.__icon
 
@@ -119,7 +117,7 @@ class AVDevice(Device):
             f.mimetype = f.DEVICE_ROOT
             f.resource = ""
             f.name = self.get_name()
-            f.icon = self.get_icon().get_path()
+            f.icon = self.get_icon()
             f.info = "UPnP network storage"
             f.folder_flags = f.ITEMS_SKIPPABLE | f.ITEMS_ENQUEUEABLE
             
