@@ -19,12 +19,9 @@ def _check_maemo4():
     
 def _check_maemo5():
 
-    v1 = os.system("cat /etc/apt/sources.list.d/hildon-application-manager.list " \
-                   "| egrep fremantle >/dev/null")
-    v2 = os.system("cat /etc/apt/sources.list " \
-                   "| egrep fremantle >/dev/null")
-
-    return (v1 == 0 or v2 == 0)
+    v = os.system("cat /etc/apt/sources.list.d/hildon-application-manager.list " \
+                  "| egrep fremantle >/dev/null")
+    return (v == 0)
 
 
 def _check_mer():
@@ -44,10 +41,10 @@ def _check_computer():
     return True
     
 
-if _check_maemo4():
-    from maemo4 import *
-elif _check_maemo5():
+if _check_maemo5():
     from maemo5 import *
+elif _check_maemo4():
+    from maemo4 import *
 elif _check_mer():
     from mer import *
 elif _check_htpc():

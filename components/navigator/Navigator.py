@@ -78,8 +78,8 @@ class Navigator(Dialog):
         self.__current_file = None
 
         # list of files for playing
-        self.__play_files = []
         self.__play_folder = None
+        self.__play_files = []
 
         # list for choosing random files from when in shuffle mode
         self.__random_files = []
@@ -283,7 +283,7 @@ class Navigator(Dialog):
        
     def __on_open_file(self, f):
             
-        self.__load_file(f)
+        self.__load_file(f, True)
         #self.set_visible(False)
 
 
@@ -448,7 +448,7 @@ class Navigator(Dialog):
 
 
 
-    def __load_file(self, f):
+    def __load_file(self, f, is_manual):
         """
         Loads the given file.
         """
@@ -468,14 +468,18 @@ class Navigator(Dialog):
 
             # update set of play files
             self.__current_file = f
-            self.__play_files = [ fl for fl in self.__browser.get_files()
-                                  if not fl.mimetype.endswith("-folder") ]
-            self.__play_folder = self.__browser.get_current_folder()
-            self.__random_files = []
             self.__browser.hilight_file(f)
 
             self.set_visible(False)
-                    
+
+            folder = self.__browser.get_current_folder()
+            if (is_manual and folder != self.__play_folder):
+                self.__play_folder = folder
+                self.__play_files = [ fl for fl in self.__browser.get_files()
+                                      if not fl.mimetype.endswith("-folder") ]
+                self.__random_files = []
+                
+
 
     def render_this(self):
     
@@ -492,7 +496,7 @@ class Navigator(Dialog):
             
         if (idx > 0):
             next_item = self.__play_files[idx - 1]
-            self.__load_file(next_item)
+            self.__load_file(next_item, False)
             
             
     def __go_next(self):
@@ -529,7 +533,7 @@ class Navigator(Dialog):
 
     def __play_same(self):
     
-        self.__load_file(self.__current_file)
+        self.__load_file(self.__current_file, False)
 
         return True
         
@@ -544,12 +548,12 @@ class Navigator(Dialog):
 
         if (idx + 1 < len(self.__play_files)):
             next_item = self.__play_files[idx + 1]
-            self.__load_file(next_item)
+            self.__load_file(next_item, False)
             return True
 
         elif (wraparound):
             next_item = self.__play_files[0]
-            self.__load_file(next_item)
+            self.__load_file(next_item, False)
             return True
             
         else:
@@ -570,7 +574,7 @@ class Navigator(Dialog):
         next_item = self.__random_files.pop(idx)
         print self.__random_files
         print idx, "->", next_item
-        self.__load_file(next_item)
+        self.__load_file(next_item, False)
         
         return True
 
@@ -583,6 +587,10 @@ class Navigator(Dialog):
     def handle_CORE_EV_FOLDER_INVALIDATED(self, folder):
     
         self.__browser.invalidate_folder(folder)
+        if (folder and folder == self.__play_folder):
+            self.__play_files = [ fl for fl in folder.get_children()
+                                  if not fl.mimetype.endswith("-folder") ]
+            self.__random_files = []
 
 
     def handle_CORE_EV_DEVICE_REMOVED(self, dev_id):

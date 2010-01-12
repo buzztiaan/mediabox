@@ -1,3 +1,16 @@
+mediabox (2010.01.12) unstable; urgency=low
+
+  Fixed shuffle mode bug where played files got shuffled in again
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 12 Jan 2010 20:15:00 +0100
+
+mediabox (2010.01.05) unstable; urgency=low
+
+  Fixed bug where a chinook entry in the application manager caused MediaBox
+  to assume it runs on Maemo4
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 05 Jan 2010 21:15:00 +0100
+
 mediabox (2010.01.04) unstable; urgency=low
 
   Fixed bug where UPnP shares with their own icon did not appear

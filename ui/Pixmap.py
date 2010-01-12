@@ -228,11 +228,11 @@ class Pixmap(object):
         cmap, depth = _get_colormap_and_depth()
         
         new_pmap = gtk.gdk.Pixmap(None, w, h, depth)
-        self.__gc = new_pmap.new_gc()
         self.__cmap = new_pmap.get_colormap() or cmap
         new_pmap.set_colormap(self.__cmap)
         del self.__pixmap
         self.__pixmap = new_pmap
+        self.__gc = self.__pixmap.new_gc()
         if (_HAVE_CAIRO):
             self.__cairo_ctx = self.__pixmap.cairo_create()
 

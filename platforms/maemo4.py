@@ -44,6 +44,22 @@ def get_device_state():
     return osso.DeviceState(_osso_ctx)
 
 
+def is_offline_mode():
+    """
+    Returns whether the device is in offline (flight) mode.
+    
+    @return: whether the device is in offline mode.
+    """
+    
+    import dbus
+    bus = get_system_bus()
+    obj = bus.get_object("com.nokia.mce", "/com/nokia/mce/request")
+    req = dbus.Interface(obj, "com.nokia.mce.request")
+    mode = req.get_device_mode()
+    
+    return (mode in ["offline", "flight"])
+
+
 def inhibit_screen_blanking():
     """
     Inhibits screen blanking. This function must be called repeatedly as long
