@@ -223,7 +223,7 @@ class AVDevice(Device):
         self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
 
 
-    def __on_put_on_dashboard(self, folder, f):
+    def __on_put_on_shelf(self, folder, f):
         
         f.bookmarked = True
 
@@ -232,7 +232,7 @@ class AVDevice(Device):
     
         actions = []
         actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
-        actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
+        actions.append((None, "Put on Shelf", self.__on_put_on_shelf))
         
         return actions
      
