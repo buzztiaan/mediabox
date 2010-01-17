@@ -46,7 +46,7 @@ all:
 	@true
 
 py-compile:
-	python2.5 -OO pycompile/compileall.py -x MediaBox.py ${_LIBDIR}; true
+	python2.5 -O pycompile/compileall.py -x MediaBox.py ${_LIBDIR}; true
 	find ${_LIBDIR} -name "*.py" | grep -v MediaBox.py | xargs rm; true
 
 install-lib:
