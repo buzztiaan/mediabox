@@ -88,7 +88,7 @@ class ImageViewer(Player):
         # navigator button
         self.__btn_navigator = EventBox()
         self.__btn_navigator.connect_clicked(
-             lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "Navigator"))
+             lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "navigator.Navigator"))
 
         
         # toolbar

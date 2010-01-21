@@ -51,7 +51,7 @@ class AudioPlayer(Player):
     
         self.__player = None
         self.__context_id = 0
-        self.__volume = 50
+        self.__volume = 0
         
         # offscreen buffer
         self.__buffer = None
@@ -65,6 +65,7 @@ class AudioPlayer(Player):
         
         # cover art
         self.__cover_art = Image()
+        self.__cover_art.connect_clicked(self.__on_btn_play)
         
         self.__trackinfo = VBox()
         
@@ -91,17 +92,14 @@ class AudioPlayer(Player):
         self.__volume_slider = Slider(theme.mb_list_slider)
         self.__volume_slider.set_mode(Slider.VERTICAL)
         self.__volume_slider.connect_value_changed(self.__on_change_volume)
-        #self.add(self.__volume_slider)
         
         # navigator button
         self.__btn_navigator = ImageButton(theme.mb_btn_navigator_1,
                                            theme.mb_btn_navigator_2)
         self.__btn_navigator.connect_clicked(self.__on_btn_navigator)
-        #self.add(self.__btn_navigator)
 
         # progress bar
         self.__progress = ProgressBar()
-        #self.add(self.__progress)
         self.__progress.connect_changed(self.__on_seek)
 
 
@@ -171,7 +169,7 @@ class AudioPlayer(Player):
 
     def __on_btn_navigator(self):
     
-        self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "Navigator")
+        self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "navigator.Navigator")
               
             
     def __on_change_player_status(self, ctx_id, status):
@@ -239,7 +237,13 @@ class AudioPlayer(Player):
             vol = int(v * 100)
             self.__player.set_volume(vol)
             self.__volume = vol
-        
+
+    
+    def __on_change_player_volume(self, v):
+    
+        if (v != self.__volume):
+            self.__volume_slider.set_value(v / 100.0)
+            self.__volume = v
 
 
     def __on_loaded_cover(self, pbuf, ctx_id):
@@ -362,6 +366,7 @@ class AudioPlayer(Player):
         
         self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
         self.__player.connect_status_changed(self.__on_change_player_status)
+        self.__player.connect_volume_changed(self.__on_change_player_volume)
         self.__player.connect_position_changed(self.__on_update_position)
         self.__player.connect_tag_discovered(self.__on_discovered_tags)
         self.__player.connect_error(self.__on_error)

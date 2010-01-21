@@ -28,6 +28,7 @@ class LocalOutput(MediaOutput):
     def __load_backend_for(self, mimetype):
     
         self.__backend = mediaplayer.get_player_for_mimetype(mimetype)
+        self.__backend.connect_volume_changed(self.__on_change_volume)
         self.__backend.connect_status_changed(self.__on_change_status)
         self.__backend.connect_position_changed(self.__on_change_position)
         self.__backend.connect_tag_discovered(self.__on_tags)
@@ -37,6 +38,11 @@ class LocalOutput(MediaOutput):
     def __on_change_status(self, ctx_id, status):
     
         self.emit_event(self.EVENT_STATUS_CHANGED, ctx_id, status)
+
+
+    def __on_change_volume(self, vol):
+    
+        self.emit_event(self.EVENT_VOLUME_CHANGED, vol)
 
 
     def __on_change_position(self, ctx_id, pos, total):

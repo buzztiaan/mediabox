@@ -1,7 +1,10 @@
 from AbstractBackend import AbstractBackend
-    
+import platforms
+
 import pygst; pygst.require("0.10")
 import gst
+import dbus
+import os
 
 
 class GstBackend(AbstractBackend):
@@ -18,7 +21,18 @@ class GstBackend(AbstractBackend):
         self.__player = None
         self.__window_id = 0
         
+        self.__volume = 0
         
+        # set up device volume listener on the N900
+        bus = platforms.get_session_bus()
+        bus.add_signal_receiver(self.__on_change_volume,
+                                signal_name = "property_changed",
+                                dbus_interface = "com.nokia.mafw.extension",
+                                path = "/com/nokia/mafw/renderer/gstrenderer")
+
+        # retrieve initial volume
+        self.__volume = self.__get_current_volume()
+
         AbstractBackend.__init__(self)
 
 
@@ -26,6 +40,18 @@ class GstBackend(AbstractBackend):
     
         from theme import theme
         return theme.mb_backend_gstreamer
+
+
+    def __get_current_volume(self):
+    
+        try:
+            bus = platforms.get_session_bus()
+            obj = bus.get_object("com.nokia.mafw.renderer.Mafw-Gst-Renderer-Plugin.gstren   derer",
+                                 "/com/nokia/mafw/renderer/gstrenderer")
+            mafw = dbus.Interface(obj, "com.nokia.mafw.extension")
+            return int(mafw.get_extension_property("volume")[1])
+        except:
+            return 0
 
 
     def __load_pls(self, uri):
@@ -111,6 +137,13 @@ class GstBackend(AbstractBackend):
             imgsink.set_xwindow_id(self.__window_id)
 
 
+    def __on_change_volume(self, key, value):
+    
+        if (key == "volume"):
+            self.__volume = value
+            self._report_volume(value)
+
+
     def _set_window(self, xid):
     
         self.__window_id = xid
@@ -125,20 +158,39 @@ class GstBackend(AbstractBackend):
         self.__player.set_state(gst.STATE_NULL)
         self.__start_gst()
         if (uri.endswith(".pls")):
-            # playbin2 does read PLS files
+            # playbin2 does not read PLS files
             self.__load_pls(uri)
         else:
+            print "LOAD", uri
             self.__player.set_property("uri", uri)
+            #self.__player.set_property("volume", 1.0)
             self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
                                       gst.SEEK_FLAG_FLUSH,
                                       0)
         self._report_aspect_ratio(16/9.0)
+        self._report_volume(self.__volume)
         
 
 
     def _set_volume(self, volume):
 
-        self.__player.set_property("volume", volume / 1000.0)
+        # ugly as hell... but does its job
+        os.system("dbus-send --session --print-reply " \
+                  "--dest=com.nokia.mafw.renderer.Mafw-Gst-Renderer-Plugin.gstrenderer " \
+                  "/com/nokia/mafw/renderer/gstrenderer " \
+                  "com.nokia.mafw.extension.set_extension_property " \
+                  "string:'volume' variant:uint32:%d &" \
+                  % volume)
+        self._report_volume(volume)
+
+        #import dbus
+        #import platforms
+        
+        #bus = platforms.get_session_bus()
+        #obj = bus.get_object("com.nokia.mafw.renderer.Mafw-Gst-Renderer-Plugin.gstrenderer", "/com/nokia/mafw/renderer/gstrenderer")
+        #mafw_renderer = dbus.Interface(obj, "com.nokia.mafw.extension")
+        #mafw_renderer.set_extension_property("volume", volume)
+        #self.__player.set_property("volume", volume / 1000.0)
 
     
     def _is_eof(self):

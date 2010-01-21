@@ -24,6 +24,7 @@ class MediaOutput(Component, EventEmitter):
 
     # events
     EVENT_ERROR = "event-error"
+    EVENT_VOLUME_CHANGED = "event-volume-changed"
     EVENT_STATUS_CHANGED = "event-status-changed"
     EVENT_POSITION_CHANGED = "event-position-changed"
     EVENT_ASPECT_CHANGED = "event-aspect-changed"
@@ -41,6 +42,11 @@ class MediaOutput(Component, EventEmitter):
     def connect_error(self, cb, *args):
     
         self._connect(self.EVENT_ERROR, cb, *args)
+
+
+    def connect_volume_changed(self, cb, *args):
+    
+        self._connect(self.EVENT_VOLUME_CHANGED, cb, *args)
         
 
     def connect_status_changed(self, cb, *args):

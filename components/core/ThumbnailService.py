@@ -14,6 +14,9 @@ class ThumbnailService(Component):
         # table: MIME type -> [handlers]
         self.__mime_handlers = {}
 
+        # table: name -> handler
+        self.__thumbnailers = {}
+
     
         Component.__init__(self)
     
@@ -28,6 +31,7 @@ class ThumbnailService(Component):
             l = self.__mime_handlers.get(mt, [])
             l.append(thumbnailer)
             self.__mime_handlers[mt] = l
+            self.__thumbnailers[str(thumbnailer)] = thumbnailer
         #end for
 
 
@@ -43,8 +47,15 @@ class ThumbnailService(Component):
         Thumbnailer components.
         """
 
-        mimetype = f.mimetype
-        handlers = self.__mime_handlers.get(mimetype)
+        handlers = []
+
+        # the file object may state the desired thumbnailer
+        if (f.thumbnailer):
+            handlers = [ self.__thumbnailers.get(f.thumbnailer) ]
+            
+        if (not handlers):
+            mimetype = f.mimetype
+            handlers = self.__mime_handlers.get(mimetype)
 
         if (not handlers):
             m1, m2 = mimetype.split("/")
@@ -65,8 +76,16 @@ class ThumbnailService(Component):
         components.
         """
 
-        mimetype = f.mimetype
-        handlers = self.__mime_handlers.get(mimetype)
+        handlers = []
+
+        # the file object may state the desired thumbnailer
+        if (f.thumbnailer):
+            handlers = [ self.__thumbnailers.get(f.thumbnailer) ]
+            print handlers, f
+
+        if (not handlers):
+            mimetype = f.mimetype
+            handlers = self.__mime_handlers.get(mimetype)
 
         if (not handlers):
             m1, m2 = mimetype.split("/")

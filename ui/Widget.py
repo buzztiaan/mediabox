@@ -8,6 +8,7 @@ from utils import logging
 import time
 import threading
 import gtk
+import gobject
 
 
 class Widget(EventEmitter):

@@ -163,6 +163,8 @@ class Gestures(EventEmitter):
         if (self.__state == _STATE_HOLD):
             px, py = self.__pointer_pos
             print "HOLD"
+            if (self.__tap_handler):
+                gobject.source_remove(self.__tap_handler)
             self.emit_event(self.EVENT_HOLD, px, py)
             self.__state = _STATE_NONE
 

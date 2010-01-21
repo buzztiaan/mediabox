@@ -92,7 +92,7 @@ class VideoPlayer(Player):
         self.__btn_navigator = ImageButton(theme.mb_btn_navigator_1,
                                            theme.mb_btn_navigator_2)
         self.__btn_navigator.connect_clicked(
-             lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "Navigator"))
+             lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "navigator.Navigator"))
 
         
         # toolbar elements

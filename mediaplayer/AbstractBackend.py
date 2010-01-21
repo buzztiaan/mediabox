@@ -39,6 +39,7 @@ class AbstractBackend(EventEmitter):
     EVENT_ERROR = "event-error"
     
     EVENT_STATUS_CHANGED = "event-status-changed"
+    EVENT_VOLUME_CHANGED = "event-volume-changed"
     
     EVENT_POSITION_CHANGED = "event-position-changed"
     EVENT_ASPECT_CHANGED = "event-aspect-changed"
@@ -90,7 +91,7 @@ class AbstractBackend(EventEmitter):
         self.__playing = False
         
         # current volume level (0..100)
-        self.__volume = 50
+        #self.__volume = 50
         
         self.__context_id = 0
         
@@ -125,6 +126,11 @@ class AbstractBackend(EventEmitter):
     def connect_status_changed(self, cb, *args):
     
         self._connect(self.EVENT_STATUS_CHANGED, cb, *args)
+
+
+    def connect_volume_changed(self, cb, *args):
+    
+        self._connect(self.EVENT_VOLUME_CHANGED, cb, *args)
 
 
     def connect_position_changed(self, cb, *args):
@@ -229,7 +235,7 @@ class AbstractBackend(EventEmitter):
             self._ensure_backend()
 
             self._load(uri)
-            self._set_volume(self.__volume)
+            #self._set_volume(self.__volume)
             self._seek(pos)
             self._stop()
             self.__position = (0, 0)
@@ -239,7 +245,7 @@ class AbstractBackend(EventEmitter):
             self.__eof_reached = False
             
             self._load(self.__uri)
-            self._set_volume(self.__volume)
+            #self._set_volume(self.__volume)
             self._stop()
             self.__position = (0, 0)
             self.__watch_progress()
@@ -349,7 +355,7 @@ class AbstractBackend(EventEmitter):
         self.stop()
 
         self._load(uri)
-        self._set_volume(self.__volume)
+        #self._set_volume(self.__volume)
         
         print "DELAY PLAY", uri
         gobject.timeout_add(0, self.play)
@@ -362,6 +368,16 @@ class AbstractBackend(EventEmitter):
 
         return self.__context_id
 
+
+    def _report_volume(self, vol):
+        """
+        The subclass calls this to report the sound volume.
+        
+        @param vol: volume level between 0 and 100
+        """
+        
+        self.emit_event(self.EVENT_VOLUME_CHANGED, vol)
+    
 
 
     def _report_aspect_ratio(self, ratio):
@@ -483,7 +499,7 @@ class AbstractBackend(EventEmitter):
         """
 
         #self._ensure_backend()
-        self.__volume = volume
+        #self.__volume = volume
         self._set_volume(volume)    
         
         

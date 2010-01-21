@@ -64,7 +64,7 @@ class AppWindow(Component, Window):
         Window.__init__(self, Window.TYPE_TOPLEVEL)
         self.connect_closed(self.__on_close_window)
         self.connect_key_pressed(self.__on_key_press)
-        self.connect_clicked(lambda *a:self.__show_dialog("Navigator"))
+        self.connect_clicked(lambda *a:self.__show_dialog("navigator.Navigator"))
       
         self.set_visible(True)
 
@@ -150,7 +150,7 @@ class AppWindow(Component, Window):
        
         self.render()
         self.emit_message(msgs.CORE_EV_APP_STARTED)
-        gobject.idle_add(self.__show_dialog, "Navigator")
+        gobject.idle_add(self.__show_dialog, "navigator.Navigator")
 
 
 

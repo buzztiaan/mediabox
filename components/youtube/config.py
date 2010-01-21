@@ -1,9 +1,12 @@
 from utils.Config import Config
 
+import os
+
+
 _cfg = Config("youtube", [
-              ("cache-folder", Config.STRING, "/media/mmc1"),
+              ("cache-folder", Config.STRING, os.path.expanduser("~")), #"/media/mmc1"),
               #("hi-quality", Config.BOOL, False),
-              ("quality-type", Config.INTEGER, 0)
+              ("quality-type", Config.INTEGER, 18)
               ])
 
 

@@ -82,8 +82,8 @@ class YouTube(Device):
     StorageDevice for accessing YouTube.
     """
     
-    CATEGORY = Device.CATEGORY_WAN
     TYPE = Device.TYPE_VIDEO
+    CATEGORY = Device.CATEGORY_WAN
     
 
     def __init__(self):
@@ -143,16 +143,13 @@ class YouTube(Device):
         pos = html.find("\",\"fmt_map\":\"")
         if (pos != -1):
             pos2 = html.find("\"", pos + 13)
-            fmt_map = html[pos + 13:pos2]
+            fmt_map = urllib.unquote(html[pos + 13:pos2])
+            
             print "Formats:", [ part.split("/")[0] for part in fmt_map.split(",") ]
             return [ int(part.split("/")[0]) for part in fmt_map.split(",") ]
 
         return []
-        
-    def get_icon(self):
-    
-        return theme.youtube_device
-        
+      
         
     def get_prefix(self):
     
@@ -172,6 +169,7 @@ class YouTube(Device):
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.info = "Browse and download videos from YouTube"
+        f.icon = theme.youtube_folder.get_path()
         
         return f
         
@@ -226,7 +224,7 @@ class YouTube(Device):
     def __ls_menu(self, cb, *args):
     
         for name, path, mimetype, emblem in \
-          [("Saved Videos", "/local", File.DIRECTORY, None),
+          [#("Saved Videos", "/local", File.DIRECTORY, None),
            ("Search", "/search/video,,0", File.DIRECTORY, None),
            ("Featured Videos", "/search/recently_featured,0", File.DIRECTORY, None),
            ("Most Viewed Videos", "/search/most_viewed,0", File.DIRECTORY, None),
@@ -316,7 +314,8 @@ class YouTube(Device):
                              % (entry.authors,
                                 mins, secs, entry.view_count,
                                 entry.rating)
-                    f.thumbnail = entry.thumbnail_url
+                    f.thumbnailer = "youtube.YouTubeThumbnailer"
+                    f.thumbnailer_param = entry.thumbnail_url
                 
                 cb(f, *args)
 
@@ -568,22 +567,18 @@ class YouTube(Device):
         if (f.resource.startswith("/")): return f.resource
         
         if (f.resource == _REGION_BLOCKED):
-            self.call_service(msgs.DIALOG_SVC_ERROR,
-                              "You are not allowed to view this!",
-                              "You became a victim of internet censorship.\n\n"
-                              "MediaBox cannot load this video in your country.")
+            self.emit_message(msgs.UI_ACT_SHOW_INFO,
+                              "This video is not available in your country.")
             return ""
         
-        self.emit_message(msgs.UI_ACT_SHOW_MESSAGE,
-                        "Requesting Video",
-                        "- %s -" % f.name,
-                        theme.youtube_device)
+        #self.emit_message(msgs.UI_ACT_SHOW_MESSAGE,
+        #                 "Requesting Video %s" % f.name)
             
         try:
             flv, fmts = self.__get_flv(f.resource)
         except:
             logging.error("could not retrieve video\n%s", logging.stacktrace())
-            self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
+            #self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
             return ""
 
         # download high-quality version, if desired
@@ -595,7 +590,7 @@ class YouTube(Device):
         else:
             ext = ".flv"
             
-        self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
+        #self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
         logging.info("found FLV: %s", flv)
 
         if (self.__flv_downloader):
@@ -642,7 +637,7 @@ class YouTube(Device):
         """
         
         self.__keep_video = True
-        self.emit_event(msgs.NOTIFY_SVC_SHOW_INFO,
+        self.emit_event(msgs.UI_ACT_SHOW_INFO,
                         u"video will be saved as\n\xbb%s\xab" \
                         % self.__make_filename(f.name, ""))
 

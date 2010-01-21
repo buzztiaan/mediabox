@@ -46,7 +46,7 @@ class Mediator(object):
         @return: string representation
         """
     
-        return self.__class__.__name__
+        return self.__class__.__module__
 
 
     def set_pass_type(self, ptype):

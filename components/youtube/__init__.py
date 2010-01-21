@@ -1,7 +1,7 @@
 def get_classes():
 
-    from Prefs import Prefs
-    return [Prefs]
+    from YouTubeThumbnailer import YouTubeThumbnailer
+    return [YouTubeThumbnailer]
 
 
 def get_devices():

@@ -159,7 +159,16 @@ class File(object):
         """
         may contain the URI of an image that can be used to generate a thumbnail
         @since: 0.96
+        @deprecated: do not use
         """
+        
+        self.thumbnailer = ""
+        """
+        Name of the thumbnailer component used for thumbnailing this file.
+        @since: 2010.01.17
+        """
+
+        self.thumbnailer_param = None
         
         self.icon = ""
         """

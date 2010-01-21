@@ -37,7 +37,7 @@ class _FileServer(object):
 
     def get_location(self):
     
-        return "http://%s:%d" % (_HOST, _PORT)
+        return "http://%s:%d" % ("127.0.0.1", _PORT)
 
 
     def set_timeout(self, value):
