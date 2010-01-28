@@ -3,11 +3,11 @@ import os
 
 
 # available platforms
-MAEMO4 = "maemo4"
-MAEMO5 = "maemo5"
-MER = "mer"
-COMPUTER = "computer"
-HTPC = "htpc"
+MAEMO4 = ""
+MAEMO5 = ""
+MER = ""
+COMPUTER = ""
+HTPC = ""
 
 
 def _check_maemo4():
@@ -43,14 +43,19 @@ def _check_computer():
 
 if _check_maemo5():
     from maemo5 import *
+    MAEMO5 = "maemo5"
 elif _check_maemo4():
     from maemo4 import *
+    MAEMO5 = "maemo4"
 elif _check_mer():
     from mer import *
+    MER = "mer"
 elif _check_htpc():
     from htpc import *
+    HTPC = "htpc"
 elif _check_computer():
     from computer import *
+    COMPUTER = "computer"
 
 
 logging.info("running on '%s' platform" % PLATFORM)

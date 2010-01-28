@@ -5,6 +5,7 @@ import pygst; pygst.require("0.10")
 import gst
 import dbus
 import os
+import time
 
 
 class GstBackend(AbstractBackend):
@@ -21,17 +22,21 @@ class GstBackend(AbstractBackend):
         self.__player = None
         self.__window_id = 0
         
+        # time when MediaBox has last changed the sound volume
+        self.__last_volume_change_time = 0
+        
         self.__volume = 0
         
         # set up device volume listener on the N900
-        bus = platforms.get_session_bus()
-        bus.add_signal_receiver(self.__on_change_volume,
-                                signal_name = "property_changed",
-                                dbus_interface = "com.nokia.mafw.extension",
-                                path = "/com/nokia/mafw/renderer/gstrenderer")
+        if (platforms.MAEMO5):
+            bus = platforms.get_session_bus()
+            bus.add_signal_receiver(self.__on_change_volume,
+                                    signal_name = "property_changed",
+                                    dbus_interface = "com.nokia.mafw.extension",
+                                    path = "/com/nokia/mafw/renderer/gstrenderer")
 
-        # retrieve initial volume
-        self.__volume = self.__get_current_volume()
+            # retrieve initial volume
+            self.__volume = self.__get_current_volume()
 
         AbstractBackend.__init__(self)
 
@@ -46,7 +51,7 @@ class GstBackend(AbstractBackend):
     
         try:
             bus = platforms.get_session_bus()
-            obj = bus.get_object("com.nokia.mafw.renderer.Mafw-Gst-Renderer-Plugin.gstren   derer",
+            obj = bus.get_object("com.nokia.mafw.renderer.Mafw-Gst-Renderer-Plugin.gstrenderer",
                                  "/com/nokia/mafw/renderer/gstrenderer")
             mafw = dbus.Interface(obj, "com.nokia.mafw.extension")
             return int(mafw.get_extension_property("volume")[1])
@@ -139,7 +144,9 @@ class GstBackend(AbstractBackend):
 
     def __on_change_volume(self, key, value):
     
-        if (key == "volume"):
+        # only accept system volume change notifications if the last app
+        # volume change has been some time ago
+        if (key == "volume" and time.time() > self.__last_volume_change_time + 1):
             self.__volume = value
             self._report_volume(value)
 
@@ -182,6 +189,7 @@ class GstBackend(AbstractBackend):
                   "string:'volume' variant:uint32:%d &" \
                   % volume)
         self._report_volume(volume)
+        self.__last_volume_change_time = time.time()
 
         #import dbus
         #import platforms

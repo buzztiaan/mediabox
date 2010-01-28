@@ -3,6 +3,8 @@ from mediabox import tagreader
 import platforms
 
 import dbus
+import os
+
 
 #dbus-send --system --print-reply --dest=com.nokia.FMTx /com/nokia/fmtx/default org.freedesktop.DBus.Properties.Get string:'com.nokia.FMTx.Device' string:'rds_ps'
 
@@ -18,6 +20,15 @@ class FMTX(Component):
         self.__title = ""
     
         Component.__init__(self)
+
+        # add support for calling fm-boost automatically, if available        
+        if (os.path.exists("/sbin/fm-boost")):
+            bus = platforms.get_system_bus()
+            bus.add_signal_receiver(self.__on_change_fmtx,
+                                    signal_name="Changed",
+                                    dbus_interface="com.nokia.FMTx.Device",
+                                    path="/com/nokia/fmtx/default")
+        #end if    
         
 
     def __prepare_dbus(self):
@@ -59,6 +70,16 @@ class FMTX(Component):
 
 
         #end if
+
+
+    def __on_change_fmtx(self, *args):
+    
+        print "FMTX CHANGED", args
+        self.__prepare_dbus()
+        if (self.__fmtx.Get("com.nokia.FMTx.Device", "state") == "enabled"):
+            os.system("sudo /sbin/fm-boost &")
+            self.emit_message(msgs.UI_ACT_SHOW_INFO,
+                            "calling fm-boost to improve FM transmitter signal")
 
         
     def handle_MEDIA_EV_LOADED(self, nil, f):

@@ -25,7 +25,7 @@ def _get_colormap_and_depth():
 
     screen = gtk.gdk.screen_get_default()
     try:
-        have_rgba = screen.is_composited()
+        have_rgba = False #screen.is_composited()
     except:
         have_rgba = False
     if (have_rgba):
@@ -135,6 +135,7 @@ class Pixmap(object):
             self.__pixmap = pmap
             self.__buffered = True
             self.__create_buffer()
+            w, h = pmap.get_size()
         else:
             self.__pixmap = gtk.gdk.Pixmap(None, w, h, _DEPTH)
             self.__buffered = False

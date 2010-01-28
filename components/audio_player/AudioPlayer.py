@@ -248,7 +248,7 @@ class AudioPlayer(Player):
 
     def __on_loaded_cover(self, pbuf, ctx_id):
    
-        print "LOADED COVER", pbuf, ctx_id, self.__context_id
+        print "LOADED COVER", pbuf, ctx_id, self.__context_id, self.__buffer
         if (not pbuf):
             pbuf = theme.mb_unknown_album
    
@@ -259,10 +259,12 @@ class AudioPlayer(Player):
             #self.__cover = pbuf
             print "SETTING COVER"
             self.__cover_art.set_image(pbuf)
-            if (self.__need_slide_in):
-                self.__slide_in()
-            else:
-                self.render_buffered(self.__buffer)
+            if (self.__buffer):
+                if (self.__need_slide_in):
+                    self.__slide_in()
+                else:
+                    self.render_buffered(self.__buffer)
+            #end if
         #end if
 
 
@@ -347,7 +349,10 @@ class AudioPlayer(Player):
         w, h = self.get_size()
         self.set_screen(self.__screen)
         buf = self.__buffer
+        
         self.render_at(buf)
+        x = 0
+        y = 0
         if (w < h):
             # portrait mode
             self.fx_slide_horizontal(buf, x + 40, y, w - 40, h - 80,

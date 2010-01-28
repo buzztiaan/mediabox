@@ -16,6 +16,7 @@ import oggtags
 import id3v1tags
 import id3v2tags
 import trackertags
+import mapping
 
 
 
@@ -38,23 +39,24 @@ def read_fd(fd):
         #if (tags):
         #    return tags
 
+        tags = {}
         if (tagtype == "Ogg"):
-            return oggtags.read(fd)
+            tags = oggtags.read(fd)
         elif (tagtype == "fLa"):
-            return flactags.read(fd)
+            tags = flactags.read(fd)
         elif (tagtype == "ID3"):
             if (major == "\x02"):
-                return id3v2tags.read(fd, id3v2tags.REV2)
+                tags = id3v2tags.read(fd, id3v2tags.REV2)
             elif (major == "\x03"):
-                return id3v2tags.read(fd, id3v2tags.REV3)
+                tags = id3v2tags.read(fd, id3v2tags.REV3)
             else:
-                return id3v2tags.read(fd, id3v2tags.REV4)
+                tags = id3v2tags.read(fd, id3v2tags.REV4)
         else:
             fd.seek(-128, 2)
             tag = fd.read(3)
-            if (tag == "TAG"): return id3v1tags.read(fd)
+            if (tag == "TAG"): tags = id3v1tags.read(fd)
 
-        return {}
+        return _encode_strings(tags)
     
     except:
         import traceback; traceback.print_exc()
@@ -85,7 +87,24 @@ def read(filename):
         
     finally:
         fd.close()
-        
+
+
+def _encode_strings(tags):
+
+    for key in mapping.STRINGS:
+        if (key in tags):
+            v = str(tags[key])
+            # strip off unicode byte order marks
+            v = v.replace("\x00\x00\xfe\xff", "") \
+                 .replace("\xff\xfe\x00\x00", "") \
+                 .replace("\xef\xbb\xbf", "") \
+                 .replace("\xff\xfe", "") \
+                 .replace("\xfe\xff", "")
+            tags[key] = v.encode("utf-8", "replace")
+    #end for
+    
+    return tags
+
     
     
 if (__name__ == "__main__"):

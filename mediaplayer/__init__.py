@@ -13,7 +13,7 @@ import os
 
 _DUMMY = DummyBackend()
 
-if (platforms.PLATFORM == platforms.MER):
+if (platforms.MER):
     from XineBackend import XineBackend
     _XINE = XineBackend()
     _PLAYERS = {"gst": _GST,
@@ -21,7 +21,7 @@ if (platforms.PLATFORM == platforms.MER):
                 "xine": _XINE}
     _SUFFIX = ".mer"
 
-elif (platforms.PLATFORM == platforms.MAEMO4):
+elif (platforms.MAEMO4):
     from GstBackend import GstBackend
     from MPlayerBackend import MPlayerBackend
     from OSSOBackend import OSSOBackend
@@ -33,12 +33,11 @@ elif (platforms.PLATFORM == platforms.MAEMO4):
                 "oms": _OMS}
     _SUFFIX = ".maemo"
 
-elif (platforms.PLATFORM == platforms.MAEMO5):
+elif (platforms.MAEMO5):
     from GstBackend import GstBackend
     _GST = GstBackend()
     _PLAYERS = {"gst": _GST}
     _SUFFIX = ".maemo5"
-
                 
 else:
     from GstBackend import GstBackend
@@ -51,7 +50,6 @@ else:
                 "mplayer": _MPLAYER,
                 "xine": _XINE}
     _SUFFIX = ""
-
 
 _current_player = _DUMMY
 

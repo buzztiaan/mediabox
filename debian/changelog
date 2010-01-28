@@ -1,3 +1,21 @@
+mediabox (2010.01.27) unstable; urgency=low
+
+  Small bug fixes
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 27 Jan 2010 21:45:00 +0100
+
+mediabox (2010.01.26) unstable; urgency=low
+
+  Use FM-Boost script if available
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 26 Jan 2010 22:00:00 +0100
+
+mediabox (2010.01.24) unstable; urgency=low
+
+  Maemo4 compatibility
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 24 Jan 2010 12:00:00 +0100
+
 mediabox (2010.01.17) unstable; urgency=low
 
   Added YouTube plugin

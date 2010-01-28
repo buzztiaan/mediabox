@@ -273,7 +273,7 @@ class ImageViewer(Player):
         screen = self.get_screen()
         
         #screen.fill_area(x, y, w, h, theme.color_mb_background)
-        self.__arr.set_geometry(0, 0, w, h)    
+        self.__arr.set_geometry(0, 0, w, h)
 
 
     def __overlay_nav_button(self, screen, x, y, w, h):

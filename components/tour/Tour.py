@@ -48,7 +48,7 @@ class Tour(Configurator):
             w, h = self.get_size()
             buf = Pixmap(None, w, h)
             self.render_at(buf)
-            self.fx_slide_horizontal(buf, x, y, w, h, self.SLIDE_RIGHT)
+            self.fx_slide_horizontal(buf, 0, 0, w, h, self.SLIDE_RIGHT)
 
     def __go_forward(self):
     
@@ -59,7 +59,7 @@ class Tour(Configurator):
             w, h = self.get_size()
             buf = Pixmap(None, w, h)
             self.render_at(buf)
-            self.fx_slide_horizontal(buf, x, y, w, h, self.SLIDE_LEFT)
+            self.fx_slide_horizontal(buf, 0, 0, w, h, self.SLIDE_LEFT)
     
         
     def __parse_tour(self, data):

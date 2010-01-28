@@ -73,7 +73,6 @@ class Widget(EventEmitter):
         self.__clip_rect = None
         
         self.__screen = None
-        self.__window = None
         self.__instances.append(self)
 
         EventEmitter.__init__(self)
@@ -278,7 +277,7 @@ class Widget(EventEmitter):
         
         self.__children.append(child)
         child.set_parent(self)
-        child.set_screen(self.get_screen())
+        #child.set_screen(self.get_screen())
         #self.__check_zone()
         
         
@@ -325,8 +324,8 @@ class Widget(EventEmitter):
         """
     
         self.__screen = screen
-        for c in self.__children:
-            c.set_screen(screen)
+        #for c in self.__children:
+        #    c.set_screen(screen)
         #self.__check_zones()
         
         
@@ -336,8 +335,11 @@ class Widget(EventEmitter):
         
         @return: screen pixmap for rendering
         """
-    
-        return self.__screen
+
+        if (self.__screen or not self.__parent):
+            return self.__screen
+        else:
+            return self.__parent.get_screen()
         
         
     def set_clip_rect(self, *args):
@@ -521,7 +523,7 @@ class Widget(EventEmitter):
         @return: whether this widget may currently render
         """
     
-        return (self.__screen and self.is_visible() and not self.is_frozen())
+        return (self.get_screen() and self.is_visible() and not self.is_frozen())
         
 
     """
@@ -843,9 +845,10 @@ class Widget(EventEmitter):
         @param buf: offscreen buffer
         """
 
+        x, y = self.get_screen_pos()
         w, h = self.get_size()
         self.render_at(buf)
-        self.get_screen().copy_buffer(buf, 0, 0, 0, 0, w, h)
+        self.get_screen().copy_buffer(buf, 0, 0, x, y, w, h)
 
         
     def skip_next_render(self):
@@ -892,6 +895,7 @@ class Widget(EventEmitter):
         return self.__event_sensor
         
         
+    """
     def set_window(self, win):
     
         self.__window = win
@@ -901,7 +905,7 @@ class Widget(EventEmitter):
         #except:
         #    logging.error("window object %s must implement method " \
         #                  "set_widget_for_events" % win)
-        
+    """ 
         
     def get_window(self):
         """
@@ -913,7 +917,7 @@ class Widget(EventEmitter):
         if (self.__parent):
             return self.__parent.get_window()
         else:
-            return self.__window
+            return None
         
 
     def animate(self, fps, cb, *args):
@@ -1029,7 +1033,12 @@ class Widget(EventEmitter):
 
         scr_x, scr_y = self.get_screen_pos()
         screen = self.get_screen()
-        self.animate(50, fx, [0, w])
+
+        import platforms
+        if (not platforms.MAEMO5):
+            screen.copy_pixmap(buf, x, y, scr_x + x, scr_y + y, w, h)
+        else:
+            self.animate(50, fx, [0, w])
 
 
     def fx_slide_vertical(self, buf, x, y, w, h, direction):
@@ -1087,5 +1096,10 @@ class Widget(EventEmitter):
 
         scr_x, scr_y = self.get_screen_pos()
         screen = self.get_screen()
-        self.animate(50, fx, [0, h])
+
+        import platforms
+        if (not platforms.MAEMO5):
+            screen.copy_pixmap(buf, x, y, scr_x + x, scr_y + y, w, h)
+        else:
+            self.animate(50, fx, [0, h])
 

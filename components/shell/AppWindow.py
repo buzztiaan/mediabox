@@ -65,7 +65,7 @@ class AppWindow(Component, Window):
         self.connect_closed(self.__on_close_window)
         self.connect_key_pressed(self.__on_key_press)
         self.connect_clicked(lambda *a:self.__show_dialog("navigator.Navigator"))
-      
+
         self.set_visible(True)
 
         # setup menu
@@ -176,6 +176,8 @@ class AppWindow(Component, Window):
 
     def render_this(self):
     
+        Window.render_this(self)
+    
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
@@ -220,7 +222,7 @@ class AppWindow(Component, Window):
                               repr(component))
             else:
                 self.__dialogs.append(component)
-                component.get_gtk_window().set_transient_for(self.get_gtk_window())
+                component.set_parent_window(self)
 
         elif (isinstance(component, Player)):
             self.__register_player(component)
@@ -259,7 +261,6 @@ class AppWindow(Component, Window):
         mimetype = f.mimetype
         handlers = self.__mime_handlers.get(mimetype)
 
-        print "LOAD", f, mimetype, handlers
 
         if (not handlers):
             m1, m2 = mimetype.split("/")
@@ -267,6 +268,8 @@ class AppWindow(Component, Window):
 
         if (not handlers):
             return
+
+        print "LOAD", f, mimetype, handlers
 
         if (self.__current_player):
             self.__current_player.set_visible(False)

@@ -133,18 +133,18 @@ class Image(Widget, Observable):
         w, h = self.get_size()
 
         if (self.__drag_amount >= 0):
-            src_x = x
+            src_x = 0
             dst_x = x + self.__drag_amount
             dst_w = w - self.__drag_amount
             if (self.__drag_amount != 0):
-                buf2.fill_area(x, y, self.__drag_amount, h, self.__bg_color)
+                buf2.fill_area(0, 0, self.__drag_amount, h, self.__bg_color)
         else:
-            src_x = x - self.__drag_amount
+            src_x = 0 - self.__drag_amount
             dst_x = x
             dst_w = w + self.__drag_amount
-            buf2.fill_area(x + dst_w, y, abs(self.__drag_amount), h, self.__bg_color)
+            buf2.fill_area(dst_w, 0, abs(self.__drag_amount), h, self.__bg_color)
 
-        buf2.copy_pixmap(buf1, src_x, y, dst_x, y, dst_w, h)
+        buf2.copy_pixmap(buf1, 0, 0, x, y, w, h)
     
         
 
@@ -344,7 +344,6 @@ class Image(Widget, Observable):
         Renders the visible area of the image.
         """
 
-        x, y = self.get_screen_pos()
         screen = self.get_screen()
 
         offx, offy = self.__get_offset()
@@ -388,20 +387,20 @@ class Image(Widget, Observable):
             
             if (vwidth + 1 < width):
                 bw = (width - vwidth) / 2
-                self.__offscreen.fill_area(x, y, bw, height, self.__bg_color)
-                self.__offscreen.fill_area(x + width - bw - 1, y, bw + 1, height,
+                self.__offscreen.fill_area(0, 0, bw, height, self.__bg_color)
+                self.__offscreen.fill_area(width - bw - 1, 0, bw + 1, height,
                                            self.__bg_color)
             
             if (vheight + 1 < height):
                 bh = (height - vheight) / 2
-                self.__offscreen.fill_area(x, y, width, bh, self.__bg_color)
-                self.__offscreen.fill_area(x, y + height - bh - 1, width, bh + 1,
+                self.__offscreen.fill_area(0, 0, width, bh, self.__bg_color)
+                self.__offscreen.fill_area(0, height - bh - 1, width, bh + 1,
                                            self.__bg_color)
                 
         else:
             # copy on the server-side (this is our simple trick for
             # fast scrolling!)
-            self.__offscreen.move_area(x + src_x, y + src_y, src_w, src_h,
+            self.__offscreen.move_area(src_x, src_y, src_w, src_h,
                                        -dx, -dy)
             
         # render borders
@@ -429,6 +428,7 @@ class Image(Widget, Observable):
         
         #self.render()
         if (self.may_render()):
+            x, y = self.get_screen_pos()
             self.render_at(TEMPORARY_PIXMAP, x, y)
             for o in self.__overlays:
                 o(TEMPORARY_PIXMAP, x, y, width, height)
@@ -489,8 +489,7 @@ class Image(Widget, Observable):
             if (vwidth < width): rx += (width - vwidth) / 2
             if (vheight < height): ry += (height - vheight) / 2
 
-        x, y = self.get_screen_pos()
-        self.__offscreen.draw_pixbuf(destpbuf, x + rx, y + ry)        
+        self.__offscreen.draw_pixbuf(destpbuf, rx, ry)        
        
 
 
@@ -767,45 +766,9 @@ class Image(Widget, Observable):
         screen = self.get_screen()
         
         if (self.__slide_from_right):
-            self.fx_slide_horizontal(self.__offscreen, x, y, w, h,
+            self.fx_slide_horizontal(self.__offscreen, 0, 0, w, h,
                                      self.SLIDE_LEFT)
         else:
-            self.fx_slide_horizontal(self.__offscreen, x, y, w, h,
+            self.fx_slide_horizontal(self.__offscreen, 0, 0 , w, h,
                                      self.SLIDE_RIGHT)
-        
-        
-        """
-        def f(params):
-            from_x, to_x = params
-            dx = (to_x - from_x) / 5
-            done = False
 
-            if (dx > 0):
-                pass
-            else:
-                dx = to_x - from_x
-                done = True
-
-            if (self.__slide_from_right):
-                screen.move_area(x + dx, y, w - dx, h, -dx, 0)
-                screen.copy_pixmap(self.__offscreen,
-                                   x + from_x, y,
-                                   x + w - dx, y,
-                                   dx, h)
-            else:
-                screen.move_area(x, y, w - dx, h, dx, 0)
-                screen.copy_pixmap(self.__offscreen,
-                                   x + w - from_x - dx, y,
-                                   x, y,
-                                   dx, h)
-
-            if (not done):
-                params[0] = from_x + dx
-                params[1] = to_x
-                return True
-
-            else:
-                return False
-
-        self.animate(50, f, [0, w])
-        """

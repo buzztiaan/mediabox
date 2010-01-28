@@ -37,10 +37,6 @@ class Dialog(Component, Window):
 
     def set_visible(self, v):
     
-        if (v):
-            self.set_size(gtk.gdk.screen_width(),
-                          gtk.gdk.screen_height() - 120)
-
         Window.set_visible(self, v)
 
 

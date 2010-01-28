@@ -10,8 +10,9 @@ class InfoDialog(object):
     
         try:
             import hildon
-            hildon.hildon_banner_show_information(self.__parent.get_gtk_window(),
-                                                  "", self.__message)
+            hildon.hildon_banner_show_information(
+                           self.__parent.get_native_window().get_window_impl(),
+                           "stock-info", self.__message)
         except:
             print self.__message
 

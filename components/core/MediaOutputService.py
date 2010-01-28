@@ -39,6 +39,7 @@ class MediaOutputService(Component):
     
         if (isinstance(output, MediaOutput)):
             self.__outputs.append(output)
+            print "ADDED OUTPUT", output
         
         
     def handle_MEDIA_EV_OUTPUT_REMOVED(self, output):

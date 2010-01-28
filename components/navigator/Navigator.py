@@ -483,6 +483,7 @@ class Navigator(Dialog):
 
     def render_this(self):
     
+        #Dialog.render_this(self)
         w, h = self.get_size()
         self.__arr.set_geometry(0, 0, w, h)
 
