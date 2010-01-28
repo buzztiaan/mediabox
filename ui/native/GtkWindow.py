@@ -44,6 +44,11 @@ class Window(NativeWindow):
         self.__window.set_double_buffered(False)
         #self.__window.realize()
 
+        self.__layout = gtk.Fixed()
+        self.__layout.show()
+
+        self.__window.add(self.__layout)
+
 
     def __on_configure(self, src, ev):
     
@@ -135,6 +140,11 @@ class Window(NativeWindow):
         if (not self.__screen):
             self.__make_screen()
         return self.__screen
+
+
+    def get_gtk_layout(self):
+    
+        return self.__layout
 
 
     def set_visible(self, v):

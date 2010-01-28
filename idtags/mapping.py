@@ -30,7 +30,8 @@ MAPPING = { "APIC": "PICTURE",
             "Audio:Comment": "COMMENT",
             "File:Copyright": "COPYRIGHT" }
 
-STRINGS = ( "COMMENT", "COPYRIGHT", "TITLE", "ARTIST", "ALBUM", "TRACKNUMBER" )
+STRINGS = ( "COMMENT", "COPYRIGHT", "TITLE", "ARTIST", "ALBUM",
+            "TRACKNUMBER", "GENRE" )
 
 # the official weird, unsorted, incomplete list of genres for ID3 tags
 GENRES = [

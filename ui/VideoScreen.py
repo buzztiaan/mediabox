@@ -49,7 +49,8 @@ class VideoScreen(Widget):
         """
     
         if (not self.__screen.window):
-            self.__layout = self.get_window()
+            self.__layout = self.get_window().get_native_window() \
+                            .get_gtk_layout()
             self.__layout.put(self.__screen, 0, 0)
             self.__screen.realize()
             

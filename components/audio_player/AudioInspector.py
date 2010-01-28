@@ -31,8 +31,8 @@ class AudioInspector(FileInspector):
         entry["File.Type"] = "audio"
         entry["File.Folder"] = os.path.basename(dirname)
         entry["Audio.Title"] = tags.get("TITLE") or os.path.basename(path)
-        entry["Audio.Artist"] = tags.get("ARTIST") or "unknown"
+        entry["Audio.Artist"] = tags.get("ARTIST") or "unspecified"
         entry["Audio.Album"] = tags.get("ALBUM") or entry["Audio.Artist"]
-        entry["Audio.Genre"] = tags.get("GENRE") or "unknown"
+        entry["Audio.Genre"] = tags.get("GENRE") or "unspecified"
         #print "ENTRY", entry
 

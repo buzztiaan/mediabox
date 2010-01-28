@@ -42,6 +42,15 @@ class Window(NativeWindow):
         self.__window.realize()
 
 
+        self.__layout = gtk.Fixed()
+        self.__layout.show()
+
+        if (wtype == self.TYPE_TOPLEVEL):
+            self.__window.add(self.__layout)
+        else:
+            self.__window.vbox.add(self.__layout)
+
+
         self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
 
         # we need to notify Maemo5 that we want to use the volume keys
@@ -141,6 +150,11 @@ class Window(NativeWindow):
         if (not self.__screen):
             self.__make_screen()
         return self.__screen
+
+
+    def get_gtk_layout(self):
+    
+        return self.__layout
 
 
     def set_visible(self, v):

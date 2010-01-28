@@ -278,6 +278,8 @@ class VideoPlayer(Player):
         w, h = self.get_size()
         screen = self.get_screen()
         
+        if (w == 0 or h == 0): return
+        
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         self.__arr.set_geometry(0, 0, w, h)
         

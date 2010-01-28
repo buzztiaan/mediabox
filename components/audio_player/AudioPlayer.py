@@ -62,6 +62,7 @@ class AudioPlayer(Player):
         self.__sliding_direction = self.SLIDE_LEFT
     
         Player.__init__(self)
+        self.set_visible(False)
         
         # cover art
         self.__cover_art = Image()
@@ -290,6 +291,7 @@ class AudioPlayer(Player):
         if ((old_w, old_h) != (w, h)):
             Player.set_size(self, w, h)
             self.__buffer = Pixmap(None, w, h)
+            self.set_visible(True)
         #end if
 
 
