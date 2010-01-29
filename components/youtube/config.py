@@ -6,7 +6,7 @@ import os
 _cfg = Config("youtube", [
               ("cache-folder", Config.STRING, os.path.expanduser("~")), #"/media/mmc1"),
               #("hi-quality", Config.BOOL, False),
-              ("quality-type", Config.INTEGER, 18)
+              ("quality-type", Config.INTEGER, 0)
               ])
 
 

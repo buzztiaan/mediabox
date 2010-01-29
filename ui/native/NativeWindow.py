@@ -106,3 +106,13 @@ class NativeWindow(EventEmitter):
         
         raise NotImplementedError
 
+
+    def show_video_overlay(self, x, y, w, h):
+    
+        raise NotImplementedError
+        
+        
+    def hide_video_overlay(self):
+    
+        raise NotImplementedError
+

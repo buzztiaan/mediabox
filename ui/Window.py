@@ -45,7 +45,6 @@ class Window(Widget):
     def _visibility_changed(self):
     
         if (self.is_visible()):
-            #self.__window.show()
             self.__native_window.set_visible(True)
             self.render()
         else:
@@ -79,7 +78,7 @@ class Window(Widget):
         w, h = screen.get_size() 
         self.__container.set_size(w, h)
 
-        if (self.__title_bar):
+        if (self.__title_bar and self.__title_bar.is_visible()):
             self.__title_bar.set_geometry(0, 0, w, 64)
             self.set_geometry(0, 64, w, h - 64)
         else:
@@ -100,17 +99,7 @@ class Window(Widget):
     def connect_closed(self, cb, *args):
     
         self._connect(self.EVENT_CLOSED, cb, *args)
-
-        
-    def put(self, w, x, y):
-    
-        pass
-        
-        
-    def move(self, w, x, y):
-    
-        pass
-        
+      
         
     def get_window(self):
     
@@ -118,21 +107,33 @@ class Window(Widget):
         
         
     def get_native_window(self):
+        """
+        Returns the underlying native window implementation.
+        """
     
         return self.__native_window
         
         
     def set_parent_window(self, other):
+        """
+        Sets a parent window for this window.
+        """
     
         self.__native_window.set_parent_window(other.get_native_window())
         
         
     def set_fullscreen(self, v):
     
-        pass
+        self.__title_bar.set_visible(not v)
+        self.__on_screen_changed()
         
         
     def set_title(self, title):
+        """
+        Sets the window title.
+        
+        @param title: window title text
+        """
     
         if (self.__title_bar):
             self.__title_bar.set_title(title)
@@ -171,4 +172,14 @@ class Window(Widget):
         """
         
         self.__native_window.set_menu_xml(xml, bindings)
+
+
+    def show_video_overlay(self, x, y, w, h):
+    
+        return self.__native_window.show_video_overlay(x, y, w, h)
+        
+        
+    def hide_video_overlay(self):
+    
+        self.__native_window.hide_video_overlay()
 

@@ -10,19 +10,35 @@ class Window(NativeWindow):
 
     def __init__(self, wtype):
     
-        self.__screen = None
-        self.__menu = None
-    
         NativeWindow.__init__(self)
+        self._init(wtype)
+        
+        
+    def _init(self, wtype):
+    
         if (wtype == self.TYPE_TOPLEVEL):
             self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-            #self.__window.set_default_size(800, 480)
             self.__window.fullscreen()
         else:
             self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-            #self.__window.set_default_size(800, 480)
             self.__window.fullscreen()
             
+        self._set_gtk_window(self.__window)
+        self._setup_gtk_events()
+        self._setup_gtk_rendering()
+        overlay = self._create_gtk_video_overlay()
+        self.__window.add(overlay)
+
+
+
+    def _set_gtk_window(self, win):
+
+        self.__screen = None
+        self.__menu = None
+        self.__window = win
+        
+    
+    def _setup_gtk_events(self):
         
         self.__window.connect("configure-event", self.__on_configure)
         self.__window.connect("expose-event", self.__on_expose)
@@ -40,14 +56,36 @@ class Window(NativeWindow):
                                  gtk.gdk.KEY_PRESS_MASK |
                                  gtk.gdk.KEY_RELEASE_MASK)
 
+
+    def _setup_gtk_rendering(self):
+
         self.__window.set_app_paintable(True)
         self.__window.set_double_buffered(False)
-        #self.__window.realize()
+
+
+    def _create_gtk_video_overlay(self):
 
         self.__layout = gtk.Fixed()
         self.__layout.show()
+        
+        # video screen
+        self.__vidscreen = gtk.DrawingArea()
+        self.__vidscreen.set_double_buffered(False)
 
-        self.__window.add(self.__layout)
+        scr = self.__vidscreen.get_screen()
+        cmap = scr.get_rgb_colormap()
+        self.__vidscreen.set_colormap(cmap)
+
+        self.__vidscreen.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
+        self.__vidscreen.set_events(gtk.gdk.BUTTON_PRESS_MASK |
+                                    gtk.gdk.BUTTON_RELEASE_MASK |
+                                    gtk.gdk.POINTER_MOTION_MASK |
+                                    gtk.gdk.KEY_PRESS_MASK |
+                                    gtk.gdk.KEY_RELEASE_MASK)
+        self.__layout.put(self.__vidscreen, 0, 0)
+
+        return self.__layout
+
 
 
     def __on_configure(self, src, ev):
@@ -142,11 +180,6 @@ class Window(NativeWindow):
         return self.__screen
 
 
-    def get_gtk_layout(self):
-    
-        return self.__layout
-
-
     def set_visible(self, v):
     
         if (v):
@@ -238,4 +271,18 @@ class Window(NativeWindow):
                 #end for
             #end if
         #end for
+
+
+    def show_video_overlay(self, x, y, w, h):
+    
+        self.__layout.move(self.__vidscreen, x, y)
+        self.__vidscreen.set_size_request(w, h)
+        self.__vidscreen.show()
+        
+        return self.__vidscreen.window.xid
+
+
+    def hide_video_overlay(self):
+    
+        self.__vidscreen.hide()
 
