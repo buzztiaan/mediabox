@@ -11,6 +11,8 @@ class Window(GtkWindow):
 
     def __init__(self, wtype):
     
+        self.__wtype = wtype
+    
         GtkWindow.__init__(self, wtype)
         self._init(wtype)
     
@@ -44,13 +46,11 @@ class Window(GtkWindow):
 
     def set_visible(self, v):
     
-        if (v):
+        if (v and self.__wtype == self.TYPE_DIALOG):
             self.__window.resize(gtk.gdk.screen_width(),
                                  gtk.gdk.screen_height() - 120)
-            self.__window.present()
-        else:
-            self.__window.hide()
 
+        GtkWindow.set_visible(self, v)
 
 
     def __set_portrait_property(self, prop, value):

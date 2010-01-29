@@ -46,7 +46,7 @@ if _check_maemo5():
     MAEMO5 = "maemo5"
 elif _check_maemo4():
     from maemo4 import *
-    MAEMO5 = "maemo4"
+    MAEMO4 = "maemo4"
 elif _check_mer():
     from mer import *
     MER = "mer"
