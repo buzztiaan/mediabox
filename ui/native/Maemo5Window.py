@@ -25,6 +25,7 @@ class Window(GtkWindow):
         elif (wtype == self.TYPE_DIALOG):
             self.__window = gtk.Dialog()
                 
+        self.__window.set_title("Loading")
         self._set_gtk_window(self.__window)
         self._setup_gtk_events()
         self._setup_gtk_rendering()
@@ -58,6 +59,14 @@ class Window(GtkWindow):
         self.__window.window.property_change(prop, "CARDINAL", 32,
                                              gtk.gdk.PROP_MODE_REPLACE,
                                              [value])
+
+
+    def set_fullscreen_mode(self, v):
+    
+        if (v):
+            self.__window.fullscreen()
+        else:
+            self.__window.unfullscreen()
 
 
     def set_portrait_mode(self, v):

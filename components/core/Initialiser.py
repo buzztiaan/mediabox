@@ -21,9 +21,14 @@ class Initialiser(Component):
             # theme could not be loaded; using default theme
             pass
 
+        # make MediaBox play sound in silent mode
+        if (platforms.MAEMO5):
+            import gobject
+            gobject.set_application_name("FMRadio")
+
         # satisfy maemo activation framework
-        if (platforms.PLATFORM == platforms.MAEMO4):
+        if (platforms.MAEMO4):
             platforms.create_osso_context(values.OSSO_NAME, "1.0", False)
             
-        elif (platforms.PLATFORM == platforms.MAEMO5):
+        elif (platforms.MAEMO5):
             platforms.create_osso_context(values.OSSO_NAME, "1.0", False)

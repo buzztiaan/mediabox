@@ -124,7 +124,9 @@ class Window(Widget):
         
     def set_fullscreen(self, v):
     
-        self.__title_bar.set_visible(not v)
+        if (self.__title_bar):
+            self.__title_bar.set_visible(not v)
+        self.__native_window.set_fullscreen_mode(v)
         self.__on_screen_changed()
         
         
@@ -147,6 +149,7 @@ class Window(Widget):
         """
         
         self.__native_window.set_portrait_mode(v)
+        self.__on_screen_changed()
 
 
     def set_busy(self, value):

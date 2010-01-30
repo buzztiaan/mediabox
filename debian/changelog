@@ -1,3 +1,11 @@
+mediabox (2010.01.30) unstable; urgency=low
+
+  Small performance improvements
+
+  Worked around silent mode on N900 (see bugs.maemo.org #6694)
+ 
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 30 Jan 2010 19:45:00 +0100
+
 mediabox (2010.01.27) unstable; urgency=low
 
   Volume control in GStreamer backend controls device volume on N900

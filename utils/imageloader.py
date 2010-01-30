@@ -75,7 +75,13 @@ def load(path, cb, *args):
             cb(None, *args)
             
 
-    def load_cb():
+    def load_cb(cnt):
+        if (cnt[0] < 5):
+            cnt[0] += 1
+            return True
+        else:
+            cnt[0] = 0
+
         d = fd.read(_CHUNK_SIZE)
         if (d):
             if (not aborted[0]):
@@ -120,5 +126,5 @@ def load(path, cb, *args):
     loader = gtk.gdk.PixbufLoader()
     loader.connect("size-prepared", on_size_available)
         
-    gobject.timeout_add(100, load_cb)
+    gobject.idle_add(load_cb, [0])
 

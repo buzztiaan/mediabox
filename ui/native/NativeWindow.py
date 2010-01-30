@@ -79,6 +79,11 @@ class NativeWindow(EventEmitter):
     
         raise NotImplementedError
 
+    
+    def set_fullscreen_mode(self, v):
+    
+        pass
+
 
     def set_portrait_mode(self, v):
     

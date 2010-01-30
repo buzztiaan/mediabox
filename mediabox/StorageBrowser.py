@@ -575,11 +575,8 @@ class StorageBrowser(ThumbableGridView):
                 # mark folder as complete
                 self.__path_stack[-1][1] = _STATUS_OK
                 
-                # finished loading items; now create thumbnails
-                #self.__tn_scheduler.resume()
-
                 self.invalidate()
-                self.render()
+                #self.render()
                 self.emit_event(self.EVENT_FOLDER_COMPLETE,
                                 self.get_current_folder())
                 #self.send_event(self.EVENT_FOLDER_OPENED,
@@ -590,7 +587,7 @@ class StorageBrowser(ThumbableGridView):
 
 
             now = time.time()
-            if (not f or len(self.get_files()) % 10 == 0): #now > self.__last_list_render_time + 1.0):
+            if (not f or now > self.__last_list_render_time + 0.5):
                 self.__last_list_render_time = now
                 #self.invalidate_buffer()
                 self.render()
@@ -617,7 +614,7 @@ class StorageBrowser(ThumbableGridView):
         cwd = self.get_current_folder()
 
         item = MediaItem(f, f.icon or "")
-        item.connect_activated(self.__on_item_clicked, item)
+        item.connect_clicked(self.__on_item_clicked, item)
         item.connect_menu_opened(self.__on_item_menu_opened, item)
 
         # determine available item buttons

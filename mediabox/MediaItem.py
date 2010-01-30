@@ -199,11 +199,14 @@ class MediaItem(Item):
         cnv.copy_buffer(pmap, 0, 0, x, y, w, h)
 
 
+    """
     def connect_button_pressed(self, *args):
     
         print "item: connect_button_pressed"
+    """
         
         
+    """
     def click_at(self, px, py):
     
         self.emit_event(self.EVENT_ACTIVATED)
@@ -212,6 +215,7 @@ class MediaItem(Item):
         #    self.emit_event(self.EVENT_ACTIVATED)
         #elif (w - 80 <= px <= w):
         #    self.emit_event(self.EVENT_ACTIVATED)
+    """
 
             
     def tap_and_hold(self, px, py):

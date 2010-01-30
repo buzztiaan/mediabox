@@ -4,8 +4,8 @@ from utils.MiniXML import MiniXML
 from utils import logging
 from utils import threads
 from utils import urlquote
-from ui import dialogs
-from ui.Dialog import Dialog
+from ui.dialog import InputDialog
+from ui.dialog import OptionDialog
 from io import Downloader
 from io import FileDownloader
 from io import FileServer
@@ -430,9 +430,10 @@ class YouTube(Device):
 
         if (not query):
             # present search dialog
-            dlg = Dialog()
-            dlg.add_entry("Keywords:", "")
-            values = dlg.wait_for_values()
+            dlg = InputDialog("Search")
+            dlg.add_input("Keywords:", "")
+            dlg.run()
+            values = dlg.get_values()
 
             if (values):
                 query = urllib.quote_plus(values[0])
@@ -619,6 +620,8 @@ class YouTube(Device):
         Deletes the given file.
         """
 
+        pass
+        """
         f = self.__items[idx]
         response = dialogs.question("Remove",
                                     u"Remove video\n\xbb%s\xab?" % f.name)
@@ -629,6 +632,7 @@ class YouTube(Device):
                 pass
         
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.__current_folder)
+        """
 
 
     def keep(self, f):
