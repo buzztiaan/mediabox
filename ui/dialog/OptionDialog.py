@@ -1,48 +1,47 @@
+from ui.Window import Window
+from ui.itemview import ThumbableGridView
+from ui.itemview import ButtonItem
+
 import gtk
 
 
-class OptionDialog(gtk.Dialog):
+class OptionDialog(Window):
 
     def __init__(self, title):
     
         self.__num_of_options = 0
         self.__choice = -1
     
-        gtk.Dialog.__init__(self)
+        Window.__init__(self, Window.TYPE_DIALOG)
+        self.connect_closed(self.__on_close)
+        self.set_visible(False)
         self.set_title(title)
         
-        self.realize()
+        self.__list = ThumbableGridView()
+        self.add(self.__list)
+       
+       
+    def __on_close(self):
+    
+        self.set_visible(False)
+       
+       
+    def render_this(self):
+    
+        w, h = self.get_size()
+        self.__list.set_geometry(0, 0, w, h)
         
-        self.window.property_change("_HILDON_PORTRAIT_MODE_SUPPORT",
-                                    "CARDINAL", 32,
-                                    gtk.gdk.PROP_MODE_REPLACE,
-                                    [1])
 
     def add_option(self, icon, label):
     
-        def on_choice(src, i):
+        def on_choice(i):
             self.__choice = i
-            self.response(gtk.RESPONSE_ACCEPT)
     
-        hbox = gtk.HBox()
-        hbox.show()
-        if (icon):
-            img = gtk.Image()
-            img.set_from_pixbuf(icon)
-            img.show()
-            hbox.add(img)
-        #end if
-        lbl = gtk.Label(label)
-        lbl.show()
-        hbox.add(lbl)
-
-        btn = gtk.Button()
-        btn.set_size_request(-1, 70)
-        self.vbox.add(btn)
-        btn.show()
-        btn.add(hbox)
-        btn.connect("clicked", on_choice, self.__num_of_options)
-        self.__num_of_options += 1
+        btn = ButtonItem(label)
+        btn.connect_clicked(on_choice, self.__num_of_options)
+        self.__list.append_item(btn)
+        
+        self.__num_of_options += 1       
 
 
     def get_choice(self):
@@ -52,12 +51,10 @@ class OptionDialog(gtk.Dialog):
 
     def run(self):
     
-        self.show()
-        resp = gtk.Dialog.run(self)
+        self.set_visible(True)
+        self.__choice = -1
+        while (self.is_visible() and self.__choice == -1):
+            gtk.main_iteration(True)
         self.destroy()
-        
-        if (resp == gtk.RESPONSE_ACCEPT):
-            return 0
-        else:
-            return 1
+        return 0
 

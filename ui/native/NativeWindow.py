@@ -79,6 +79,11 @@ class NativeWindow(EventEmitter):
     
         raise NotImplementedError
 
+
+    def destroy(self):
+    
+        raise NotImplementedError
+
     
     def set_fullscreen_mode(self, v):
     

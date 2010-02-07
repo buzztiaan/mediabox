@@ -26,7 +26,7 @@ class Dialog(Component, Window):
         
        
         Component.__init__(self)
-        Window.__init__(self, Window.TYPE_DIALOG)
+        Window.__init__(self, Window.TYPE_TOPLEVEL)
         self.connect_closed(self.__on_close_window)
         
         

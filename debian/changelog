@@ -1,3 +1,12 @@
+mediabox (2010.02.06) unstable; urgency=low
+
+  Distinguish albums by folder, not by artist (solves issues with various
+  artists on one album)
+  
+  D-Bus interface for controlling MediaBox by a widget, for example
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 06 Feb 2010 17:15:00 +0100
+
 mediabox (2010.01.30) unstable; urgency=low
 
   Small performance improvements

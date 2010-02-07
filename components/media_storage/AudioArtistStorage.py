@@ -61,11 +61,11 @@ class AudioArtistStorage(Device):
         return f
 
 
-    def __make_album(self, artist, album):
+    def __make_album(self, ffolder, album):
     
         f = self.call_service(msgs.CORE_SVC_GET_FILE,
                               "audio://albums/%s/%s" \
-                              % (urlquote.quote(artist, ""),
+                              % (urlquote.quote(ffolder, ""),
                                  urlquote.quote(album, "")))
         return f
  
@@ -119,11 +119,11 @@ class AudioArtistStorage(Device):
             # list albums
             artist = urlquote.unquote(parts[0])
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
-                      "Audio.Album of and File.Type='audio' Audio.Artist='%s'",
+                      "File.Folder, Audio.Album of and File.Type='audio' Audio.Artist='%s'",
                       artist)
-            res.add(("All Tracks",))
-            for album, in res:
-                f = self.__make_album(artist, album)
+            #res.add(("All Tracks",))
+            for ffolder, album in res:
+                f = self.__make_album(ffolder, album)
                 if (f): items.append(f)
             #end for
                                     

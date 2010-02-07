@@ -21,11 +21,11 @@ class InputDialog(gtk.Dialog):
         gtk.Dialog.__init__(self)
         self.set_title(title)
         
-        if (hildon):
+        try:
             btn = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT,
                                 hildon.BUTTON_ARRANGEMENT_VERTICAL,
                                 "OK")
-        else:
+        except:
             btn = gtk.Button("OK")
             
         btn.connect("clicked", lambda x: self.response(gtk.RESPONSE_ACCEPT))

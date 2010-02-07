@@ -17,8 +17,15 @@ class Window(GtkWindow):
 
     def _init(self, wtype):
 
-        self.__window = hildon.Window()
-        self.__window.fullscreen()            
+        if (wtype == self.TYPE_TOPLEVEL):
+            self.__window = hildon.Window()
+            self.__window.fullscreen()            
+        else:
+            self.__window = gtk.Window(gtk.WINDOW_POPUP)
+            self.__window.set_decorated(False)
+            self.__window.set_default_size(800, 240)
+            self.__window.move(0, 480 - 240)
+            self.__window.set_modal(True)
 
         self._set_gtk_window(self.__window)
         self._setup_gtk_events()
@@ -31,7 +38,6 @@ class Window(GtkWindow):
     
         if (self.__menu):
             self.__menu.show_all()
-            self.__menu.run()
 
 
     def set_menu_xml(self, xml, bindings):
@@ -40,10 +46,30 @@ class Window(GtkWindow):
             self.__menu.hide()
             cb(*args)
 
+        def click_choice_cb(src, choice_buttons, cb, *args):
+            print choice_buttons
+            #for c in choice_buttons:
+            #    if (c != src):
+            #        c.set_active(False)
+            self.__menu.hide()
+            cb(*args)
+
+        def dismiss(src):
+            print "DISMISS"
+            #self.__menu.destroy()
+
         dom = MiniXML(xml).get_dom()        
-        self.__menu = gtk.Dialog()
-        self.__menu.set_title("")
-        vbox = self.__menu.vbox
+        if (self.__menu):
+            self.__menu.destroy()
+        self.__menu = gtk.Window(gtk.WINDOW_POPUP)
+        self.__menu.set_flags(gtk.CAN_FOCUS)
+        self.__menu.set_default_size(600, 300)
+        self.__menu.move((800 - 600) / 2, 0)
+        self.__menu.set_border_width(3)
+        self.__menu.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
+        self.__menu.connect("focus-out-event", dismiss)
+        vbox = gtk.VBox(spacing = 3)
+        self.__menu.add(vbox)
         
         for node in dom.get_children():
             name = node.get_name()
@@ -69,15 +95,18 @@ class Window(GtkWindow):
                 hbox = gtk.HBox()
                 vbox.add(hbox)
                 cnt = 0
+                
+                choice_buttons = []
                 for option in node.get_children():
                     item_label = option.get_attr("label")
                     item_icon = option.get_attr("icon")
                     
-                    btn = gtk.ToggleButton()
+                    btn = gtk.RadioButton()
+                    choice_buttons.append(btn)
                     
                     if (callback):
                         btn.connect("clicked",
-                                    click_cb, callback, cnt)
+                                    click_choice_cb, choice_buttons, callback, cnt)
                                     #lambda x, i, cb:cb(i), cnt, callback)
                     if (item_label):
                         btn.set_label(item_label)

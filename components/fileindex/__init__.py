@@ -17,7 +17,7 @@ def get_classes():
     classes.append(SimpleScanner)
 
     return classes
-    
+
 
 import __messages__
 messages = [ m for m in dir(__messages__) if not m.startswith("__") ]

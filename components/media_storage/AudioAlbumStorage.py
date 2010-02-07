@@ -44,20 +44,20 @@ class AudioAlbumStorage(Device):
         return theme.mb_folder_audio
 
 
-    def __make_album(self, artist, album):
+    def __make_album(self, ffolder, album):
 
         f = File(self)
         f.is_local = True
-        print artist, album
+        print ffolder, album
         try:
-            ar = urlquote.quote(artist, "")
+            ff = urlquote.quote(ffolder, "")
         except:
-            ar = "?"
+            ff = "?"
         try:
             al = urlquote.quote(album, "")
         except:
             al = "?"
-        f.path = "/" + ar + \
+        f.path = "/" + ff + \
                  "/" + al
         f.name = album
         f.acoustic_name = f.name
@@ -69,7 +69,7 @@ class AudioAlbumStorage(Device):
         return f
         
         
-    def __make_track(self, artist, album, resource):
+    def __make_track(self, ffolder, album, resource):
     
         f = self.call_service(msgs.CORE_SVC_GET_FILE, resource)
         if (not f): return None
@@ -141,30 +141,30 @@ class AudioAlbumStorage(Device):
         if (len_parts == 0):
             # list albums
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
-                              "Audio.Artist, Audio.Album of File.Type='audio'")
-            for artist, album in res:
+                              "File.Folder, Audio.Album of File.Type='audio'")
+            for ffolder, album in res:
                 if (not album): continue
-                f = self.__make_album(artist, album)
+                f = self.__make_album(ffolder, album)
                 if (f): items.append(f)
             #end for
                          
         elif (len_parts == 2):
             # list tracks
-            artist = urlquote.unquote(parts[0])
+            ffolder = urlquote.unquote(parts[0])
             album = urlquote.unquote(parts[1])
-            if (album == "All Tracks"):
-                query = "File.Path of and File.Type='audio' Audio.Artist='%s'"
-                query_args = (artist,)
-                alphabetical = True
-            else:
-                query = "File.Path of and and File.Type='audio' " \
-                        "Audio.Artist='%s' Audio.Album='%s'"
-                query_args = (artist, album)
+            #if (album == "All Tracks"):
+            #    query = "File.Path of and File.Type='audio' File.Folder='%s'"
+            #    query_args = (artist,)
+            #    alphabetical = True
+            
+            query = "File.Path of and and File.Type='audio' " \
+                    "File.Folder='%s' Audio.Album='%s'"
+            query_args = (ffolder, album)
             
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                     query, *query_args)
             for filepath, in res:
-                f = self.__make_track(artist, album, filepath)
+                f = self.__make_track(ffolder, album, filepath)
                 if (f): items.append(f)
             #end for                
             

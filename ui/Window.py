@@ -32,12 +32,15 @@ class Window(Widget):
         self.__container = Widget()
         self.__container.add(self)
         
-        if (platforms.MAEMO5):
-            self.__title_bar = None
-        else:
+        self.__title_bar = None
+        if (not platforms.MAEMO5 and wtype == self.TYPE_TOPLEVEL):
             self.__title_bar = TitleBar()
-            self.__title_bar.connect_button_released(self.__on_click_title_bar)
+            self.__title_bar.connect_close(
+                                  lambda *a:self.emit_event(self.EVENT_CLOSED))
+            self.__title_bar.connect_menu(
+                                  lambda *a:self.__native_window.show_menu())
             self.__container.add(self.__title_bar)    
+        #end if
 
         self.set_visible(False)
 
@@ -79,23 +82,14 @@ class Window(Widget):
         self.__container.set_size(w, h)
 
         if (self.__title_bar and self.__title_bar.is_visible()):
-            self.__title_bar.set_geometry(0, 0, w, 64)
-            self.set_geometry(0, 64, w, h - 64)
+            self.__title_bar.set_geometry(0, 0, w, 57)
+            self.set_geometry(0, 57, w, h - 57)
         else:
             self.set_geometry(0, 0, w, h)
 
         self.__container.render()
 
-
-    def __on_click_title_bar(self, px, py):
-    
-        w, h = self.__title_bar.get_size()
-        if (px > w - 64):
-            self.emit_event(self.EVENT_CLOSED)
-        else:
-            self.__native_window.show_menu()
-
-        
+       
     def connect_closed(self, cb, *args):
     
         self._connect(self.EVENT_CLOSED, cb, *args)
@@ -120,6 +114,14 @@ class Window(Widget):
         """
     
         self.__native_window.set_parent_window(other.get_native_window())
+        
+        
+        
+    def destroy(self):
+    
+        self.set_visible(False)
+        self.__native_window.destroy()
+        
         
         
     def set_fullscreen(self, v):
@@ -185,4 +187,17 @@ class Window(Widget):
     def hide_video_overlay(self):
     
         self.__native_window.hide_video_overlay()
+
+
+
+    def run(self):
+        """
+        Runs this window until it gets closed.
+        """
+    
+        import gtk
+        self.set_visible(True)
+        while (self.is_visible()):
+            gtk.main_iteration(True)
+        #end while
 

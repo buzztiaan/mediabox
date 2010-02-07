@@ -63,6 +63,7 @@
 ./ui/dialog/InputDialog.py
 ./ui/dialog/__init__.py
 ./ui/dialog/InfoDialog.py
+./ui/dialog/ListDialog.py
 ./ui/Slider.py
 ./ui/layout
 ./ui/layout/HBox.py
@@ -144,6 +145,13 @@
 ./theme/__init__.py
 ./theme/Pixbuf.py
 ./theme/default
+./theme/default/btn_window_close_1.png
+./theme/default/btn_window_close_2.png
+./theme/default/btn_window_switch_1.png
+./theme/default/btn_window_switch_2.png
+./theme/default/window_menu.png
+./theme/default/titlebar_bg.png
+./theme/default/ui.def
 ./theme/default/mb_folder_prefs.png
 ./theme/default/prefs_icon_displaylight.png
 ./theme/default/font.def
@@ -302,6 +310,9 @@
 ./Makefile
 ./ChangeLog
 ./components
+./components/dbus_interface/
+./components/dbus_interface/DBusInterface.py
+./components/dbus_interface/__init__.py
 ./components/sleep_timer
 ./components/sleep_timer/config.py
 ./components/sleep_timer/Prefs.py

@@ -73,7 +73,7 @@ class Slider(Widget):
         Widget.set_size(self, w, h)
         
         if (w == 0 or h == 0): return
-        
+
         if (not self.__buffer or (w, h) != self.__buffer.get_size()):
             self.__buffer = Pixmap(None, w, h)
             self.__buffer.fill_area(0, 0, w, h, self.__bg_color)
@@ -214,7 +214,7 @@ class Slider(Widget):
             w, h = self.get_size()
             sw = self.__button_pbuf.get_width()
             sh = self.__button_pbuf.get_height()
-            
+
             if (self.__mode == self.HORIZONTAL):
                 px -= self.__grab_point
                 px = min(w - sw, max(0, px))
@@ -229,3 +229,20 @@ class Slider(Widget):
             #self.render()
             self.send_event(self.EVENT_VALUE_CHANGED, v)
         #end if
+        
+        
+class HSlider(Slider):
+
+    def __init__(self, *args):
+    
+        Slider.__init__(self, *args)
+        self.set_mode(self.HORIZONTAL)
+        
+        
+class VSlider(Slider):
+
+    def __init__(self, *args):
+    
+        Slider.__init__(self, *args)
+        self.set_mode(self.VERTICAL)
+

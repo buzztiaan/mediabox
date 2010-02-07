@@ -56,11 +56,11 @@ class AudioGenreStorage(Device):
         return f
 
 
-    def __make_album(self, artist, album):
+    def __make_album(self, ffolder, album):
     
         f = self.call_service(msgs.CORE_SVC_GET_FILE,
                               "audio://albums/%s/%s" \
-                              % (urlquote.quote(artist, ""),
+                              % (urlquote.quote(ffolder, ""),
                                  urlquote.quote(album, "")))
         return f
 
@@ -113,11 +113,11 @@ class AudioGenreStorage(Device):
             # list albums
             genre = urlquote.unquote(parts[0])
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
-                         "Audio.Artist, Audio.Album of and File.Type='audio'" \
+                         "File.Folder, Audio.Album of and File.Type='audio'" \
                          "Audio.Genre='%s'",
                          genre)
-            for artist, album in res:
-                f = self.__make_album(artist, album)
+            for ffolder, album in res:
+                f = self.__make_album(ffolder, album)
                 if (f): items.append(f)
             #end for
         #end if

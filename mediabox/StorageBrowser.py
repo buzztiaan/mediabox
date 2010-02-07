@@ -587,7 +587,8 @@ class StorageBrowser(ThumbableGridView):
 
 
             now = time.time()
-            if (not f or now > self.__last_list_render_time + 0.5):
+            items_count = len(self.get_files())
+            if (not f or (items_count > 10 and now > self.__last_list_render_time + 0.5)):
                 self.__last_list_render_time = now
                 #self.invalidate_buffer()
                 self.render()

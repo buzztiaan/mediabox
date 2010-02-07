@@ -21,7 +21,11 @@ class Window(NativeWindow):
             self.__window.fullscreen()
         else:
             self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-            self.__window.fullscreen()
+            #self.__window.set_decorated(False)
+            #self.__window.fullscreen()
+            self.__window.set_default_size(320,
+                                           gtk.gdk.screen_height())
+            self.__window.move(gtk.gdk.screen_width() - 320, 0)
             
         self._set_gtk_window(self.__window)
         self._setup_gtk_events()
@@ -29,6 +33,8 @@ class Window(NativeWindow):
         overlay = self._create_gtk_video_overlay()
         self.__window.add(overlay)
 
+        if (wtype == self.TYPE_DIALOG):
+            self.__window.set_modal(True) #connect("focus-out-event", self.__on_close_window)
 
 
     def _set_gtk_window(self, win):
@@ -196,6 +202,11 @@ class Window(NativeWindow):
     def get_window_impl(self):
     
         return self.__window
+
+
+    def destroy(self):
+    
+        self.__window.destroy()
 
 
     def set_parent_window(self, other):

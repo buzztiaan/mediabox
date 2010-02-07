@@ -297,7 +297,8 @@ class ImageViewer(Player):
 
     def handle_MEDIA_ACT_PAUSE(self):
     
-        self.__on_btn_play()
+        if (self.is_visible()):
+            self.__on_btn_play()
 
 
     def handle_INPUT_EV_VOLUME_UP(self):
