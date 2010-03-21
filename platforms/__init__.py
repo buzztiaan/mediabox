@@ -20,7 +20,8 @@ def _check_maemo4():
     
 def _check_maemo5():
 
-    v = os.system("cat /etc/apt/sources.list.d/hildon-application-manager.list " \
+    v = os.system("cat /etc/apt/sources.list " \
+                  "    /etc/apt/sources.list.d/hildon-application-manager.list " \
                   "| egrep fremantle >/dev/null")
     return (v == 0)
 
