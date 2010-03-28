@@ -10,6 +10,7 @@ from io import Downloader
 from io import FileDownloader
 from io import FileServer
 from mediabox import values
+import platforms
 import formats
 import config
 from theme import theme
@@ -47,6 +48,8 @@ _PAGE_SIZE = 25
 
 _STAR_CHAR = u"\u2606"
 _STAR2_CHAR = u"\u2605"
+
+_N900_FORMAT_WHITELIST = [5, 6, 13, 17]
 
 
 class _SearchContext(object):
@@ -580,6 +583,10 @@ class YouTube(Device):
             logging.error("could not retrieve video\n%s", logging.stacktrace())
             return ""
 
+        # filter out incompatible formats
+        if (platforms.MAEMO5):
+            fmts = [ f for f in fmts if f in _N900_FORMAT_WHITELIST ]
+
         # retrieve high-quality version, if desired
         if (len(fmts) > 1):
             qtype = self.__ask_for_quality(fmts)
@@ -634,7 +641,21 @@ class YouTube(Device):
             return fmts[dlg.get_choice()]
         else:
             return 0
-        
+
+
+    def __on_download(self, folder, f):
+
+        uri = f.get_resource()
+        filename = self.__make_filename(f.name, "flv")
+        print "DOWNLOAD:", filename
+
+
+    def get_file_actions(self, folder, f):
+
+        actions = Device.get_file_actions(self, folder, f)
+        actions.append((None, "Download", self.__on_download))
+
+        return actions
 
 
     def delete_file(self, folder, idx):
