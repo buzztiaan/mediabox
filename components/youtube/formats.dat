@@ -1,11 +1,13 @@
-# CSV-List of known Youtube formats.
+# CSV-List of known Youtube formats as listed at
+# http://en.wikipedia.org/wiki/YouTube
 # fmt, container, description
- 5, flv, FLV - 320x180
- 6, flv, FLV - 480x270
-13, avi, 3GP H.263 - 176x144
-17, avi, 3GP xVid - 176x144
-18, mp4, MP4 - 480x270
-22, mp4, MP4 - 1280x720
-34, flv, H.264 - 320x180
-35, flv, H.264 - 640x360
+ 5, flv, H.263/MP3 - Standard
+ 6, flv, H.263/MP3 - High
+13, avi, 3GP/AMR - Mobile
+17, avi, 3GP/AAC - Mobile
+18, mp4, H.264/AAC - Medium
+22, mp4, H.264/AAC - 720p
+34, flv, H.264/AAC - Standard
+35, flv, H.264/AAC - High
+37, flv, H.264/AAC - 1080p
 
