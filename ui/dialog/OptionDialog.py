@@ -1,4 +1,4 @@
-from ui.Window import Window
+from ui import Window
 from ui.itemview import ThumbableGridView
 from ui.itemview import ButtonItem
 
@@ -51,7 +51,11 @@ class OptionDialog(Window):
 
     def run(self):
     
+        w = gtk.gdk.screen_width()
+        h = min(gtk.gdk.screen_height() - 120, self.__num_of_options * 80)
+        self.set_window_size(w, h)
         self.set_visible(True)
+        
         self.__choice = -1
         while (self.is_visible() and self.__choice == -1):
             gtk.main_iteration(True)

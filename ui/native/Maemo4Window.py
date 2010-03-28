@@ -3,13 +3,14 @@ from ui.Pixmap import Pixmap
 from utils.MiniXML import MiniXML
 from theme import theme
 
-import gtk
-import hildon
+from wrapper import gtk, hildon
 
 
 class Window(GtkWindow):
 
     def __init__(self, wtype):
+
+        self.__wtype = wtype
 
         GtkWindow.__init__(self, wtype)
         self._init(wtype)    
@@ -19,9 +20,11 @@ class Window(GtkWindow):
 
         if (wtype == self.TYPE_TOPLEVEL):
             self.__window = hildon.Window()
-            self.__window.fullscreen()            
+            self.__window.fullscreen()
         else:
             self.__window = gtk.Window(gtk.WINDOW_POPUP)
+            self.__window.connect("button-press-event",
+                                  self.__check_close_dialog)
             self.__window.set_decorated(False)
             self.__window.set_default_size(800, 240)
             self.__window.move(0, 480 - 240)
@@ -32,6 +35,20 @@ class Window(GtkWindow):
         self._setup_gtk_rendering()
         overlay = self._create_gtk_video_overlay()
         self.__window.add(overlay)
+
+
+    def __check_close_dialog(self, src, ev):
+    
+        px, py = src.get_pointer()
+        if (py < 0):
+            self.emit_event(self.EVENT_CLOSED)
+
+    def set_size(self, w, h):
+    
+        if (self.__wtype == self.TYPE_DIALOG):
+            self.__window.move(0, gtk.gdk.screen_height() - h)
+
+        GtkWindow.set_size(self, w, h)
 
 
     def show_menu(self):

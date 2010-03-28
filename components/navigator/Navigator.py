@@ -7,6 +7,7 @@ from ui.Slider import Slider
 from ui.Toolbar import Toolbar
 from ui.dialog import OptionDialog
 from ui.layout import Arrangement
+from ui import windowflags
 from utils import mimetypes
 from utils import logging
 from mediabox import config as mb_config
@@ -126,10 +127,6 @@ class Navigator(Dialog):
         self.__btn_add.connect_clicked(self.__on_btn_add)
         #self.add(self.__btn_add)
 
-        # beta version!
-        #self.__browser.add_overlay_renderer(self.__render_beta_mark)
-
-
         # toolbar
         self.__toolbar = Toolbar()
         #self.add(self.__toolbar)
@@ -172,13 +169,6 @@ class Navigator(Dialog):
             self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
 
 
-    def __render_beta_mark(self, screen):
-    
-        x, y = self.__browser.get_screen_pos()
-        w, h = self.__browser.get_size()
-        screen.draw_pixbuf(theme.mb_beta_mark, w - 128, h - 48)
-
-
     def __update_toolbar(self):
         """
         Updates the contents of the toolbar.
@@ -206,46 +196,7 @@ class Navigator(Dialog):
             
         self.__browser.invalidate()
         #self.__browser.render()
-
-
-
-    """
-    def __update_menu(self):
-        ""
-        Updates the contents of the window menu.
-        ""
-
-        cwd = self.__browser.get_current_folder()
-        opts = []
-        
-        opts.append((None, "Select Output Device", self.__on_menu_select_output))
-        
-        if (cwd.folder_flags & cwd.ITEMS_SORTABLE):
-            opts.append((None, "Rearrange", self.__on_menu_rearrange))
-            
-        opts.append((None, "Info", None))
-        
-        if (platforms.PLATFORM == platforms.MAEMO5):
-            opts.append((None, "FM Transmitter", self.__on_menu_fmtx))
-            
-        self.set_window_menu(*opts)
-    """
-    
-    
-    """
-    def show(self):
-    
-        SubView.show(self)
-        names = [ p.name for p in self.__browser.get_path() ]
-        #title = u" \u00bb ".join(names)
-        title = names[-1]
-        #self.set_title(title)
-
-        self.__update_toolbar()
-        #self.__update_menu()
-        self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
-    """
-    
+   
 
     def _visibility_changed(self):
         
@@ -293,15 +244,17 @@ class Navigator(Dialog):
         self.__tn_scheduler.halt()
         
         #self.set_title(f.name)
-        self.set_busy(True)
+        self.set_flag(windowflags.BUSY, True)
         
+        # show or hide [Add] button
         if (f.folder_flags & f.ITEMS_ADDABLE):
             self.__btn_add.set_visible(True)
         else:
             self.__btn_add.set_visible(False)
-                       
+            
         self.__update_layout()
         self.render()
+        
         self.__update_items_per_row(f)
 
 
@@ -321,7 +274,7 @@ class Navigator(Dialog):
 
     def __on_complete_folder(self, f):
 
-        self.set_busy(False)
+        self.set_flag(windowflags.BUSY, False)
         
         names = [ p.name for p in self.__browser.get_path() ]
         #title = u" \u00bb ".join(names)

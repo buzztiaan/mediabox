@@ -4,9 +4,7 @@ Base class for dialog components.
 
 from Component import Component
 import msgs
-from ui.Window import Window
-
-import gtk
+from ui import Window
 
 
 class Dialog(Component, Window):
@@ -24,9 +22,8 @@ class Dialog(Component, Window):
         self.__title = ""
         self.__info = ""
         
-       
         Component.__init__(self)
-        Window.__init__(self, Window.TYPE_TOPLEVEL)
+        Window.__init__(self, Window.TYPE_DIALOG)
         self.connect_closed(self.__on_close_window)
         
         

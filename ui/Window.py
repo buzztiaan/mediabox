@@ -1,18 +1,23 @@
 from Widget import Widget
 from TitleBar import TitleBar
+import windowflags
 import native
 import platforms
 
 
-class Window(Widget):
+class XWindow(Widget):
 
     TYPE_TOPLEVEL = 0
     TYPE_DIALOG = 1
+    
 
     EVENT_CLOSED = "event-closed"
 
 
     def __init__(self, wtype):
+    
+        self.__flags = 0
+    
 
         Widget.__init__(self)
         
@@ -35,6 +40,8 @@ class Window(Widget):
         self.__title_bar = None
         if (not platforms.MAEMO5 and wtype == self.TYPE_TOPLEVEL):
             self.__title_bar = TitleBar()
+            self.__title_bar.connect_switch(
+                                  lambda *a:self.__native_window.minimize())
             self.__title_bar.connect_close(
                                   lambda *a:self.emit_event(self.EVENT_CLOSED))
             self.__title_bar.connect_menu(
@@ -116,21 +123,59 @@ class Window(Widget):
         self.__native_window.set_parent_window(other.get_native_window())
         
         
-        
     def destroy(self):
     
         self.set_visible(False)
         self.__native_window.destroy()
+
+
+    def set_window_size(self, w, h):
+        """
+        Sets the window size, if supported by the native window implementation.
         
-        
-        
-    def set_fullscreen(self, v):
+        @param w: width
+        @param h: height
+        """
     
-        if (self.__title_bar):
-            self.__title_bar.set_visible(not v)
-        self.__native_window.set_fullscreen_mode(v)
-        self.__on_screen_changed()
+        Widget.set_size(self, w, h)
+        self.__native_window.set_size(w, h)
+
+
+    def set_flags(self, flags):
+        """
+        Sets the window flags.
+        @since: 2010.02.12
         
+        @param flags: window flags
+        """
+    
+        self.__flags = flags
+
+        #if (self.__title_bar):
+        #    self.__title_bar.set_visible(self.__flags & windowflags.FULLSCREEN)
+        
+        self.__native_window.set_flags(flags)
+
+        
+    def set_flag(self, flag, value):
+        """
+        Sets or unsets a single window flag.
+        @since: 2010.02.12
+        
+        @param flag: the flag to change
+        @param value: whether to set (C{True}) or unset (C{False})
+        """
+    
+        if (value):
+            self.__flags |= flag
+        elif (self.__flags & flag):
+            self.__flags -= flag
+        
+        #if (self.__title_bar):
+        #    self.__title_bar.set_visible(self.__flags & windowflags.FULLSCREEN)
+
+        self.__native_window.set_flags(self.__flags)
+
         
     def set_title(self, title):
         """
@@ -142,29 +187,6 @@ class Window(Widget):
         if (self.__title_bar):
             self.__title_bar.set_title(title)
         self.__native_window.set_title(title)
-
-
-    def set_portrait_mode(self, v):
-        """
-        Switches between landscape and portrait mode on supported platforms.
-        @since: 2009.09
-        """
-        
-        self.__native_window.set_portrait_mode(v)
-        self.__on_screen_changed()
-
-
-    def set_busy(self, value):
-        """
-        Marks this window as busy. Depending on the platform this can e.g.
-        change the mouse cursor or display a throbber animation in the title
-        bar.
-        @since: 2009.12.29
-        
-        @param value: whether this window is busy
-        """
-        
-        self.__native_window.set_busy(value)
 
 
     def set_menu_xml(self, xml, bindings):

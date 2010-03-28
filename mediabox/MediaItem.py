@@ -25,6 +25,7 @@ class MediaItem(Item):
         Item.__init__(self)
         self.set_size(-1, 100)
 
+
     def connect_activated(self, cb, *args):
     
         self._connect(self.EVENT_ACTIVATED, cb, *args)
@@ -71,22 +72,29 @@ class MediaItem(Item):
     
         self.__is_compact = v
         w, h = self.get_size()
-        if (self.__is_compact):
+        if (self.__is_compact): 
             self.set_size(w, 140)
+            self.__render_compact()
         else:
             self.set_size(w, 100)
 
         
 
     def render_at(self, cnv, x, y):
+
+        w, h = self.get_size()
     
         if (self.__is_compact):
-            self.__render_compact(cnv, x, y)
+            pmap = self.__render_compact()
         else:
-            self.__render_normal(cnv, x, y)
+            pmap = self.__render_normal()
+
+        # copy to the given canvas
+        cnv.copy_buffer(pmap, 0, 0, x, y, w, h)
+
             
             
-    def __render_compact(self, cnv, x, y):
+    def __render_compact(self):
 
         w, h = self.get_size()
         
@@ -128,12 +136,11 @@ class MediaItem(Item):
             
         #end if
         
-        # copy to the given canvas
-        cnv.copy_buffer(pmap, 0, 0, x, y, w, h)
+        return pmap
 
             
     
-    def __render_normal(self, cnv, x, y):
+    def __render_normal(self):
     
         w, h = self.get_size()
         
@@ -195,9 +202,8 @@ class MediaItem(Item):
             #pmap.draw_pixbuf(btn, w - 60, (h - 42) / 2)
         #end if
         
-        # copy to the given canvas
-        cnv.copy_buffer(pmap, 0, 0, x, y, w, h)
-
+        return pmap
+        
 
     """
     def connect_button_pressed(self, *args):

@@ -77,7 +77,7 @@ class PlaylistDevice(Device):
         name = dlg.get_values()[0]
 
         names = [ n for n, pl in self.__lists ]
-        if (resp == 0 and name):
+        if (resp == dlg.RETURN_OK and name):
             if (name in names):
                 self.emit_message(msgs.UI_ACT_SHOW_INFO,
                                   u"There is already a list with name " \
@@ -94,36 +94,6 @@ class PlaylistDevice(Device):
                         
         #end if
 
-    """
-    def delete_file(self, folder, idx):
-        ""
-        Removes a playlist or a file from a playlist.
-        ""
-    
-        if (folder.path == "/"):
-            playlists = [ pl for n, pl in self.__lists ]
-            pl = playlists[idx]
-
-            ret = self.call_service(msgs.DIALOG_SVC_QUESTION,
-                                    "Delete List",
-                            u"Delete the list \xbb%s\xab?" % pl.get_name())
-            if (ret == 0):
-                self.__lists = [ (n, p) for n, p in self.__lists
-                                 if (p != pl) ]
-                pl.delete_playlist()
-                self.__ensure_special_playlists()
-                self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
-            #end if
-
-        else:
-            pl = self.__current_list
-            pl.remove(idx)
-            pl.save()
-            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
-            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
-
-        #end if
-    """
 
     def __ensure_special_playlists(self):
         """
@@ -224,7 +194,7 @@ class PlaylistDevice(Device):
         f.name = self.get_name()
         f.path = "/"
         f.mimetype = f.DEVICE_ROOT
-        f.folder_flags = f.ITEMS_DELETABLE | f.ITEMS_ADDABLE | f.ITEMS_COMPACT
+        f.folder_flags = f.ITEMS_DELETABLE | f.ITEMS_ADDABLE #| f.ITEMS_COMPACT
         f.icon = self.get_icon().get_path()
 
         return f

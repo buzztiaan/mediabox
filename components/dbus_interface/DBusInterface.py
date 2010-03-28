@@ -19,6 +19,7 @@ class DBusInterface(Component, dbus.service.Object):
                                      dbus.service.BusName("de.pycage.mediabox",
                                                           dbus.SessionBus()),
                                      "/de/pycage/mediabox/control")
+	print "DBUS"
                                      
 
     @dbus.service.method("de.pycage.mediabox.control")

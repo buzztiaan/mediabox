@@ -1,6 +1,7 @@
 from AbstractBackend import AbstractBackend
 import platforms
 
+import gobject; gobject.threads_init()
 import pygst; pygst.require("0.10")
 import gst
 import dbus
@@ -95,7 +96,8 @@ class GstBackend(AbstractBackend):
         bus.add_signal_watch()
         bus.enable_sync_message_emission()
         bus.connect("message", self.__on_message)
-        bus.connect("sync-message::element", self.__on_sync_message) 
+        bus.connect("sync-message::element", self.__on_sync_message)
+        self.__bus = bus
         
         
     def _ensure_backend(self):
@@ -111,6 +113,12 @@ class GstBackend(AbstractBackend):
         if (t == gst.MESSAGE_EOS):        
             self.__player.set_state(gst.STATE_NULL)
             self.__is_eof = True
+
+        #elif (t == gst.MESSAGE_BUFFERING):
+        #    query = gst.query_new_buffering(gst.FORMAT_PERCENT)
+        #    if (self.__player.query(query)):
+        #        fmt, start, stop, total = query.parse_buffering_range()
+        #        print fmt, start, stop, total
 
         elif (t == gst.MESSAGE_ERROR):
             self.__player.set_state(gst.STATE_NULL)
@@ -157,7 +165,7 @@ class GstBackend(AbstractBackend):
         
 
     def _load(self, uri):
-       
+
         if (uri.startswith("/")): uri = "file://" + uri
         uri = uri.replace("\"", "\\\"")
         
@@ -170,6 +178,7 @@ class GstBackend(AbstractBackend):
         else:
             print "LOAD", uri
             self.__player.set_property("uri", uri)
+            self.__player.set_state(gst.STATE_PLAYING)
             #self.__player.set_property("volume", 1.0)
             self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
                                       gst.SEEK_FLAG_FLUSH,

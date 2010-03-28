@@ -1,6 +1,7 @@
 from com import Component, Player, Dialog, msgs
 from ui.Pixmap import Pixmap
-from ui.Window import Window
+from ui import Window
+from ui import windowflags
 from ui.dialog import InfoDialog
 from utils import logging
 from mediabox import config as mb_config
@@ -62,6 +63,8 @@ class AppWindow(Component, Window):
 
         Component.__init__(self)
         Window.__init__(self, Window.TYPE_TOPLEVEL)
+        self.set_flag(windowflags.CATCH_VOLUME_KEYS, True)
+        self.set_title(values.NAME)
         self.connect_closed(self.__on_close_window)
         self.connect_key_pressed(self.__on_key_press)
         self.connect_clicked(lambda *a:self.__show_dialog("navigator.Navigator"))
@@ -77,13 +80,23 @@ class AppWindow(Component, Window):
                             mb_config.SHUFFLE_MODE_ONE] \
                            .index(mb_config.shuffle_mode())
 
-        self.set_menu_xml(_APP_MENU % (repeat_selected, shuffle_selected),
-                          {"repeat": self.__on_menu_repeat,
-                           "shuffle": self.__on_menu_shuffle,
-                           "select-output": self.__on_menu_select_output,
-                           "fmtx": self.__on_menu_fmtx,
-                           "info": self.__on_menu_info})
+        self.set_menu_choice("repeat", [(theme.mb_repeat_none, "No Repeat"),
+                                        (theme.mb_repeat_one, "Repeat One"),
+                                        (theme.mb_repeat_all, "Repeat All")],
+                             repeat_selected, True,
+                             self.__on_menu_repeat)
+        self.set_menu_choice("shuffle", [(theme.mb_shuffle_none, "No Shuffle"),
+                                        (theme.mb_shuffle_one, "Shuffle")],
+                             shuffle_selected, True,
+                             self.__on_menu_shuffle)
 
+        self.set_menu_item("select-output", "Select Media Renderer", True,
+                           self.__on_menu_select_output)
+        self.set_menu_item("fmtx", "FM Transmitter", True,
+                           self.__on_menu_fmtx)
+        self.set_menu_item("info", "About", True,
+                           self.__on_menu_info)
+                           
         gobject.timeout_add(0, self.__init)
         
 
@@ -177,7 +190,7 @@ class AppWindow(Component, Window):
     def render_this(self):
     
         Window.render_this(self)
-    
+        
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
@@ -235,7 +248,7 @@ class AppWindow(Component, Window):
 
     def handle_UI_ACT_FULLSCREEN(self, v):
     
-        self.set_fullscreen(v)
+        self.set_flag(windowflags.FULLSCREEN, v)
 
 
     def handle_UI_ACT_SHOW_INFO(self, msg):
@@ -251,11 +264,11 @@ class AppWindow(Component, Window):
 
     def handle_MEDIA_ACT_LOAD(self, f):
     
-        def loader():
+        def loader(do_render):
+            if (do_render): self.render()
             self.__current_player.load(f)
             self.set_title(f.name)
-            self.render()
-            self.set_busy(False)
+            self.set_flag(windowflags.BUSY, False)
         
     
         mimetype = f.mimetype
@@ -271,25 +284,30 @@ class AppWindow(Component, Window):
 
         print "LOAD", f, mimetype, handlers
 
-        if (self.__current_player):
-            self.__current_player.set_visible(False)
+        new_player = handlers[0]
+        if (new_player != self.__current_player):
+            new_player.set_visible(True)
+            if (self.__current_player):
+                self.__current_player.set_visible(False)
+            self.__current_player = new_player
+            do_render = True
+        else:
+            do_render = False
             
-        self.__current_player = handlers[0]
-        self.__current_player.set_visible(True)
-        self.set_busy(True)
-        gobject.timeout_add(0, loader)
+        self.set_flag(windowflags.BUSY, True)
+        gobject.timeout_add(0, loader, do_render)
 
 
     def handle_ASR_EV_LANDSCAPE(self):
 
         self.__is_portrait = False
-        self.set_portrait_mode(False)
+        self.set_flag(windowflags.PORTRAIT, False)
         
         
     def handle_ASR_EV_PORTRAIT(self):
 
         self.__is_portrait = True
-        self.set_portrait_mode(True)
+        self.set_flag(windowflags.PORTRAIT, True)
 
 
     def handle_INPUT_EV_MENU(self):

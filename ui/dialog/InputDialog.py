@@ -1,83 +1,111 @@
+from ui import Window
+from ui.Button import Button
+from ui.Label import Label
+from ui.TextInput import TextInput
+from ui.Slider import HSlider
+from ui.layout import HBox, VBox
+from theme import theme
 import platforms
 
 import gtk
-import gobject
-try:
-    import hildon
-except:
-    hildon = None
-    
-    
 
-class InputDialog(gtk.Dialog):
 
-    def __init__(self, title):
+
+
+class InputDialog(Window):
+
+    def __init__(self, title, label_ok = "OK", label_cancel = "Cancel"):
     
         self.__inputs = []
-        
+        self.__return_code = self.RETURN_CANCEL
+
         # list of value retrieving functions
         self.__retrievers = []
     
-        gtk.Dialog.__init__(self)
+        Window.__init__(self, Window.TYPE_DIALOG)
+        self.connect_closed(self.__on_close, self.RETURN_CANCEL)
         self.set_title(title)
         
-        try:
-            btn = hildon.Button(gtk.HILDON_SIZE_FINGER_HEIGHT,
-                                hildon.BUTTON_ARRANGEMENT_VERTICAL,
-                                "OK")
-        except:
-            btn = gtk.Button("OK")
-            
-        btn.connect("clicked", lambda x: self.response(gtk.RESPONSE_ACCEPT))
-        btn.show()
-        self.action_area.add(btn)
+        self.__button_ok = Button(label_ok)
+        self.__button_ok.connect_clicked(self.__on_close, self.RETURN_OK)
+        self.add(self.__button_ok)
 
-        self.realize()
-        self.window.property_change("_HILDON_PORTRAIT_MODE_SUPPORT",
-                                    "CARDINAL", 32,
-                                    gtk.gdk.PROP_MODE_REPLACE,
-                                    [1])
+        if (not platforms.MAEMO5):
+            self.__button_cancel = Button(label_cancel)
+            self.__button_cancel.connect_clicked(self.__on_close, self.RETURN_CANCEL)
+            self.add(self.__button_cancel)
+
+        
+        self.__vbox = VBox()
+        self.add(self.__vbox)
+            
+
+    def __on_close(self, return_code):
+    
+        self.__return_code = return_code
+        self.set_visible(False)
+
+
+    def render_this(self):
+    
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+        
+        screen.fill_area(x, y, w, h, theme.color_mb_background)
+
+        if (not platforms.MAEMO5):
+            self.__vbox.set_geometry(6, 0, w - 32, h - 80)
+            self.__button_ok.set_geometry(w - 280, h - 60, 120, 60)
+            self.__button_cancel.set_geometry(w - 150, h - 60, 120, 60)
+
+        else:
+            self.__vbox.set_geometry(6, 5, w - 165 - 12, h)
+            self.__button_ok.set_geometry(w - 120, 5, 115, 60)
+            
+            
 
 
     def add_input(self, label, default):
-    
-        vbox = gtk.VBox()
-        vbox.show()
-        self.vbox.add(vbox)
+      
+        hbox = HBox()
+        hbox.set_spacing(12)
+        hbox.set_valign(hbox.VALIGN_CENTER)
+        self.__vbox.add(hbox, True)
+      
+        lbl = Label(label, theme.font_mb_plain, theme.color_mb_text)
+        hbox.add(lbl)
         
-        lbl = gtk.Label(label)
-        lbl.show()
-        vbox.add(lbl)
-        
-        entry = gtk.Entry()
-        entry.show()
-        vbox.add(entry)
-        
+        entry = TextInput()
+        hbox.add(entry, True)
+
         self.__retrievers.append(lambda :entry.get_text())
 
 
     def add_range(self, label, min_value, max_value, preset):
 
-        vbox = gtk.VBox()
-        vbox.show()
-        self.vbox.add(vbox)
+        def update_label(v):
+            value = min_value + v * total
+            lbl.set_text(label + " %d" % value)
 
-        lbl = gtk.Label(label)
-        lbl.set_alignment(0.0, 0.5)
-        lbl.show()
-        vbox.add(lbl)
-    
-        if (hildon):    
-            scale = hildon.GtkHScale()
-        else:
-            scale = gtk.HScale()
+        hbox = HBox()
+        hbox.set_spacing(12)
+        hbox.set_valign(hbox.VALIGN_CENTER)
+        self.__vbox.add(hbox, True)
 
-        scale.set_range(min_value, max_value)
-        scale.set_value(preset)
-        scale.show()
-        vbox.add(scale)
-        self.__retrievers.append(lambda :scale.get_value())
+        total = max_value - min_value
 
+        lbl = Label(label + " %d" % preset, theme.font_mb_plain, theme.color_mb_text)
+        hbox.add(lbl)
+
+        slider = HSlider(theme.mb_slider_gauge)
+        slider.connect_value_changed(update_label)
+        slider.set_value((preset - min_value) / float(total))
+        hbox.add(slider, True)
+
+        self.__retrievers.append(lambda :min_value + 
+                                         slider.get_value() *
+                                         (max_value - min_value))
 
         
     def get_values(self):
@@ -87,12 +115,15 @@ class InputDialog(gtk.Dialog):
 
     def run(self):
     
-        self.show()
-        resp = gtk.Dialog.run(self)
-        gobject.idle_add(self.destroy)
-        
-        if (resp == gtk.RESPONSE_ACCEPT):
-            return 0
-        else:
-            return 1
+        w = gtk.gdk.screen_width()
+        h = min(gtk.gdk.screen_height() - 120, len(self.__retrievers) * 60)
+
+        # add space for dialog buttons
+        if (not platforms.MAEMO5):
+            h += 80
+            
+        self.set_window_size(w, h)
+        Window.run(self)
+
+        return self.__return_code
 

@@ -229,6 +229,7 @@ class Arrangement(Widget):
 
         for child in self.get_children():
             x1, y1, x2, y2 = self.__resolve_child(child)
-            child.set_geometry(x1, y1, x2 - x1, y2 - y1)
+            if (x2 - x1 > 0 and y2 - y1 > 0):
+                child.set_geometry(x1, y1, x2 - x1, y2 - y1)
         #end for
 

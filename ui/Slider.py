@@ -103,6 +103,16 @@ class Slider(Widget):
         if (abs(v - self.__value) > 0.01):
             self.__value = v
             self.move(v)
+
+
+    def get_value(self):
+        """
+        Returns the current value within the range [0.0, 1.0].
+
+        @return: current value
+        """
+
+        return self.__value
         
         
     def render_this(self):

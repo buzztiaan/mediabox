@@ -7,6 +7,7 @@ from theme import theme
 
 import gtk
 import gobject
+import time
 
 
 class ConfigTheme(Configurator):
@@ -82,6 +83,7 @@ class ConfigTheme(Configurator):
         dlg.run()
         
         config.set_theme(t)
+        config.set_thumbnails_epoch(int(time.time()))
         theme.set_theme(t)
         self.propagate_theme_change()
         self.render()

@@ -1,4 +1,4 @@
-from ui.Window import Window
+from ui import Window
 from ui.itemview import ThumbableGridView
 from ui.Slider import VSlider
 from theme import theme
@@ -14,6 +14,7 @@ class ListDialog(Window):
         
     
         Window.__init__(self, Window.TYPE_DIALOG)
+        self.connect_closed(self.__on_close)
         self.set_title(title)
 
         self.__list = ThumbableGridView()
@@ -31,6 +32,11 @@ class ListDialog(Window):
 
         self.__slider.set_geometry(0, 0, 40, h)
         self.__list.set_geometry(40, 0, w - 40, h)
+
+
+    def __on_close(self):
+    
+        self.destroy()
 
 
     def __on_click_item(self, item):

@@ -1,15 +1,14 @@
 from com import Player, msgs
+from CoverArt import CoverArt
 from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
 from ui.Slider import Slider
-from ui.Image import Image
 from ui.Label import Label
 from ui.Toolbar import Toolbar
 from ui.layout import Arrangement
 from ui.layout import HBox, VBox
 from ui.Pixmap import Pixmap
 from mediabox import tagreader
-from utils import textutils
 from utils import logging
 from theme import theme
 
@@ -53,10 +52,6 @@ class AudioPlayer(Player):
         self.__context_id = 0
         self.__volume = 0
         
-        # offscreen buffer
-        self.__buffer = None
-        self.__screen = None
-        
         self.__need_slide_in = False
               
         self.__sliding_direction = self.SLIDE_LEFT
@@ -65,7 +60,7 @@ class AudioPlayer(Player):
         self.set_visible(False)
         
         # cover art
-        self.__cover_art = Image()
+        self.__cover_art = CoverArt()
         self.__cover_art.connect_clicked(self.__on_btn_play)
         
         self.__trackinfo = VBox()
@@ -249,23 +244,12 @@ class AudioPlayer(Player):
 
     def __on_loaded_cover(self, pbuf, ctx_id):
    
-        print "LOADED COVER", pbuf, ctx_id, self.__context_id, self.__buffer
-        if (not pbuf):
-            pbuf = theme.mb_unknown_album
-   
         if (ctx_id == self.__context_id):
-            #if (self.__cover):
-            #    del self.__cover
-
-            #self.__cover = pbuf
             print "SETTING COVER"
-            self.__cover_art.set_image(pbuf)
-            if (self.__buffer):
-                if (self.__need_slide_in):
-                    self.__slide_in()
-                else:
-                    self.render_buffered(self.__buffer)
-            #end if
+            if (pbuf):
+                self.__cover_art.set_cover(pbuf)
+            else:
+                self.__cover_art.unset_cover()
         #end if
 
 
@@ -285,47 +269,9 @@ class AudioPlayer(Player):
                           item, self.__on_loaded_cover, self.__context_id)
 
 
-    def set_size(self, w, h):
-    
-        old_w, old_h = self.get_size()
-        if ((old_w, old_h) != (w, h)):
-            Player.set_size(self, w, h)
-            self.__buffer = Pixmap(None, w, h)
-            self.set_visible(True)
-        #end if
-
-
     def __render_lyrics(self, words, hi_from, hi_to):
     
-        cx, cy = self.__cover_art.get_screen_pos()
-        cw, ch = self.__cover_art.get_size()
-        
-        self.__buffer.fill_area(cx, cy, cw, ch, theme.color_mb_background)
-        self.__cover_art.render_at(self.__buffer, cx, cy)
-
-        if (hi_from > 0 or hi_to < len(words) - 1):
-            text = "%s<span color='red'>%s</span>%s" \
-                   % (textutils.escape_xml(words[:hi_from]),
-                      textutils.escape_xml(words[hi_from:hi_to]),
-                      textutils.escape_xml(words[hi_to:]))
-        else:
-            text = textutils.escape_xml(words)
-        
-        bx = cx
-        by = cy + ch - 16 - 130
-        bw = cw
-        bh = 130
-        #print text, hi_from, hi_to
-
-        self.__buffer.draw_frame(theme.mb_lyrics_box, bx, by, bw, bh, True)
-        self.__buffer.draw_formatted_text(text, theme.font_mb_headline,
-                                            bx + 8, by + 8, bw - 16, bh - 16,
-                                            theme.color_audio_player_lyrics,
-                                            self.__buffer.LEFT,
-                                            True)
-
-        self.get_screen().copy_buffer(self.__buffer, bx, by, bx, by, bw, bh)
-
+        self.__cover_art.set_lyrics(words, hi_from, hi_to)
 
 
     def render_this(self):
@@ -336,38 +282,7 @@ class AudioPlayer(Player):
 
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         self.__arr.set_geometry(0, 0, w, h)
-
-
-    def __slide_in(self):
-    
-        if (not self.__need_slide_in or 
-              not self.may_render() or
-              not self.__buffer):
-            return
-    
-        self.__need_slide_in = False
-    
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        self.set_screen(self.__screen)
-        buf = self.__buffer
         
-        self.render_at(buf)
-        x = 0
-        y = 0
-        if (w < h):
-            # portrait mode
-            self.fx_slide_horizontal(buf, x + 40, y, w - 40, h - 80,
-                                        self.__sliding_direction)
-        else:
-            # landscape mode
-            self.fx_slide_horizontal(buf, x + 40, y, w - 40 - 80, h - 64,
-                                        self.__sliding_direction)
-
-        self.__sliding_direction = self.SLIDE_LEFT
-        self.render_buffered(buf)
-        
-
         
     def load(self, f):
         
@@ -394,14 +309,12 @@ class AudioPlayer(Player):
             logging.error("error loading media file: %s\n%s",
                           uri, logging.stacktrace())
 
-        self.__screen = self.get_screen()
-        self.set_screen(self.__buffer)
         self.__load_track_info(f)
 
         self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 
-        self.__need_slide_in = True
-        gobject.timeout_add(100, self.__slide_in)
+        #self.__need_slide_in = True
+        #gobject.timeout_add(100, self.__slide_in)
 
 
     def handle_MEDIA_EV_LYRICS(self, words, hi_from, hi_to):

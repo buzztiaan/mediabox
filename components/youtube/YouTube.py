@@ -268,6 +268,9 @@ class YouTube(Device):
                 # read total number of hits
                 total_results = int(node.get_pcdata())
                 
+                # set a sane limit (YouTube cannot handle more anyway)
+                total_results = min(total_results, 40 * _PAGE_SIZE)
+                
                 page = 1
                 for n in range(1, total_results, _PAGE_SIZE):
                     f = File(self)
@@ -283,7 +286,6 @@ class YouTube(Device):
                 cb(None, *args)
                 
             return True
-    
     
         MiniXML(xml, callback = on_receive_node)
     
@@ -309,7 +311,7 @@ class YouTube(Device):
                 else:
                     #f.info = "%d:%02d, %s, %d views\nby %s" \
                     f.info = "by %s\n" \
-                             "Duration: %d:%02d\tViews: %d\n" \
+                             "Duration: %d:%02d\tViews: %d\t" \
                              "Rating: %s" \
                              % (entry.authors,
                                 mins, secs, entry.view_count,
@@ -432,10 +434,10 @@ class YouTube(Device):
             # present search dialog
             dlg = InputDialog("Search")
             dlg.add_input("Keywords:", "")
-            dlg.run()
+            resp = dlg.run()
             values = dlg.get_values()
 
-            if (values):
+            if (resp == dlg.RETURN_OK and values):
                 query = urllib.quote_plus(values[0])
             else:
                 cb(None, *args)
@@ -572,14 +574,10 @@ class YouTube(Device):
                               "This video is not available in your country.")
             return ""
         
-        #self.emit_message(msgs.UI_ACT_SHOW_MESSAGE,
-        #                 "Requesting Video %s" % f.name)
-            
         try:
             flv, fmts = self.__get_flv(f.resource)
         except:
             logging.error("could not retrieve video\n%s", logging.stacktrace())
-            #self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
             return ""
 
         # download high-quality version, if desired
@@ -602,6 +600,9 @@ class YouTube(Device):
         keep_path = os.path.join(cache_folder, _VIDEO_FOLDER,
                                  self.__make_filename(f.name, ext))
         self.__keep_video = False
+        return flv
+
+        """
         self.__flv_downloader = FileDownloader(flv, flv_path, on_dload,
                                                flv_path, keep_path)
         
@@ -613,6 +614,7 @@ class YouTube(Device):
         self.__fileserver.allow(flv_path, "/" + f.resource + ".flv")
         
         return self.__fileserver.get_location() + "/" + f.resource + ".flv"
+        """
 
 
     def delete_file(self, folder, idx):

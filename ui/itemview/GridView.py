@@ -302,6 +302,8 @@ class GridView(ItemView):
 
     def render_this(self):
 
+        if (not self.__buffer): return
+
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()

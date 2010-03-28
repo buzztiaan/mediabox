@@ -18,12 +18,14 @@ class DSPSemaphore(Component):
         
     def handle_VIDEOPLAYER_SVC_LOCK_DSP(self):
     
-        while (self.__is_locked):
-            gtk.main_iteration()
-        self.__is_locked = True
+        return
+        #while (self.__is_locked):
+        #    gtk.main_iteration()
+        #self.__is_locked = True
 
 
     def handle_VIDEOPLAYER_SVC_RELEASE_DSP(self):
     
-        self.__is_locked = False
+        return
+        #self.__is_locked = False
 

@@ -24,6 +24,8 @@ class TitleBar(Widget):
         
         self.__btn_switch = ImageButton(theme.btn_window_switch_1,
                                         theme.btn_window_switch_2)
+        self.__btn_switch.connect_clicked(
+                                  lambda *a:self.emit_event(self.EVENT_SWITCH))
         self.add(self.__btn_switch)
 
         self.__btn_close = ImageButton(theme.btn_window_close_1,
