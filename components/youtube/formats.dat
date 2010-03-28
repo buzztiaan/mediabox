@@ -3,11 +3,11 @@
 # fmt, container, description
  5, flv, H.263/MP3 - Standard
  6, flv, H.263/MP3 - High
-13, avi, 3GP/AMR - Mobile
-17, avi, 3GP/AAC - Mobile
+13, 3gp, 3GP/AMR - Mobile
+17, 3gp, 3GP/AAC - Mobile
 18, mp4, H.264/AAC - Medium
 22, mp4, H.264/AAC - 720p
 34, flv, H.264/AAC - Standard
 35, flv, H.264/AAC - High
-37, flv, H.264/AAC - 1080p
+37, mp4, H.264/AAC - 1080p
 
