@@ -335,7 +335,6 @@ class VideoPlayer(Player):
         self.__load_failed_handler = gobject.timeout_add(30000,
                                                          self.__on_load_failed)
         
-        uri = f.get_resource()
         try:
             self.__progress.set_message("Loading")
             self.__context_id = self.__player.load_video(f)
@@ -343,7 +342,7 @@ class VideoPlayer(Player):
         except:
             self.__progress.set_message("Error")
             logging.error("error loading media file: %s\n%s",
-                          uri, logging.stacktrace())
+                          f, logging.stacktrace())
 
 
     def handle_MEDIA_ACT_PAUSE(self):

@@ -565,7 +565,7 @@ class YouTube(Device):
                 #end if
             #end if
 
-        
+
         # handle locally saved videos
         if (f.resource.startswith("/")): return f.resource
         
@@ -580,9 +580,15 @@ class YouTube(Device):
             logging.error("could not retrieve video\n%s", logging.stacktrace())
             return ""
 
-        # download high-quality version, if desired
-        qtype = config.get_quality_type()
-        print "QType:", qtype, fmts, qtype in fmts
+        # retrieve high-quality version, if desired
+        if (len(fmts) > 1):
+            qtype = self.__ask_for_quality(fmts)
+        else:
+            qtype = 0
+
+        print "Requested Video Quality:", qtype
+
+        #qtype = config.get_quality_type()
         if (qtype in fmts):
             flv = flv + "&fmt=%d" % qtype
             ext = "." + formats.get_container(qtype)
@@ -615,6 +621,20 @@ class YouTube(Device):
         
         return self.__fileserver.get_location() + "/" + f.resource + ".flv"
         """
+
+
+    def __ask_for_quality(self, fmts):
+
+        dlg = OptionDialog("Choose Quality Type")
+        for fmt in fmts:
+            dlg.add_option(None, formats.get_description(fmt))
+        resp = dlg.run()
+
+        if (dlg.get_choice() != -1):
+            return fmts[dlg.get_choice()]
+        else:
+            return 0
+        
 
 
     def delete_file(self, folder, idx):

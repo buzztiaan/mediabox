@@ -1,11 +1,13 @@
-mediabox (2010.02.06) unstable; urgency=low
+mediabox (2010.03.28) unstable; urgency=low
 
   Distinguish albums by folder, not by artist (solves issues with various
   artists on one album)
   
   D-Bus interface for controlling MediaBox by a widget, for example
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 06 Feb 2010 17:15:00 +0100
+  YouTube browser plugin with support for high quality videos
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 28 Mar 2010 14:15:00 +0200
 
 mediabox (2010.01.30) unstable; urgency=low
 

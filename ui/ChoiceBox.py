@@ -63,7 +63,7 @@ class ChoiceBox(Widget):
         w, h = self.__label_pmap.get_size()
         self.__label_pmap.fill_area(0, 0, w, h, "#ffffff")
         self.__label_pmap.draw_text(name, theme.font_mb_plain, 0, 0,
-                                    theme.color_mb_listitem_subtext)
+                                    theme.color_list_item_subtext)
         if (self.may_render()):
             self.fx_slide_in()
             
@@ -91,7 +91,7 @@ class ChoiceBox(Widget):
         screen = self.get_screen()
 
         self.use_clipping(True)
-        screen.draw_frame(theme.mb_choicebox, x, y, w, h, True)
+        #screen.draw_frame(theme.mb_choicebox, x, y, w, h, True)
         #screen.fill_area(x, y, w - 64, h, "#000000")
         #screen.fill_area(x + 1, y + 1, w - 66, h - 2, "#ffffff")
         

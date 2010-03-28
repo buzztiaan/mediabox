@@ -302,12 +302,11 @@ class AudioPlayer(Player):
         #end if
         """
         
-        uri = f.get_resource()
         try:
             self.__context_id = self.__player.load_audio(f)
         except:
             logging.error("error loading media file: %s\n%s",
-                          uri, logging.stacktrace())
+                          f, logging.stacktrace())
 
         self.__load_track_info(f)
 
