@@ -272,8 +272,8 @@ class Window(NativeWindow):
                 self.__menu.add_filter(item)
 
                 item.connect("clicked",
-                             lambda src, cb: cb(cnt),
-                             cb)
+                             lambda src, cb, cnt: cb(cnt),
+                             cb, cnt)
 
                 cnt += 1
             #end for

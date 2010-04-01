@@ -33,7 +33,8 @@ class TextInput(EventEmitter):
 
     def set_geometry(self, x, y, w, h):
     
-        self.__window.put_widget(self.__entry, x, y, w, h)
+        self.__window.put_widget(self.__entry, x, y, w, -1)
+
 
 
     def set_visible(self, v):

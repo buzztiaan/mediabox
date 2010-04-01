@@ -584,8 +584,8 @@ class YouTube(Device):
             return ""
 
         # filter out incompatible formats
-        if (platforms.MAEMO5):
-            fmts = [ f for f in fmts if f in _N900_FORMAT_WHITELIST ]
+        #if (platforms.MAEMO5):
+        #    fmts = [ fmt for fmt in fmts if fmt in _N900_FORMAT_WHITELIST ]
 
         # retrieve high-quality version, if desired
         if (len(fmts) > 1):

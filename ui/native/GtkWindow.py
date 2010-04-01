@@ -229,8 +229,8 @@ class Window(NativeWindow):
                 self.__menu.append(item)
 
                 item.connect("activate",
-                             lambda src, cb: cb(cnt),
-                             cb)
+                             lambda src, cb, cnt: cb(cnt),
+                             cb, cnt)
                 cnt += 1
             #end for
             self.__menu_items[name] = items

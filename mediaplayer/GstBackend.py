@@ -109,7 +109,7 @@ class GstBackend(AbstractBackend):
     def __on_message(self, bus, message):
     
         t = message.type
-        #print "Message Type", t
+        print "Message Type", t
         if (t == gst.MESSAGE_EOS):        
             self.__player.set_state(gst.STATE_NULL)
             self.__is_eof = True
@@ -143,7 +143,7 @@ class GstBackend(AbstractBackend):
         if (message.structure == None): return
         
         name = message.structure.get_name()
-
+        print "SYNC MESSAGE", name
         if (name == "prepare-xwindow-id" and self.__window_id != -1):
             imgsink = message.src
             imgsink.set_property("force-aspect-ratio", True)
