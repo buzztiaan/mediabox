@@ -11,28 +11,7 @@ from theme import theme
 
 import gobject
 import gtk
-try:
-    import hildon
-except:
-    hildon = None
 
-
-_APP_MENU = """
-  <menu>
-    <choice id="repeat" selected="%d">
-      <option label="" icon="mb_repeat_none"/>
-      <option label="" icon="mb_repeat_all"/>
-      <option label="" icon="mb_repeat_one"/>
-    </choice>
-    <choice id="shuffle" selected="%d">
-      <option label="" icon="mb_shuffle_none"/>
-      <option label="" icon="mb_shuffle_one"/>
-    </choice>
-    <item id="select-output" label="Select Media Renderer"/>
-    <item id="fmtx" label="FM Transmitter"/>
-    <item id="info" label="About"/>
-  </menu>
-"""
 
 _PORTRAIT_MODE_KEYSWAP = {
     "F7": "F8",
@@ -81,8 +60,8 @@ class AppWindow(Component, Window):
                            .index(mb_config.shuffle_mode())
 
         self.set_menu_choice("repeat", [(theme.mb_repeat_none, "No Repeat"),
-                                        (theme.mb_repeat_one, "Repeat One"),
-                                        (theme.mb_repeat_all, "Repeat All")],
+                                        (theme.mb_repeat_all, "Repeat All"),
+                                        (theme.mb_repeat_one, "Repeat One")],
                              repeat_selected, True,
                              self.__on_menu_repeat)
         self.set_menu_choice("shuffle", [(theme.mb_shuffle_none, "No Shuffle"),
