@@ -6,11 +6,19 @@ def get_classes():
 
     classes = [VolumeMount]
     
-    if (platforms.PLATFORM in [platforms.MAEMO4, platforms.MAEMO5]):
+    if (platforms.MAEMO4 or platforms.MAEMO5):
         from Headset import Headset
         from DisplayLight import DisplayLight
         from DisplayLightPrefs import DisplayLightPrefs
-        classes += [Headset, DisplayLight, DisplayLightPrefs]
+        classes += [Headset,
+                    DisplayLight,
+                    DisplayLightPrefs]
+
+    if (platforms.MAEMO5):
+        from PhoneMonitor import PhoneMonitor
+        from PhonePolicy import PhonePolicy
+        classes += [PhoneMonitor,
+                    PhonePolicy]
 
     return classes
 

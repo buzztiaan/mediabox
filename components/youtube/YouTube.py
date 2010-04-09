@@ -632,7 +632,7 @@ class YouTube(Device):
 
     def __ask_for_quality(self, fmts):
 
-        dlg = OptionDialog("Choose Quality Type")
+        dlg = OptionDialog("Choose Quality Version")
         for fmt in fmts:
             dlg.add_option(None, formats.get_description(fmt))
         resp = dlg.run()
@@ -650,12 +650,14 @@ class YouTube(Device):
         print "DOWNLOAD:", filename
 
 
+    """
     def get_file_actions(self, folder, f):
 
         actions = Device.get_file_actions(self, folder, f)
         actions.append((None, "Download", self.__on_download))
 
         return actions
+    """
 
 
     def delete_file(self, folder, idx):

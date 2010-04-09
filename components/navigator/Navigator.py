@@ -100,6 +100,7 @@ class Navigator(Dialog):
         
     
         Dialog.__init__(self)
+        self.connect_key_pressed(self.__on_key_press)
 
         # browser list slider
         self.__browser_slider = Slider(theme.mb_list_slider)
@@ -205,6 +206,11 @@ class Navigator(Dialog):
             self.__tn_scheduler.resume()
         else:
             self.__tn_scheduler.halt()
+
+
+    def __on_key_press(self, keycode):
+
+        self.call_service(msgs.INPUT_SVC_SEND_KEY, keycode, True)
 
 
     def __on_menu_select_output(self):
@@ -606,110 +612,16 @@ class Navigator(Dialog):
     def handle_MEDIA_ACT_NEXT(self):
     
         self.__go_next()
-  
-          
-
-    def handle_INPUT_ACT_REPORT_CONTEXT(self):
-    
-        if (self.is_active()):
-            self.emit_message(msgs.INPUT_EV_CONTEXT_BROWSER)
 
 
+    def handle_INPUT_EV_UP(self, pressed):
 
-    def handle_INPUT_EV_UP(self):
-
-        if (not self.is_active()): return
-
-        now = time.time()
-        #if (now < self.__key_hold_down_timestamp + 0.1):
-        #    self.__skip_letter = True
-        #elif (now > self.__key_hold_down_timestamp + 0.5):
-        self.__skip_letter = False
-        self.__key_hold_down_timestamp = now
-
-        if (self.__is_searching):
-            idx = self.__browser.search(self.__search_term, -1)
-            if (idx != -1):
-                self.__browser.set_cursor(idx)
-                #self.__browser.scroll_to_item(idx)
-            
-        else:
-            self.__browser.move_cursor(-1, self.__skip_letter)
-            cursor = self.__browser.get_cursor()
-            item = self.__browser.get_item(cursor)
-            f = item.get_file()
-            self.emit_message(msgs.UI_ACT_TALK, f.acoustic_name or f.name)
-            
-
-    def handle_INPUT_EV_PAGE_UP(self):
-
-        if (self.is_active()):        
-            idx = self.__browser.get_index_at(0)
-            if (idx != -1):
-                new_idx = max(0, idx - 2)
-                self.__browser.scroll_to_item(new_idx)
+        if (self.is_enabled()):
+            self.__browser.move(0, -80)
 
 
-    def handle_INPUT_EV_DOWN(self):
+    def handle_INPUT_EV_DOWN(self, pressed):
 
-        if (not self.is_active()): return
-
-        now = time.time()
-        #if (now < self.__key_hold_down_timestamp + 0.1):
-        #    self.__skip_letter = True
-        #elif (now > self.__key_hold_down_timestamp + 0.5):
-        self.__skip_letter = False
-        self.__key_hold_down_timestamp = now
-        
-        if (self.__is_searching):
-            idx = self.__browser.search(self.__search_term, 1)
-            if (idx != -1):            
-                self.__browser.set_cursor(idx)
-                #self.__browser.scroll_to_item(idx)
-            
-        else:
-            self.__browser.move_cursor(1, self.__skip_letter)
-            cursor = self.__browser.get_cursor()
-            item = self.__browser.get_item(cursor)
-            f = item.get_file()
-            self.emit_message(msgs.UI_ACT_TALK, f.acoustic_name or f.name)
-
-
-
-    def handle_INPUT_EV_PAGE_DOWN(self):
-    
-        if (self.is_active()):
-            w, h = self.__browser.get_size()
-            idx = self.__browser.get_index_at(h)
-            if (idx != -1):
-                items = self.__browser.get_items()
-                new_idx = min(len(items), idx + 2)
-                self.__browser.scroll_to_item(new_idx)
-
-
-    def handle_INPUT_EV_RIGHT(self):
-    
-        if (self.is_active()):
-            self.select_tab(1)
-
-
-    def handle_INPUT_EV_ENTER(self):
-    
-        if (self.is_active()):
-            cursor = self.__browser.get_cursor()
-            if (cursor != -1):
-                self.__browser.trigger_item_button(cursor)
-
-    
-    def handle_INPUT_EV_GO_PARENT(self):
-    
-        if (self.is_active()):
-            self.__browser.go_parent()
-
-
-    def handle_INPUT_EV_MENU(self):
-    
-        #if (self.is_active()):
-        #self.emit_message(msgs.MEDIA_ACT_SELECT_OUTPUT, None)
-        self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "FMTXDialog")
+        if (self.is_enabled()):
+            self.__browser.move(0, 80)
 

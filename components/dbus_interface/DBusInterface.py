@@ -19,8 +19,7 @@ class DBusInterface(Component, dbus.service.Object):
                                      dbus.service.BusName("de.pycage.mediabox",
                                                           dbus.SessionBus()),
                                      "/de/pycage/mediabox/control")
-	print "DBUS"
-                                     
+
 
     @dbus.service.method("de.pycage.mediabox.control")
     def play(self):
@@ -110,3 +109,4 @@ class DBusInterface(Component, dbus.service.Object):
     def handle_MEDIA_EV_VOLUME_CHANGED(self, vol):
     
         self.__volume = vol
+

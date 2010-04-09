@@ -425,7 +425,6 @@ class StorageBrowser(ThumbableGridView):
         self.set_cursor(cursor)
         
         
-        
     def go_root(self):
         """
         Goes all the way up to the root folder.

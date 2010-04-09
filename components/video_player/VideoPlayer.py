@@ -374,23 +374,26 @@ class VideoPlayer(Player):
         self.render()
         
         
-    def handle_INPUT_EV_FULLSCREEN(self):
-    
-        self.__toggle_fullscreen()
+    def handle_INPUT_EV_FULLSCREEN(self, pressed):
+
+        if (self.is_enabled()):
+            self.__toggle_fullscreen()
 
 
-    def handle_INPUT_EV_VOLUME_UP(self):
-    
-        self.__volume = min(100, self.__volume + 5)
-        self.__volume_slider.set_value(self.__volume / 100.0)
-        if (self.__player):
-            self.__player.set_volume(self.__volume)
+    def handle_INPUT_EV_VOLUME_UP(self, pressed):
+
+        if (self.is_enabled()):
+            self.__volume = min(100, self.__volume + 5)
+            self.__volume_slider.set_value(self.__volume / 100.0)
+            if (self.__player):
+                self.__player.set_volume(self.__volume)
         
         
-    def handle_INPUT_EV_VOLUME_DOWN(self):
-    
-        self.__volume = max(0, self.__volume - 5)
-        self.__volume_slider.set_value(self.__volume / 100.0)
-        if (self.__player):
-            self.__player.set_volume(self.__volume)
+    def handle_INPUT_EV_VOLUME_DOWN(self, pressed):
+
+        if (self.is_enabled()):
+            self.__volume = max(0, self.__volume - 5)
+            self.__volume_slider.set_value(self.__volume / 100.0)
+            if (self.__player):
+                self.__player.set_volume(self.__volume)
 

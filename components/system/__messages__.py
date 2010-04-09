@@ -42,3 +42,15 @@ undesired side effects.
 @param percent: fill level in percents
 """
 
+def SYSTEM_EV_PHONE_RINGING(): pass
+
+def SYSTEM_EV_PHONE_ANSWERING(): pass
+
+def SYSTEM_EV_PHONE_DIALING(): pass
+
+def SYSTEM_EV_PHONE_HANGUP(): pass
+
+def SYSTEM_EV_NORMAL_MODE(): pass
+
+def SYSTEM_EV_OFFLINE_MODE(): pass
+

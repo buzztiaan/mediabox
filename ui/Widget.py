@@ -413,7 +413,7 @@ class Widget(EventEmitter):
         @return: whether this widget is currently enabled
         """
     
-        if (not self.is_visible()):
+        if (not self.is_visible() or not self.get_window().has_focus()):
             return False
         else:
             return self.__is_enabled

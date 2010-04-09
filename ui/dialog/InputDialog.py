@@ -95,7 +95,9 @@ class InputDialog(Window):
 
         total = max_value - min_value
 
-        lbl = Label(label + " %d" % preset, theme.font_mb_plain, theme.color_mb_text)
+        lbl = Label(label + " %d" % preset,
+                    theme.font_mb_plain,
+                    theme.color_mb_text)
         hbox.add(lbl)
 
         slider = HSlider(theme.mb_slider_gauge)
@@ -116,7 +118,7 @@ class InputDialog(Window):
     def run(self):
     
         w = gtk.gdk.screen_width()
-        h = min(gtk.gdk.screen_height() - 120, len(self.__retrievers) * 60)
+        h = min(gtk.gdk.screen_height() - 120, len(self.__retrievers) * 70)
 
         # add space for dialog buttons
         if (not platforms.MAEMO5):

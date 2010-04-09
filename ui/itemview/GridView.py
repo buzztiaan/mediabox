@@ -387,17 +387,16 @@ class GridView(ItemView):
                 
         #end if
         
-        
     """
     def set_cursor(self, pos):
     
-        prev_pos = self.get_cursor()
+        #prev_pos = self.get_cursor()
         ItemView.set_cursor(self, pos)
-        if (prev_pos != -1):
-            self.__render_item(prev_pos)            
-        self.__render_item(pos)
+        #if (prev_pos != -1):
+        #    self.__render_item(prev_pos)            
+        #self.__render_item(pos)
         self.scroll_to_item(pos)
-        self.render()
+        #self.render()
     """
         
     def float_item(self, pos, x = 0, y = 0):

@@ -185,6 +185,11 @@ class Window(NativeWindow):
         self.__window.destroy()
 
 
+    def has_focus(self):
+
+        return self.__window.has_focus
+
+
     def set_window_size(self, w, h):
     
         self.__window.resize(w, h)

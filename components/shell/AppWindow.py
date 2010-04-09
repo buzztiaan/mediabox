@@ -309,8 +309,3 @@ class AppWindow(Component, Window):
         self.__is_portrait = True
         self.set_flag(windowflags.PORTRAIT, True)
 
-
-    def handle_INPUT_EV_MENU(self):
-    
-        self.emit_message(msgs.MEDIA_ACT_SELECT_OUTPUT, None)
-

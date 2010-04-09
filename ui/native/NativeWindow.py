@@ -51,6 +51,11 @@ class NativeWindow(Widget):
         raise NotImplementedError
 
 
+    def has_focus(self):
+
+        raise NotImplementedError
+
+
     def set_window_size(self, w, h):
         """
         Sets the window size, if supported by the native window implementation.

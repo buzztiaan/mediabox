@@ -333,20 +333,26 @@ class AudioPlayer(Player):
             self.__player.stop()
 
 
-    def handle_INPUT_EV_VOLUME_UP(self):
+    def handle_INPUT_EV_VOLUME_UP(self, pressed):
     
-        if (self.is_visible()):
+        if (self.is_enabled()):
             self.__volume = min(100, self.__volume + 5)
             self.__volume_slider.set_value(self.__volume / 100.0)
             if (self.__player):
                 self.__player.set_volume(self.__volume)
         
         
-    def handle_INPUT_EV_VOLUME_DOWN(self):
+    def handle_INPUT_EV_VOLUME_DOWN(self, pressed):
 
-        if (self.is_visible()):    
+        if (self.is_enabled()):    
             self.__volume = max(0, self.__volume - 5)
             self.__volume_slider.set_value(self.__volume / 100.0)
             if (self.__player):
                 self.__player.set_volume(self.__volume)
+
+
+    def handle_INPUT_EV_PLAY(self, pressed):
+
+        if (self.is_enabled() and self.__player):
+            self.__player.pause()
 

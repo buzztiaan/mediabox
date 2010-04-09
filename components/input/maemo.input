@@ -1,46 +1,19 @@
 # Maemo Input Schema
 
-    F4              MENU            -
-    F6              FULLSCREEN      -
-    F7              VOLUME_UP       -
-    F8              VOLUME_DOWN     -
-
-    HEADSET         PLAY            -
-    HEADSET_DOUBLE  NEXT            -
-    HEADSET_TRIPLE  PREVIOUS        -
-
-[MENU]
-    LEFT            LEFT            -
-    RIGHT           RIGHT           -
-    UP              UP              -
-    DOWN            DOWN            -
-    ESCAPE          MENU            -
-    ENTER           ENTER           -
+LEFT            LEFT            -
+RIGHT           RIGHT           -
+UP              UP              -
+DOWN            DOWN            -
+ESCAPE          MENU            -
+ENTER           PLAY            -
 
 
-[BROWSER]
-    UP              UP              -
-    DOWN            DOWN            -
-    LEFT            GO_PARENT       -
-    RIGHT           ENTER           -
-    ENTER           ENTER           -
-    ESCAPE          SWITCH_TAB      -
+F4              MENU            -
+F6              FULLSCREEN      -
+F7              VOLUME_UP       -
+F8              VOLUME_DOWN     -
 
-
-[PLAYER]
-    UP              PREVIOUS        -
-    DOWN            NEXT            -
-    LEFT            REWIND          -
-    RIGHT           FORWARD         -
-    ESCAPE          SWITCH_TAB      -
-    ENTER           PLAY            -
-
-
-[FULLSCREEN]
-    UP              PREVIOUS        -
-    DOWN            NEXT            -
-    LEFT            REWIND          -
-    RIGHT           FORWARD         -
-    ESCAPE          SWITCH_TAB      -
-    ENTER           PLAY            -
+HEADSET         PLAY            -
+HEADSET_DOUBLE  NEXT            -
+HEADSET_TRIPLE  PREVIOUS        -
 

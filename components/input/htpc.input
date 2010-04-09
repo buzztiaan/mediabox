@@ -1,58 +1,19 @@
-# HTPC Input Schema
+# Maemo Input Schema
 
-    F1              PREVIOUS_VIEWER -
-    F2              NEXT_VIEWER     -
-    F4              MENU            -
-    F6              FULLSCREEN      -
-    F7              VOLUME_UP       -
-    F8              VOLUME_DOWN     -
-    F12             EJECT           -
-
-
-[MENU]
-    LEFT            LEFT            -
-    RIGHT           RIGHT           -
-    UP              UP              -
-    DOWN            DOWN            -
-    ENTER           ENTER           -
-    MENU            MENU            -
-    F4              MENU            -
-    
-
-[BROWSER]
-    UP              UP              -
-    DOWN            DOWN            -
-    LEFT            LEFT            -
-    RIGHT           RIGHT           -
-    ENTER           ENTER           -
-    MENU            GO_PARENT       -
-#    F4              GO_PARENT       -
+LEFT            LEFT            -
+RIGHT           RIGHT           -
+UP              UP              -
+DOWN            DOWN            -
+ESCAPE          MENU            -
+ENTER           PLAY            -
 
 
-[PLAYER]
-    UP              NAV_UP          -
-    DOWN            NAV_DOWN        -
-    LEFT            NAV_LEFT        -
-    RIGHT           NAV_RIGHT       -
-    ENTER           NAV_ENTER       -
-    MENU            MENU            -
-    F4              MENU            -
-#    ESCAPE          SWITCH_TAB      -
+F4              MENU            -
+F6              FULLSCREEN      -
+F7              VOLUME_UP       -
+F8              VOLUME_DOWN     -
 
-
-[FULLSCREEN]
-#    UP              VOLUME_UP       -
-#    DOWN            VOLUME_DOWN     -
-#    LEFT            PREVIOUS        -
-#    RIGHT           NEXT            -
-#    ENTER           PLAY            -
-#    ESCAPE          SWITCH_TAB      -
-
-    UP              NAV_UP          -
-    DOWN            NAV_DOWN        -
-    LEFT            NAV_LEFT        -
-    RIGHT           NAV_RIGHT       -
-#    ESCAPE          NAV_MENU        -
-    ENTER           NAV_ENTER       -
-    ESCAPE          MENU            -
+HEADSET         PLAY            -
+HEADSET_DOUBLE  NEXT            -
+HEADSET_TRIPLE  PREVIOUS        -
 

@@ -114,15 +114,16 @@ class GstBackend(AbstractBackend):
             self.__player.set_state(gst.STATE_NULL)
             self.__is_eof = True
 
-        #elif (t == gst.MESSAGE_BUFFERING):
-        #    query = gst.query_new_buffering(gst.FORMAT_PERCENT)
-        #    if (self.__player.query(query)):
-        #        fmt, start, stop, total = query.parse_buffering_range()
-        #        print fmt, start, stop, total
+        elif (t == gst.MESSAGE_BUFFERING):
+            query = gst.query_new_buffering(gst.FORMAT_PERCENT)
+            if (self.__player.query(query)):
+                fmt, start, stop, total = query.parse_buffering_range()
+                print fmt, start, stop, total
 
         elif (t == gst.MESSAGE_ERROR):
             self.__player.set_state(gst.STATE_NULL)
             err, debug = message.parse_error()
+            logging.error("GStreamer Error:\n%s\n%s", err, debug)
             self._report_error(self.ERR_INVALID, "")
 
         elif (t == gst.MESSAGE_TAG):
@@ -143,7 +144,6 @@ class GstBackend(AbstractBackend):
         if (message.structure == None): return
         
         name = message.structure.get_name()
-        print "SYNC MESSAGE", name
         if (name == "prepare-xwindow-id" and self.__window_id != -1):
             imgsink = message.src
             imgsink.set_property("force-aspect-ratio", True)

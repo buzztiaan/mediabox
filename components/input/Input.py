@@ -1,11 +1,11 @@
 from com import Component, msgs
 from InputSchema import InputSchema
 import keymap
-from utils import maemo
+import platforms
 
 import os
 
-if (maemo.get_product_code() != "?"):
+if (platforms.MAEMO4 or platforms.MAEMO5):
     _SCHEMA_FILE = os.path.join(os.path.dirname(__file__), "maemo.input")
 else:
     _SCHEMA_FILE = os.path.join(os.path.dirname(__file__), "htpc.input")
@@ -38,31 +38,20 @@ class Input(Component):
         the current context. This is the preferred method of handling hardware
         keys.
         @since: 0.97
-        
+
         @param keycode: key code string
-        @param pressed: (reserved for future use; must be C{True} for now)
+        @param pressed: whether the key has been pressed (C{True}) or released
+                        (C{False})
         """
         
         hwkey = keymap.get(keycode)
-        if (pressed):
-            if (hwkey):
-                self.__schema.send_key(hwkey)
-                event = self.__schema.get_event()
-                if (event):
-                    self.emit_message(event)
-            elif (len(keycode) == 1 and ord(keycode) > 31):      
-                self.emit_message(msgs.HWKEY_EV_KEY, keycode)
-        #end if
-
-        
-    def handle_message(self, msg, *args):
-    
-        if (msg in _HW_KEYS):
-            self.__schema.send_key(msg)
+        if (hwkey):
+            self.__schema.send_key(hwkey)
             event = self.__schema.get_event()
             if (event):
-                self.emit_message(event)
+                print "emit key", event
+                self.emit_message(event, pressed)
+                
+        elif (len(keycode) == 1 and ord(keycode) > 31):      
+            self.emit_message(msgs.HWKEY_EV_KEY, keycode, pressed)
 
-        elif (msg in _CONTEXTS):
-            print "CONTEXT", msgs._id_to_name(msg)
-            self.__schema.set_context(msg)
