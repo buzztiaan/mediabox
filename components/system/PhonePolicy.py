@@ -2,6 +2,9 @@ from com import Component, msgs
 
 
 class PhonePolicy(Component):
+    """
+    Component for pausing playback during a phone call.
+    """
 
     def __init__(self):
 
@@ -31,6 +34,7 @@ class PhonePolicy(Component):
         self.__was_playing = self.__is_playing
         if (self.__is_playing):
             self.emit_message(msgs.MEDIA_ACT_PAUSE)
+
 
     def handle_SYSTEM_EV_PHONE_DIALING(self):
 

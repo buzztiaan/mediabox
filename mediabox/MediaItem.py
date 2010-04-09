@@ -55,6 +55,9 @@ class MediaItem(Item):
     
         self.__icon = icon
         self._invalidate_cached_pixmap()
+        if (self.__is_compact):
+            self.__render_compact()
+
 
 
     def has_icon(self):
@@ -187,7 +190,7 @@ class MediaItem(Item):
             # render text
             pmap.set_clip_rect(*clip_rect)
             pmap.draw_text(self.__label, theme.font_mb_plain,
-                           offset, 20,
+                           offset, 12,
                            theme.color_list_item_text)
             pmap.draw_text(self.__sublabel, theme.font_mb_tiny,
                            offset, 40,
@@ -204,26 +207,7 @@ class MediaItem(Item):
         
         return pmap
         
-
-    """
-    def connect_button_pressed(self, *args):
-    
-        print "item: connect_button_pressed"
-    """
-        
-        
-    """
-    def click_at(self, px, py):
-    
-        self.emit_event(self.EVENT_ACTIVATED)
-        #w, h = self.get_size()
-        #if (self.__is_compact):
-        #    self.emit_event(self.EVENT_ACTIVATED)
-        #elif (w - 80 <= px <= w):
-        #    self.emit_event(self.EVENT_ACTIVATED)
-    """
-
-            
+           
     def tap_and_hold(self, px, py):
     
         self.emit_event(self.EVENT_MENU_OPENED)

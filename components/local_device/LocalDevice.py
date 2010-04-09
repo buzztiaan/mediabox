@@ -134,6 +134,7 @@ class LocalDevice(Device):
         if (os.path.isdir(item.resource)):
             item.acoustic_name = item.name + ", Folder"
             item.mimetype = item.DIRECTORY
+            item.info = "Folder"
             item.folder_flags = item.ITEMS_ENQUEUEABLE | \
                                 item.INDEXABLE | \
                                 item.ITEMS_SKIPPABLE
