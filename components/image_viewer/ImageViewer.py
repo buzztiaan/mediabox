@@ -153,17 +153,17 @@ class ImageViewer(Player):
 
         self.__is_playing = not self.__is_playing
         if (self.__is_playing):
-            self.__btn_play.set_images(theme.mb_btn_pause_1,
-                                       theme.mb_btn_pause_2)
-
             dlg = InputDialog("Slideshow Settings")
             dlg.add_range("Seconds between slides:", 1, _SLIDESHOW_MAX_TIMEOUT, 3)
             ret = dlg.run()
 
-            if (ret != 0): return
+            if (ret != dlg.RETURN_OK): return
 
             secs = dlg.get_values()[0]
             self.__slideshow_timeout = int(secs * 1000)
+
+            self.__btn_play.set_images(theme.mb_btn_pause_1,
+                                       theme.mb_btn_pause_2)
             
             self.emit_message(msgs.MEDIA_EV_PLAY)
 

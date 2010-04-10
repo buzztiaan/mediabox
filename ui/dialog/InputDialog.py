@@ -63,23 +63,23 @@ class InputDialog(Window):
 
         else:
             self.__vbox.set_geometry(6, 5, w - 165 - 12, h)
-            self.__button_ok.set_geometry(w - 120, 5, 115, 60)
+            self.__button_ok.set_geometry(w - 120, h - 80, 100, 60)
             
             
 
 
     def add_input(self, label, default):
       
-        hbox = HBox()
-        hbox.set_spacing(12)
-        hbox.set_valign(hbox.VALIGN_CENTER)
-        self.__vbox.add(hbox, True)
+        vbox = VBox()
+        vbox.set_spacing(12)
+        vbox.set_valign(vbox.VALIGN_CENTER)
+        self.__vbox.add(vbox, True)
       
         lbl = Label(label, theme.font_mb_plain, theme.color_mb_text)
-        hbox.add(lbl)
+        vbox.add(lbl)
         
         entry = TextInput()
-        hbox.add(entry, True)
+        vbox.add(entry, True)
 
         self.__retrievers.append(lambda :entry.get_text())
 
@@ -90,22 +90,22 @@ class InputDialog(Window):
             value = min_value + v * total
             lbl.set_text(label + " %d" % value)
 
-        hbox = HBox()
-        hbox.set_spacing(12)
-        hbox.set_valign(hbox.VALIGN_CENTER)
-        self.__vbox.add(hbox, True)
+        vbox = VBox()
+        vbox.set_spacing(12)
+        vbox.set_valign(vbox.VALIGN_CENTER)
+        self.__vbox.add(vbox, True)
 
         total = max_value - min_value
 
         lbl = Label(label + " %d" % preset,
                     theme.font_mb_plain,
                     theme.color_mb_text)
-        hbox.add(lbl)
+        vbox.add(lbl)
 
         slider = HSlider(theme.mb_slider_gauge)
         slider.connect_value_changed(update_label)
         slider.set_value((preset - min_value) / float(total))
-        hbox.add(slider, True)
+        vbox.add(slider, True)
 
         self.__retrievers.append(lambda :min_value + 
                                          slider.get_value() *
@@ -120,7 +120,7 @@ class InputDialog(Window):
     def run(self):
     
         w = gtk.gdk.screen_width()
-        h = min(gtk.gdk.screen_height() - 120, len(self.__retrievers) * 70)
+        h = min(gtk.gdk.screen_height() - 120, len(self.__retrievers) * 100)
 
         # add space for dialog buttons
         if (not platforms.MAEMO5):

@@ -39,10 +39,7 @@ class StorageBrowser(ThumbableGridView):
 
         # timestamp of the last list rendering
         self.__last_list_render_time = 0
-       
-        # callback for loading thumbnails
-        self.__thumbnailer = lambda *f:None
-        
+              
         # the currently hilighted file
         self.__hilighted_file = None
         
@@ -235,19 +232,7 @@ class StorageBrowser(ThumbableGridView):
         
         root = device.get_root()
         gobject.idle_add(self.load_folder, root, self.GO_NEW)
-        
-        
-    def set_thumbnailer(self, cb):
-        """
-        Sets a callback function for providing thumbnails.
-        
-        Signature of the callback: C{(f, cb, *args)}
-        
-        @param cb: callback function
-        """
-    
-        self.__thumbnailer = cb
-        
+              
         
     def begin_bulk_operation(self):
         """
@@ -515,9 +500,11 @@ class StorageBrowser(ThumbableGridView):
 
         # animate
         if (direction == self.GO_CHILD):
-            self.fx_slide_left()
+            #self.fx_slide_left()
+            pass
         elif (direction == self.GO_PARENT):
-            self.fx_slide_right()
+            #self.fx_slide_right()
+            pass
         else:
             #self.render()
             pass

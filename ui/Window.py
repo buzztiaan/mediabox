@@ -294,9 +294,12 @@ class Window(Widget):
     def _visibility_changed(self):
 
         if (self.is_visible()):
-            if (self.__wtype == self.TYPE_DIALOG and not self.__has_size_set):
-                self.__window.resize(gtk.gdk.screen_width(),
-                                     gtk.gdk.screen_height() - 120)
+            if (platforms.MAEMO5):
+                if (self.__wtype == self.TYPE_DIALOG and
+                    not self.__has_size_set):
+                    self.__window.resize(gtk.gdk.screen_width(),
+                                         gtk.gdk.screen_height() - 120)
+            #endif MAEMO5
             self.__window.show()
             self.render()
         else:

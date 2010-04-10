@@ -77,7 +77,7 @@ class Thumbnailer(Component):
     
         path = self.__get_thumbnail_path(f)
         try:
-            pbuf.save(path, "png")
+            pbuf.save(path, "jpeg")
             return path
         except:
             logging.error("cannot save thumbnail:\n%s", logging.stacktrace())
@@ -112,7 +112,7 @@ class Thumbnailer(Component):
 
         md5 = f.thumbnail_md5
         thumb_fallback = os.path.join(self.__THUMB_FOLDER,
-                                      md5 + ".png")
+                                      md5 + ".jpg")
         if (not self.__STORE_ON_MEDIUM):
             return thumb_fallback
 
@@ -133,6 +133,6 @@ class Thumbnailer(Component):
                 #end if
             #end if
             
-            thumb = os.path.join(prefix, md5 + ".png")
+            thumb = os.path.join(prefix, md5 + ".jpg")
             return thumb
 

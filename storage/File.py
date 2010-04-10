@@ -154,14 +154,7 @@ class File(object):
         name of parent folder, if any (can be used for grouping items)
         @since: 0.96
         """
-
-        self.thumbnail = ""
-        """
-        may contain the URI of an image that can be used to generate a thumbnail
-        @since: 0.96
-        @deprecated: do not use
-        """
-        
+       
         self.thumbnailer = ""
         """
         Name of the thumbnailer component used for thumbnailing this file.
@@ -175,6 +168,11 @@ class File(object):
         may contain the path of an icon image (deprecated) or a pixbuf that can
         be used instead of a thumbnail. the image should be of a proper size
         @since: 0.96.4
+        """
+
+        self.frame = (None, 0, 0, 0, 0)
+        """
+        may contain a frame pixbuf
         """
 
         self.mimetype = self.FILE

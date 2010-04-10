@@ -1,6 +1,6 @@
 from com import Thumbnailer, msgs
 import platforms
-from ui import pixbuftools
+#from ui import pixbuftools
 from utils import urlquote
 from utils import logging
 from theme import theme
@@ -43,13 +43,15 @@ class OrgFreeDesktopThumbnailer(Thumbnailer):
 
 
     def make_quick_thumbnail(self, f):
+
+        f.frame = (theme.mb_frame_video, 14, 4, 134, 112)
     
         thumb = self._get_thumbnail(f)
         if (thumb):
             return (thumb, True)
         else:
             is_final = not f.is_local
-            return (theme.mb_file_video.get_path(), is_final)
+            return ("", is_final)
 
 
     def make_thumbnail(self, f, cb, *args):
@@ -97,9 +99,9 @@ class OrgFreeDesktopThumbnailer(Thumbnailer):
 
     def __save_thumbnail(self, f, thumbpath):
     
-        thumb = theme.mb_frame_video.copy()
+        #thumb = theme.mb_frame_video.copy()
         pbuf = gtk.gdk.pixbuf_new_from_file(thumbpath)
-        pixbuftools.fit_pbuf(thumb, pbuf, 14, 4, 134, 112)
+        #pixbuftools.fit_pbuf(thumb, pbuf, 14, 4, 134, 112)
         
-        return self._set_thumbnail(f, thumb)
+        return self._set_thumbnail(f, pbuf)
 

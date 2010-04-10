@@ -34,5 +34,4 @@ class AudioInspector(FileInspector):
         entry["Audio.Artist"] = tags.get("ARTIST") or "unspecified"
         entry["Audio.Album"] = tags.get("ALBUM") or entry["Audio.Artist"]
         entry["Audio.Genre"] = tags.get("GENRE") or "unspecified"
-        #print "ENTRY", entry
 

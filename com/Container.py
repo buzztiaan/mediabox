@@ -23,7 +23,7 @@ class Container(Component):
     
         self.__components = []
         self.__devices = []
-        self.__whitelist = [] # whitelist
+        self.__whitelist = []
         
         Component.__init__(self)
         
@@ -46,39 +46,7 @@ class Container(Component):
         for dev in self.__devices:
             self.emit_message(msgs.CORE_EV_DEVICE_ADDED, dev.get_device_id(), dev)
             self.emit_message(msgs.COM_EV_COMPONENT_LOADED, dev)
-
-    """
-    def __find_modules(self, path):
-        ""
-        Returns a list of the modules of all components under the given path.
-        ""
-        
-        modules = []
-
-        dirs = os.listdir(path)
-        dirs.sort()
-        # a module called "core" gets loaded first
-        if ("core" in dirs):
-            dirs.remove("core")
-            dirs = ["core"] + dirs
-
-        for f in dirs:
-            comppath = os.path.join(path, f)
-            if (not os.path.isdir(comppath) or f.startswith(".")):
-                continue
-
-            elif (self.__whitelist and not f in self.__whitelist and f != "core"):
-                logging.info("not loading component: %s", f)
-                continue
-            
-            mod = self.__load_module(comppath)
-            if (mod):
-                modules.append(mod)
-        #end for
-
-        return modules
-    """
-    
+   
 
     def __load_module(self, path):
         """
@@ -166,27 +134,6 @@ class Container(Component):
         sys.path = syspath
 
             
-
-    """
-    def load_path(self, path):
-        ""
-        Loads all components from the given path.
-        
-        @param path: path of components directory
-        ""
-        
-        #self.__components = []
-        #self.__devices = []
-        
-        mods = self.__find_modules(path)
-        for mod in mods:
-            self.__register_messages(mod)
-        for mod in mods:
-            self.emit_message(msgs.COM_EV_LOADING_MODULE, mod.__name__)
-            self.__load_components(mod)
-    """
-
-
     def __load_modules(self, paths):
     
         return [ self.__load_module(path) for path in paths ]

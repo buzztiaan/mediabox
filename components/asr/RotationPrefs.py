@@ -79,9 +79,7 @@ class RotationPrefs(Configurator):
     def handle_CORE_EV_APP_STARTED(self):
     
         o = config.orientation()
-        print "ORIENTATION", o
         if (o == config.ORIENTATION_PORTRAIT):
-            print "Startup in Portrait Mode"
             self.emit_message(msgs.ASR_EV_PORTRAIT)
 
 

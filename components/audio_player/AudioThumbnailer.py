@@ -1,11 +1,11 @@
 from com import Thumbnailer, msgs
-from ui import pixbuftools
+#from ui import pixbuftools
 from theme import theme
 
 import gtk
 
 
-_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
+#_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
 
 
 class AudioThumbnailer(Thumbnailer):
@@ -27,32 +27,31 @@ class AudioThumbnailer(Thumbnailer):
 
     def make_quick_thumbnail(self, f):
 
+        #if (f.mimetype == "application/x-music-folder"):
+        f.frame = (theme.mb_frame_music_album, 25, 5, 106, 106)
+        #else:
+        #    f.frame = (theme.mb_file_audio, 0, 40, 80, 80)
+
         thumb = self._get_thumbnail(f)
         if (thumb):
             return (thumb, True)
         else:
-            is_final = not f.is_local
-            
-            if (f.mimetype == "application/x-music-folder"):
-                thumb = theme.mb_folder_music_album.get_path()
-            else:
-                thumb = theme.mb_file_audio.get_path()
-            
-            return (thumb, is_final)
+            is_final = not f.is_local            
+            return ("", is_final)
 
 
     def make_thumbnail(self, f, cb, *args):
     
         def on_loaded(pbuf, mimetype):
             if (pbuf):
-                _PBUF.fill(0x00000000)
-                pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_music_album, 0, 0)
-                pixbuftools.fit_pbuf(_PBUF, pbuf, 25, 5, 106, 106)
-                if (mimetype != "application/x-music-folder"):
-                    pixbuftools.fit_pbuf(_PBUF, theme.mb_file_audio,
-                                         80, 40, 80, 80)
+                #_PBUF.fill(0x00000000)
+                #pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_music_album, 0, 0)
+                #pixbuftools.fit_pbuf(_PBUF, pbuf, 25, 5, 106, 106)
+                #if (mimetype != "application/x-music-folder"):
+                #    pixbuftools.fit_pbuf(_PBUF, theme.mb_file_audio,
+                #                         80, 40, 80, 80)
                     
-                path = self._set_thumbnail(f, _PBUF)
+                path = self._set_thumbnail(f, pbuf)
                 del pbuf
             else:
                 path = ""

@@ -1,12 +1,12 @@
 from com import Thumbnailer
-from ui import pixbuftools
+#from ui import pixbuftools
 from utils import imageloader
 from theme import theme
 
 import gtk
 
 
-_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
+#_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
 
 
 class ImageThumbnailer(Thumbnailer):
@@ -26,25 +26,28 @@ class ImageThumbnailer(Thumbnailer):
 
     
     def make_quick_thumbnail(self, f):
-    
+
+        if (f.mimetype == "application/x-image-folder"):
+            f.frame = (theme.mb_frame_image_album, 14, 10, 133, 96)
+        else:
+            f.frame = (theme.mb_frame_image, 7, 7, 142, 102)
+            
         thumb = self._get_thumbnail(f)
         if (thumb):
             return (thumb, True)
-        elif (f.mimetype == "application/x-image-folder"):
-            return (theme.mb_folder_image_album.get_path(), False)
         else:
-            return (theme.mb_file_image.get_path(), False)
-        
+            return ("", False)
+
         
     def make_thumbnail(self, f, cb, *args):
 
         def on_loaded_folder(pbuf):
             if (pbuf):
-                _PBUF.fill(0x00000000)
-                pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_image_album, 0, 0)
+                #_PBUF.fill(0x00000000)
+                #pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_image_album, 0, 0)
                 # TODO: the frame coords should really be supplied by the theme
-                pixbuftools.fit_pbuf(_PBUF, pbuf, 49, 38, 79, 42)
-                path = self._set_thumbnail(f, _PBUF)
+                #pixbuftools.fit_pbuf(_PBUF, pbuf, 49, 38, 79, 42)
+                path = self._set_thumbnail(f, pbuf)
                 del pbuf
             else:
                 path = ""
@@ -52,10 +55,10 @@ class ImageThumbnailer(Thumbnailer):
     
         def on_loaded_image(pbuf):
             if (pbuf):
-                _PBUF.fill(0x00000000)
-                pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_image, 0, 0)
-                pixbuftools.fit_pbuf(_PBUF, pbuf, 7, 7, 142, 102)
-                path = self._set_thumbnail(f, _PBUF)
+                #_PBUF.fill(0x00000000)
+                #pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_image, 0, 0)
+                #pixbuftools.fit_pbuf(_PBUF, pbuf, 7, 7, 142, 102)
+                path = self._set_thumbnail(f, pbuf)
                 del pbuf
             else:
                 path = ""

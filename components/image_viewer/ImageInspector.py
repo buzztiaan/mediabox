@@ -27,5 +27,4 @@ class ImageInspector(FileInspector):
         entry["File.Type"] = "image"
         entry["Image.Title"] = os.path.splitext(basename)[0].replace("_", " ")
         entry["File.Folder"] = os.path.basename(dirname)
-        print "ENTRY", entry
 

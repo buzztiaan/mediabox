@@ -27,5 +27,4 @@ class VideoInspector(FileInspector):
         entry["File.Type"] = "video"
         entry["Video.Title"] = os.path.splitext(basename)[0].replace("_", " ")
         entry["File.Folder"] = os.path.basename(dirname)
-        print "ENTRY", entry
 

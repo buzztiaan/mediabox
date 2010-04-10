@@ -1,8 +1,7 @@
-from utils import maemo
-import platforms
-
 def get_classes():
     from VolumeMount import VolumeMount
+    from utils import maemo
+    import platforms
 
     classes = [VolumeMount]
     

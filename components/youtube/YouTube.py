@@ -435,7 +435,7 @@ class YouTube(Device):
 
         if (not query):
             # present search dialog
-            dlg = InputDialog("Search")
+            dlg = InputDialog("Search", label_ok = "Search")
             dlg.add_input("Keywords:", "")
             resp = dlg.run()
             values = dlg.get_values()

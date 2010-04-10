@@ -12,13 +12,13 @@ import gobject
 
 # some beautifications of places (table: path -> (name, info, icon))
 _BEAUTIFUL_PLACES = {
-    "/media/mmc1": ("SD card", "", theme.mb_folder_microsd),
-    "/home/user/MyDocs": ("My Documents", "", theme.mb_folder_mydocs),
-    "/media/mmc1/DCIM": ("Camera Folder", "", theme.mb_folder_dcim),
-    "/home/user/MyDocs/DCIM": ("Camera Folder", "", theme.mb_folder_dcim),
-    "/home/user/MyDocs/.sounds": ("Audio Clips", "", theme.mb_folder_audioclips),
-    "/home/user/MyDocs/.videos": ("Video Clips", "", theme.mb_folder_videoclips),
-    "/home/user/MyDocs/.images": ("Pictures", "", theme.mb_folder_imageclips),
+    "/media/mmc1": ("SD card", "Folder", theme.mb_folder_microsd),
+    "/home/user/MyDocs": ("My Documents", "Folder", theme.mb_folder_mydocs),
+    "/media/mmc1/DCIM": ("Camera Folder", "Folder", theme.mb_folder_dcim),
+    "/home/user/MyDocs/DCIM": ("Camera Folder", "Folder", theme.mb_folder_dcim),
+    "/home/user/MyDocs/.sounds": ("Audio Clips", "Folder", theme.mb_folder_audioclips),
+    "/home/user/MyDocs/.videos": ("Video Clips", "Folder", theme.mb_folder_videoclips),
+    "/home/user/MyDocs/.images": ("Pictures", "Folder", theme.mb_folder_imageclips),
 }
 
 

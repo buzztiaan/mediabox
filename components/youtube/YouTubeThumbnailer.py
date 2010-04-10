@@ -27,7 +27,8 @@ class YouTubeThumbnailer(Thumbnailer):
         #if (thumb):
         #    return (thumb, True)
         #else:
-        return (theme.mb_file_video.get_path(), False)
+        f.frame = (theme.mb_frame_video, 14, 4, 134, 112)
+        return ("", False)
 
 
     def make_thumbnail(self, f, cb, *args):

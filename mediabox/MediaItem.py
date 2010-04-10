@@ -1,4 +1,5 @@
 from ui.itemview.Item import Item
+from ui import pixbuftools
 from utils import textutils
 from theme import theme
 
@@ -57,6 +58,8 @@ class MediaItem(Item):
         self._invalidate_cached_pixmap()
         if (self.__is_compact):
             self.__render_compact()
+        else:
+            self.__render_normal()
 
 
 
@@ -77,7 +80,7 @@ class MediaItem(Item):
         w, h = self.get_size()
         if (self.__is_compact): 
             self.set_size(w, 140)
-            self.__render_compact()
+            #self.__render_compact()
         else:
             self.set_size(w, 100)
 
@@ -215,24 +218,38 @@ class MediaItem(Item):
 
     def __load_pixbuf(self, path):
 
-        if (not path): return None
-        
-        try:
-            if (path.startswith("data://")):
-                import base64
-                data = base64.b64decode(path[7:])
-                loader = gtk.gdk.PixbufLoader()
-                loader.write(data)
-                loader.close()
-                pbuf = loader.get_pixbuf()
-                del loader
+        if (path):
+            try:
+                if (path.startswith("data://")):
+                    import base64
+                    data = base64.b64decode(path[7:])
+                    loader = gtk.gdk.PixbufLoader()
+                    loader.write(data)
+                    loader.close()
+                    icon = loader.get_pixbuf()
+                    del loader
             
-            else:
-                pbuf = gtk.gdk.pixbuf_new_from_file(path)
+                else:
+                    icon = gtk.gdk.pixbuf_new_from_file(path)
 
-        except:
-            import traceback; traceback.print_exc()
-            return None
+            except:
+                import traceback; traceback.print_exc()
+                icon = None
+
+        else:
+            icon = None
+
+        pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
+        pbuf.fill(0x00000000)
+        
+        frm, x, y, w, h = self.__file.frame
+        if (frm):
+            pixbuftools.draw_pbuf(pbuf, frm, 0, 0)
+        else:
+            x, y, w, h = 0, 0, 160, 120
+        if (icon):            
+            pixbuftools.fit_pbuf(pbuf, icon, x, y, w, h)
+            del icon
 
         return pbuf
 

@@ -45,8 +45,20 @@ plugins = [ os.path.join(comp_dir, d) for d in os.listdir(comp_dir)
 plugins += args
 
 
+#import gtk
+#win = gtk.Window(gtk.WINDOW_TOPLEVEL)
+#win.set_title("MediaBox")
+#lbl = gtk.Button("Loading Components")
+#lbl.show()
+#win.add(lbl)
+#win.show()
+#while (gtk.gdk.events_pending()):
+#    gtk.main_iteration(False)
+
+
 logging.debug("initializing application")
 container = Container(plugins)
+#win.destroy()
 
 logging.debug("running application")
 import gtk
