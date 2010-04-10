@@ -27,12 +27,14 @@ class InputDialog(Window):
         self.set_title(title)
         
         self.__button_ok = Button(label_ok)
-        self.__button_ok.connect_clicked(self.__on_close, self.RETURN_OK)
+        self.__button_ok.connect_clicked(self.__on_close,
+                                         self.RETURN_OK)
         self.add(self.__button_ok)
 
         if (not platforms.MAEMO5):
             self.__button_cancel = Button(label_cancel)
-            self.__button_cancel.connect_clicked(self.__on_close, self.RETURN_CANCEL)
+            self.__button_cancel.connect_clicked(self.__on_close,
+                                                 self.RETURN_CANCEL)
             self.add(self.__button_cancel)
 
         

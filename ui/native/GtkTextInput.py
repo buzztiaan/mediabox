@@ -4,7 +4,7 @@ import platforms
 import gtk
 
 
-class TextInput(EventEmitter):
+class XTextInput(EventEmitter):
 
     def __init__(self):
     

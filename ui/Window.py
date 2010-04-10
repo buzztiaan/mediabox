@@ -30,6 +30,7 @@ class Window(Widget):
 
     def __init__(self, wtype):
 
+        self.__wtype = wtype
         self.__flags = 0
 
         # window menu
@@ -42,6 +43,7 @@ class Window(Widget):
         self.__menu_items = {}
 
         self.__size = (0, 0)
+        self.__has_size_set = False
         self.__is_button_pressed = False
         self.__screen = None
         
@@ -94,7 +96,8 @@ class Window(Widget):
         self.__vidscreen = gtk.DrawingArea()
         self.__vidscreen.set_double_buffered(False)
 
-        self.__vidscreen.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
+        self.__vidscreen.modify_bg(gtk.STATE_NORMAL,
+                                   gtk.gdk.color_parse("#000000"))
         self.__vidscreen.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                                     gtk.gdk.BUTTON_RELEASE_MASK |
                                     gtk.gdk.POINTER_MOTION_MASK |
@@ -289,8 +292,11 @@ class Window(Widget):
 
 
     def _visibility_changed(self):
-    
+
         if (self.is_visible()):
+            if (self.__wtype == self.TYPE_DIALOG and not self.__has_size_set):
+                self.__window.resize(gtk.gdk.screen_width(),
+                                     gtk.gdk.screen_height() - 120)
             self.__window.show()
             self.render()
         else:
@@ -315,6 +321,7 @@ class Window(Widget):
     def set_window_size(self, w, h):
     
         self.__window.resize(w, h)
+        self.__has_size_set = True
 
 
     def set_title(self, title):
