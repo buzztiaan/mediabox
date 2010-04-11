@@ -96,20 +96,21 @@ class MPlayerBackend(AbstractBackend):
                                           #"x=174:y=60:w=600:h=360")
             else:
                 logging.debug("mplayer backend detected Nokia maemo-device")
-                vo_opts = "-vo xv:ck-method=auto "\
-                          "-noslices -framedrop " \
-                          "-lavdopts fast:lowres=1,480"
+                vo_opts = ""
+                #vo_opts = "-vo xv:ck-method=auto "\
+                #          "-noslices -framedrop " \
+                #          "-lavdopts fast:lowres=1,480"
         
             cmd = "LANG=C %s -quiet -slave " \
                   "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
                   "-input conf=\"%s\" "\
-                  "-nomenu -osdlevel 0 -idx " \
+                  "-osdlevel 0 -idx " \
                   "-cache 256 -cache-min 50 " \
                   "-identify -wid %d %s \"%s\" 2>&1 3>/dev/null" \
                   % (_MPLAYER, _INPUT_CONF,
                      self.__window_id, vo_opts, self.__uri)
 
-        
+        print cmd
         p = subprocess.Popen([cmd],
                              shell=True, cwd="/tmp",
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -122,6 +123,7 @@ class MPlayerBackend(AbstractBackend):
         if (p.poll()):
             print "Startup failed"
             self._report_error(self.ERR_INVALID, "Could not start mplayer")
+            print stdout.read()
             return
         else:
             print "running"

@@ -81,6 +81,9 @@ class _Theme(object):
         # table: name -> (type, definition, obj)
         self.__objects = {}
 
+        # name of the theme just loaded
+        self.__just_loaded = ""
+
 
     def __getattr__(self, name):
     
@@ -136,9 +139,10 @@ class _Theme(object):
         @param name: name of new theme
         """
 
-        self.__set_theme("default")
-        if (name != "default"):
-            self.__set_theme(name)
+        if (name != "default" and self.__just_loaded != "default"):
+            self.__set_theme("default")
+        self.__set_theme(name)
+        self.__just_loaded = name
 
 
 
@@ -185,12 +189,16 @@ class _Theme(object):
 
     def __read_def_file(self, f):
 
-        lines = open(f).readlines()
+        import time
+        t1 = time.time()
+        #lines = open(f).readlines()
+        lines = [l for l in open(f).readlines()
+                 if l.strip() and not l.startswith("#") ]
             
         for line in lines:
-            line = line.strip()
-            if (not line or line.startswith("#")):
-                continue
+            #line = line.strip()
+            #if (not line or line.startswith("#")):
+            #    continue
 
             idx = line.find(":")
             name = line[:idx].strip()
@@ -209,6 +217,8 @@ class _Theme(object):
                 fontname = line[idx + 1:].strip()
                 self.__objects[name] = (_TYPE_FONT, fontname, obj)        
                 if (obj): obj.set_objdef(fontname)
+        #end for
+        print "reading def file %s took %s seconds" % (f, time.time() - t1)
             
 
     def __load_object(self, objtype, objdef):

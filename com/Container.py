@@ -8,6 +8,7 @@ from utils import logging
 
 import os
 import sys
+import gobject
 
 
 class Container(Component):
@@ -28,17 +29,21 @@ class Container(Component):
         Component.__init__(self)
         
         mods = self.__load_modules(plugins)
+        delayed_mods = [ mod for mod in mods if hasattr(mod, "delayed") ]
+        other_mods = [ mod for mod in mods if not hasattr(mod, "delayed") ]
+
         for mod in mods:
             self.__register_messages(mod)
-        for mod in mods:
+
+        for mod in other_mods:
             self.__load_components(mod)
-        
-        #for path in plugins:
-        #    self.load_module(path)
-        
-        #for p in paths:
-        #    if (os.path.exists(p)):
-        #        self.load_path(p)
+
+        self.__report_loadings()
+        if (delayed_mods):
+            gobject.idle_add(self.__load_delayed_modules, delayed_mods)
+
+
+    def __report_loadings(self):
 
         for c in self.__components:
             self.emit_message(msgs.COM_EV_COMPONENT_LOADED, c)
@@ -46,7 +51,23 @@ class Container(Component):
         for dev in self.__devices:
             self.emit_message(msgs.CORE_EV_DEVICE_ADDED, dev.get_device_id(), dev)
             self.emit_message(msgs.COM_EV_COMPONENT_LOADED, dev)
-   
+
+        self.__components = []
+        self.__devices = []
+        
+
+
+    def __load_delayed_modules(self, mods):
+
+        mod = mods.pop(0)
+        self.__load_components(mod)
+
+        if (mods):
+            gobject.idle_add(self.__load_delayed_modules, mods)
+        else:
+            self.__report_loadings()
+
+        
 
     def __load_module(self, path):
         """

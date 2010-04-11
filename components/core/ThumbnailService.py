@@ -1,5 +1,4 @@
 from com import Component, msgs
-from com import Thumbnailer as _Thumbnailer
 from utils import logging
 
 
@@ -36,7 +35,8 @@ class ThumbnailService(Component):
 
 
     def handle_COM_EV_COMPONENT_LOADED(self, comp):
-    
+
+        from com import Thumbnailer as _Thumbnailer
         if (isinstance(comp, _Thumbnailer)):
             self.__register_thumbnailer(comp)
 

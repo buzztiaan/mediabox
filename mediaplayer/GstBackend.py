@@ -1,7 +1,7 @@
 from AbstractBackend import AbstractBackend
 import platforms
 
-import gobject; gobject.threads_init()
+import gobject
 import pygst; pygst.require("0.10")
 import gst
 import dbus

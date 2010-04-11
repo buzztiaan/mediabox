@@ -1,4 +1,7 @@
+delayed = True
+
 def get_classes():
+
     from VolumeMount import VolumeMount
     from utils import maemo
     import platforms

@@ -1,8 +1,4 @@
 from com import Component, msgs
-from mediabox import config
-from theme import theme
-import platforms
-from mediabox import values
 
 
 class Initialiser(Component):
@@ -11,15 +7,24 @@ class Initialiser(Component):
     """
 
     def __init__(self):
+
+        from mediabox import config
+        from theme import theme
+        import platforms
+        from mediabox import values
+
     
         Component.__init__(self)
         
         # set theme
+        import time
+        t1 = time.time()
         try:
             theme.set_theme(config.theme())
         except:
             # theme could not be loaded; using default theme
             pass
+        print "setting theme took %f seconds" % (time.time() - t1)
 
         # make MediaBox play sound in silent mode
         if (platforms.MAEMO5):

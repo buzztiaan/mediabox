@@ -1,5 +1,4 @@
 from com import Component, MediaOutput, msgs
-from ui.dialog import OptionDialog
 from utils import logging
 
 
@@ -56,6 +55,7 @@ class MediaOutputService(Component):
             self.__current_output = output
 
         elif (output == None):
+            from ui.dialog import OptionDialog
             dlg = OptionDialog("Select Media Renderer")
             for output in self.__outputs:
                 dlg.add_option(None, output.TITLE)

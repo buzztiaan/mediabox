@@ -61,6 +61,7 @@ container = Container(plugins)
 #win.destroy()
 
 logging.debug("running application")
+import gobject; gobject.threads_init()
 import gtk
 gtk.main()
 

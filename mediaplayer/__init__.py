@@ -35,8 +35,11 @@ elif (platforms.MAEMO4):
 
 elif (platforms.MAEMO5):
     from GstBackend import GstBackend
+    from MPlayerBackend import MPlayerBackend
     _GST = GstBackend()
-    _PLAYERS = {"gst": _GST}
+    _MPLAYER = MPlayerBackend()
+    _PLAYERS = {"gst": _GST,
+                "mplayer": _MPLAYER}
     _SUFFIX = ".maemo5"
                 
 else:

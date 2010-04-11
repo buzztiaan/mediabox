@@ -1,5 +1,4 @@
 from com import MediaOutput, msgs
-import mediaplayer
 
 
 class LocalOutput(MediaOutput):
@@ -26,6 +25,7 @@ class LocalOutput(MediaOutput):
 
     def __load_backend_for(self, mimetype):
     
+        import mediaplayer
         self.__backend = mediaplayer.get_player_for_mimetype(mimetype)
         self.__backend.connect_volume_changed(self.__on_change_volume)
         self.__backend.connect_status_changed(self.__on_change_status)

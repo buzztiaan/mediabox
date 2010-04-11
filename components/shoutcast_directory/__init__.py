@@ -1,3 +1,5 @@
+delayed = True
+
 def get_devices():
 
     from ShoutcastDirectory import ShoutcastDirectory

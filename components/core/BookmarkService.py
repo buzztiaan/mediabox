@@ -1,5 +1,4 @@
 from com import Component, msgs
-from mediabox import media_bookmarks
 from mediabox import values
 from utils import logging
 
@@ -107,7 +106,8 @@ class BookmarkService(Component):
         
 
     def handle_BOOKMARK_SVC_DELETE(self, f):
-    
+
+        from mediabox import media_bookmarks
         if (self.__needs_reload): self.__load_bookmarks()
         
         paths = [ fl.full_path for fl in self.__items ]
@@ -124,7 +124,8 @@ class BookmarkService(Component):
 
 
     def handle_MEDIA_EV_BOOKMARKED(self, f, bookmarks):
-    
+
+        from mediabox import media_bookmarks
         if (self.__needs_reload): self.__load_bookmarks()
         
         paths = [ fl.full_path for fl in self.__items ]

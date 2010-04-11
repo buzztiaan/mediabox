@@ -1,7 +1,8 @@
-import platforms
+delayed = True
 
 def get_classes():
 
+    import platforms
     from DSPSemaphore import DSPSemaphore
     from VideoPlayer import VideoPlayer
     from VideoInspector import VideoInspector

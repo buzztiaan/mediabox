@@ -1,16 +1,16 @@
-import platforms
+delayed = True
 
 def get_classes():
 
+    import platforms
     classes = []
 
     if (platforms.PLATFORM == platforms.MAEMO5):
         from RotationMonitor import RotationMonitor
+        from RotationPrefs import RotationPrefs
         classes.append(RotationMonitor)
+        classes.append(RotationPrefs)
     #end if
-    
-    from RotationPrefs import RotationPrefs
-    classes.append(RotationPrefs)
     
     return classes
 

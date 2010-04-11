@@ -140,9 +140,9 @@ class AppWindow(Component, Window):
         Initializes the application.
         """
        
-        self.render()
+        #self.render()
         self.emit_message(msgs.CORE_EV_APP_STARTED)
-        gobject.idle_add(self.__show_dialog, "navigator.Navigator")
+        #gobject.idle_add(self.__show_dialog, "navigator.Navigator")
 
 
 

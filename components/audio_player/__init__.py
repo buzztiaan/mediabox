@@ -1,3 +1,5 @@
+delayed = True
+
 def get_classes():
 
     from AudioPlayer import AudioPlayer

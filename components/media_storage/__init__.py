@@ -1,3 +1,5 @@
+delayed = True
+
 def get_devices():
 
     from utils import maemo
