@@ -50,10 +50,13 @@ class FMTX(Component):
     
         self.__prepare_dbus()
         if (self.__fmtx.Get("com.nokia.FMTx.Device", "state") == "enabled"):
-            # doesn't work
-            #self.__fmtx.Set("com.nokia.FMTx.Device", "rds_text",
-            #                dbus.Array([dbus.String(self.__title[:64])]))
+            # thanks to Marcel J.E. Mol for this solution!
+            self.__fmtx.Set("com.nokia.FMTx.Device", "rds_text",
+                     dbus.String(u"%s" % self.__title[:64], variant_level = 1))
+            self.__fmtx.Set("com.nokia.FMTx.Device", "rds_ps",
+                     dbus.String(u"MediaBox", variant_level = 1))
 
+            """
             # works, but is ugly
             import os
             os.system("/usr/bin/dbus-send --system --dest=com.nokia.FMTx " \
@@ -67,7 +70,7 @@ class FMTX(Component):
                       "org.freedesktop.DBus.Properties.Set " \
                       "string:'com.nokia.FMTx.Device' string:'rds_ps' " \
                       "variant:string:'MediaBox'")
-
+            """
 
         #end if
 
