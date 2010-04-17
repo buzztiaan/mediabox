@@ -94,7 +94,7 @@ class ShoutcastDirectory(Device):
             f.name = self.get_name()
             f.info = "Browse the SHOUTcast directory"
             f.icon = self.get_icon().get_path()
-            f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
+            f.folder_flags = f.ITEMS_ENQUEUEABLE #| f.ITEMS_COMPACT
     
         elif (len_parts == 1):
             genre = urlquote.unquote(parts[0])

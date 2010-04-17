@@ -500,11 +500,9 @@ class StorageBrowser(ThumbableGridView):
 
         # animate
         if (direction == self.GO_CHILD):
-            #self.fx_slide_left()
-            pass
+            self.fx_slide_left()
         elif (direction == self.GO_PARENT):
-            #self.fx_slide_right()
-            pass
+            self.fx_slide_right()
         else:
             #self.render()
             pass
@@ -535,7 +533,7 @@ class StorageBrowser(ThumbableGridView):
             if (f):
                 #self.get_item(0).set_info("%d items" \
                 #                          % len(self.get_files()))
-                self.set_message("Loading (%d items)" % len(self.get_files()))
+                self.set_message("Loading") # (%d items)" % len(self.get_files()))
                 #self.invalidate_item(0)
                 entries.append(f)
                 try:
@@ -544,11 +542,6 @@ class StorageBrowser(ThumbableGridView):
                                     self.get_current_folder(), f)
                 except:
                     print logging.stacktrace()
-
-                import gtk
-                gobject.timeout_add(1, lambda : False)
-                gtk.main_iteration(True)
-
 
             else:
                 #self.get_item(0).set_info("%d items" % len(self.get_files()))
@@ -571,19 +564,30 @@ class StorageBrowser(ThumbableGridView):
                 # now is a good time to collect garbage
                 import gc; gc.collect()    
 
+            if (not f or len(entries) in (4, 8, 12, 16)):
+                self.invalidate()
+                #self.render()
 
+            import gtk
             now = time.time()
-            items_count = len(self.get_files())
-            if (not f or (items_count > 10 and now > self.__last_list_render_time + 0.5)):
-                self.__last_list_render_time = now
-                #self.invalidate_buffer()
-                self.render()
-
-                if (not f):
-                    return False
-            #end if
+            if (gtk.events_pending() or 
+                now > self.__last_list_render_time + 0.5):
             
-            return True
+                self.__last_list_render_time = now
+                self.render()
+                #if (not f or len(entries) < 50):
+                #    self.invalidate()
+                #    self.render()
+                    
+                while (gtk.events_pending()):
+                    gtk.main_iteration(False)
+
+            #end if
+
+            if (not f):
+                return False
+            else:
+                return True
 
 
         cwd = self.get_current_folder()

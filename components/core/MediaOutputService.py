@@ -53,6 +53,7 @@ class MediaOutputService(Component):
     
         if (isinstance(output, MediaOutput)):
             self.__current_output = output
+            self.emit_message(msgs.MEDIA_ACT_STOP)
 
         elif (output == None):
             from ui.dialog import OptionDialog
@@ -61,11 +62,10 @@ class MediaOutputService(Component):
                 dlg.add_option(None, output.TITLE)
             #end for
             ret = dlg.run()
-            if (ret == 0):
+            if (ret == dlg.RETURN_OK):
                 choice = dlg.get_choice()
                 self.__current_output = self.__outputs[choice]
+                self.emit_message(msgs.MEDIA_ACT_STOP)
             #end if
         #end if
         
-        self.emit_message(msgs.MEDIA_ACT_STOP)
-

@@ -87,7 +87,7 @@ class AudioArtistStorage(Device):
             f.name = self.get_name()
             f.icon = self.get_icon().get_path()
             f.info = "Browse your music library by artist"
-            f.folder_flags = f.ITEMS_COMPACT
+            #f.folder_flags = f.ITEMS_COMPACT
             
         elif (len_parts == 1):
             # artist

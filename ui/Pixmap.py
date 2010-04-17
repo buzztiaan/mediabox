@@ -532,7 +532,7 @@ class Pixmap(object):
         _reload(font, color)
         self.__layout.set_font_description(font)
         self.__layout.set_width(w * pango.SCALE)
-        self.__layout.set_justify(True)
+        #self.__layout.set_justify(True)
         self.__layout.set_alignment(align_map.get(alignment, pango.ALIGN_LEFT))
         self.__layout.set_text("")
         self.__layout.set_markup("")

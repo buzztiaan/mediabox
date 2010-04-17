@@ -70,7 +70,7 @@ class VideoStorage(Device):
             f.name = self.get_name()
             f.info = "Browse your video library"
             f.icon = self.get_icon().get_path()
-            f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
+            f.folder_flags = f.ITEMS_ENQUEUEABLE #| f.ITEMS_COMPACT
             
         elif (len_parts == 1):
             folder_name = urlquote.unquote(parts[0])
