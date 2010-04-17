@@ -109,16 +109,17 @@ class GstBackend(AbstractBackend):
     def __on_message(self, bus, message):
     
         t = message.type
-        print "Message Type", t
+        #print "Message Type", t
         if (t == gst.MESSAGE_EOS):        
             self.__player.set_state(gst.STATE_NULL)
             self.__is_eof = True
 
         elif (t == gst.MESSAGE_BUFFERING):
-            query = gst.query_new_buffering(gst.FORMAT_PERCENT)
-            if (self.__player.query(query)):
-                fmt, start, stop, total = query.parse_buffering_range()
-                print fmt, start, stop, total
+            pass
+            #query = gst.query_new_buffering(gst.FORMAT_PERCENT)
+            #if (self.__player.query(query)):
+            #    fmt, start, stop, total = query.parse_buffering_range()
+            #    print fmt, start, stop, total
 
         elif (t == gst.MESSAGE_ERROR):
             self.__player.set_state(gst.STATE_NULL)

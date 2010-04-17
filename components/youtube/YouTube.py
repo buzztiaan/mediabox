@@ -49,7 +49,7 @@ _PAGE_SIZE = 25
 _STAR_CHAR = u"\u2606"
 _STAR2_CHAR = u"\u2605"
 
-_N900_FORMAT_WHITELIST = [5, 6, 13, 17]
+_N900_FORMAT_WHITELIST = [5, 6, 13, 17, 18]
 
 
 class _SearchContext(object):
@@ -584,8 +584,8 @@ class YouTube(Device):
             return ""
 
         # filter out incompatible formats
-        #if (platforms.MAEMO5):
-        #    fmts = [ fmt for fmt in fmts if fmt in _N900_FORMAT_WHITELIST ]
+        if (platforms.MAEMO5):
+            fmts = [ fmt for fmt in fmts if fmt in _N900_FORMAT_WHITELIST ]
 
         # retrieve high-quality version, if desired
         if (len(fmts) > 1):
@@ -613,7 +613,7 @@ class YouTube(Device):
         keep_path = os.path.join(cache_folder, _VIDEO_FOLDER,
                                  self.__make_filename(f.name, ext))
         self.__keep_video = False
-        return flv
+        return flv + "&ext=" + ext
 
         """
         self.__flv_downloader = FileDownloader(flv, flv_path, on_dload,
