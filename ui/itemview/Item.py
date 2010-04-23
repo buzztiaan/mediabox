@@ -3,7 +3,7 @@ from ui.Pixmap import Pixmap
 
 
 # maximum cache size
-_CACHE_SIZE = 50
+_CACHE_SIZE = 75
 
 # list of tuples (item, pixmap)
 _CACHE = []
@@ -29,7 +29,7 @@ class Item(EventEmitter):
 
         # caching accelerates list rendering. if we don't cache every item,
         # we can accelerate longer lists
-        self.__is_cachable = (self.__cache_counter % 3 == 0)
+        self.__is_cachable = (self.__cache_counter % 2 == 0)
         self.__cache_counter += 1
 
         EventEmitter.__init__(self)
