@@ -35,7 +35,7 @@ rsync -va \
       --exclude="*.pyo" \
       --exclude="*.pyc" \
       --exclude="make-deb.sh" \
-      ${CWD}/ ${TEMPDIR}
+      ${CWD}/ ${TEMPDIR}/
 
 #for FILE in ${ALL_FILES}; do
 #  FPATH=${CWD}/${FILE}
