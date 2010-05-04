@@ -1,15 +1,19 @@
 from ui.itemview.Item import Item
 from ui import pixbuftools
-from utils import textutils
 from theme import theme
 
 import gtk
+import os
+
 
 
 class MediaItem(Item):
 
     EVENT_ACTIVATED = "activated"
     EVENT_MENU_OPENED = "menu-opened"
+
+    # cache for thumbnails: path -> (mtime, pbuf)
+    __thumbnail_cache = {}
 
 
     def __init__(self, f, icon):
@@ -19,9 +23,9 @@ class MediaItem(Item):
 
         self.__file = f
         self.__icon = icon
-        self.__label = f.name #textutils.escape_xml(f.name)
+        self.__label = f.name
         self.__letter = self.__label and unicode(self.__label)[0].upper() or " "
-        self.__sublabel = f.info #textutils.escape_xml(f.info)
+        self.__sublabel = f.info
 
         Item.__init__(self)
         self.set_size(-1, 100)
@@ -62,7 +66,6 @@ class MediaItem(Item):
             self.__render_normal()
 
 
-
     def has_icon(self):
     
         return self.__icon
@@ -79,13 +82,12 @@ class MediaItem(Item):
         self.__is_compact = v
         w, h = self.get_size()
         if (self.__is_compact): 
-            self.set_size(w, 140)
+            self.set_size(w, 150)
             #self.__render_compact()
         else:
             self.set_size(w, 100)
 
         
-
     def render_at(self, cnv, x, y):
 
         w, h = self.get_size()
@@ -97,10 +99,12 @@ class MediaItem(Item):
 
         # copy to the given canvas
         cnv.copy_buffer(pmap, 0, 0, x, y, w, h)
-
-            
+    
             
     def __render_compact(self):
+        """
+        Compact rendering of the item.
+        """
 
         w, h = self.get_size()
         
@@ -117,21 +121,9 @@ class MediaItem(Item):
             # render icon
             pbuf = self.__load_pixbuf(self.__icon)
             if (pbuf):
-                pmap.fit_pixbuf(pbuf, 4, 4, w - 8, h - 32)
-                del pbuf
-
-            #pbuf = thumbnail.render_on_pixbuf(self.__icon, self.__file.mimetype)
-            ## weird, Fremantle requires me to make a copy of the pixbuf...
-            #pbuf2 = pbuf.copy()
-            #pmap.fit_pixbuf(pbuf2, 0, 0, w, h)
-            #del pbuf2
-
-            # render fav star
-            #if (self.__file.bookmarked):
-            #    icon = theme.mb_item_fav_2
-            #else:
-            #    icon = theme.mb_item_fav_1
-            #pmap.draw_pixbuf(icon, 10, 10)
+                #pmap.fit_pixbuf(pbuf, 4, 4, w - 8, h - 32)
+                pmap.draw_pixbuf(pbuf, 4, 4)
+                #del pbuf
 
             # render text
             pmap.set_clip_rect(5, 0, w - 10, h)
@@ -144,9 +136,11 @@ class MediaItem(Item):
         
         return pmap
 
-            
     
     def __render_normal(self):
+        """
+        Normal rendering of the item.
+        """
     
         w, h = self.get_size()
         
@@ -174,20 +168,7 @@ class MediaItem(Item):
             if (pbuf):
                 pmap.fit_pixbuf(pbuf, offset, 5, 120, h - 10)
                 del pbuf
-                
-            #pbuf = thumbnail.render_on_pixbuf(self.__icon, self.__file.mimetype)
-            ## weird, Fremantle requires me to make a copy of the pixbuf...
-            #pbuf2 = pbuf.copy()
-            #pmap.fit_pixbuf(pbuf2, offset, 5, 120, h - 10)
-            #del pbuf2
-
-            # render fav star
-            #if (self.__file.bookmarked):
-            #    icon = theme.mb_item_fav_2
-            #else:
-            #    icon = theme.mb_item_fav_1
-            #pmap.draw_pixbuf(icon, offset, 0)
-            
+                            
             offset = 134
             
             # render text
@@ -199,24 +180,51 @@ class MediaItem(Item):
                            offset, 40,
                            theme.color_list_item_subtext)
             pmap.set_clip_rect()
-            
-            # render button
-            #if (self.__file.mimetype.endswith("-folder")):
-            #    btn = theme.mb_item_btn_open
-            #else:
-            #    btn = theme.mb_item_btn_play
-            #pmap.draw_pixbuf(btn, w - 60, (h - 42) / 2)
         #end if
         
         return pmap
         
            
     def tap_and_hold(self, px, py):
+        """
+        Handles tap-and-hold events.
+        """
     
         self.emit_event(self.EVENT_MENU_OPENED)
 
 
+    def _invalidate_cached_pixmap(self):
+        """
+        Invalidates the cached pixmap as well as the cached icon.
+        """
+
+        Item._invalidate_cached_pixmap(self)
+        if (self.__icon in self.__thumbnail_cache):
+            del self.__thumbnail_cache[self.__icon]
+
+
+    def __trim_cache(self):
+        """
+        Trims the cache so that it doesn't grow indefinitely.
+        """
+
+        while (len(self.__thumbnail_cache) > 250):
+            item = self.__thumbnail_cache.keys()[0]
+            del self.__thumbnail_cache[item]
+        #end while
+
+
     def __load_pixbuf(self, path):
+        """
+        Loads the icon pixbuf and its frame, if any.
+        """
+
+        # try to retrieve from icon cache
+        if (path and path in self.__thumbnail_cache):
+            mtime, pbuf = self.__thumbnail_cache[path]
+            if (os.path.getmtime(path) <= mtime):
+                return pbuf
+        #end if
 
         if (path):
             try:
@@ -250,6 +258,10 @@ class MediaItem(Item):
         if (icon):            
             pixbuftools.fit_pbuf(pbuf, icon, x, y, w, h)
             del icon
+
+        self.__trim_cache()
+        if (path):
+            self.__thumbnail_cache[path] = (os.path.getmtime(path), pbuf)
 
         return pbuf
 

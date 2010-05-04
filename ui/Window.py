@@ -36,6 +36,8 @@ class Window(Widget):
         # window menu
         if (platforms.MAEMO5):
             self.__menu = hildon.AppMenu()
+        elif (platforms.MAEMO4):
+            self.__menu = gtk.Menu()
         else:
             self.__menu = gtk.Menu()
             
@@ -53,11 +55,19 @@ class Window(Widget):
             if (platforms.MAEMO5):
                 self.__window = hildon.StackableWindow()
                 self.__window.set_app_menu(self.__menu)
+            elif (platforms.MAEMO4):
+                self.__window = hildon.Window()
+                self.__window.set_menu(self.__menu)
+                self.__window.fullscreen()
             else:
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-            
+                            
         elif (wtype == self.TYPE_DIALOG):
-            self.__window = gtk.Dialog()
+            if (platforms.MAEMO4):
+                self.__window = hildon.Window()
+                self.__window.fullscreen()
+            else:
+                self.__window = gtk.Dialog()
 
         self.__window.set_title(" ")
         self.__window.set_default_size(800, 480)
@@ -87,7 +97,7 @@ class Window(Widget):
 
         self.__layout = gtk.Fixed()
         self.__layout.show()
-        if (wtype == self.TYPE_TOPLEVEL):
+        if (wtype == self.TYPE_TOPLEVEL or platforms.MAEMO4):
             self.__window.add(self.__layout)
         else:
             self.__window.vbox.add(self.__layout)
@@ -260,10 +270,11 @@ class Window(Widget):
     def _update_flag(self, flag, value):
 
         if (flag == windowflags.FULLSCREEN):
-            if (value):
-                self.__window.fullscreen()
-            else:
-                self.__window.unfullscreen()
+            if (not platforms.MAEMO4):
+                if (value):
+                    self.__window.fullscreen()
+                else:
+                    self.__window.unfullscreen()
 
         elif (flag == windowflags.PORTRAIT):
             if (platforms.MAEMO5):

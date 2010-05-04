@@ -275,7 +275,7 @@ class StorageBrowser(ThumbableGridView):
         
     def get_current_folder(self):
         """
-        Returns the File object of the current folder, or None if there the
+        Returns the File object of the current folder, or None if the
         path is empty.
         
         @return: File object representing the current folder
@@ -437,7 +437,7 @@ class StorageBrowser(ThumbableGridView):
         """
         
         if (self.get_current_folder()):
-            self.load_folder(self.get_current_folder(), self.GO_PARENT)
+            self.load_folder(self.get_current_folder(), self.GO_NEW)
         
         
     def load_folder(self, folder, direction, force_reload = False):
@@ -566,7 +566,7 @@ class StorageBrowser(ThumbableGridView):
 
             if (not f or len(entries) in (4, 8, 12, 16)):
                 self.invalidate()
-                #self.render()
+                self.render()
 
             import gtk
             now = time.time()
@@ -574,7 +574,7 @@ class StorageBrowser(ThumbableGridView):
                 now > self.__last_list_render_time + 0.5):
             
                 self.__last_list_render_time = now
-                self.render()
+                #self.render()
                 #if (not f or len(entries) < 50):
                 #    self.invalidate()
                 #    self.render()

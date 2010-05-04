@@ -32,7 +32,7 @@ class FileUndertaker(Component):
         
 
     def __remove_corpse(self, corpses):
-    
+
         now = time.time()
         while (time.time() < now + 0.05 and corpses):
             path = corpses.pop()[0]

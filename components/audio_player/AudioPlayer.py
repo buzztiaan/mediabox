@@ -129,7 +129,12 @@ class AudioPlayer(Player):
         #self.__arr.add(self.__lbl_title, "lbl_title")
         self.__arr.add(self.__trackinfo, "trackinfo")
         self.add(self.__arr)
-        
+
+
+    def _reload(self):
+
+        theme.color_mb_background.reload()
+
         
     def __update_layout(self):
     
@@ -263,6 +268,8 @@ class AudioPlayer(Player):
         self.__lbl_title.set_text(title)
         self.__lbl_artist.set_text(artist)
         self.__lbl_album.set_text(album)
+
+        self.render()
 
         # load cover art
         self.call_service(msgs.COVERSTORE_SVC_GET_COVER,

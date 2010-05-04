@@ -15,7 +15,8 @@ class PrefsComponents(Configurator):
 
 
     def __init__(self):
-    
+
+        self.__needs_update = False
         self.__components = []
     
         Configurator.__init__(self)
@@ -51,6 +52,10 @@ class PrefsComponents(Configurator):
 
     def render_this(self):
 
+        if (self.__needs_update):
+            self.__update_list()
+            self.__needs_update = False
+
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
@@ -74,9 +79,10 @@ class PrefsComponents(Configurator):
     def handle_COM_EV_COMPONENT_LOADED(self, comp):
     
         self.__components.append(comp)
+        self.__needs_update = True
       
         
     def handle_CORE_EV_APP_STARTED(self):
     
-        self.__update_list()
+        pass #self.__update_list()
 
