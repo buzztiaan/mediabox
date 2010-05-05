@@ -1,5 +1,3 @@
-delayed = True
-
 def get_devices():
 
     from PlaylistDevice import PlaylistDevice

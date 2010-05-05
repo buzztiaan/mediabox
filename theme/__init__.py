@@ -218,7 +218,7 @@ class _Theme(object):
                 self.__objects[name] = (_TYPE_FONT, fontname, obj)        
                 if (obj): obj.set_objdef(fontname)
         #end for
-        print "reading def file %s took %s seconds" % (f, time.time() - t1)
+        #print "reading def file %s took %s seconds" % (f, time.time() - t1)
             
 
     def __load_object(self, objtype, objdef):

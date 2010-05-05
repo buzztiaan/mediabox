@@ -16,6 +16,13 @@ class CoverArt(Widget):
         Widget.__init__(self)
 
 
+    def _reload(self):
+    
+        self.__render_cover()
+        self.__render_lyrics()
+        self.render()
+        
+
     def set_size(self, w, h):
     
         old_w, old_h = self.get_size()

@@ -13,6 +13,8 @@ import gobject
 import gtk
 
 
+# it's useful to swap the mapping of the increment and decrement keys in
+# portrait mode
 _PORTRAIT_MODE_KEYSWAP = {
     "F7": "F8",
     "F8": "F7"
@@ -36,7 +38,8 @@ class AppWindow(Component, Window):
         self.__mime_handlers = {}
     
         self.__is_portrait = False
-        
+
+        # the currently active player component
         self.__current_player = None
         
 

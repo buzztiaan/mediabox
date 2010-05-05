@@ -9,6 +9,7 @@ from ui.layout import Arrangement
 from ui.layout import HBox, VBox
 from ui.Pixmap import Pixmap
 from mediabox import tagreader
+from utils import imageloader
 from utils import logging
 from theme import theme
 
@@ -55,6 +56,9 @@ class AudioPlayer(Player):
         self.__need_slide_in = False
               
         self.__sliding_direction = self.SLIDE_LEFT
+
+        self.__offscreen_buffer = None
+        
     
         Player.__init__(self)
         self.set_visible(False)
@@ -135,6 +139,14 @@ class AudioPlayer(Player):
 
         theme.color_mb_background.reload()
 
+
+    def set_size(self, w, h):
+
+        if ((w, h) != self.get_size()):
+            self.__offscreen_buffer = Pixmap(None, w, h)
+            
+        Player.set_size(self, w, h)
+        
         
     def __update_layout(self):
     
@@ -222,6 +234,7 @@ class AudioPlayer(Player):
             title = tags.get("TITLE")
             album = tags.get("ALBUM")
             artist = tags.get("ARTIST")
+            cover = tags.get("PICTURE")
             
             if (title):
                 self.__lbl_title.set_text(title)
@@ -229,6 +242,9 @@ class AudioPlayer(Player):
                 self.__lbl_album.set_text(album)
             if (artist):
                 self.__lbl_artist.set_text(artist)
+            if (cover):
+                imageloader.load_data(cover, self.__on_loaded_cover,
+                                      self.__context_id)
         #end if
         
 
@@ -250,7 +266,6 @@ class AudioPlayer(Player):
     def __on_loaded_cover(self, pbuf, ctx_id):
    
         if (ctx_id == self.__context_id):
-            print "SETTING COVER"
             if (pbuf):
                 self.__cover_art.set_cover(pbuf)
             else:
@@ -269,7 +284,8 @@ class AudioPlayer(Player):
         self.__lbl_artist.set_text(artist)
         self.__lbl_album.set_text(album)
 
-        self.render()
+        if (self.__offscreen_buffer):
+            self.render_buffered(self.__offscreen_buffer)
 
         # load cover art
         self.call_service(msgs.COVERSTORE_SVC_GET_COVER,

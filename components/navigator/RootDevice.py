@@ -189,8 +189,9 @@ class RootDevice(Device):
 
             if (device.TYPE in self.__device_lists):
                 self.__device_lists[device.TYPE].append(device)
-            
+
             folder = self.get_file(_TYPE_MAP[device.TYPE])
+            print "invalidating", folder, "due to", device
             self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
         #end if
 

@@ -115,7 +115,7 @@ class GstBackend(AbstractBackend):
             self.__is_eof = True
 
         elif (t == gst.MESSAGE_BUFFERING):
-            pass
+            self._report_buffering(0)
             #query = gst.query_new_buffering(gst.FORMAT_PERCENT)
             #if (self.__player.query(query)):
             #    fmt, start, stop, total = query.parse_buffering_range()
@@ -130,13 +130,18 @@ class GstBackend(AbstractBackend):
         elif (t == gst.MESSAGE_TAG):
             tags = message.parse_tag()
             for key in tags.keys():
-                print key #, tags[key]
+                #print key #, tags[key]
                 if (key == "title"):
                     self._report_tag("TITLE", tags[key])
                 elif (key == "artist"):
                     self._report_tag("ARTIST", tags[key])
                 elif (key == "album"):
                     self._report_tag("ALBUM", tags[key])
+                elif (key == "bitrate"):
+                    print "Bitrate: %d kbps" % tags[key]
+                elif (key == "image"):
+                    self._report_tag("PICTURE", tags[key].data)
+                    print "Found cover image"
             #end for
             
 
