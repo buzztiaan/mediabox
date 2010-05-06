@@ -263,7 +263,7 @@ class FileIndex(Component):
         #end if
         
         
-    def handle_CORE_EV_APP_SHUTDOWN(self):
+    def handle_COM_EV_APP_SHUTDOWN(self):
     
         if (self.__is_dirty):
             self.__save_index()

@@ -79,13 +79,11 @@ class AppWindow(Component, Window):
         self.set_menu_item("info", "About", True,
                            self.__on_menu_info)
                            
-        gobject.timeout_add(0, self.__init)
-        
 
     def __on_close_window(self):
     
         self.emit_message(msgs.MEDIA_ACT_STOP)
-        self.emit_message(msgs.CORE_EV_APP_SHUTDOWN)
+        self.emit_message(msgs.COM_EV_APP_SHUTDOWN)
         gtk.main_quit()
 
 
@@ -136,17 +134,6 @@ class AppWindow(Component, Window):
                          values.COPYRIGHT,
                          self)
         dlg.run()
-
-    
-    def __init(self):
-        """
-        Initializes the application.
-        """
-       
-        #self.render()
-        self.emit_message(msgs.CORE_EV_APP_STARTED)
-        #gobject.idle_add(self.__show_dialog, "navigator.Navigator")
-
 
 
     def __register_player(self, player):
@@ -207,7 +194,12 @@ class AppWindow(Component, Window):
             dlg = dialogs[0]
             dlg.set_visible(True)
         #end if     
-        
+
+
+    def handle_COM_EV_APP_STARTED(self):
+
+        gobject.idle_add(self.__show_dialog, "navigator.Navigator")
+
 
     def handle_COM_EV_COMPONENT_LOADED(self, component):
 

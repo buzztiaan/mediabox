@@ -14,12 +14,12 @@ Gets emitted when a module gets loaded. A module is a collection of components.
 
 
 
-def CORE_EV_APP_STARTED(): pass
+def COM_EV_APP_STARTED(): pass
 """
 Gets emitted when the core application has finished initialising.
 """
 
-def CORE_EV_APP_SHUTDOWN(): pass
+def COM_EV_APP_SHUTDOWN(): pass
 """
 Gets emitted when the application is shutting down. Plugins should listen for
 this message if they need to clean up at exit.

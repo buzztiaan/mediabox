@@ -59,7 +59,7 @@ class SimpleScanner(Component):
 
 
     """
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
 
         if (config.scan_at_startup()):
             self.__scan()

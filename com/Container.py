@@ -39,6 +39,7 @@ class Container(Component):
             self.__load_components(mod)
 
         self.__report_loadings()
+        #self.emit_message(msgs.COM_EV_APP_STARTED)
         if (delayed_mods):
             gobject.idle_add(self.__load_delayed_modules, delayed_mods)
 
@@ -66,7 +67,7 @@ class Container(Component):
             gobject.idle_add(self.__load_delayed_modules, mods)
         else:
             self.__report_loadings()
-
+            self.emit_message(msgs.COM_EV_APP_STARTED)
         
 
     def __load_module(self, path):

@@ -76,7 +76,7 @@ class RotationPrefs(Configurator):
         self.__list.render()
 
 
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
     
         o = config.orientation()
         if (o == config.ORIENTATION_PORTRAIT):

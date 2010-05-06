@@ -82,7 +82,7 @@ class PrefsComponents(Configurator):
         self.__needs_update = True
       
         
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
     
         pass #self.__update_list()
 

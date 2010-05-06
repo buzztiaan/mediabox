@@ -138,7 +138,7 @@ class GstBackend(AbstractBackend):
                 elif (key == "album"):
                     self._report_tag("ALBUM", tags[key])
                 elif (key == "bitrate"):
-                    print "Bitrate: %d kbps" % tags[key]
+                    print "Bitrate: %0.1f kbps" % (tags[key] / 1000.0)
                 elif (key == "image"):
                     self._report_tag("PICTURE", tags[key].data)
                     print "Found cover image"

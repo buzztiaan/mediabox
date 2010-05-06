@@ -106,12 +106,12 @@ class FMRadioViewer(Viewer):
         self.__radio_off()
     
     
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
     
         self.emit_message(msgs.SYSTEM_ACT_FORCE_SPEAKER_ON)
     
     
-    def handle_CORE_EV_APP_SHUTDOWN(self):
+    def handle_COM_EV_APP_SHUTDOWN(self):
 
         self.__radio_off()
         self.emit_message(msgs.SYSTEM_ACT_FORCE_SPEAKER_OFF)

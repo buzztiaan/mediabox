@@ -15,7 +15,7 @@ class MediaOutputService(Component):
         Component.__init__(self)
         
         
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
     
         if (self.__outputs):
             self.__current_output = self.__outputs[0]

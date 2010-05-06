@@ -215,7 +215,7 @@ class SleepTimerPrefs(Configurator):
         return seconds
 
 
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
     
         self.__update_status_icons()
         self.__on_check_sleep(config.get_sleep())

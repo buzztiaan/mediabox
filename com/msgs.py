@@ -12,7 +12,7 @@ Import this module to get access to all known message types::
           Component.__init__(self)
           
       
-      def handle_CORE_EV_APP_STARTED(self):
+      def handle_COM_EV_APP_STARTED(self):
       
           self.call_service(msgs.UI_ACT_SHOW_INFO,
                             "Application started")

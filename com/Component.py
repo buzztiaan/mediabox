@@ -16,8 +16,8 @@ class Component(Mediator):
 
     Methods with prefix C{handle_} (since 0.96.5) get invoked when an
     appropriate message is on the message bus. For example, if you wanted to
-    react on the CORE_EV_APP_STARTED message (application startup complete)
-    you'd implement the message C{handle_CORE_EV_APP_STARTED}.
+    react on the COM_EV_APP_STARTED message (application startup complete)
+    you'd implement the message C{handle_COM_EV_APP_STARTED}.
     
     Example::
     
@@ -33,7 +33,7 @@ class Component(Mediator):
               Component.__init__(self)
 
 
-          def handle_CORE_EV_APP_STARTED(self):
+          def handle_COM_EV_APP_STARTED(self):
           
               print "Application startup complete!"
 

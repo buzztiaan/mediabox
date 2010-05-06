@@ -71,7 +71,7 @@ class MyViewer(Viewer):
 
     def handle_message(self, event, *args):
     
-        #if (event == events.CORE_EV_APP_SHUTDOWN):
+        #if (event == events.COM_EV_APP_SHUTDOWN):
             #TODO unsubscribe from all devices
     
         if (event == msgs.SSDP_EV_DEVICE_DISCOVERED):

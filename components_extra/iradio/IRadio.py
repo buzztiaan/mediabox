@@ -58,7 +58,7 @@ class IRadio(Device):
         cb(None, *args)
 
 
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
     
         for dev in self.__devices:
             self.emit_message(msgs.CORE_EV_DEVICE_ADDED, dev.get_device_id(), dev)

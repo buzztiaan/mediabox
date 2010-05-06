@@ -76,7 +76,7 @@ class PrefsComponents(Configurator):
         self.__components.append(comp)
       
         
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
     
         self.__update_list()
 

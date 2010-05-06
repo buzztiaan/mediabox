@@ -144,7 +144,7 @@ class SSDPMonitor(Component):
             self.emit_message(msgs.SSDP_EV_DEVICE_GONE, uuid)
 
 
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
     
         self.handle_SSDP_ACT_SEARCH_DEVICES()
         

@@ -87,7 +87,7 @@ class TalkNavigator(Component):
         return "en"
 
 
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
     
         self.__say("Welcome to %s With Talk Navigation! " \
                    "Press Menu button three times for Talk Navigation!" \

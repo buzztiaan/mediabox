@@ -114,23 +114,17 @@ class Navigator(Dialog):
         self.__browser.connect_folder_begin(self.__on_begin_folder)
         self.__browser.connect_folder_progress(self.__on_progress_folder)
         self.__browser.connect_folder_complete(self.__on_complete_folder)
-        #self.__browser.connect_file_added_to_library(self.__on_add_file_to_lib)
         self.__browser.connect_file_opened(self.__on_open_file)
-        #self.__browser.connect_file_enqueued(self.__on_enqueue_file)
-        #self.__browser.connect_file_bookmarked(self.__on_bookmark_file)
         self.__browser_slider.connect_button_pressed(
                                     lambda a,b:self.__browser.stop_scrolling())
-        #self.add(self.__browser)
 
         # [Add] button
         self.__btn_add = Button("Add New")
         self.__btn_add.set_visible(False)
         self.__btn_add.connect_clicked(self.__on_btn_add)
-        #self.add(self.__btn_add)
 
         # toolbar
         self.__toolbar = Toolbar()
-        #self.add(self.__toolbar)
 
         self.__btn_home = ImageButton(theme.mb_btn_home_1,
                                       theme.mb_btn_home_2)
@@ -204,6 +198,10 @@ class Navigator(Dialog):
         Dialog._visibility_changed(self)
         if (self.is_visible()):
             self.__tn_scheduler.resume()
+
+            if (not self.__browser.get_path()):
+                self.__browser.set_root_device(self.__root_dev)
+            
         else:
             self.__tn_scheduler.halt()
 
@@ -295,39 +293,6 @@ class Navigator(Dialog):
 
         if (self.is_visible()):
             self.__tn_scheduler.resume()
-
-    """
-    def __on_add_file_to_lib(self, f):
-    
-        self.emit_message(msgs.LIBRARY_ACT_ADD_MEDIAROOT, f)
-        
-
-    def __on_enqueue_file(self, f):
-    
-        dlg = OptionDialog("Select a Playlist")
-        playlists = self.call_service(msgs.PLAYLIST_SVC_GET_LISTS)
-        print playlists
-        if (not playlists): return
-        
-        # select playlist
-        if (len(playlists) == 1):
-            playlist = playlists[0]
-        
-        else:
-            for pl in playlists:
-                dlg.add_option(None, pl)
-            if (dlg.run() == 0):
-                choice = dlg.get_choice()
-                playlist = playlists[choice]
-        #end for
-    
-        self.emit_message(msgs.PLAYLIST_ACT_APPEND, playlist, f)
-
-
-    def __on_bookmark_file(self, f):
-    
-        f.bookmarked = True
-    """
 
 
     def __update_thumbnail(self, item, thumbpath):
@@ -545,8 +510,9 @@ class Navigator(Dialog):
       
 
     def handle_CORE_EV_FOLDER_INVALIDATED(self, folder):
-    
-        self.__browser.invalidate_folder(folder)
+
+        if (self.is_visible()):
+            self.__browser.invalidate_folder(folder)
         if (folder and folder == self.__play_folder):
             self.__play_files = [ fl for fl in folder.get_children()
                                   if not fl.mimetype.endswith("-folder") ]
@@ -576,9 +542,10 @@ class Navigator(Dialog):
         #end if
 
     
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
 
-        gobject.idle_add(self.__browser.set_root_device, self.__root_dev)
+        #gobject.idle_add(self.__browser.set_root_device, self.__root_dev)
+        pass
 
 
     def handle_CORE_EV_SEARCH_CLOSED(self):

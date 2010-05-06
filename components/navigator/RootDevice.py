@@ -101,6 +101,7 @@ class RootDevice(Device):
         self.__favorites = self.call_service(msgs.BOOKMARK_SVC_LIST, [])
         self.__favorites.sort(lambda a,b:cmp((a.device_id, a.name),
                                              (b.device_id, b.name)))
+        print "shelfed items", self.__favorites
         return self.__favorites
 
 

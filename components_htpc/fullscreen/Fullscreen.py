@@ -13,7 +13,7 @@ class Fullscreen(Widget):
 
     def handle_message(self, msg, *args):
     
-        if (msg == msgs.CORE_EV_APP_STARTED):
+        if (msg == msgs.COM_EV_APP_STARTED):
             win = self.get_window()
             #win.set_decorated(False)
             win.get_gtk_window().fullscreen()

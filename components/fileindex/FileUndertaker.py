@@ -46,7 +46,7 @@ class FileUndertaker(Component):
             return False
 
 
-    def handle_CORE_EV_APP_STARTED(self):
+    def handle_COM_EV_APP_STARTED(self):
 
         gobject.timeout_add(1000, self.__remove_corpses)
 

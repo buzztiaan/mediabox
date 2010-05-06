@@ -449,7 +449,6 @@ class StorageBrowser(ThumbableGridView):
         @param force_reload: whether to force reloading the folder
         """
 
-
         # are we just reloading the same folder?
         reload_only = False
         if (self.__path_stack):
@@ -527,7 +526,6 @@ class StorageBrowser(ThumbableGridView):
 
         def on_child(f, token, path, entries):
             # abort if the user has changed the directory inbetween
-            #if (self.get_current_folder() != path): return False
             if (token != self.__token): return False
             
             if (f):
@@ -555,38 +553,36 @@ class StorageBrowser(ThumbableGridView):
                 self.__path_stack[-1][1] = _STATUS_OK
                 
                 self.invalidate()
-                #self.render()
                 self.emit_event(self.EVENT_FOLDER_COMPLETE,
                                 self.get_current_folder())
-                #self.send_event(self.EVENT_FOLDER_OPENED,
-                #                self.get_current_folder())
 
                 # now is a good time to collect garbage
                 import gc; gc.collect()    
+            #end if
 
+            # give visual feedback while loading the visible part of a folder
             if (not f or len(entries) in (4, 8, 12, 16)):
-                self.invalidate()
-                self.render()
+                    self.invalidate()
+                    self.render()
+            #end if
 
+            # don't block UI while loading non-local folders
             import gtk
             now = time.time()
             if (gtk.events_pending() or 
                 now > self.__last_list_render_time + 0.5):
-            
+           
                 self.__last_list_render_time = now
-                #self.render()
-                #if (not f or len(entries) < 50):
-                #    self.invalidate()
-                #    self.render()
-                    
-                while (gtk.events_pending()):
-                    gtk.main_iteration(False)
 
+                while (f and not f.is_local and gtk.events_pending()):
+                    gtk.main_iteration(False)
             #end if
 
             if (not f):
+                # last item has been reached
                 return False
             else:
+                # continue loading next item
                 return True
 
 
