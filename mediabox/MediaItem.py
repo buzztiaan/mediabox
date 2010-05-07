@@ -60,10 +60,6 @@ class MediaItem(Item):
     
         self.__icon = icon
         self._invalidate_cached_pixmap()
-        if (self.__is_compact):
-            self.__render_compact()
-        else:
-            self.__render_normal()
 
 
     def has_icon(self):
@@ -122,7 +118,8 @@ class MediaItem(Item):
             pbuf = self.__load_pixbuf(self.__icon)
             if (pbuf):
                 #pmap.fit_pixbuf(pbuf, 4, 4, w - 8, h - 32)
-                pmap.draw_pixbuf(pbuf, 4, 4)
+                p_w, p_h = pmap.get_size()
+                pmap.draw_pixbuf(pbuf, (w - p_w) / 2, 4)
                 #del pbuf
 
             # render text

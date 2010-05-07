@@ -509,7 +509,7 @@ class StorageBrowser(ThumbableGridView):
         # load remaining items
         loading_status = self.__path_stack[-1][1]
         if (loading_status == _STATUS_INCOMPLETE or full_reload):
-            self.set_message("Loading")
+            #self.set_message("Loading")
             self.complete_current_folder()
         else:
             self.emit_event(self.EVENT_FOLDER_COMPLETE, folder)
@@ -527,11 +527,11 @@ class StorageBrowser(ThumbableGridView):
         def on_child(f, token, path, entries):
             # abort if the user has changed the directory inbetween
             if (token != self.__token): return False
-            
+
             if (f):
                 #self.get_item(0).set_info("%d items" \
                 #                          % len(self.get_files()))
-                self.set_message("Loading") # (%d items)" % len(self.get_files()))
+                #self.set_message("Loading") # (%d items)" % len(self.get_files()))
                 #self.invalidate_item(0)
                 entries.append(f)
                 try:
@@ -580,6 +580,7 @@ class StorageBrowser(ThumbableGridView):
 
             if (not f):
                 # last item has been reached
+                print "FINISHED"
                 return False
             else:
                 # continue loading next item
@@ -615,7 +616,6 @@ class StorageBrowser(ThumbableGridView):
     
         self.append_item(item)
 
-
         idx = len(self.get_items()) - 1
 
         #if (not cwd.folder_flags & cwd.ITEMS_SORTED_ALPHA):
@@ -625,4 +625,3 @@ class StorageBrowser(ThumbableGridView):
         if (self.__hilighted_file == f):
             self.set_hilight(idx)
         self.invalidate_item(idx)
-
