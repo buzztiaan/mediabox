@@ -271,7 +271,6 @@ class Navigator(Dialog):
           self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
 
         item.set_icon(thumbpath)
-        item.render()
         
         if (not is_final):
             self.__tn_scheduler.add(item, c)

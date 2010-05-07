@@ -118,7 +118,7 @@ class MediaItem(Item):
             pbuf = self.__load_pixbuf(self.__icon)
             if (pbuf):
                 #pmap.fit_pixbuf(pbuf, 4, 4, w - 8, h - 32)
-                p_w, p_h = pmap.get_size()
+                p_w = pbuf.get_width()
                 pmap.draw_pixbuf(pbuf, (w - p_w) / 2, 4)
                 #del pbuf
 
