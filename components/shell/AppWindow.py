@@ -198,7 +198,8 @@ class AppWindow(Component, Window):
 
     def handle_COM_EV_APP_STARTED(self):
 
-        gobject.idle_add(self.__show_dialog, "navigator.Navigator")
+        #gobject.idle_add(self.__show_dialog, "navigator.Navigator")
+        pass
 
 
     def handle_COM_EV_COMPONENT_LOADED(self, component):

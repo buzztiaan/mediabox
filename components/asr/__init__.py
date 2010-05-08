@@ -4,9 +4,9 @@ def get_classes():
     classes = []
 
     if (platforms.PLATFORM == platforms.MAEMO5):
-        from RotationMonitor import RotationMonitor
+        #from RotationMonitor import RotationMonitor
         from RotationPrefs import RotationPrefs
-        classes.append(RotationMonitor)
+        #classes.append(RotationMonitor)
         classes.append(RotationPrefs)
     #end if
     
