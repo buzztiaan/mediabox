@@ -47,6 +47,8 @@ class CoverArt(Widget):
 
     def __render_cover(self):
 
+        if (not self.__buffer): return
+        
         b_w, b_h = self.__buffer.get_size()
         self.__buffer.fill_area(0, 0, b_w, b_h, theme.color_mb_background)
         if (self.__cover_pbuf):
@@ -57,6 +59,8 @@ class CoverArt(Widget):
 
     def __render_lyrics(self):
     
+        if (not self.__buffer): return
+            
         words, hi_from, hi_to = self.__lyrics
         if (not words): return
 

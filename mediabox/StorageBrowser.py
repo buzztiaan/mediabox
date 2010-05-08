@@ -561,26 +561,24 @@ class StorageBrowser(ThumbableGridView):
             #end if
 
             # give visual feedback while loading the visible part of a folder
-            if (not f or len(entries) in (4, 8, 12, 16)):
-                    self.invalidate()
-                    self.render()
+            if (not f or len(entries) in (8, 16)):
+                self.invalidate()
+                self.render()
             #end if
 
             # don't block UI while loading non-local folders
             import gtk
-            now = time.time()
-            if (gtk.events_pending() or 
-                now > self.__last_list_render_time + 0.5):
+            #now = time.time()
+            #if (gtk.events_pending()): # or 
+            #    now > self.__last_list_render_time + 0.5):
            
-                self.__last_list_render_time = now
+                #self.__last_list_render_time = now
 
-                while (f and not f.is_local and gtk.events_pending()):
-                    gtk.main_iteration(False)
-            #end if
+            while (gtk.events_pending()):
+                gtk.main_iteration(False)
 
             if (not f):
                 # last item has been reached
-                print "FINISHED"
                 return False
             else:
                 # continue loading next item
