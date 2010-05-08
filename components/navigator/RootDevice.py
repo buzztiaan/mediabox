@@ -182,6 +182,11 @@ class RootDevice(Device):
 
         return options
 
+
+    def handle_COM_EV_APP_STARTED(self):
+    
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_file("/"))
+
     
     def handle_CORE_EV_DEVICE_ADDED(self, ident, device):
 
