@@ -65,7 +65,7 @@ class MediaItem(Item):
     def has_icon(self):
     
         return self.__icon
-        
+    
 
     def set_info(self, info):
     
@@ -217,7 +217,7 @@ class MediaItem(Item):
         """
 
         # try to retrieve from icon cache
-        if (path and path in self.__thumbnail_cache):
+        if (path and path.startswith("/") and path in self.__thumbnail_cache):
             mtime, pbuf = self.__thumbnail_cache[path]
             if (os.path.getmtime(path) <= mtime):
                 return pbuf
@@ -257,7 +257,7 @@ class MediaItem(Item):
             del icon
 
         self.__trim_cache()
-        if (path):
+        if (path and path.startswith("/")):
             self.__thumbnail_cache[path] = (os.path.getmtime(path), pbuf)
 
         return pbuf
