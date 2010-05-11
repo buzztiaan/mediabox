@@ -1,5 +1,6 @@
 from AbstractBackend import AbstractBackend
 import platforms
+from utils import logging
 
 import gobject
 import pygst; pygst.require("0.10")
