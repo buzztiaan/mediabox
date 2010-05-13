@@ -1,11 +1,11 @@
 from com import Thumbnailer, msgs
-#from ui import pixbuftools
+from ui import pixbuftools
 from theme import theme
 
 import gtk
 
 
-#_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
+_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 120, 120)
 
 
 class AudioThumbnailer(Thumbnailer):
@@ -44,14 +44,13 @@ class AudioThumbnailer(Thumbnailer):
     
         def on_loaded(pbuf, mimetype):
             if (pbuf):
-                #_PBUF.fill(0x00000000)
-                #pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_music_album, 0, 0)
-                #pixbuftools.fit_pbuf(_PBUF, pbuf, 25, 5, 106, 106)
-                #if (mimetype != "application/x-music-folder"):
-                #    pixbuftools.fit_pbuf(_PBUF, theme.mb_file_audio,
-                #                         80, 40, 80, 80)
-                    
-                path = self._set_thumbnail(f, pbuf)
+                if (pbuf.get_width() > 160 or pbuf.get_height() > 160):
+                    _PBUF.fill(0x00000000)
+                    pixbuftools.fit_pbuf(_PBUF, pbuf, 0, 0, 120, 120)
+                    path = self._set_thumbnail(f, _PBUF)
+                else:
+                    path = self._set_thumbnail(f, pbuf)    
+                #end if
                 del pbuf
             else:
                 path = ""

@@ -1,3 +1,10 @@
+mediabox (2010.05.13) unstable; urgency=low
+
+  Automatically scale down large cover art images before storing as thumbnail.
+  This increases scrolling speed in the album view if you have large covers.
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 13 May 2010 11:30:00 +0200
+
 mediabox (2010.05.08) unstable; urgency=low
 
   Playback gets paused during a phone call

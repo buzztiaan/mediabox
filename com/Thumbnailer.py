@@ -6,6 +6,10 @@ import msgs
 import os
 
 
+# do not use any thumbnails from before this date
+_TN_EPOCH = 1273742056
+
+
 class Thumbnailer(Component):
     """
     Base class for Thumbnailer components. Thumbnailers handle creating
@@ -95,7 +99,7 @@ class Thumbnailer(Component):
         if (os.path.exists(path)):
             mtime1 = f.mtime
             mtime2 = os.path.getmtime(path)
-            tn_epoch = config.thumbnails_epoch()
+            tn_epoch = max(_TN_EPOCH, config.thumbnails_epoch())
             if (mtime1 <= mtime2 and mtime2 >= tn_epoch):
                 return path
             else:
