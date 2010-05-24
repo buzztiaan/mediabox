@@ -73,6 +73,7 @@ class Window(Widget):
         self.__window.set_default_size(800, 480)
         self.__window.set_app_paintable(True)
         self.__window.set_double_buffered(False)
+        self.__window.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
 
         self.__window.connect("configure-event", self.__on_configure)
         self.__window.connect("expose-event", self.__on_expose)
@@ -311,8 +312,8 @@ class Window(Widget):
                     self.__window.resize(gtk.gdk.screen_width(),
                                          gtk.gdk.screen_height() - 120)
             #endif MAEMO5
-            self.__window.show()
             self.render()
+            self.__window.show()
         else:
             self.__window.hide()
 

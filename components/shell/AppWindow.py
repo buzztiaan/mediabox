@@ -277,10 +277,11 @@ class AppWindow(Component, Window):
 
         self.__is_portrait = False
         self.set_flag(windowflags.PORTRAIT, False)
-        
+        self.render()
         
     def handle_ASR_EV_PORTRAIT(self):
 
         self.__is_portrait = True
         self.set_flag(windowflags.PORTRAIT, True)
-
+        self.render()
+        

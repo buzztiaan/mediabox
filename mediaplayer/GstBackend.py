@@ -158,6 +158,9 @@ class GstBackend(AbstractBackend):
 
 
     def __on_change_volume(self, key, value):
+        """
+        Reacts on changing the system volume on the N900.
+        """
     
         # only accept system volume change notifications if the last app
         # volume change has been some time ago
@@ -197,24 +200,24 @@ class GstBackend(AbstractBackend):
 
     def _set_volume(self, volume):
 
-        # ugly as hell... but does its job
-        os.system("dbus-send --session --print-reply " \
-                  "--dest=com.nokia.mafw.renderer.Mafw-Gst-Renderer-Plugin.gstrenderer " \
-                  "/com/nokia/mafw/renderer/gstrenderer " \
-                  "com.nokia.mafw.extension.set_extension_property " \
-                  "string:'volume' variant:uint32:%d &" \
-                  % volume)
+        if (volume == self.__volume): return
+
+        if (platforms.MAEMO5):
+            # ugly as hell... but does its job
+            print "SET SYSTEM VOLUME", volume
+            os.system("dbus-send --session --print-reply " \
+                      "--dest=com.nokia.mafw.renderer.Mafw-Gst-Renderer-Plugin.gstrenderer " \
+                      "/com/nokia/mafw/renderer/gstrenderer " \
+                      "com.nokia.mafw.extension.set_extension_property " \
+                      "string:'volume' variant:uint32:%d 2>/dev/null &" \
+                      % volume)
+        else:
+            if (self.__player):
+                self.__player.set_property("volume", volume / 100.0)
+
         self._report_volume(volume)
         self.__last_volume_change_time = time.time()
-
-        #import dbus
-        #import platforms
-        
-        #bus = platforms.get_session_bus()
-        #obj = bus.get_object("com.nokia.mafw.renderer.Mafw-Gst-Renderer-Plugin.gstrenderer", "/com/nokia/mafw/renderer/gstrenderer")
-        #mafw_renderer = dbus.Interface(obj, "com.nokia.mafw.extension")
-        #mafw_renderer.set_extension_property("volume", volume)
-        #self.__player.set_property("volume", volume / 1000.0)
+        self.__volume = volume
 
     
     def _is_eof(self):
