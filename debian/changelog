@@ -1,9 +1,19 @@
-mediabox (2010.05.13) unstable; urgency=low
+mediabox (2010.05.30) unstable; urgency=low
 
-  Automatically scale down large cover art images before storing as thumbnail.
-  This increases scrolling speed in the album view if you have large covers.
+  Automatically scale down large images before storing as thumbnail.
+  This increases scrolling speed in the lists and saves disk space
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 13 May 2010 11:30:00 +0200
+  Various performance improvements
+  
+  Put configurator for changing media backends in again
+  
+  Support for displaying embedded cover art in MP3 streams (GStreamer backend)
+  
+  Maemo4 windowing stuff
+  
+  Small bug fixes  
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 30 May 2010 20:30:00 +0200
 
 mediabox (2010.05.08) unstable; urgency=low
 

@@ -112,6 +112,7 @@ class ThumbableGridView(GridView):
              time.time() - self.__last_cursor_time > 0.5)):
             item.click_at(px - x, py - y)
             self.set_cursor(-1)
+            self.invalidate_item(idx)
         else:
             self.set_cursor(idx)
             self.__last_cursor_time = time.time()
