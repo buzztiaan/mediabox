@@ -1,7 +1,5 @@
 from com import Configurator, msgs
-from ui.Label import Label
-from ui.layout import VBox
-from mediabox.TrackList import TrackList
+from ui.itemview import ThumbableGridView
 from BackendListItem import BackendListItem
 from theme import theme
 import mediaplayer
@@ -14,7 +12,7 @@ class ConfigBackend(Configurator):
     Configurator for mapping media backends to media file types.
     """
 
-    ICON = theme.mb_viewer_audio
+    ICON = theme.prefs_icon_theme
     TITLE = "Media Formats"
     DESCRIPTION = "Choose the player backend for each media format"
 
@@ -23,72 +21,49 @@ class ConfigBackend(Configurator):
     
         Configurator.__init__(self)
 
-        self.__vbox = VBox()
-        self.add(self.__vbox)
-
-        self.__list = TrackList()
-        self.__list.connect_item_activated(self.__on_item_clicked)
-        self.__vbox.add(self.__list)
-
-        lbl = Label("Be careful when changing these settings!",
-                    theme.font_mb_plain, theme.color_mb_listitem_text)
-        self.__vbox.add(lbl)
+        self.__list = ThumbableGridView()
+        self.add(self.__list)
                   
         self.__update_list()
 
-        
 
-    def render_this(self):
-    
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
+    def __on_item_clicked(self, item, idx):
 
-        self.__vbox.set_geometry(12, 0, w - 24, h)
-        self.__list.set_geometry(0, 0, w - 24, h - 32)
-        screen.fill_area(x, y, w, h, theme.color_mb_background)
+        backends = mediaplayer.get_backends()
+        backends.sort()
 
+        mediatype = item.get_media_type()
+        backend = item.get_backend()
+        try:
+            i = backends.index(backend)
+        except:
+            i = 0
+        i += 1
+        i %= len(backends)
+        item.set_backend(backends[i])
+        item.set_backend_icon(mediaplayer.get_backend_icon(backends[i]))
 
-
-    def __on_item_clicked(self, idx, px):
-
-        item = self.__list.get_items()[idx]
-        button = item.get_button_at(px)
-
-        if (button):
-            backends = mediaplayer.get_backends()
-            backends.sort()
-
-            mediatype = item.get_media_type()
-            backend = item.get_backend()
-            try:
-                i = backends.index(backend)
-            except:
-                i = 0
-            i += 1
-            i %= len(backends)
-            item.set_backend(backends[i])
-            item.set_backend_icon(mediaplayer.get_backend_icon(backends[i]))
-
-            item.invalidate()
-            self.__list.fx_cycle_item(idx)
+        self.__list.invalidate_item(idx)
+        #self.__list.fx_cycle_item(idx)
+        self.__list.render()
             
-            #self.__list.invalidate_buffer()
-            #self.__list.render()
+        mediaplayer.set_backend_for(mediatype, backends[i])
+        mediaplayer.write_user_mapping()        
 
-            mediaplayer.set_backend_for(mediatype, backends[i])
-            mediaplayer.write_user_mapping()        
-        #end if
 
     def __update_list(self):
     
         mediatypes = mediaplayer.get_media_types()
         mediatypes.sort()
+        idx = 0
         for mt in mediatypes:
             backend = mediaplayer.get_backend_for(mt)
             if (backend != "dummy"):
                 item = BackendListItem(mt, backend)
                 item.set_backend_icon(mediaplayer.get_backend_icon(backend))
+                #item.set_size(w, 80)
                 self.__list.append_item(item)
+                item.connect_clicked(self.__on_item_clicked, item, idx)
+                idx += 1
         #end for
 

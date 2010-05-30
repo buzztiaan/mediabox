@@ -202,7 +202,7 @@ class StorageBrowser(ThumbableGridView):
         for icon, name, cb in actions:
             dlg.add_option(icon, name)
             callbacks.append(cb)
-           
+
         if (dlg.run() != 0):
             return
 
@@ -561,7 +561,7 @@ class StorageBrowser(ThumbableGridView):
             #end if
 
             # give visual feedback while loading the visible part of a folder
-            if (not f or len(entries) in (8, 16)):
+            if (not f or len(entries) == 12):
                 self.invalidate()
                 self.render()
             #end if

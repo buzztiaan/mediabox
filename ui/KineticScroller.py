@@ -262,10 +262,13 @@ class KineticScroller(EventEmitter, Observable):
 
 
         # begin dragging
-        if (not self.__is_dragging and (abs(dx) > self.__drag_threshold or \
-                                        abs(dy) > self.__drag_threshold)):
+        
+        if (abs(dx) > self.__drag_threshold or \
+            abs(dy) > self.__drag_threshold):
             self.__abort_tap_and_hold()
             self.__is_click = False
+
+        if (not self.__is_dragging):
             self.__is_dragging = True
             self.__drag_pointer = (prev_px, prev_py)
             self.__drag_begin = time.time()

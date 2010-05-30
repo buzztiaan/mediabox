@@ -92,7 +92,13 @@ class GstBackend(AbstractBackend):
 
     def __start_gst(self):
 
-        self.__player = gst.element_factory_make("playbin2", "player")
+        if (platforms.MAEMO5):
+            # normal playbin is broken on Maemo5
+            self.__player = gst.element_factory_make("playbin2", "player")
+        else:
+            # playbin2 is considered experimental elsewhere
+            self.__player = gst.element_factory_make("playbin", "player")
+            
         bus = self.__player.get_bus()
         bus.add_signal_watch()
         bus.enable_sync_message_emission()

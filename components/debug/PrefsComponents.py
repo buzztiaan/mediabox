@@ -44,7 +44,9 @@ class PrefsComponents(Configurator):
         #end for
         
         if (not iface):
-            iface = "- no public interface -"
+            iface = "No information available"
+        else:
+            iface = "Subscribed to:\n\n" + iface
         
         self.call_service(msgs.UI_ACT_SHOW_INFO,
                           iface.strip())
@@ -56,12 +58,7 @@ class PrefsComponents(Configurator):
             self.__update_list()
             self.__needs_update = False
 
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
-
-        self.__list.set_geometry(0, 0, w, h)
-        screen.fill_area(x, y, w, h, theme.color_mb_background)
+        Configurator.render_this(self)
 
 
     def __update_list(self):

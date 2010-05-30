@@ -1,13 +1,18 @@
 from Component import Component
 from mediabox import config
+from ui import pixbuftools
 from utils import logging
 import msgs
 
 import os
+import gtk
 
 
 # do not use any thumbnails from before this date
-_TN_EPOCH = 1273742056
+_TN_EPOCH = 1275153936
+
+# static pixbuf for scaling down
+_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 120, 120)
 
 
 class Thumbnailer(Component):
@@ -78,6 +83,13 @@ class Thumbnailer(Component):
         Saves the given pixbuf as thumbnail for the given file.
         Thumbnailers may use this method for caching thumbnails.
         """
+    
+        # always scale down large thumbnails
+        if (pbuf.get_width() > 160 or pbuf.get_height() > 160):
+            _PBUF.fill(0x00000000)
+            pixbuftools.fit_pbuf(_PBUF, pbuf, 0, 0, 120, 120)
+            pbuf = _PBUF
+        #end if
     
         path = self.__get_thumbnail_path(f)
         try:

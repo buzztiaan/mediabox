@@ -1,5 +1,5 @@
 from Widget import Widget
-from Pixmap import Pixmap, TEMPORARY_PIXMAP
+from Pixmap import Pixmap
 from utils import logging
 
 
@@ -15,7 +15,6 @@ class ImageButton(Widget):
         self.__img2 = img2
     
         Widget.__init__(self)
-        #self.set_size(img1.get_width(), img1.get_height())
         self.set_size(64, 64)
         
         if (not manual):
@@ -25,15 +24,14 @@ class ImageButton(Widget):
     
     def _reload(self):
     
-        #self.__bg = None
         self.set_images(self.__img1, self.__img2)
     
     
     def set_size(self, w, h):
     
         Widget.set_size(self, w ,h)
-        self.__bg = Pixmap(None, w, h)
-        self.__buffer = TEMPORARY_PIXMAP #Pixmap(None, w, h)
+        self.__bg = None
+        self.__buffer = None
     
         
     def render_this(self):
@@ -45,8 +43,8 @@ class ImageButton(Widget):
         screen = self.get_screen()
         
         # save background
-        #if (not self.__bg):
-        #    self.__bg = Pixmap(None, w, h)
+        if (not self.__bg):
+            self.__bg = Pixmap(None, w, h)
         self.__bg.copy_buffer(screen, x, y, 0, 0, w, h)
 
         self.__render_button()
@@ -56,10 +54,8 @@ class ImageButton(Widget):
     
         if (clicked):
             self.__state = 1
-            #self.__render_button(1)
         else:
             self.__state = 0
-            #self.__render_button(0)
         self.__render_button()
             
         
@@ -73,7 +69,7 @@ class ImageButton(Widget):
     def __render_button(self):
 
         #self.__state = state
-        if (not self.may_render()): return
+        if (not self.may_render() or not self.__bg): return
 
         x, y = self.get_screen_pos()
         w, h = self.get_size()    
@@ -84,12 +80,11 @@ class ImageButton(Widget):
         else:
             img = self.__img2
 
+        if (not self.__buffer):
+            self.__buffer = Pixmap(None, w, h)
+
         self.__buffer.copy_pixmap(self.__bg, 0, 0, 0, 0, w, h)
-        #self.__buffer.draw_pixbuf(img,
-        #                          (w - img.get_width()) / 2,
-        #                          (h - img.get_height()) / 2)
-        logging.debug("size of button image: %d x %d",
-                      img.get_width(), img.get_height())
+        
         if ((w, h) != (img.get_width(), img.get_height())):
             self.__buffer.draw_frame(img, 0, 0, w, h, True)
         else:
@@ -105,9 +100,6 @@ class ImageButton(Widget):
     
         self.__img1 = img1
         self.__img2 = img2
-        
-        #self.set_size(img1.get_width(), img1.get_height())
-        #self.__render_button(self.__state)
         self.__render_button()
 
 
@@ -115,9 +107,7 @@ class ImageButton(Widget):
     
         if (active):
             self.__state = 1
-            #self.__render_button(1)
         else:
             self.__state = 0
-            #self.__render_button(0)
         self.__render_button()
 

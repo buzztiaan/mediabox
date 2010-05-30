@@ -41,6 +41,19 @@ By default MediaBox is preconfigured with shortcuts for your Documents folder, y
 END
 
 
+BEGIN Selecting Items
+On Nokia N800 and N810:
+
+Tap on an item once to highlight an item, and tap again on the item to select it.
+The double-tapping approach was chosen to go well with these device's touch screen.
+
+On other devices:
+
+Tap on an item once to select it. The single-tapping approach goes well with
+highly responsive touch screens.
+END
+
+
 BEGIN Putting Items on the Shelf
 IMAGE illus/add-to-shelf.jpg
 Tap and hold on an item in the navigator that you want to put on the shelf. In the popup menu choose the option
@@ -234,17 +247,6 @@ in the navigator and start playing a track.
 END
 
 
-BEGIN Internet Radio
-You can browse the SHOUTcast internet radio directory under
-
- [Music → SHOUTcast Radio]
- 
-The SHOUTcast (http://www.shoutcast.com) directory lists thousands of internet radio stations of various genres.
-
-Tip: You can put stations you like on the shelf for quick access.
-END
-
-
 BEGIN Browsing UPnP/DLNA Media Shares
 UPnP media shares in your network appear in
 
@@ -277,6 +279,30 @@ Note:
 Streaming media from your device to a renderer causes a lot of network traffic and may decrease your device's battery life.
 
 You can also direct media from a media share to a media renderer, in which case MediaBox will only act as remote control without impact on battery life.
+END
+
+
+BEGIN Playing Web Content - Internet Radio
+You can browse the SHOUTcast internet radio directory under
+
+ [Music → SHOUTcast Radio]
+ 
+The SHOUTcast (http://www.shoutcast.com) directory lists thousands of internet radio stations of various genres.
+
+Tip: You can put stations you like on the shelf for quick access.
+END
+
+
+BEGIN Playing Web Content - YouTube
+You can browse clips from the YouTube video sharing service under
+
+ [Videos → YouTube]
+
+Some videos are available in different formats and qualities. If there is more than
+one compatible format available, MediaBox will let you choose a format.
+
+Some content from the YouTube service or the service in general may not be accessible
+in your country, either for political reasons or interests of the content industry.
 END
 
 

@@ -24,6 +24,8 @@ class VideoThumbnailer(Thumbnailer):
 
     def make_quick_thumbnail(self, f):
 
+        f.frame = (theme.mb_frame_video, 14, 4, 134, 112)
+
         thumb = self._get_thumbnail(f)
         if (thumb):
             return (thumb, True)

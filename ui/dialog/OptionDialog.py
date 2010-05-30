@@ -1,6 +1,8 @@
 from ui import Window
+from ui import windowflags
 from ui.itemview import ThumbableGridView
 from ui.itemview import ButtonItem
+import platforms
 
 import gtk
 
@@ -13,6 +15,7 @@ class OptionDialog(Window):
         self.__choice = -1
     
         Window.__init__(self, Window.TYPE_DIALOG)
+        self.set_flag(windowflags.EXCLUSIVE, True)
         self.connect_closed(self.__on_close)
         self.set_visible(False)
         self.set_title(title)
@@ -24,18 +27,13 @@ class OptionDialog(Window):
     def __on_close(self):
     
         self.set_visible(False)
-       
-       
-    def render_this(self):
-    
-        w, h = self.get_size()
-        self.__list.set_geometry(0, 0, w, h)
         
 
     def add_option(self, icon, label):
     
         def on_choice(i):
             self.__choice = i
+            self.set_visible(False)
     
         btn = ButtonItem(label)
         btn.connect_clicked(on_choice, self.__num_of_options)
@@ -50,15 +48,17 @@ class OptionDialog(Window):
 
 
     def run(self):
-    
+
         w = gtk.gdk.screen_width()
         h = min(gtk.gdk.screen_height() - 120, self.__num_of_options * 80)
+        if (platforms.MAEMO4):
+            w -= 80
         self.set_window_size(w, h)
-        self.set_visible(True)
+    
+        Window.run(self)
         
-        self.__choice = -1
-        while (self.is_visible() and self.__choice == -1):
-            gtk.main_iteration(True)
-        self.destroy()
-        return 0
+        if (self.__choice == -1):
+            return self.RETURN_CANCEL
+        else:
+            return self.RETURN_OK
 

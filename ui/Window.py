@@ -1,7 +1,9 @@
 from Widget import Widget
 from ui.Pixmap import Pixmap
 from ui import windowflags
+from ui.TitleBar import TitleBar
 import platforms
+from theme import theme
 
 try:
     import gtk
@@ -17,7 +19,8 @@ except:
 class Window(Widget):
 
     TYPE_TOPLEVEL = 0
-    TYPE_DIALOG = 1
+    TYPE_SUBWINDOW = 1
+    TYPE_DIALOG = 2
 
     RETURN_OK = 0
     RETURN_CANCEL = 1
@@ -25,13 +28,23 @@ class Window(Widget):
     RETURN_NO = 3
 
 
+    EVENT_RAISED = "event-raised"
+    EVENT_HID = "event-hid"
     EVENT_CLOSED = "event-closed"
-    
+
+    # one window may be exclusive at a time. input in other windows will be
+    # ignored and the exclusive window gets hidden in such case (e.g. for
+    # simulating the Maemo5 dialog paradigma on Maemo4)
+    __exclusive_window = [None]
+        
 
     def __init__(self, wtype):
 
         self.__wtype = wtype
         self.__flags = 0
+        
+        # widget of the windows contents
+        self.__contents = []
 
         # window menu
         if (platforms.MAEMO5):
@@ -61,19 +74,45 @@ class Window(Widget):
                 self.__window.fullscreen()
             else:
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+
+        elif (wtype == self.TYPE_SUBWINDOW):
+            if (platforms.MAEMO4):
+                self.__window = gtk.Dialog()
+                self.__window.set_decorated(False)
+                # hide some ugly separator :)
+                self.__window.vbox.get_children()[0].hide()
+            else:
+                self.__window = gtk.Dialog()
                             
         elif (wtype == self.TYPE_DIALOG):
             if (platforms.MAEMO4):
-                self.__window = hildon.Window()
-                self.__window.fullscreen()
+                self.__window = gtk.Dialog()
+                # hide some ugly separator :)
+                self.__window.vbox.get_children()[0].hide()
             else:
                 self.__window = gtk.Dialog()
 
+        # title bar on some platforms
+        if (not platforms.MAEMO5 and wtype != self.TYPE_DIALOG):
+            self.__title_bar = TitleBar()
+            self.__title_bar.connect_switch(lambda :self.__window.iconify())
+            self.__title_bar.connect_menu(lambda :self.show_menu())
+            self.__title_bar.connect_close(
+                                  lambda :self.emit_event(self.EVENT_CLOSED))
+            if (wtype == self.TYPE_SUBWINDOW):
+                self.__title_bar.set_mode(TitleBar.MODE_SUBWINDOW)
+
+            Widget.add(self, self.__title_bar)
+
+        else:
+            self.__title_bar = None
+            
         self.__window.set_title(" ")
         self.__window.set_default_size(800, 480)
         self.__window.set_app_paintable(True)
         self.__window.set_double_buffered(False)
-        self.__window.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
+        self.__window.modify_bg(gtk.STATE_NORMAL,
+                          gtk.gdk.color_parse(str(theme.color_mb_background)))
 
         self.__window.connect("configure-event", self.__on_configure)
         self.__window.connect("expose-event", self.__on_expose)
@@ -98,10 +137,10 @@ class Window(Widget):
 
         self.__layout = gtk.Fixed()
         self.__layout.show()
-        if (wtype == self.TYPE_TOPLEVEL or platforms.MAEMO4):
-            self.__window.add(self.__layout)
-        else:
+        try:
             self.__window.vbox.add(self.__layout)
+        except:
+            self.__window.add(self.__layout)
         
         # video screen
         self.__vidscreen = gtk.DrawingArea()
@@ -122,6 +161,16 @@ class Window(Widget):
         self._connect(self.EVENT_CLOSED, cb, *args)
 
 
+    def connect_raised(self, cb, *args):
+    
+        self._connect(self.EVENT_RAISED, cb, *args)
+
+
+    def connect_hid(self, cb, *args):
+    
+        self._connect(self.EVENT_HID, cb, *args)
+
+
     def get_window(self):
     
         return self
@@ -139,7 +188,9 @@ class Window(Widget):
         for flag in [windowflags.FULLSCREEN,
                      windowflags.PORTRAIT,
                      windowflags.CATCH_VOLUME_KEYS,
-                     windowflags.BUSY]:
+                     windowflags.BUSY,
+                     windowflags.FRAMELESS,
+                     windowflags.EXCLUSIVE]:
             if (flags & flag != self.__flags &  flag):
                 changes.append((flag, flags & flag))
         #end for
@@ -165,6 +216,37 @@ class Window(Widget):
             new_flags -= flag
         
         self.set_flags(new_flags)
+
+
+    """
+    def get_size(self):
+    
+        w, h = Widget.get_size(self)
+        return (696, 396)
+
+
+    def get_screen_pos(self):
+    
+        return (12, 0)
+    """
+
+
+    def add(self, w):
+    
+        Widget.add(self, w)
+        if (not w in self.__contents):
+            self.__contents.append(w)
+
+
+    def __check_exclusive(self):
+    
+        if (self.__exclusive_window[0] and
+            self.__exclusive_window[0] != self):
+            self.__exclusive_window[0].set_visible(False)
+            self.__exclusive_window[0] = None
+            return False
+        else:
+            return True
 
 
     def __on_configure(self, src, ev):
@@ -194,6 +276,9 @@ class Window(Widget):
 
 
     def __on_button_pressed(self, src, ev):
+
+        if (not self.__check_exclusive()):
+            return
 
         if (ev.button == 1):
             px, py = src.get_pointer()
@@ -228,6 +313,9 @@ class Window(Widget):
 
 
     def __on_key_pressed(self, src, ev):
+
+        if (not self.__check_exclusive()):
+            return
     
         keyval = ev.keyval
         c = gtk.gdk.keyval_to_unicode(keyval)
@@ -271,11 +359,16 @@ class Window(Widget):
     def _update_flag(self, flag, value):
 
         if (flag == windowflags.FULLSCREEN):
-            if (not platforms.MAEMO4):
+            if (platforms.MAEMO4):
+                if (self.__title_bar):
+                    self.__title_bar.set_visible(not value)
+                    self.render()
+            else:
                 if (value):
                     self.__window.fullscreen()
                 else:
                     self.__window.unfullscreen()
+            
 
         elif (flag == windowflags.PORTRAIT):
             if (platforms.MAEMO5):
@@ -295,7 +388,11 @@ class Window(Widget):
                                                      gtk.gdk.PROP_MODE_REPLACE,
                                                      [value and 1 or 0])
 
+        elif (flag == windowflags.FRAMELESS):
+            self.__title_bar.set_visible(not value)
 
+        elif (flag == windowflags.EXCLUSIVE):
+            self.__exclusive_window[0] = self
 
 
     def _get_window_impl(self):
@@ -307,14 +404,20 @@ class Window(Widget):
 
         if (self.is_visible()):
             if (platforms.MAEMO5):
-                if (self.__wtype == self.TYPE_DIALOG and
+                if (self.__wtype != self.TYPE_TOPLEVEL and
                     not self.__has_size_set):
                     self.__window.resize(gtk.gdk.screen_width(),
                                          gtk.gdk.screen_height() - 120)
-            #endif MAEMO5
+            elif (platforms.MAEMO4):
+                if (self.__wtype != self.TYPE_TOPLEVEL and self.__has_size_set):
+                    w, h = self.__window.get_size()
+                    self.__window.move(0, 480 - h)
+            #endif
             self.render()
             self.__window.show()
+            self.emit_event(self.EVENT_RAISED)
         else:
+            self.emit_event(self.EVENT_HID)
             self.__window.hide()
 
 
@@ -326,6 +429,8 @@ class Window(Widget):
     def destroy(self):
     
         self.__window.destroy()
+        if (self.__exclusive_window[0] == self):
+            self.__exclusive_window[0] = None
 
 
     def has_focus(self):
@@ -335,13 +440,39 @@ class Window(Widget):
 
     def set_window_size(self, w, h):
     
+        if (self.__title_bar):
+            h += 57
         self.__window.resize(w, h)
         self.__has_size_set = True
+
+
+    def render_this(self):
+    
+        w, h = self.get_size()
+        if (self.__title_bar and self.__title_bar.is_visible()):
+            self.__title_bar.set_geometry(0, 0, w, 57)
+            offset = 57
+        else:
+            offset = 0
+        for c in self.__contents:
+            c.set_geometry(0, offset, w, h - offset)
 
 
     def set_title(self, title):
     
         self.__window.set_title(title)
+        if (self.__title_bar):
+            self.__title_bar.set_title(title)
+
+
+    def show_menu(self):
+    
+        def positioner(menu):
+            x, y = self.__window.window.get_position()
+            return (x + 80, y + 57, False)
+
+        if (self.__menu_items):
+            self.__menu.popup(None, None, positioner, 1, 0)
 
 
     def set_menu_item(self, name, label, visible, cb):
@@ -456,4 +587,7 @@ class Window(Widget):
         while (self.is_visible()):
             gtk.main_iteration(True)
         #end while
+
+        if (self.__exclusive_window[0] == self):
+            self.__exclusive_window[0] = None
 

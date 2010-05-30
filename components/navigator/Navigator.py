@@ -251,16 +251,26 @@ class Navigator(Dialog):
         self.set_flag(windowflags.BUSY, True)
         
         # show or hide [Add] button
-        if (f.folder_flags & f.ITEMS_ADDABLE):
+        is_visible = self.__btn_add.is_visible()
+        if (f.folder_flags & f.ITEMS_ADDABLE and not is_visible):
             self.__btn_add.set_visible(True)
-        else:
+            self.__update_layout()
+            self.render()
+        elif (is_visible):
             self.__btn_add.set_visible(False)
-            
-        self.__update_layout()
-        self.render()
+            self.__update_layout()
+            self.render()
         
         self.__update_items_per_row(f)
 
+        # set platform-specific click behavior
+        if (platforms.MAEMO4):
+            self.__browser.set_click_behavior(
+              self.__browser.CLICK_BEHAVIOR_DOUBLE)
+        else:
+            self.__browser.set_click_behavior(
+              self.__browser.CLICK_BEHAVIOR_SINGLE)
+        
 
     def __on_progress_folder(self, f, c):
 
@@ -402,14 +412,6 @@ class Navigator(Dialog):
                 self.__play_files = [ fl for fl in self.__browser.get_files()
                                       if not fl.mimetype.endswith("-folder") ]
                 self.__random_files = []
-                
-
-
-    def render_this(self):
-    
-        #Dialog.render_this(self)
-        w, h = self.get_size()
-        self.__arr.set_geometry(0, 0, w, h)
 
 
     def __go_previous(self):

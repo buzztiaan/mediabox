@@ -8,6 +8,7 @@ def get_devices():
     from AudioArtistStorage import AudioArtistStorage
     from AudioGenreStorage import AudioGenreStorage
     from ImageStorage import ImageStorage
+    from CameraStorage import CameraStorage
     
     from HistoryDevice import HistoryDevice
     from BookmarkDevice import GenericBookmarkDevice
@@ -20,6 +21,7 @@ def get_devices():
                AudioArtistStorage,
                AudioGenreStorage,
                ImageStorage,
+               CameraStorage,
 
                HistoryDevice,
                GenericBookmarkDevice]

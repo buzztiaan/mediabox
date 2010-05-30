@@ -14,10 +14,14 @@ class TitleBar(Widget):
     EVENT_CLOSE = "event-close"
     EVENT_MENU = "event-menu"
     
+    MODE_NORMAL = 0
+    MODE_SUBWINDOW = 1
+    
 
     def __init__(self):
     
         self.__title = ""
+        self.__mode = self.MODE_NORMAL
     
         Widget.__init__(self)
         self.connect_clicked(lambda *a:self.emit_event(self.EVENT_MENU))
@@ -54,6 +58,12 @@ class TitleBar(Widget):
     
         self.render()
 
+
+    def set_mode(self, mode):
+    
+        self.__mode = mode
+        self.render()
+
         
     def set_title(self, title):
     
@@ -68,14 +78,23 @@ class TitleBar(Widget):
         w, h = self.get_size()
         screen = self.get_screen()
         
-        screen.draw_frame(theme.titlebar_bg, x, y, w, h, True,
-                          screen.BOTTOM)
-        screen.draw_pixbuf(theme.window_menu, x + 80, 7)
-        self.__btn_switch.set_geometry(0, 0, 80, 57)
+        screen.draw_frame(theme.titlebar_bg, x, y, w, h, True)
         self.__btn_close.set_geometry(w - 80, 0, 80, 57)
 
-        screen.draw_text(self.__title,
-                         theme.font_ui_titlebar,
-                         x+ 80 + 50, y + 10,
-                         theme.color_ui_titlebar)
+        if (self.__mode == self.MODE_NORMAL):
+            screen.draw_pixbuf(theme.window_menu, x + 80, 7)
+            self.__btn_switch.set_geometry(0, 0, 80, 57)
+            self.__btn_switch.set_visible(True)
+
+            screen.draw_text(self.__title,
+                             theme.font_ui_titlebar,
+                             x + 80 + 50, y + 14,
+                             theme.color_ui_titlebar)
+
+        elif (self.__mode == self.MODE_SUBWINDOW):
+            self.__btn_switch.set_visible(False)
+            screen.draw_text(self.__title,
+                             theme.font_ui_titlebar,
+                             x + 12, y + 14,
+                             theme.color_ui_titlebar)
 

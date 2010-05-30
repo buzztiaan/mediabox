@@ -52,12 +52,6 @@ class DisplayLightPrefs(Configurator):
         self.__list.append_item(self.__label_lit)
         chbox.select_by_value(config.get_display_lit())
         
-
-    def render_this(self):
-    
-        w, h = self.get_size()
-        self.__list.set_geometry(0, 0, w, h)
-        
         
     def __on_select_display_lit(self, value):
     

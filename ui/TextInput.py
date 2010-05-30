@@ -24,6 +24,7 @@ class TextInput(Widget):
             self.__input = hildon.Entry(gtk.HILDON_SIZE_AUTO)
         else:
             self.__input = gtk.Entry()
+            #self.__input.set_flags(gtk.CAN_FOCUS)
         
         
     def _visibility_changed(self):

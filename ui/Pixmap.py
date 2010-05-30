@@ -127,28 +127,27 @@ class Pixmap(object):
         self.__cairo_ctx = None
 
         self.__buffer = None
-        self.__buffer_cmap = None
         self.__buffer_gc = None
 
 
         if (pmap):
             self.__pixmap = pmap
             self.__buffered = True
-            self.__create_buffer()
             w, h = pmap.get_size()
         else:
             self.__pixmap = gtk.gdk.Pixmap(None, w, h, _DEPTH)
             self.__buffered = False
-            
+        
         self.__width = w
         self.__height = h
         
         self.__cmap = self.__pixmap.get_colormap() or _CMAP
         self.__pixmap.set_colormap(self.__cmap)
         self.__gc = self.__pixmap.new_gc()
+        self.__create_buffer()
         
         if (_HAVE_CAIRO):
-            self.__cairo_ctx = self.__pixmap.cairo_create()
+            self.__cairo_ctx = self.__buffer.cairo_create()
                 
                         
     def _get_pixmap(self):
@@ -168,22 +167,24 @@ class Pixmap(object):
         
     def __create_buffer(self):
     
-        w, h = self.__pixmap.get_size()
-        self.__buffer = gtk.gdk.Pixmap(None, w, h, _DEPTH)
-        self.__buffer_cmap = self.__buffer.get_colormap() or _CMAP
-        self.__buffer.set_colormap(self.__buffer_cmap)
-        self.__buffer_gc = self.__buffer.new_gc()
-
+        if (self.__buffered):
+            w, h = self.__pixmap.get_size()
+            self.__buffer = gtk.gdk.Pixmap(None, w, h, _DEPTH)
+            self.__buffer.set_colormap(self.__cmap)
+            self.__buffer_gc = self.__buffer.new_gc()
+        else:
+            self.__buffer = self.__pixmap
+            self.__buffer_gc = self.__gc
         
 
-    def __to_buffer(self, x, y, w, h):
+    def __to_screen(self, x, y, w, h):
         """
         Copies the given area to the buffer.
         """
     
-        if (not self.__buffer): return
+        if (not self.__buffered): return
         
-        self.__buffer.draw_drawable(self.__buffer_gc, self.__pixmap,
+        self.__pixmap.draw_drawable(self.__gc, self.__buffer,
                                     x, y, x, y, w, h)
             
             
@@ -278,15 +279,7 @@ class Pixmap(object):
         @return: whether this pixmap is buffered
         """
     
-        return (self.__buffer != None)
-        
-        
-    def is_offscreen(self):
-        """
-        @return: whether this pixmap is offscreen
-        """
-        
-        return (self.__pixmap == None)
+        return self.__buffered
 
 
     def get_color_depth(self):
@@ -334,29 +327,11 @@ class Pixmap(object):
         else:
             rect = gtk.gdk.Rectangle(0, 0, self.__width, self.__height)
 
-        self.__gc.set_clip_rectangle(rect)
+        self.__buffer_gc.set_clip_rectangle(rect)
         #if (self.__buffered):
         #    self.__buffer_gc.set_clip_rectangle(rect)
 
 
-    def set_clip_mask(self, mask = None):
-        """
-        @todo: DEPRECATED
-        """
-     
-        if (mask):
-            self.__gc.set_clip_mask(mask)
-            if (self.__buffered):
-                self.__buffer_gc.set_clip_mask(mask)
-        else:
-            rect = gtk.gdk.Rectangle(0, 0, self.__width, self.__height)
-            self.__gc.set_clip_rectangle(rect)
-            #if (self.__buffered):
-            #    self.__buffer_gc.set_clip_rectangle(rect)
-
-
-              
-        
     def get_size(self):
         """
         Returns the width and height of this pixmap.
@@ -395,7 +370,7 @@ class Pixmap(object):
             self.__cairo_ctx.restore()
             
             w, h = self.get_size()
-            self.__to_buffer(0, 0, w, h)
+            self.__to_screen(0, 0, w, h)
         #end if
 
 
@@ -436,10 +411,10 @@ class Pixmap(object):
             else:
                 # RGB
                 col = self.__cmap.alloc_color(str(color))
-                self.__gc.set_foreground(col)
-                self.__pixmap.draw_rectangle(self.__gc, True, x, y, w, h)
+                self.__buffer_gc.set_foreground(col)
+                self.__buffer.draw_rectangle(self.__buffer_gc, True, x, y, w, h)
     
-        self.__to_buffer(x, y, w, h)
+        self.__to_screen(x, y, w, h)
         
         
     def move_area(self, x, y, w, h, dx, dy):
@@ -465,10 +440,10 @@ class Pixmap(object):
     
         _reload(color)
         col = self.__cmap.alloc_color(str(color))
-        self.__gc.set_foreground(col)
-        self.__pixmap.draw_line(self.__gc, x1, y1, x2, y2)
+        self.__buffer_gc.set_foreground(col)
+        self.__buffer.draw_line(self.__buffer_gc, x1, y1, x2, y2)
 
-        self.__to_buffer(min(x1, x2), min(y1, y2),
+        self.__to_screen(min(x1, x2), min(y1, y2),
                          abs(x1 - x2), abs(y1 - y2))
 
 
@@ -484,10 +459,10 @@ class Pixmap(object):
         w -= 1
         h -= 1
         col = self.__cmap.alloc_color(str(color))
-        self.__gc.set_foreground(col)
-        self.__pixmap.draw_rectangle(self.__gc, False, x, y, w, h)
+        self.__buffer_gc.set_foreground(col)
+        self.__buffer.draw_rectangle(self.__buffer_gc, False, x, y, w, h)
 
-        self.__to_buffer(x, y, w, h)
+        self.__to_screen(x, y, w, h)
 
 
     def draw_centered_text(self, text, font, x, y, w, h, color,
@@ -540,7 +515,7 @@ class Pixmap(object):
             self.__layout.set_markup(text)
         else:
             self.__layout.set_text(text)
-        self.__gc.set_foreground(self.__cmap.alloc_color(str(color)))
+        self.__buffer_gc.set_foreground(self.__cmap.alloc_color(str(color)))
         
         rect_a, rect_b = self.__layout.get_extents()
         nil, nil, w, h = rect_b
@@ -549,9 +524,9 @@ class Pixmap(object):
         w = min(w, self.__width - x)
         h = min(h, self.__height - y)
         
-        self.__pixmap.draw_layout(self.__gc, x, y, self.__layout)
+        self.__buffer.draw_layout(self.__buffer_gc, x, y, self.__layout)
 
-        self.__to_buffer(x, y, w, h)
+        self.__to_screen(x, y, w, h)
 
                                     
 
@@ -577,7 +552,7 @@ class Pixmap(object):
             self.__layout.set_markup(text)
         else:
             self.__layout.set_text(text)
-        self.__gc.set_foreground(self.__cmap.alloc_color(str(color)))
+        self.__buffer_gc.set_foreground(self.__cmap.alloc_color(str(color)))
         
         rect_a, rect_b = self.__layout.get_extents()
         nil, nil, w, h = rect_b
@@ -586,9 +561,9 @@ class Pixmap(object):
         w = min(w, self.__width - x)
         h = min(h, self.__height - y)
         
-        self.__pixmap.draw_layout(self.__gc, x, y, self.__layout)
+        self.__buffer.draw_layout(self.__buffer_gc, x, y, self.__layout)
 
-        self.__to_buffer(x, y, w, h)
+        self.__to_screen(x, y, w, h)
         
         
     def draw_pixbuf(self, pbuf, x, y, w = -1, h = -1, scale = False):
@@ -604,12 +579,12 @@ class Pixmap(object):
         _reload(pbuf)
         if (scale):
             pbuf = pbuf.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
-        self.__pixmap.draw_pixbuf(self.__gc, pbuf,
+        self.__buffer.draw_pixbuf(self.__buffer_gc, pbuf,
                                   0, 0, x, y, w, h)
 
         if (w == -1): w = pbuf.get_width()
         if (h == -1): h = pbuf.get_height()
-        self.__to_buffer(x, y, w, h)
+        self.__to_screen(x, y, w, h)
 
         del pbuf
 
@@ -628,9 +603,10 @@ class Pixmap(object):
         if (srcx < 0 or srcy < 0 or dstx < 0 or dsty < 0):
             return
 
-        self.__pixmap.draw_pixbuf(self.__gc, pbuf, srcx, srcy, dstx, dsty, w, h)
+        self.__buffer.draw_pixbuf(self.__buffer_gc, pbuf,
+                                  srcx, srcy, dstx, dsty, w, h)
         
-        self.__to_buffer(dstx, dsty, w, h)
+        self.__to_screen(dstx, dsty, w, h)
                                       
 
     def fit_pixbuf(self, pbuf, x, y, w, h):
@@ -670,7 +646,7 @@ class Pixmap(object):
                              int(pbuf_width * scale), int(pbuf_height * scale),
                              scale = True)
 
-        self.__to_buffer(x, y, w, h)
+        self.__to_screen(x, y, w, h)
 
 
 
@@ -776,17 +752,17 @@ class Pixmap(object):
         @param w h: size of area to copy
         """
     
-        self.__pixmap.draw_drawable(self.__gc, pmap._get_pixmap(),
+        self.__buffer.draw_drawable(self.__buffer_gc, pmap._get_pixmap(),
                                     srcx, srcy, dstx, dsty, w, h)
 
-        
-        if (self.__buffer):
-            if (pmap == self):                
-                self.__buffer.draw_drawable(self.__buffer_gc, self.__buffer,
-                                            srcx, srcy, dstx, dsty, w, h)
-            else:    
-                self.__buffer.draw_drawable(self.__buffer_gc, pmap._get_pixmap(),
-                                            srcx, srcy, dstx, dsty, w, h)
+        self.__to_screen(dstx, dsty, w, h)
+        #if (self.__buffer):
+        #    if (pmap == self):                
+        #        self.__buffer.draw_drawable(self.__buffer_gc, self.__buffer,
+        #                                    srcx, srcy, dstx, dsty, w, h)
+        #    else:    
+        #        self.__buffer.draw_drawable(self.__buffer_gc, pmap._get_pixmap(),
+        #                                    srcx, srcy, dstx, dsty, w, h)
 
 
     def copy_buffer(self, pmap, srcx, srcy, dstx, dsty, w, h):
@@ -803,11 +779,12 @@ class Pixmap(object):
         """
     
         if (pmap.is_buffered()):
-            self.__pixmap.draw_drawable(self.__gc, pmap._get_buffer(),
+            self.__buffer.draw_drawable(self.__buffer_gc, pmap._get_buffer(),
                                         srcx, srcy, dstx, dsty, w, h)
-            if (self.__buffer):
-                self.__buffer.draw_drawable(self.__buffer_gc, pmap._get_buffer(),
-                                            srcx, srcy, dstx, dsty, w, h)
+            self.__to_screen(dstx, dsty, w, h)
+            #if (self.__buffer):
+            #    self.__buffer.draw_drawable(self.__buffer_gc, pmap._get_buffer(),
+            #                                srcx, srcy, dstx, dsty, w, h)
         else:
             self.copy_pixmap(pmap, srcx, srcy, dstx, dsty, w, h)
             
@@ -821,7 +798,7 @@ class Pixmap(object):
         @param x y w h: area to restore
         """
     
-        if (not self.__buffer): return
+        if (not self.__buffered): return
         
         self.__pixmap.draw_drawable(self.__gc, self.__buffer,
                                     x, y, x, y, w, h)

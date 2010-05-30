@@ -35,12 +35,6 @@ class ConfigTheme(Configurator):
         Configurator.set_size(self, w, h)
         for item in self.__list.get_items():
             item.set_size(w, 80)
-
-
-    def render_this(self):
-    
-        w, h = self.get_size()
-        self.__list.set_geometry(0, 0, w, h)
         
         
     def __on_item_clicked(self, preview, name, title, idx):

@@ -2,7 +2,6 @@
 This package contains the media player backends.
 """
 
-from DummyBackend import DummyBackend
 import platforms
 from mediabox import values
 from utils import mimetypes
@@ -10,48 +9,59 @@ from utils import logging
 
 import os
 
+_PLAYERS = {}
 
+from DummyBackend import DummyBackend
 _DUMMY = DummyBackend()
 
 if (platforms.MER):
-    from XineBackend import XineBackend
-    _XINE = XineBackend()
-    _PLAYERS = {"gst": _GST,
-                "mplayer": _MPLAYER,
-                "xine": _XINE}
+    try:
+        from XineBackend import XineBackend
+        _PLAYERS["xine"] = XineBackend()
+    except:
+        logging.info("failed to load xine backend")
+#end if
+
+if (os.path.exists("/usr/bin/mplayer")):
+    try:
+        from MPlayerBackend import MPlayerBackend
+        _PLAYERS["mplayer"] = MPlayerBackend()
+    except:
+        logging.info("failed to load mplayer backend")
+#end if
+
+try:
+    from GstBackend import GstBackend
+    _PLAYERS["gst"] = GstBackend()
+except:
+    logging.info("failed to load gstreamer backend")
+
+if (platforms.MAEMO4):
+    try:
+        from OSSOBackend import OSSOBackend
+        _PLAYERS["oms"] = OSSOBackend()
+    except:
+        logging.info("failed to load osso-media-server backend")
+#end if
+
+if (platforms.MAEMO5):
+    try:
+        from MAFWBackend import MAFWBackend
+        _PLAYERS["mafw"] = MAFWBackend()
+    except:
+        logging.info("failed to load mafw backend")
+#end if
+
+if (platforms.MER):
     _SUFFIX = ".mer"
 
 elif (platforms.MAEMO4):
-    from GstBackend import GstBackend
-    from MPlayerBackend import MPlayerBackend
-    from OSSOBackend import OSSOBackend
-    _GST = GstBackend()
-    _MPLAYER = MPlayerBackend()
-    _OMS = OSSOBackend()
-    _PLAYERS = {"gst": _GST,
-                "mplayer": _MPLAYER,
-                "oms": _OMS}
     _SUFFIX = ".maemo"
 
 elif (platforms.MAEMO5):
-    from GstBackend import GstBackend
-    from MPlayerBackend import MPlayerBackend
-    _GST = GstBackend()
-    _MPLAYER = MPlayerBackend()
-    _PLAYERS = {"gst": _GST,
-                "mplayer": _MPLAYER}
     _SUFFIX = ".maemo5"
                 
 else:
-    from GstBackend import GstBackend
-    from MPlayerBackend import MPlayerBackend
-    from XineBackend import XineBackend
-    _GST = GstBackend()
-    _MPLAYER = MPlayerBackend()
-    _XINE = XineBackend()
-    _PLAYERS = {"gst": _GST,
-                "mplayer": _MPLAYER,
-                "xine": _XINE}
     _SUFFIX = ""
 
 _current_player = _DUMMY

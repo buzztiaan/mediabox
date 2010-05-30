@@ -2,6 +2,7 @@ from com import Component, Player, Dialog, msgs
 from ui.Pixmap import Pixmap
 from ui import Window
 from ui import windowflags
+from ui import TitleBar
 from ui.dialog import InfoDialog
 from utils import logging
 from mediabox import config as mb_config
@@ -33,6 +34,9 @@ class AppWindow(Component, Window):
     
         # list of available dialog windows
         self.__dialogs = []
+        
+        # stack of windows
+        #self.__window_stack = [self]
 
         # table: MIME type -> [handlers]
         self.__mime_handlers = {}
@@ -46,12 +50,13 @@ class AppWindow(Component, Window):
         Component.__init__(self)
         Window.__init__(self, Window.TYPE_TOPLEVEL)
         self.set_flag(windowflags.CATCH_VOLUME_KEYS, True)
-        self.set_title(values.NAME)
         self.connect_closed(self.__on_close_window)
         self.connect_key_pressed(self.__on_key_press)
         self.connect_clicked(lambda *a:self.__show_dialog("navigator.Navigator"))
 
         self.set_visible(True)
+
+        self.set_title(values.NAME)
 
         # setup menu
         repeat_selected = [mb_config.REPEAT_MODE_NONE,
@@ -85,6 +90,20 @@ class AppWindow(Component, Window):
         self.emit_message(msgs.MEDIA_ACT_STOP)
         self.emit_message(msgs.COM_EV_APP_SHUTDOWN)
         gtk.main_quit()
+
+
+    def __on_raise_dialog(self, dlg):
+        
+        #if (not dlg in self.__window_stack):
+        #    self.__window_stack.append(dlg)
+        pass
+        
+        
+    def __on_hide_dialog(self, dlg):
+    
+        #self.__window_stack.remove(dlg)
+        #self.__window_stack[-1].set_visible(True)
+        pass
 
 
     def __on_key_press(self, keycode):
@@ -163,23 +182,19 @@ class AppWindow(Component, Window):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
-        
-        if (self.__current_player):
-            self.__current_player.set_geometry(0, 0, w, h)
-            
-        else:
+                    
+        if (not self.__current_player):
             screen.fill_area(x, y, w, h, theme.color_mb_background)
             screen.draw_centered_text(values.NAME + " " + values.VERSION,
                                       theme.font_mb_headline,
-                                      0, h / 2 - 30, w, 30, theme.color_mb_text)
+                                      x, h / 2 - 30, w, 30, theme.color_mb_text)
             screen.draw_centered_text(values.COPYRIGHT,
                                       theme.font_mb_plain,
-                                      0, h / 2, w, 30, theme.color_mb_text)
+                                      x, h / 2, w, 30, theme.color_mb_text)
 
-            #screen.draw_pixbuf(theme.mb_btn_navigator_1, 0, h - 64)
             screen.draw_centered_text("Tap here to access your media",
                                       theme.font_mb_plain,
-                                      0, h - 80, w, 20, theme.color_mb_text)
+                                      x, h - 80, w, 20, theme.color_mb_text)
             screen.fit_pixbuf(theme.mb_logo,
                               w - 120, h - 120, 120, 120)
 
@@ -193,6 +208,8 @@ class AppWindow(Component, Window):
         if (dialogs):
             dlg = dialogs[0]
             dlg.set_visible(True)
+            #if (not platforms.MAEMO5):
+            #    self.set_visible(False)
         #end if     
 
 
@@ -211,6 +228,8 @@ class AppWindow(Component, Window):
             else:
                 self.__dialogs.append(component)
                 component.set_parent_window(self)
+                #component.connect_raised(self.__on_raise_dialog, component)
+                #component.connect_hid(self.__on_hide_dialog, component)
 
         elif (isinstance(component, Player)):
             self.__register_player(component)

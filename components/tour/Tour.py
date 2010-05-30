@@ -1,5 +1,6 @@
 from com import Configurator, msgs
-from ui.Pixmap import Pixmap
+from ui import Pixmap
+from ui import Widget
 from theme import theme
 
 import gtk
@@ -25,9 +26,12 @@ class Tour(Configurator):
     
         data = open(os.path.join(_PATH, "tour_C.dat")).read()
         self.__parse_tour(data)
-    
+
         Configurator.__init__(self)
-        self.connect_button_released(self.__on_click)
+
+        self.__tour_box = Widget()
+        self.__tour_box.connect_button_released(self.__on_click)
+        self.add(self.__tour_box)
         
         
     def __on_click(self, px, py):
@@ -90,18 +94,24 @@ class Tour(Configurator):
         
         
     def render_this(self):
+
+        Configurator.render_this(self)
+        self.__render_tour()
+            
     
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
+    def __render_tour(self):
+    
+        x, y = self.__tour_box.get_screen_pos()
+        w, h = self.__tour_box.get_size()
+        screen = self.__tour_box.get_screen()
         
         title, image, text = self.__pages[self.__current_page]
         
-        screen.fill_area(0, 0, w, h, theme.color_mb_background)
+        screen.fill_area(x, y, w, h, theme.color_mb_background)
         
         screen.draw_text("%d/%d" % (self.__current_page + 1, len(self.__pages)),
                          theme.font_mb_tiny,
-                         w - 42, h - 20,
+                         x + w - 42, y + h - 20,
                          theme.color_mb_text)
         
         if (w < h):
@@ -136,10 +146,10 @@ class Tour(Configurator):
             img_w, img_h = pbuf.get_width(), pbuf.get_height()
             image_x += (300 - img_w) / 2
             image_y += (300 - img_h) / 2
-            screen.draw_pixbuf(pbuf, image_x, image_y)
+            screen.draw_pixbuf(pbuf, x + image_x, y + image_y)
 
         if (text):
             screen.draw_formatted_text(text, theme.font_mb_plain,
-                                       text_x, text_y, text_w, text_h,
+                                       x + text_x, y + text_y, text_w, text_h,
                                        theme.color_mb_text)
 

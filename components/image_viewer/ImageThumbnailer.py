@@ -1,12 +1,8 @@
 from com import Thumbnailer
-#from ui import pixbuftools
 from utils import imageloader
 from theme import theme
 
 import gtk
-
-
-#_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
 
 
 class ImageThumbnailer(Thumbnailer):
@@ -43,10 +39,6 @@ class ImageThumbnailer(Thumbnailer):
 
         def on_loaded_folder(pbuf):
             if (pbuf):
-                #_PBUF.fill(0x00000000)
-                #pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_image_album, 0, 0)
-                # TODO: the frame coords should really be supplied by the theme
-                #pixbuftools.fit_pbuf(_PBUF, pbuf, 49, 38, 79, 42)
                 path = self._set_thumbnail(f, pbuf)
                 del pbuf
             else:
@@ -55,9 +47,6 @@ class ImageThumbnailer(Thumbnailer):
     
         def on_loaded_image(pbuf):
             if (pbuf):
-                #_PBUF.fill(0x00000000)
-                #pixbuftools.draw_pbuf(_PBUF, theme.mb_frame_image, 0, 0)
-                #pixbuftools.fit_pbuf(_PBUF, pbuf, 7, 7, 142, 102)
                 path = self._set_thumbnail(f, pbuf)
                 del pbuf
             else:

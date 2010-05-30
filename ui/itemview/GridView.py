@@ -25,6 +25,10 @@ class GridView(ItemView):
         # table: set_id -> offset
         self.__offsets =  {}
         
+        # columns per row values of the different sets
+        # table: set id -> number
+        self.__columns_per_row = {}
+        
         # the currently floating item
         self.__floating_item = -1
         
@@ -127,24 +131,26 @@ class GridView(ItemView):
         @param idx: index number of the item to invalidate
         """
         
-        self.__render_item(idx)
+        self.__render_item(idx, True)
     
-
 
     def switch_item_set(self, set_id):
     
         prev_set_id = self.get_set_id()
         self.__offsets[prev_set_id] = self.__offset
+        self.__columns_per_row[prev_set_id] = self.__items_per_row
         
         ItemView.switch_item_set(self, set_id)
         #item_x, item_y = self.get_position_of_item(self.get_cursor())
         self.__offset = self.__offsets.get(set_id, 0)
+        self.__items_per_row = self.__columns_per_row.get(set_id, 1)
 
 
+    """
     def get_items_per_row(self):
-        """
+        ""
         Returns the number of items per row.
-        """
+        ""
 
         #return self.__items_per_row
 
@@ -159,6 +165,7 @@ class GridView(ItemView):
                 return 1
         else:
             return 1
+    """
 
 
     def get_total_size(self):
@@ -234,7 +241,7 @@ class GridView(ItemView):
             return (0, 0)
         
 
-    def __render_item(self, idx):
+    def __render_item(self, idx, to_screen = False):
         """
         Renders the given item.
         """
@@ -258,6 +265,14 @@ class GridView(ItemView):
                 self.__buffer.fill_area(item_x, item_y, item_w, item_h,
                                         "#66666620")
         #end if
+        
+        if (to_screen):
+            x, y = self.get_screen_pos()
+            screen = self.get_screen()
+            if (screen):
+                screen.copy_buffer(self.__buffer, item_x, item_y,
+                                   x + item_x, y + item_y,
+                                   item_w, item_h)
         
         
     def __render_floating_item(self):

@@ -109,7 +109,10 @@ class MediaItem(Item):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
             # render selection frame
-            if (self.is_marked() or self.is_hilighted()):
+            if (self.is_marked()):
+                pmap.fill_area(0, 0, w, h, "#00000040")
+            
+            elif (self.is_hilighted()):
                 pmap.draw_frame(theme.mb_selection_frame,
                                 4, 0, w - 8, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
@@ -147,7 +150,10 @@ class MediaItem(Item):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
             # render selection frame
-            if (self.is_marked() or self.is_hilighted()):
+            if (self.is_marked()):
+                pmap.fill_area(0, 0, w, h, "#00000040")
+            
+            elif (self.is_hilighted()):
                 pmap.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
 

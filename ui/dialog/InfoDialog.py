@@ -1,3 +1,6 @@
+import platforms
+
+
 class InfoDialog(object):
 
     def __init__(self, msg, parent):
@@ -8,11 +11,18 @@ class InfoDialog(object):
         
     def run(self):
     
-        try:
+        if (platforms.MAEMO4):
             import hildon
             hildon.hildon_banner_show_information(
                            self.__parent._get_window_impl(),
-                           "stock-info", self.__message)
-        except:
+                           None, self.__message)
+
+        elif (platforms.MAEMO5):
+            import hildon
+            hildon.hildon_banner_show_information(
+                           self.__parent._get_window_impl(),
+                           "", self.__message)
+
+        else:
             print self.__message
 

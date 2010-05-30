@@ -44,12 +44,6 @@ class FileScannerPrefs(Configurator):
         btn = ButtonItem("Clear index now")
         btn.connect_clicked(self.__on_click_clear)
         self.__list.append_item(btn)
-
-
-    def render_this(self):
-    
-        w, h = self.get_size()
-        self.__list.set_geometry(0, 0, w, h)        
         
         
     def __on_check_startup(self, value):

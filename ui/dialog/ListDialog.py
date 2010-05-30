@@ -1,4 +1,5 @@
 from ui import Window
+from ui import windowflags
 from ui.itemview import ThumbableGridView
 from ui.Slider import VSlider
 from theme import theme
@@ -14,6 +15,7 @@ class ListDialog(Window):
         
     
         Window.__init__(self, Window.TYPE_DIALOG)
+        self.set_flag(windowflags.EXCLUSIVE, True)
         self.connect_closed(self.__on_close)
         self.set_title(title)
 

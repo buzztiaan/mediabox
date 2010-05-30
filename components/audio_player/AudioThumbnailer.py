@@ -1,11 +1,7 @@
 from com import Thumbnailer, msgs
-from ui import pixbuftools
 from theme import theme
 
 import gtk
-
-
-_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 120, 120)
 
 
 class AudioThumbnailer(Thumbnailer):
@@ -44,13 +40,7 @@ class AudioThumbnailer(Thumbnailer):
     
         def on_loaded(pbuf, mimetype):
             if (pbuf):
-                if (pbuf.get_width() > 160 or pbuf.get_height() > 160):
-                    _PBUF.fill(0x00000000)
-                    pixbuftools.fit_pbuf(_PBUF, pbuf, 0, 0, 120, 120)
-                    path = self._set_thumbnail(f, _PBUF)
-                else:
-                    path = self._set_thumbnail(f, pbuf)    
-                #end if
+                path = self._set_thumbnail(f, pbuf)    
                 del pbuf
             else:
                 path = ""

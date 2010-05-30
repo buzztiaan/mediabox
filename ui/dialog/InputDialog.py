@@ -1,4 +1,6 @@
+from ui import Widget
 from ui import Window
+from ui import windowflags
 from ui.Button import Button
 from ui.Label import Label
 from ui.TextInput import TextInput
@@ -23,23 +25,27 @@ class InputDialog(Window):
         self.__retrievers = []
     
         Window.__init__(self, Window.TYPE_DIALOG)
+        self.set_flag(windowflags.EXCLUSIVE, True)
         self.connect_closed(self.__on_close, self.RETURN_CANCEL)
         self.set_title(title)
+        
+        self.__box = Widget()
+        self.add(self.__box)
         
         self.__button_ok = Button(label_ok)
         self.__button_ok.connect_clicked(self.__on_close,
                                          self.RETURN_OK)
-        self.add(self.__button_ok)
+        self.__box.add(self.__button_ok)
 
         if (not platforms.MAEMO5):
             self.__button_cancel = Button(label_cancel)
             self.__button_cancel.connect_clicked(self.__on_close,
                                                  self.RETURN_CANCEL)
-            self.add(self.__button_cancel)
+            self.__box.add(self.__button_cancel)
 
         
         self.__vbox = VBox()
-        self.add(self.__vbox)
+        self.__box.add(self.__vbox)
             
 
     def __on_close(self, return_code):
@@ -50,19 +56,21 @@ class InputDialog(Window):
 
     def render_this(self):
     
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
+        Window.render_this(self)
+    
+        x, y = self.__box.get_screen_pos()
+        w, h = self.__box.get_size()
+        screen = self.__box.get_screen()
         
         screen.fill_area(x, y, w, h, theme.color_mb_background)
 
         if (not platforms.MAEMO5):
-            self.__vbox.set_geometry(6, 0, w - 32, h - 80)
-            self.__button_ok.set_geometry(w - 280, h - 60, 120, 60)
-            self.__button_cancel.set_geometry(w - 150, h - 60, 120, 60)
+            self.__vbox.set_geometry(0, 0, w, h - 70)
+            self.__button_ok.set_geometry(w - 260, h - 60, 120, 60)
+            self.__button_cancel.set_geometry(w - 130, h - 60, 120, 60)
 
         else:
-            self.__vbox.set_geometry(6, 5, w - 165 - 12, h)
+            self.__vbox.set_geometry(6, 5, w - 165 - 12, h - 5)
             self.__button_ok.set_geometry(w - 120, h - 80, 100, 60)
             
             
@@ -122,10 +130,9 @@ class InputDialog(Window):
         w = gtk.gdk.screen_width()
         h = min(gtk.gdk.screen_height() - 120, len(self.__retrievers) * 100)
 
-        # add space for dialog buttons
-        if (not platforms.MAEMO5):
-            h += 80
-            
+        if (platforms.MAEMO4):
+            w -= 80
+            h += 70
         self.set_window_size(w, h)
         Window.run(self)
 

@@ -4,6 +4,7 @@ Base class for dialog components.
 
 from Component import Component
 import msgs
+import platforms
 from ui import Window
 
 
@@ -23,24 +24,11 @@ class Dialog(Component, Window):
         self.__info = ""
         
         Component.__init__(self)
-        Window.__init__(self, Window.TYPE_DIALOG)
+        Window.__init__(self, Window.TYPE_SUBWINDOW)
         self.connect_closed(self.__on_close_window)
-        
+   
         
     def __on_close_window(self):
     
         self.set_visible(False)
-
-
-    def set_visible(self, v):
-    
-        Window.set_visible(self, v)
-
-
-    def set_title(self, title):
-        """
-        Sets the title text of the dialog.
-        """
-        
-        Window.set_title(self, title)
 
