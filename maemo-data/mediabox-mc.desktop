@@ -6,6 +6,6 @@ Name=MediaBox
 Exec=/usr/bin/MediaBox
 Icon=mediabox-mc
 X-HildonDesk-ShowInToolbar=true
-X-Osso-Service=de.pycage.maemo-mediabox
+X-Osso-Service=de.pycage.maemo.mediabox
 X-Osso-Type=application/x-executable
 

@@ -2,7 +2,7 @@ import os
 import time
 
 NAME = "MediaBox"
-OSSO_NAME = "de.pycage.maemo-mediabox"
+OSSO_NAME = "de.pycage.maemo.mediabox"
 VERSION = "2010.05.30"
 
 AUTHORS = ["Martin Grimme  <martin.grimme@lintegra.de>"]
