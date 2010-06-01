@@ -240,8 +240,6 @@ class YouTube(Device):
             item.mimetype = mimetype
             if (path != "/local"):
                 item.folder_flags = item.ITEMS_DOWNLOADABLE
-            else:
-                item.folder_flags = item.ITEMS_DELETABLE
             
             cb(item, *args)
         #end for
@@ -503,7 +501,6 @@ class YouTube(Device):
         self.__items = []
         for video in videos:
             f = File(self)
-            f.can_delete = True
             f.path = "/local" + video
             f.mimetype = "video/x-flash-video"
             f.resource = video

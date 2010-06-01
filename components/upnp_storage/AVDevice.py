@@ -119,7 +119,7 @@ class AVDevice(Device):
             f.name = self.get_name()
             f.icon = self.get_icon()
             f.info = "UPnP network storage"
-            f.folder_flags = f.ITEMS_SKIPPABLE | f.ITEMS_ENQUEUEABLE
+            f.folder_flags = f.ITEMS_ENQUEUEABLE
             
         else:
             if (path.startswith("/")): path = path[1:]
@@ -140,7 +140,7 @@ class AVDevice(Device):
 
             if (f.mimetype == f.DIRECTORY):
                 f.resource = ident
-                f.folder_flags = f.ITEMS_SKIPPABLE | f.ITEMS_ENQUEUEABLE
+                f.folder_flags = f.ITEMS_ENQUEUEABLE
             else:
                 f.resource = urlparse.urljoin(url_base, res)
             f.child_count = child_count
@@ -161,7 +161,7 @@ class AVDevice(Device):
 
         if (f.mimetype == f.DIRECTORY):
             f.path = "/" + ident
-            f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_SKIPPABLE
+            f.folder_flags = f.ITEMS_ENQUEUEABLE
         else:
             f.path = "/" + ident
 

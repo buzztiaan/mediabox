@@ -229,7 +229,8 @@ class Device(Component):
         """
     
         actions = []
-        actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
+        if (folder.ITEMS_ENQUEUEABLE):
+            actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
         if (not f.bookmarked):
             actions.append((None, "Put on Shelf", self.__on_put_on_shelf))
         

@@ -42,14 +42,12 @@ class ImageStorage(Device):
         f = File(self)
         f.is_local = True
         f.path = "/" + urlquote.quote(folder_name, "")
-        f.can_skip = True
         f.mimetype = "application/x-image-folder"
         f.resource = ""
         f.name = folder_name
         f.acoustic_name = "Folder: " + f.name
         #f.info = "%d items" % len(self.__folders.get(folder_name, []))
         f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                            f.ITEMS_SKIPPABLE | \
                             f.ITEMS_COMPACT
 
         return f
@@ -64,7 +62,6 @@ class ImageStorage(Device):
         if (len_parts == 0):
             f = File(self)
             f.is_local = True
-            f.can_skip = True
             f.path = "/"
             f.mimetype = f.DEVICE_ROOT
             f.resource = ""

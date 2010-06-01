@@ -40,15 +40,13 @@ class AudioStorage(Device):
         f = File(self)
         f.is_local = True
         f.path = "/" + urlquote.quote(folder_name, "")
-        f.can_skip = True
         f.mimetype = f.DIRECTORY
         f.resource = ""
         f.name = folder_name
         f.acoustic_name = "Folder: " + f.name
         f.icon = theme.mb_folder_audioclips.get_path()
         #f.info = "%d items" % len(self.__folders.get(folder_name, []))
-        f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                         f.ITEMS_SKIPPABLE
+        f.folder_flags = f.ITEMS_ENQUEUEABLE
 
         return f
 
@@ -62,7 +60,6 @@ class AudioStorage(Device):
         if (len_parts == 0):
             f = File(self)
             f.is_local = True
-            f.can_skip = True
             f.path = "/"
             f.mimetype = f.DEVICE_ROOT
             f.resource = ""

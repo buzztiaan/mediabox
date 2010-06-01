@@ -37,9 +37,6 @@ class StorageBrowser(ThumbableGridView):
         # list of tuples: (path, status)
         self.__path_stack = []
 
-        # timestamp of the last list rendering
-        self.__last_list_render_time = 0
-              
         # the currently hilighted file
         self.__hilighted_file = None
         
@@ -158,14 +155,6 @@ class StorageBrowser(ThumbableGridView):
         screen.draw_pixbuf(theme.mb_list_top, 0, 0, w, 32, True)
         screen.draw_pixbuf(theme.mb_list_bottom, 0, h - 32, w, 32, True)
         
-
-
-    def trigger_item_button(self, idx):
-    
-        item = self.get_items()[idx]
-        button = item.BUTTON_PLAY
-        self.__on_item_button(item, idx, button)
-
 
     def __on_item_clicked(self, item):
     
@@ -480,18 +469,14 @@ class StorageBrowser(ThumbableGridView):
         self.set_cursor(-1)
         self.emit_event(self.EVENT_FOLDER_BEGIN, folder)
         
+        if (folder.folder_flags & folder.ITEMS_UNSORTED):
+            self.set_letter_enabled(False)
+        else:
+            self.set_letter_enabled(True)
+        
         if (full_reload):
             # reload list
             self.clear_items()
-
-            #header = HeaderItem(folder.name)
-            #header.set_info("Retrieving...")
-            #buttons = []
-            #if (folder.folder_flags & folder.ITEMS_ENQUEUEABLE):
-            #    buttons.append((header.BUTTON_ENQUEUE, theme.mb_item_btn_enqueue))
-            #if (folder.folder_flags & folder.INDEXABLE):
-            #    buttons.append((header.BUTTON_ADD_TO_LIBRARY, theme.mb_item_btn_add))
-            #header.set_buttons(*buttons)
             
         else:
             # don't reload list
@@ -529,10 +514,7 @@ class StorageBrowser(ThumbableGridView):
             if (token != self.__token): return False
 
             if (f):
-                #self.get_item(0).set_info("%d items" \
-                #                          % len(self.get_files()))
                 #self.set_message("Loading") # (%d items)" % len(self.get_files()))
-                #self.invalidate_item(0)
                 entries.append(f)
                 try:
                     self.__add_file(f)
@@ -542,8 +524,6 @@ class StorageBrowser(ThumbableGridView):
                     print logging.stacktrace()
 
             else:
-                #self.get_item(0).set_info("%d items" % len(self.get_files()))
-                #self.invalidate_item(0)
                 if (len(self.get_files()) > 0):
                     self.set_message("")
                 else:
@@ -568,12 +548,6 @@ class StorageBrowser(ThumbableGridView):
 
             # don't block UI while loading non-local folders
             import gtk
-            #now = time.time()
-            #if (gtk.events_pending()): # or 
-            #    now > self.__last_list_render_time + 0.5):
-           
-                #self.__last_list_render_time = now
-
             while (gtk.events_pending()):
                 gtk.main_iteration(False)
 
@@ -616,10 +590,8 @@ class StorageBrowser(ThumbableGridView):
 
         idx = len(self.get_items()) - 1
 
-        #if (not cwd.folder_flags & cwd.ITEMS_SORTED_ALPHA):
-        #    item.set_letter(`idx + 1`)
-
         # hilight currently selected file
         if (self.__hilighted_file == f):
             self.set_hilight(idx)
-        self.invalidate_item(idx)
+        #self.invalidate_item(idx)
+

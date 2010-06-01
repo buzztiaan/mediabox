@@ -56,7 +56,6 @@ class AudioArtistStorage(Device):
         f.mimetype = f.DIRECTORY
         f.icon = theme.mb_folder_artist.get_path()
         f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                            f.ITEMS_SKIPPABLE | \
                             f.ITEMS_COMPACT
         return f
 
@@ -80,7 +79,6 @@ class AudioArtistStorage(Device):
             # root folder
             f = File(self)
             f.is_local = True
-            f.can_skip = True
             f.path = "/"
             f.mimetype = f.DEVICE_ROOT
             f.resource = ""

@@ -63,8 +63,7 @@ class AudioAlbumStorage(Device):
         f.acoustic_name = f.name
         #f.info = artist
         f.mimetype = "application/x-music-folder"
-        f.folder_flags = f.ITEMS_ENQUEUEABLE | \
-                         f.ITEMS_SKIPPABLE
+        f.folder_flags = f.ITEMS_ENQUEUEABLE
 
         return f
         
@@ -103,7 +102,6 @@ class AudioAlbumStorage(Device):
             # root folder
             f = File(self)
             f.is_local = True
-            f.can_skip = True
             f.path = "/"
             f.mimetype = f.DIRECTORY
             f.resource = ""

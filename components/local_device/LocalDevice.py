@@ -135,9 +135,7 @@ class LocalDevice(Device):
             item.acoustic_name = item.name + ", Folder"
             item.mimetype = item.DIRECTORY
             item.info = "Folder"
-            item.folder_flags = item.ITEMS_ENQUEUEABLE | \
-                                item.INDEXABLE | \
-                                item.ITEMS_SKIPPABLE
+            item.folder_flags = item.ITEMS_ENQUEUEABLE
             
         else:
             item.name = os.path.splitext(os.path.basename(path))[0]

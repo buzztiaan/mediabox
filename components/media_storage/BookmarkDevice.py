@@ -42,10 +42,7 @@ class _BookmarkDevice(Device):
         f.info = self._INFO
         f.path = "/"
         f.mimetype = f.DIRECTORY
-        f.folder_flags = f.ITEMS_DELETABLE | \
-                         f.ITEMS_BULK_DELETABLE | \
-                         f.ITEMS_ENQUEUEABLE | \
-                         f.ITEMS_SKIPPABLE
+        f.folder_flags = f.ITEMS_ENQUEUEABLE
         return f
 
 

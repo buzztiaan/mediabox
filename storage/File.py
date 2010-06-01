@@ -17,15 +17,17 @@ class File(object):
 
     NONE =         0
     ITEMS_ENQUEUEABLE =    1 << 0
-    ITEMS_SKIPPABLE =      1 << 1
-    ITEMS_DELETABLE =      1 << 2
-    ITEMS_BULK_DELETABLE = 1 << 3
-    INDEXABLE =            1 << 4
-    ITEMS_DOWNLOADABLE =   1 << 5
-    ITEMS_ADDABLE =        1 << 6
-    ITEMS_SORTABLE =       1 << 7
-    ITEMS_SORTED_ALPHA =   1 << 8
-    ITEMS_COMPACT =        1 << 9
+    """items in this folder can be enqueued to a list"""
+    ITEMS_DOWNLOADABLE =   1 << 1
+    """items in this folder can be downloaded"""
+    ITEMS_ADDABLE =        1 << 2
+    """this folder provides an ADD button"""
+    ITEMS_SORTABLE =       1 << 3
+    """items in this folder can be rearranged"""
+    ITEMS_UNSORTED =   1 << 4
+    """items in this folder show no index letter"""
+    ITEMS_COMPACT =        1 << 5
+    """items in this this folder are normally viewed in a compact way"""
     
 
 
@@ -63,48 +65,7 @@ class File(object):
         
         self._LEGACY_SUPPORT_file_to_delete = None
         """ONLY FOR INTERNAL USE: support legacy plugins with delete method"""
-        
-        self.can_skip = False
-        """
-        whether the user may skip files (previous/next) in this folder
-        @since: 0.96
-        @deprecated: use L{folder_flags} instead
-        """
-
-        self.can_add_to_library = False
-        """
-        whether the user may add this folder to the library
-        @since: 0.96
-        @deprecated: use L{folder_flags} instead
-        """
-
-        self.can_add = False
-        """
-        whether the user may add items to this folder
-        @since: 0.96
-        @deprecated: use L{folder_flags} instead
-        """
-        
-        self.can_delete = False
-        """
-        whether the user may delete this file
-        @since: 0.96
-        @deprecated: use L{folder_flags} instead
-        """
-
-        self.can_keep = False
-        """
-        whether the user may keep this non-local file
-        @since: 0.96
-        @deprecated: use L{folder_flags} instead
-        """
-
-        self.can_download = False
-        """
-        whether the user may download this file
-        @since: 0.96
-        @deprecated: use L{folder_flags} instead
-        """
+                
 
         self.is_local = False
         """
@@ -154,7 +115,7 @@ class File(object):
         name of parent folder, if any (can be used for grouping items)
         @since: 0.96
         """
-       
+
         self.thumbnailer = ""
         """
         Name of the thumbnailer component used for thumbnailing this file.
@@ -163,13 +124,14 @@ class File(object):
 
         self.thumbnailer_param = None
         
+        
         self.icon = ""
         """
         may contain the path of an icon image (deprecated) or a pixbuf that can
         be used instead of a thumbnail. the image should be of a proper size
         @since: 0.96.4
-        """
-
+        """        
+        
         self.frame = (None, 0, 0, 0, 0)
         """
         may contain a frame pixbuf
@@ -196,8 +158,6 @@ class File(object):
         self.__medium = None
         
         self.child_count = 0
-        self.emblem = None
-        
 
 
     def __cmp__(self, other):

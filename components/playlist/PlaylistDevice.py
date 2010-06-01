@@ -194,7 +194,7 @@ class PlaylistDevice(Device):
         f.name = self.get_name()
         f.path = "/"
         f.mimetype = f.DEVICE_ROOT
-        f.folder_flags = f.ITEMS_DELETABLE | f.ITEMS_ADDABLE #| f.ITEMS_COMPACT
+        f.folder_flags = f.ITEMS_ADDABLE #| f.ITEMS_COMPACT
         f.icon = self.get_icon().get_path()
 
         return f
@@ -216,12 +216,9 @@ class PlaylistDevice(Device):
             f.path = path
             f.mimetype = f.DIRECTORY
             f.icon = theme.mb_folder_playlist.get_path()
-            f.folder_flags = f.ITEMS_SKIPPABLE
 
             if (pl.get_name() != _PLAYLIST_RECENT_50):
                 f.folder_flags |= f.ITEMS_SORTABLE
-                f.folder_flags |= f.ITEMS_DELETABLE | \
-                                  f.ITEMS_BULK_DELETABLE
             return f
         else:
             return None
@@ -234,11 +231,6 @@ class PlaylistDevice(Device):
             self.__needs_playlist_reload = False
 
         if (folder.path == "/"):
-            if (len(self.__lists) > 1):
-                folder.folder_flags |= folder.ITEMS_DELETABLE
-            else:
-                folder.folder_flags -= folder.ITEMS_DELETABLE
-                
             self.__ls_playlists(begin_at, end_at, cb, *args)
             
         else:
@@ -274,12 +266,11 @@ class PlaylistDevice(Device):
             f.path = "/" + urlquote.quote(f.name)
             f.mimetype = f.DIRECTORY
             f.icon = theme.mb_folder_playlist.get_path()
-            f.folder_flags = f.ITEMS_SKIPPABLE
+            f.folder_flags |= f.ITEMS_UNSORTED
 
             if (pl.get_name() != _PLAYLIST_RECENT_50):
                 f.folder_flags |= f.ITEMS_SORTABLE
-                f.folder_flags |= f.ITEMS_DELETABLE | \
-                                  f.ITEMS_BULK_DELETABLE
+
             cb(f, *args)
         #end for
         

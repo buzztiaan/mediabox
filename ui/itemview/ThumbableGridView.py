@@ -26,6 +26,9 @@ class ThumbableGridView(GridView):
         # the associated slider
         self.__slider = None
                
+        # whether the index letter is enabled
+        self.__letter_enabled = True
+               
         # whether the letter is visible
         self.__letter_visible = False
         
@@ -55,6 +58,8 @@ class ThumbableGridView(GridView):
 
 
     def __render_letter(self, screen):
+
+        if (not self.__letter_enabled): return
     
         w, h = self.get_size()
         total_w, total_h = self.get_total_size()
@@ -259,6 +264,11 @@ class ThumbableGridView(GridView):
                                                       self.__on_letter_timeout)
 
         return (dx, dy)
+
+
+    def set_letter_enabled(self, value):
+    
+        self.__letter_enabled = value
 
 
     def set_click_behavior(self, behavior):
