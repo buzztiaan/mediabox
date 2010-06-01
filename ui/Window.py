@@ -249,6 +249,13 @@ class Window(Widget):
             return True
 
 
+    def _reload(self):
+    
+        self.__window.modify_bg(gtk.STATE_NORMAL,
+                          gtk.gdk.color_parse(str(theme.color_mb_background)))
+
+
+
     def __on_configure(self, src, ev):
 
         w, h = self.__window.get_size()
