@@ -219,6 +219,8 @@ class VideoPlayer(Player):
             self.__progress.set_message("%s / %s" \
                                         % (self.seconds_to_hms(pos),
                                            self.seconds_to_hms(total)))
+            self.emit_message(msgs.MEDIA_EV_POSITION, pos, total)
+
 
     def __on_change_volume(self, v):
     

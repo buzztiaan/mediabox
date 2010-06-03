@@ -194,6 +194,14 @@ Gets emitted when a media player has loaded a file.
 @param f: file object
 """
 
+def MEDIA_EV_TAG(key, value): pass
+"""
+Gets emitted when a media tag gets reported.
+
+@param key: name of the tag
+@param value: value of the tag
+"""
+
 def MEDIA_EV_PLAY(): pass
 """
 Gets emitted when media playback starts.

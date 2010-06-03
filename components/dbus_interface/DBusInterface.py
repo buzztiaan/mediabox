@@ -79,6 +79,25 @@ class DBusInterface(Component, dbus.service.Object):
 
     @dbus.service.signal("de.pycage.mediabox.control", "uu")
     def seek_signal(self, pos, total): pass
+
+
+    @dbus.service.signal("de.pycage.mediabox.control", "ssss")
+    def load_signal(self, name, info, resource, mimetype): pass
+
+
+    @dbus.service.signal("de.pycage.mediabox.control", "ss")
+    def tag_signal(self, key, value): pass
+    
+    
+    def handle_MEDIA_EV_LOADED(self, player, f):
+    
+        self.load_signal(f.name, f.info, f.resource, f.mimetype)
+        self.__need_report_position = True
+    
+    
+    def handle_MEDIA_EV_TAG(self, key, value):
+    
+        self.tag_signal(key, value)
     
     
     def handle_MEDIA_EV_PLAY(self):

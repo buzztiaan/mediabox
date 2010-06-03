@@ -238,10 +238,12 @@ class AudioPlayer(Player):
             
             if (title):
                 self.__lbl_title.set_text(title)
+                self.emit_message(msgs.MEDIA_EV_TAG, "TITLE", title)
             if (album):
                 self.__lbl_album.set_text(album)
-            if (artist):
+                self.emit_message(msgs.MEDIA_EV_TAG, "ALBUM", title)
                 self.__lbl_artist.set_text(artist)
+                self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", title)
             if (cover):
                 imageloader.load_data(cover, self.__on_loaded_cover,
                                       self.__context_id)
