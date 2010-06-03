@@ -494,7 +494,7 @@ class StorageBrowser(ThumbableGridView):
         # load remaining items
         loading_status = self.__path_stack[-1][1]
         if (loading_status == _STATUS_INCOMPLETE or full_reload):
-            #self.set_message("Loading")
+            self.set_message("Loading")
             self.complete_current_folder()
         else:
             self.emit_event(self.EVENT_FOLDER_COMPLETE, folder)
