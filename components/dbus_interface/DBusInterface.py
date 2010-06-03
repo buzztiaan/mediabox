@@ -54,7 +54,6 @@ class DBusInterface(Component, dbus.service.Object):
     @dbus.service.method("de.pycage.mediabox.control", in_signature = "u")
     def seek(self, pos):
     
-        print "SEEK", pos
         self.emit_message(msgs.MEDIA_ACT_SEEK, pos / 1000.0)
 
 
