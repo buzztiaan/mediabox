@@ -27,7 +27,7 @@ class GstBackend(AbstractBackend):
         # time when MediaBox has last changed the sound volume
         self.__last_volume_change_time = 0
         
-        self.__volume = 0
+        self.__volume = 50
         
         # set up device volume listener on the N900
         if (platforms.MAEMO5):
@@ -205,7 +205,7 @@ class GstBackend(AbstractBackend):
                                       0)
         self._report_aspect_ratio(16/9.0)
         if (not platforms.MAEMO5):
-            self._set_volume(self.__get_current_volume())
+            self._set_volume(self.___volume)
         self._report_volume(self.__volume)
         
 

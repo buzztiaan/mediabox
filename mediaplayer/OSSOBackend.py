@@ -29,6 +29,8 @@ class OSSOBackend(AbstractBackend):
         self.__width = 0
         self.__height = 0
         
+        self.__volume = 50
+        
         self.__is_seekable = False
         self.__is_eof = False
 
@@ -157,6 +159,7 @@ class OSSOBackend(AbstractBackend):
         self.__width = 0
         self.__height = 0
         self.__current_player.play_media(uri)
+        self.__current_player.set_volume(self.__volume)
         
 
 
@@ -164,6 +167,7 @@ class OSSOBackend(AbstractBackend):
 
         if (self.__current_player):
             self.__current_player.set_volume(volume / 100.0)
+        self.__volume = volume
 
 
     def _play(self):
