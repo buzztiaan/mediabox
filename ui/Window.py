@@ -9,6 +9,7 @@ try:
     import gtk
 except:
     gtk = None
+import gobject
 
 try:
     import hildon
@@ -111,8 +112,6 @@ class Window(Widget):
         self.__window.set_default_size(800, 480)
         self.__window.set_app_paintable(True)
         self.__window.set_double_buffered(False)
-        self.__window.modify_bg(gtk.STATE_NORMAL,
-                          gtk.gdk.color_parse(str(theme.color_mb_background)))
 
         self.__window.connect("configure-event", self.__on_configure)
         self.__window.connect("expose-event", self.__on_expose)
@@ -154,6 +153,8 @@ class Window(Widget):
                                     gtk.gdk.KEY_PRESS_MASK |
                                     gtk.gdk.KEY_RELEASE_MASK)
         self.__layout.put(self.__vidscreen, 0, 0)
+
+        gobject.timeout_add(0, self.__update_window_background)
 
 
     def connect_closed(self, cb, *args):
@@ -232,6 +233,10 @@ class Window(Widget):
 
 
     def add(self, w):
+        """
+        Adds a widget to this window. If you don't override L{render_this}, all
+        widgets occupy the whole window area.
+        """
     
         Widget.add(self, w)
         if (not w in self.__contents):
@@ -250,7 +255,12 @@ class Window(Widget):
 
 
     def _reload(self):
-    
+
+        self.__update_window_background()
+        
+
+    def __update_window_background(self):
+        
         self.__window.modify_bg(gtk.STATE_NORMAL,
                           gtk.gdk.color_parse(str(theme.color_mb_background)))
 
@@ -411,15 +421,21 @@ class Window(Widget):
 
         if (self.is_visible()):
             if (platforms.MAEMO5):
-                if (self.__wtype != self.TYPE_TOPLEVEL and
-                    not self.__has_size_set):
-                    self.__window.resize(gtk.gdk.screen_width(),
-                                         gtk.gdk.screen_height() - 120)
+                if (self.__wtype != self.TYPE_TOPLEVEL):
+                    if (self.__has_size_set):
+                        w, h = self.get_size()
+                        self.__window.resize(gtk.gdk.screen_width(), h)
+                    else:
+                        self.__window.resize(gtk.gdk.screen_width(),
+                                             gtk.gdk.screen_height() - 120)
+
             elif (platforms.MAEMO4):
                 if (self.__wtype != self.TYPE_TOPLEVEL and self.__has_size_set):
                     w, h = self.__window.get_size()
                     self.__window.move(0, 480 - h)
+
             #endif
+
             self.render()
             self.__window.show()
             self.emit_event(self.EVENT_RAISED)

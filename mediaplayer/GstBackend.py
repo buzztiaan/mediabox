@@ -51,14 +51,19 @@ class GstBackend(AbstractBackend):
 
     def __get_current_volume(self):
     
-        try:
+        if (platforms.MAEMO5):
             bus = platforms.get_session_bus()
             obj = bus.get_object("com.nokia.mafw.renderer.Mafw-Gst-Renderer-Plugin.gstrenderer",
                                  "/com/nokia/mafw/renderer/gstrenderer")
             mafw = dbus.Interface(obj, "com.nokia.mafw.extension")
-            return int(mafw.get_extension_property("volume")[1])
-        except:
-            return 0
+            volume = int(mafw.get_extension_property("volume")[1])
+        else:
+            if (self.__player):
+                volume = self.__player.get_property("volume") * 100
+            else:
+                volume = self.__volume
+        
+        return volume
 
 
     def __load_pls(self, uri):
@@ -195,11 +200,12 @@ class GstBackend(AbstractBackend):
             print "LOAD", uri
             self.__player.set_property("uri", uri)
             self.__player.set_state(gst.STATE_PLAYING)
-            #self.__player.set_property("volume", 1.0)
             self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
                                       gst.SEEK_FLAG_FLUSH,
                                       0)
         self._report_aspect_ratio(16/9.0)
+        if (not platforms.MAEMO5):
+            self._set_volume(self.__get_current_volume())
         self._report_volume(self.__volume)
         
 

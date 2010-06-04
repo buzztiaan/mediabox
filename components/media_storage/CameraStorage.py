@@ -97,18 +97,14 @@ class CameraStorage(Device):
         items = []
         if (len_parts == 0):
             # list folders
-            for folder_name in ["All",
+            for folder_name in ["All Pictures",
                                 "By Date",
                                 "By Tags",
                                 "By Location",
                                 "Today",
-                                "Yesterday",
                                 "This Week",
-                                "Last Week",
                                 "This Month",
-                                "Last Month",
-                                "This Year",
-                                "Last Year"]:
+                                "This Year"]:
                 f = self.__make_folder(folder_name)
                 if (f): items.append(f)
             #end for
