@@ -66,7 +66,9 @@ class RotationPrefs(Configurator):
         else:
             self.emit_message(msgs.ASR_EV_PORTRAIT)
             self.__is_portrait == True
+            
         config.set_orientation(value)
+        self.set_visible(False)
 
 
     def __on_check_swap(self, v):

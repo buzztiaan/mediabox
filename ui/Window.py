@@ -76,9 +76,8 @@ class Window(Widget):
             elif (platforms.MEEGO_NETBOOK):
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
                 self.__window.set_decorated(False)
-                self.__window.set_default_size(gtk.gdk.screen_width(),
+                self.__window.set_size_request(gtk.gdk.screen_width(),
                                                gtk.gdk.screen_height())
-                #self.__window.fullscreen()
             else:
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 
@@ -95,7 +94,6 @@ class Window(Widget):
                 self.__window.set_decorated(False)
                 self.__window.set_size_request(gtk.gdk.screen_width(),
                                                gtk.gdk.screen_height())
-                #self.__window.fullscreen()
                 # hide some ugly separator :)
                 self.__window.vbox.get_children()[0].hide()                
             else:

@@ -12,7 +12,7 @@ class ConfigBackend(Configurator):
     Configurator for mapping media backends to media file types.
     """
 
-    ICON = theme.prefs_icon_theme
+    ICON = theme.prefs_icon_backend
     TITLE = "Media Formats"
     DESCRIPTION = "Choose the player backend for each media format"
 
