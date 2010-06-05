@@ -1,0 +1,2 @@
+PLATFORM = "meego netbook"
+
