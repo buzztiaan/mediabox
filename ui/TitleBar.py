@@ -38,6 +38,13 @@ class TitleBar(Widget):
                                    lambda *a:self.emit_event(self.EVENT_CLOSE))
         self.add(self.__btn_close)
 
+        self.__btn_back = ImageButton(theme.btn_window_back_1,
+                                      theme.btn_window_back_2)
+        self.__btn_back.connect_clicked(
+                                   lambda *a:self.emit_event(self.EVENT_CLOSE))
+        self.add(self.__btn_back)
+        self.__btn_back.set_visible(False)
+
 
     def connect_switch(self, cb, *args):
     
@@ -79,12 +86,14 @@ class TitleBar(Widget):
         screen = self.get_screen()
         
         screen.draw_frame(theme.titlebar_bg, x, y, w, h, True)
-        self.__btn_close.set_geometry(w - 80, 0, 80, 57)
 
         if (self.__mode == self.MODE_NORMAL):
             screen.draw_pixbuf(theme.window_menu, x + 80, 7)
             self.__btn_switch.set_geometry(0, 0, 80, 57)
+            self.__btn_close.set_geometry(w - 80, 0, 80, 57)
             self.__btn_switch.set_visible(True)
+            self.__btn_back.set_visible(False)
+            self.__btn_close.set_visible(True)
 
             screen.draw_text(self.__title,
                              theme.font_ui_titlebar,
@@ -92,7 +101,10 @@ class TitleBar(Widget):
                              theme.color_ui_titlebar)
 
         elif (self.__mode == self.MODE_SUBWINDOW):
+            self.__btn_back.set_geometry(w - 80, 0, 80, 57)
             self.__btn_switch.set_visible(False)
+            self.__btn_back.set_visible(True)
+            self.__btn_close.set_visible(False)
             screen.draw_text(self.__title,
                              theme.font_ui_titlebar,
                              x + 12, y + 14,
