@@ -1,3 +1,5 @@
+import platforms
+
 def get_classes():
     
     classes = []
