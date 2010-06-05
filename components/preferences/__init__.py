@@ -1,10 +1,15 @@
 def get_classes():
+    
+    classes = []
 
-    from ConfigBackend import ConfigBackend
+    if (platforms.MAEMO4):
+        from ConfigBackend import ConfigBackend
+        classes.append(ConfigBackend)
+
     from ConfigTheme import ConfigTheme
+    classes.append(ConfigTheme)
 
-    return [ConfigTheme,
-            ConfigBackend]
+    return classes
 
 
 def get_devices():
