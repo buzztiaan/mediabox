@@ -9,7 +9,7 @@ mediabox (2010.06.01) unstable; urgency=low
   
   Support for displaying embedded cover art in MP3 streams (GStreamer backend)
   
-  Maemo4 windowing stuff
+  Maemo4 and MeeGo netbook windowing stuff
   
   Small bug fixes
   

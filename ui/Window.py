@@ -75,7 +75,8 @@ class Window(Widget):
                 self.__window.fullscreen()
             elif (platforms.MEEGO_NETBOOK):
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-                self.__window.fullscreen()
+                self.__window.set_decorated(False)
+                #self.__window.fullscreen()
             else:
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 
@@ -90,7 +91,7 @@ class Window(Widget):
             elif (platforms.MEEGO_NETBOOK):
                 self.__window = gtk.Dialog()
                 self.__window.set_decorated(False)
-                self.__window.fullscreen()
+                #self.__window.fullscreen()
                 # hide some ugly separator :)
                 self.__window.vbox.get_children()[0].hide()                
             else:
@@ -408,7 +409,6 @@ class Window(Widget):
                 self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
                 self.__set_portrait_property("_HILDON_PORTRAIT_MODE_REQUEST",
                                              value and 1 or 0)
-                self.set_visible(False)
 
         elif (flag == windowflags.BUSY):
             if (platforms.MAEMO5):
