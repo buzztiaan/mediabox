@@ -6,6 +6,7 @@ import os
 MAEMO4 = ""
 MAEMO5 = ""
 MER = ""
+MEEGO_NETBOOK = ""
 COMPUTER = ""
 HTPC = ""
 
@@ -29,6 +30,12 @@ def _check_maemo5():
 def _check_mer():
 
     v = os.system("dpkg -l | grep maemo-launcher | grep mer >/dev/null")
+    return (v == 0)
+    
+    
+def _check_meego_netbook():
+
+    v = os.system("cat /etc/meego-release | grep netbook >/dev/null")
     return (v == 0)
     
     
@@ -57,6 +64,11 @@ elif _check_mer():
     from mer import *
     MER = "mer"
     logging.info("using MER target")
+
+elif _check_meego_netbook():
+    from meego_netbook import *
+    MEEGO_NETBOOK = "meego_netbook"
+    logging.info("using MEEGO_NETBOOK target")
 
 elif _check_htpc():
     from htpc import *

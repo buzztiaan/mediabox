@@ -205,7 +205,7 @@ class GstBackend(AbstractBackend):
                                       0)
         self._report_aspect_ratio(16/9.0)
         if (not platforms.MAEMO5):
-            self._set_volume(self.___volume)
+            self._set_volume(self.__volume)
         self._report_volume(self.__volume)
         
 

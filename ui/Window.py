@@ -73,20 +73,36 @@ class Window(Widget):
                 self.__window = hildon.Window()
                 self.__window.set_menu(self.__menu)
                 self.__window.fullscreen()
+            elif (platforms.MEEGO_NETBOOK):
+                self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+                self.__window.fullscreen()
             else:
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 
         elif (wtype == self.TYPE_SUBWINDOW):
-            if (platforms.MAEMO4):
+            if (platforms.MAEMO5):
+                self.__window = gtk.Dialog()                
+            elif (platforms.MAEMO4):
                 self.__window = gtk.Dialog()
                 self.__window.set_decorated(False)
                 # hide some ugly separator :)
                 self.__window.vbox.get_children()[0].hide()
+            elif (platforms.MEEGO_NETBOOK):
+                self.__window = gtk.Dialog()
+                self.__window.set_decorated(False)
+                self.__window.fullscreen()
+                # hide some ugly separator :)
+                self.__window.vbox.get_children()[0].hide()                
             else:
                 self.__window = gtk.Dialog()
+                # hide some ugly separator :)
+                self.__window.vbox.get_children()[0].hide()
+
                             
         elif (wtype == self.TYPE_DIALOG):
-            if (platforms.MAEMO4):
+            if (platforms.MAEMO5):
+                self.__window = gtk.Dialog()
+            elif (platforms.MAEMO4 or platforms.MEEGO_NETBOOK):
                 self.__window = gtk.Dialog()
                 # hide some ugly separator :)
                 self.__window.vbox.get_children()[0].hide()
@@ -392,6 +408,7 @@ class Window(Widget):
                 self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
                 self.__set_portrait_property("_HILDON_PORTRAIT_MODE_REQUEST",
                                              value and 1 or 0)
+                self.set_visible(False)
 
         elif (flag == windowflags.BUSY):
             if (platforms.MAEMO5):

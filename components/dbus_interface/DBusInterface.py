@@ -96,7 +96,8 @@ class DBusInterface(Component, dbus.service.Object):
     
     def handle_MEDIA_EV_TAG(self, key, value):
     
-        self.tag_signal(key, value)
+        print key, value, type(key), type(value)
+        self.tag_signal(key, value or "")
     
     
     def handle_MEDIA_EV_PLAY(self):
