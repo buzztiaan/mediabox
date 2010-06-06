@@ -49,6 +49,7 @@ _PAGE_SIZE = 25
 _STAR_CHAR = u"\u2606"
 _STAR2_CHAR = u"\u2605"
 
+_N8x0_FORMAT_WHITELIST = [5, 6, 13]
 _N900_FORMAT_WHITELIST = [5, 6, 13, 17, 18]
 
 
@@ -583,7 +584,9 @@ class YouTube(Device):
         # filter out incompatible formats
         if (platforms.MAEMO5):
             fmts = [ fmt for fmt in fmts if fmt in _N900_FORMAT_WHITELIST ]
-
+        elif (platforms.MAEMO4):
+            fmts = [ fmt for fmt in fmts if fmt in _N8x0_FORMAT_WHITELIST ]
+            
         # retrieve high-quality version, if desired
         if (len(fmts) > 1):
             qtype = self.__ask_for_quality(fmts)
