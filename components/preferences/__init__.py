@@ -4,9 +4,8 @@ def get_classes():
     
     classes = []
 
-    if (platforms.MAEMO4):
-        from ConfigBackend import ConfigBackend
-        classes.append(ConfigBackend)
+    from ConfigBackend import ConfigBackend
+    classes.append(ConfigBackend)
 
     from ConfigTheme import ConfigTheme
     classes.append(ConfigTheme)

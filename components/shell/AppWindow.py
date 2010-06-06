@@ -79,8 +79,9 @@ class AppWindow(Component, Window):
 
         self.set_menu_item("select-output", "Select Media Renderer", True,
                            self.__on_menu_select_output)
-        self.set_menu_item("fmtx", "FM Transmitter", True,
-                           self.__on_menu_fmtx)
+        if (platforms.MAEMO5):
+            self.set_menu_item("fmtx", "FM Transmitter", True,
+                               self.__on_menu_fmtx)
         self.set_menu_item("info", "About", True,
                            self.__on_menu_info)
                            

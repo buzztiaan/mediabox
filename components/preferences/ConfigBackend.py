@@ -13,7 +13,7 @@ class ConfigBackend(Configurator):
     """
 
     ICON = theme.prefs_icon_backend
-    TITLE = "Media Formats"
+    TITLE = "Media Player Backends"
     DESCRIPTION = "Choose the player backend for each media format"
 
 

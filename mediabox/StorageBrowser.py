@@ -484,9 +484,9 @@ class StorageBrowser(ThumbableGridView):
 
         # animate
         if (direction == self.GO_CHILD):
-            self.fx_slide_left()
+            gobject.timeout_add(0, self.fx_slide_left)
         elif (direction == self.GO_PARENT):
-            self.fx_slide_right()
+            gobject.timeout_add(0, self.fx_slide_right)
         else:
             #self.render()
             pass
