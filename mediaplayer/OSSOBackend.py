@@ -159,7 +159,7 @@ class OSSOBackend(AbstractBackend):
         self.__width = 0
         self.__height = 0
         self.__current_player.play_media(uri)
-        self.__current_player.set_volume(self.__volume)
+        self.__current_player.set_volume(self.__volume / 100.0)
         
 
 
