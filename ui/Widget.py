@@ -1035,7 +1035,7 @@ class Widget(EventEmitter):
         screen = self.get_screen()
 
         import platforms
-        if (not platforms.MAEMO5):
+        if (False): #not platforms.MAEMO5):
             screen.copy_pixmap(buf, x, y, scr_x + x, scr_y + y, w, h)
         else:
             self.animate(50, fx, [0, w])
@@ -1098,7 +1098,7 @@ class Widget(EventEmitter):
         screen = self.get_screen()
 
         import platforms
-        if (not platforms.MAEMO5):
+        if (False): #not platforms.MAEMO5):
             screen.copy_pixmap(buf, x, y, scr_x + x, scr_y + y, w, h)
         else:
             self.animate(50, fx, [0, h])

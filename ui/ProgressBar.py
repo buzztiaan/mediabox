@@ -252,7 +252,7 @@ class ProgressBar(Widget):
             w, h = self.get_size()
             t_w, t_h = text_extents(self.__current_message, theme.font_mb_plain)
             pmap.draw_text(self.__current_message, theme.font_mb_plain,
-                           (w - t_w) / 2, (h - t_h) / 2, "#ffffff")
+                           (w - t_w) / 2, (h - t_h) / 2, theme.color_mb_gauge)
         
 
     def add_bookmark(self):
