@@ -200,9 +200,9 @@ class GstBackend(AbstractBackend):
             print "LOAD", uri
             self.__player.set_property("uri", uri)
             self.__player.set_state(gst.STATE_PLAYING)
-            self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
-                                      gst.SEEK_FLAG_FLUSH,
-                                      0)
+            #self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
+            #                          gst.SEEK_FLAG_FLUSH,
+            #                          0)
         self._report_aspect_ratio(16/9.0)
         if (not platforms.MAEMO5):
             self._set_volume(self.__volume)
