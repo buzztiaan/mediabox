@@ -483,28 +483,27 @@ class StorageBrowser(ThumbableGridView):
             pass
 
         # animate
-        #if (direction == self.GO_CHILD):
-        #    gobject.idle_add(self.fx_slide_left)
-        #elif (direction == self.GO_PARENT):
-        #    gobject.idle_add(self.fx_slide_right)
-        #else:
-        #    #self.render()
-        #    pass
+        if (direction == self.GO_CHILD):
+            self.fx_slide_left()
+        elif (direction == self.GO_PARENT):
+            self.fx_slide_right()
+        else:
+            #self.render()
+            pass
 
         # load remaining items
         loading_status = self.__path_stack[-1][1]
         if (loading_status == _STATUS_INCOMPLETE or full_reload):
             self.set_message("Loading")
-            self.complete_current_folder(direction)
+            self.complete_current_folder()
         else:
             self.emit_event(self.EVENT_FOLDER_COMPLETE, folder)
-            self.render()
 
         # now is a good time to collect garbage
         #import gc; gc.collect()    
       
         
-    def complete_current_folder(self, direction):
+    def complete_current_folder(self):
         """
         Completes loading the current folder. Appends new elements to the
         current file list.
@@ -542,18 +541,10 @@ class StorageBrowser(ThumbableGridView):
             #end if
 
             # give visual feedback while loading the visible part of a folder
-            if (not f or len(entries) == 4):
+            if (not f or len(entries) == 12):
                 self.invalidate()
-                if (direction == self.GO_CHILD and not fx_done[0]):
-                    self.fx_slide_left()
-                    fx_done[0] = True
-                elif (direction == self.GO_PARENT and not fx_done[0]):
-                    self.fx_slide_right()
-                    fx_done[0] = True
-                else:
-                    self.render()
+                self.render()
             #end if
-
 
             # don't block UI while loading non-local folders
             import gtk
@@ -567,8 +558,6 @@ class StorageBrowser(ThumbableGridView):
                 # continue loading next item
                 return True
 
-        
-        fx_done = [False]
 
         cwd = self.get_current_folder()
         num_of_items = len(self.get_files())
