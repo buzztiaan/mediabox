@@ -111,12 +111,12 @@ class MediaItem(Item):
             # render selection frame
             if (self.is_marked()):
                 pmap.draw_frame(theme.mb_cursor_frame,
-                                4, 0, w - 8, h, True,
+                                0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
             
             elif (self.is_hilighted()):
                 pmap.draw_frame(theme.mb_selection_frame,
-                                4, 0, w - 8, h, True,
+                                0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
            
             # render icon
@@ -153,7 +153,9 @@ class MediaItem(Item):
 
             # render selection frame
             if (self.is_marked()):
-                pmap.fill_area(0, 0, w, h, "#00000040")
+                pmap.draw_frame(theme.mb_cursor_frame,
+                                0, 0, w, h, True,
+                                pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
             
             elif (self.is_hilighted()):
                 pmap.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True,
