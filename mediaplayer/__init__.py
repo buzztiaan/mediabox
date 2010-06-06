@@ -30,11 +30,14 @@ if (os.path.exists("/usr/bin/mplayer")):
         logging.info("failed to load mplayer backend")
 #end if
 
-try:
-    from GstBackend import GstBackend
-    _PLAYERS["gst"] = GstBackend()
-except:
-    logging.info("failed to load gstreamer backend")
+# GStreamer playbin is quite broken on Maemo4; e.g. does not stream MP3 reliably
+if (not platforms.MAEMO4):
+    try:
+        from GstBackend import GstBackend
+        _PLAYERS["gst"] = GstBackend()
+    except:
+        logging.info("failed to load gstreamer backend")
+#end if
 
 if (platforms.MAEMO4):
     try:

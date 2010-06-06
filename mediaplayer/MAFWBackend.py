@@ -35,7 +35,7 @@ class MAFWBackend(AbstractBackend):
         AbstractBackend.__init__(self)
 
         registry_p = self.__mafw.mafw_registry_get_instance()
-        print "REGISTRY", registry_p
+        print "GOT MAFW REGISTRY", registry_p
         
         err_p = ctypes.c_void_p(0)
         self.__mafw_shared.mafw_shared_init(registry_p,
@@ -45,28 +45,35 @@ class MAFWBackend(AbstractBackend):
         self.__registry.connect("renderer_added", self.__on_renderer_added)
 
         list_p = self.__mafw.mafw_registry_get_renderers(registry_p)
-        print "ext list p", list_p
+        print "GOT MAFW EXT LIST", list_p
         while (list_p):
 	    item = _GList(list_p[0])
-            print item.data
+            print "MAFW EXTENSION", item.data
             list_p = item.next
         #end while
 
 
-    def __on_renderer_added(self, *args):
+    def __on_renderer_added(self, registry, renderer):
     
-        print "new renderer", args
-        renderer_p = args[0]
-        name = self.__mafw.mafw_extension_get_name(renderer_p)
+        name = ctypes.cast(self.__mafw.mafw_extension_get_name(hash(renderer)),
+                           ctypes.c_char_p).value
+        
+        print "FOUND MAFW RENDERER", name
         if (name == "Mafw-Gst-Renderer"):
-            self.__renderer = c_gobject.wrap(renderer_p)
+            print "USING MAFW-GST-RENDERER"
+            self.__renderer = renderer
             self.__renderer.connect("state-changed", self.__on_change_state)
         #end if
         
         
-    def __on_change_state(self, *args):
+    def __on_loaded(self, renderer, data, err):
     
-        pass
+        print "LOADED", renderer, data, err
+        
+        
+    def __on_change_state(self, renderer, state):
+    
+        print "STATE CHANGED", state
 
 
     def _ensure_backend(self):
@@ -82,8 +89,15 @@ class MAFWBackend(AbstractBackend):
     def _load(self, uri):
 
         if (self.__renderer):
+            CALLBACK = ctypes.CFUNCTYPE(None,
+                                        ctypes.c_int32,
+                                        ctypes.c_int32,
+                                        ctypes.c_int32)
+            CALLBACK.restype = None
+            
+            self.__cb = CALLBACK(self.__on_loaded)
             self.__mafw.mafw_renderer_play_uri(hash(self.__renderer), uri,
-                                               self.__on_loaded, None)
+                                               self.__cb, 0)
         else:            
             self._report_error(self.ERR_NOT_SUPPORTED, "")
         
