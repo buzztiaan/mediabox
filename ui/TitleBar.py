@@ -2,6 +2,7 @@ from Widget import Widget
 from ImageButton import ImageButton
 from Pixmap import TEMPORARY_PIXMAP
 from theme import theme
+import platforms
 
 
 class TitleBar(Widget):
