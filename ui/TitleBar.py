@@ -88,18 +88,30 @@ class TitleBar(Widget):
         screen.draw_frame(theme.titlebar_bg, x, y, w, h, True)
 
         if (self.__mode == self.MODE_NORMAL):
-            screen.draw_pixbuf(theme.window_menu, x + 80, 7)
-            self.__btn_switch.set_geometry(0, 0, 80, 57)
-            self.__btn_close.set_geometry(w - 80, 0, 80, 57)
-            self.__btn_switch.set_visible(True)
-            self.__btn_back.set_visible(False)
-            self.__btn_close.set_visible(True)
+            if (platforms.MEEGO_NETBOOK):
+                screen.draw_pixbuf(theme.window_menu, x, 7)
+                self.__btn_close.set_geometry(w - 80, 0, 80, 57)
+                self.__btn_switch.set_visible(False)
+                self.__btn_back.set_visible(False)
+                self.__btn_close.set_visible(True)
 
-            screen.draw_text(self.__title,
-                             theme.font_ui_titlebar,
-                             x + 80 + 50, y + 14,
-                             theme.color_ui_titlebar)
+                screen.draw_text(self.__title,
+                                 theme.font_ui_titlebar,
+                                 x + 50, y + 14,
+                                 theme.color_ui_titlebar)
+            else:
+                screen.draw_pixbuf(theme.window_menu, x + 80, 7)
+                self.__btn_switch.set_geometry(0, 0, 80, 57)
+                self.__btn_close.set_geometry(w - 80, 0, 80, 57)
+                self.__btn_switch.set_visible(True)
+                self.__btn_back.set_visible(False)
+                self.__btn_close.set_visible(True)
 
+                screen.draw_text(self.__title,
+                                 theme.font_ui_titlebar,
+                                 x + 80 + 50, y + 14,
+                                 theme.color_ui_titlebar)
+                
         elif (self.__mode == self.MODE_SUBWINDOW):
             self.__btn_back.set_geometry(w - 80, 0, 80, 57)
             self.__btn_switch.set_visible(False)
