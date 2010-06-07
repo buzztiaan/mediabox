@@ -52,6 +52,7 @@ if (platforms.MAEMO5):
         from MAFWBackend import MAFWBackend
         _PLAYERS["mafw"] = MAFWBackend()
     except:
+        import traceback; traceback.print_exc()
         logging.info("failed to load mafw backend")
 #end if
 
