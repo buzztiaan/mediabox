@@ -94,13 +94,16 @@ class MAFWBackend(AbstractBackend):
         # reference to the MAFW renderer gobject
         self.__renderer = None
         
+        # current state of the renderer
+        self.__current_state = _MAFW_STATE_TRANSITIONING
+        
         # current position in the stream (used during retrieving the position)
         self.__current_position = -1
         
         # track duration
         self.__duration = -1
         
-        # reference to the callbacks, so that it doesn't get garbage
+        # reference to the callbacks, so that they don't get garbage
         # collected too early
         self.__playback_cb = _MAFW_PLAYBACK_CB(self.__playback_cb)
         self.__position_cb = _MAFW_POSITION_CB(self.__position_cb)
@@ -187,8 +190,9 @@ class MAFWBackend(AbstractBackend):
     def __on_change_state(self, renderer, state):
     
         print "MAFW STATE CHANGED", state
+        self.__current_state = state
+        
         if (state == _MAFW_STATE_STOPPED):
-            print "EOF REACHED"
             self.__is_eof = True
 
 
@@ -241,27 +245,31 @@ class MAFWBackend(AbstractBackend):
 
     def _is_eof(self):
     
-        return False
+        return self.__is_eof
 
 
     def _play(self):
 
-        self.__is_eof = False
-        self.__mafw.mafw_renderer_resume(hash(self.__renderer),
-                                         self.__playback_cb,
-                                         None)  
+        if (self.__current_state == _MAFW_STATE_PAUSED):
+            self.__is_eof = False
+            self.__mafw.mafw_renderer_resume(hash(self.__renderer),
+                                             self.__playback_cb,
+                                             None)  
 
         
     def _stop(self):
 
-        self.__mafw.mafw_renderer_pause(hash(self.__renderer),
-                                        self.__playback_cb,
-                                        None)
+        if (self.__current_state == _MAFW_STATE_PLAYING):
+            self.__mafw.mafw_renderer_pause(hash(self.__renderer),
+                                            self.__playback_cb,
+                                            None)
 
 
     def _close(self):
     
-        pass
+        self.__mafw.mafw_renderer_stop(hash(self.__renderer),
+                                       self.__playback_cb,
+                                       None)
 
 
     def _seek(self, pos):
@@ -272,6 +280,8 @@ class MAFWBackend(AbstractBackend):
                                                int(pos),
                                                self.__position_cb,
                                                None)
+        self._play()
+
 
     def _get_position(self):
         
