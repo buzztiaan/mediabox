@@ -77,6 +77,12 @@ _MAFW_POSITION_CB = ctypes.CFUNCTYPE(None,
                                      ctypes.c_void_p,
                                      ctypes.POINTER(_GError))
 
+_MAFW_EXTENSION_PROPERTY_CB = ctypes.CFUNCTYPE(None,
+                                               ctypes.c_void_p,
+                                               ctypes.c_char_p,
+                                               ctypes.c_void_p,
+                                               ctypes.POINTER(_GError))
+                                               
 
 
 class MAFWBackend(AbstractBackend):
@@ -103,10 +109,18 @@ class MAFWBackend(AbstractBackend):
         # track duration
         self.__duration = -1
         
+        # sound volume
+        self.__volume = 50
+        
+        # time when MediaBox has last changed the sound volume
+        self.__last_volume_change_time = 0
+
+        
         # reference to the callbacks, so that they don't get garbage
         # collected too early
         self.__playback_cb = _MAFW_PLAYBACK_CB(self.__playback_cb)
         self.__position_cb = _MAFW_POSITION_CB(self.__position_cb)
+        self.__property_cb = _MAFW_EXTENSION_PROPERTY_CB(self.__property_cb)
         
         # MAFW libraries
         self.__mafw = ctypes.CDLL("libmafw.so.0")
@@ -124,7 +138,6 @@ class MAFWBackend(AbstractBackend):
         err_p = ctypes.POINTER(_GError)()
         self.__mafw_shared.mafw_shared_init(registry_p,
                                             ctypes.byref(err_p))
-        # TODO: check for GError
         if (err_p):
             print "GError occured", err_p[0].message
             return
@@ -134,7 +147,7 @@ class MAFWBackend(AbstractBackend):
         # the gst-renderer)
         self.__registry.connect("renderer_added", self.__on_renderer_added)
 
-        # some renderers might be loaded already (not really...). look for them
+        # some renderers could be loaded already (not really...). look for them
         list_p = self.__mafw.mafw_registry_get_renderers(registry_p)
         while (list_p):
     	    item = _GList(list_p[0])
@@ -165,6 +178,13 @@ class MAFWBackend(AbstractBackend):
             self.__renderer.connect("buffering-info", self.__on_buffering)
             self.__renderer.connect("state-changed", self.__on_change_state)
             self.__renderer.connect("metadata-changed", self.__on_change_metadata)
+            self.__renderer.connect("property-changed", self.__on_change_property)
+            
+            # request initial volume
+            self.__mafw.mafw_extension_get_property(hash(self.__renderer),
+                                                    "volume",
+                                                    self.__property_cb,
+                                                    None)
         #end if
 
         
@@ -179,6 +199,16 @@ class MAFWBackend(AbstractBackend):
     
         print "MAFW POSITION", pos
         self.__current_position = pos
+
+
+    def __property_cb(self, extension, name, value_p, err):
+    
+        print "MAFW PROPERTY RECEIVED", extension, name, value_p, err
+        if (name == "volume"):
+            value = ctypes.c_uint.from_address(value_p).value
+            print "volume", value
+            #value = ctypes.cast(value_p, ctypes.c_int_p)[0].value
+            self.__volume = value
 
 
     def __on_buffering(self, renderer, value):
@@ -211,6 +241,15 @@ class MAFWBackend(AbstractBackend):
             self.__duration = value[0]
 
 
+    def __on_change_property(self, renderer, name, value):
+    
+        print "MAFW PROPERTY CHANGED", name, value, type(value)
+        if (name == "volume" and time.time() > self.__last_volume_change_time + 1):
+            volume = value #ctypes.c_uint.from_address(hash(value_p))
+            self.__volume = volume
+            self._report_volume(volume)
+
+
     def _ensure_backend(self):
     
         pass
@@ -232,6 +271,8 @@ class MAFWBackend(AbstractBackend):
                                                uri,
                                                self.__playback_cb,
                                                None)
+            self._report_volume(self.__volume)
+            
         else:            
             self._report_error(self.ERR_NOT_SUPPORTED, "")
         
@@ -241,6 +282,7 @@ class MAFWBackend(AbstractBackend):
         self.__mafw.mafw_extension_set_property_uint(hash(self.__renderer),
                                                     "volume",
                                                     ctypes.c_uint(volume))
+        self.__last_volume_change_time = time.time()
 
 
     def _is_eof(self):
