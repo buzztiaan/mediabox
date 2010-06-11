@@ -4,6 +4,7 @@ from utils.MiniXML import MiniXML
 from utils import logging
 from utils import threads
 from utils import urlquote
+from ui.dialog import FileDialog
 from ui.dialog import InputDialog
 from ui.dialog import OptionDialog
 from io import Downloader
@@ -99,8 +100,6 @@ class YouTube(Device):
             
         self.__fileserver = FileServer()
         self.__flv_downloader = None
-        
-        self.__keep_video = False
         
         self.__items = []
         self.__current_folder = None
@@ -239,8 +238,6 @@ class YouTube(Device):
             item.resource = path
             item.name = name
             item.mimetype = mimetype
-            if (path != "/local"):
-                item.folder_flags = item.ITEMS_DOWNLOADABLE
             
             cb(item, *args)
         #end for
@@ -280,7 +277,6 @@ class YouTube(Device):
                     f.mimetype = f.DIRECTORY
                     f.name = "Page %d" % page
                     f.info = "Results %d - %d" % (n, min(total_results, n + _PAGE_SIZE - 1))
-                    f.folder_flags = f.ITEMS_DOWNLOADABLE
                     cb(f, *args)
                     page += 1
                 #end for
@@ -534,46 +530,17 @@ class YouTube(Device):
             
         elif (path.startswith("/local")):
             self.__ls_local_videos(cb, *args)
-            
-            
-    def get_resource(self, f):
-    
-        def on_dload(d, a, t, flv_path, keep_path):
-            if (d):
-                self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
-                #print "%d / %d         " % (a, t)
-                #print gobject.main_depth()
-                #if (gobject.main_depth() < 3): 
-                gtk.main_iteration(False)
-                
-            else:
-                self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
-                if (self.__keep_video):
-                    keep_dir = os.path.dirname(keep_path)
-                    if (not os.path.exists(keep_dir)):
-                        try:
-                            os.makedirs(os.path.dirname(keep_path))
-                        except:
-                            pass
-                    #end if
-                    try:
-                        os.rename(flv_path, keep_path)
-                    except:
-                        logging.error("could not save video '%s'\n%s" \
-                                      % (keep_path, logging.stacktrace()))
-                    # copy thumbnail
-                    self.__copy_thumbnail(f, keep_path)
-                #end if
-            #end if
+           
+           
+    def __get_video(self, f):
+        """
+        Returns the video URL and a valid filename.
+        """
 
-
-        # handle locally saved videos
-        if (f.resource.startswith("/")): return f.resource
-        
         if (f.resource == _REGION_BLOCKED):
             self.emit_message(msgs.UI_ACT_SHOW_INFO,
                               "This video is not available in your country.")
-            return ""
+            return ("", "")
         
         try:
             flv, fmts = self.__get_flv(f.resource)
@@ -610,10 +577,50 @@ class YouTube(Device):
 
         cache_folder = config.get_cache_folder()
         flv_path = os.path.join(cache_folder, ".tube.flv")
-        keep_path = os.path.join(cache_folder, _VIDEO_FOLDER,
-                                 self.__make_filename(f.name, ext))
-        self.__keep_video = False
-        return flv + "&ext=" + ext
+        keep_path = self.__make_filename(f.name, ext)
+
+        return (flv + "&ext=" + ext, keep_path)
+
+
+    def get_resource(self, f):
+
+        """    
+        def on_dload(d, a, t, flv_path, keep_path):
+            if (d):
+                self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
+                #print "%d / %d         " % (a, t)
+                #print gobject.main_depth()
+                #if (gobject.main_depth() < 3): 
+                gtk.main_iteration(False)
+                
+            else:
+                self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
+                if (self.__keep_video):
+                    keep_dir = os.path.dirname(keep_path)
+                    if (not os.path.exists(keep_dir)):
+                        try:
+                            os.makedirs(os.path.dirname(keep_path))
+                        except:
+                            pass
+                    #end if
+                    try:
+                        os.rename(flv_path, keep_path)
+                    except:
+                        logging.error("could not save video '%s'\n%s" \
+                                      % (keep_path, logging.stacktrace()))
+                    # copy thumbnail
+                    self.__copy_thumbnail(f, keep_path)
+                #end if
+            #end if
+        """
+
+        """
+        # handle locally saved videos
+        if (f.resource.startswith("/")): return f.resource
+        """
+
+        url, nil = self.__get_video(f)
+        return url
 
         """
         self.__flv_downloader = FileDownloader(flv, flv_path, on_dload,
@@ -645,19 +652,27 @@ class YouTube(Device):
 
     def __on_download(self, folder, f):
 
-        uri = f.get_resource()
-        filename = self.__make_filename(f.name, "flv")
-        print "DOWNLOAD:", filename
+        url, filename = self.__get_video(f)
+        if (not url):
+            return
+            
+        dlg = FileDialog(FileDialog.TYPE_SAVE, "Save Video")
+        print dir(dlg)
+        #dlg.set_filename(filename)
+        dlg.run()
+        
+        destination = dlg.get_filename()
+        if (destination):
+            self.call_service(msgs.DOWNLOADER_SVC_GET, url,
+                              destination)
 
 
-    """
     def get_file_actions(self, folder, f):
 
         actions = Device.get_file_actions(self, folder, f)
         actions.append((None, "Download", self.__on_download))
 
         return actions
-    """
 
 
     def delete_file(self, folder, idx):
@@ -678,18 +693,6 @@ class YouTube(Device):
         
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.__current_folder)
         """
-
-
-    def keep(self, f):
-        """
-        Keeps the current video.
-        """
-        
-        self.__keep_video = True
-        self.emit_event(msgs.UI_ACT_SHOW_INFO,
-                        u"video will be saved as\n\xbb%s\xab" \
-                        % self.__make_filename(f.name, ""))
-
 
 
     def __make_filename(self, name, ext):

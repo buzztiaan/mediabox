@@ -166,8 +166,9 @@ class MAFWBackend(AbstractBackend):
 
     def __register_renderer(self, renderer):
     
-        name = ctypes.cast(self.__mafw.mafw_extension_get_name(hash(renderer)),
-                           ctypes.c_char_p).value
+        #name = ctypes.cast(self.__mafw.mafw_extension_get_name(hash(renderer)),
+        #                   ctypes.c_char_p).value
+        name = self.__mafw.mafw_extension_get_name(hash(renderer))
         
         logging.info("found new MAFW renderer %s", name)
         if (name == "Mafw-Gst-Renderer"):

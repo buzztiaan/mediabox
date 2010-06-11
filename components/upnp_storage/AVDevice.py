@@ -1,6 +1,8 @@
+from com import msgs
 from storage import Device, File
 from io import SeekableFD
 from io import Downloader
+from ui.dialog import FileDialog
 from utils.MiniXML import MiniXML
 from upnp.SOAPProxy import SOAPProxy
 from upnp import didl_lite
@@ -216,24 +218,24 @@ class AVDevice(Device):
                 pass
             
         return didl
-
-
-    def __on_add_to_playlist(self, folder, f):
-    
-        self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
-
-
-    def __on_put_on_shelf(self, folder, f):
         
-        f.bookmarked = True
+
+    def __on_download(self, folder, f):
+
+        dlg = FileDialog(FileDialog.TYPE_SAVE, "Save File")
+        dlg.run()
+        
+        destination = dlg.get_filename()
+        if (destination):
+            self.call_service(msgs.DOWNLOADER_SVC_GET, f.resource,
+                              destination)
 
 
     def get_file_actions(self, folder, f):
-    
-        actions = []
-        actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
-        actions.append((None, "Put on Shelf", self.__on_put_on_shelf))
-        
+
+        actions = Device.get_file_actions(self, folder, f)
+        actions.append((None, "Download", self.__on_download))
+
         return actions
      
    

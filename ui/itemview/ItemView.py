@@ -115,6 +115,16 @@ class ItemView(Widget):
         self.__items[position] = item
 
 
+    def remove_item(self, position):
+        """
+        Removes the item at the given position.
+        
+        @param position: the position of the item to remove
+        """
+    
+        self.__items.pop(position)
+
+
     def shift_item(self, pos, amount):
         """
         Shifts the item at the given position by the given amount. This triggers

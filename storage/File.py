@@ -18,15 +18,13 @@ class File(object):
     NONE =         0
     ITEMS_ENQUEUEABLE =    1 << 0
     """items in this folder can be enqueued to a list"""
-    ITEMS_DOWNLOADABLE =   1 << 1
-    """items in this folder can be downloaded"""
-    ITEMS_ADDABLE =        1 << 2
+    ITEMS_ADDABLE =        1 << 1
     """this folder provides an ADD button"""
-    ITEMS_SORTABLE =       1 << 3
+    ITEMS_SORTABLE =       1 << 2
     """items in this folder can be rearranged"""
-    ITEMS_UNSORTED =   1 << 4
+    ITEMS_UNSORTED =       1 << 3
     """items in this folder show no index letter"""
-    ITEMS_COMPACT =        1 << 5
+    ITEMS_COMPACT =        1 << 4
     """items in this this folder are normally viewed in a compact way"""
     
 

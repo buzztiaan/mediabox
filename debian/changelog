@@ -1,4 +1,4 @@
-mediabox (2010.06.07) unstable; urgency=low
+mediabox (2010.06.11) unstable; urgency=low
 
   Automatically scale down large images before storing as thumbnail.
   This increases scrolling speed in the lists and saves disk space
@@ -7,17 +7,20 @@ mediabox (2010.06.07) unstable; urgency=low
 
   Put configurator for changing media backends in again
   
-  Support for displaying embedded cover art in MP3 streams (GStreamer backend)
+  Support for displaying embedded cover art in MP3 streams (GStreamer and
+  MAFW backends)
   
   Configurator for configuring media player backends
   
   MAFW backend for Maemo5 (yay, finally!)
+  
+  Download manager and download option in YouTube and UPnP components
 
   Maemo4 and MeeGo netbook windowing stuff
   
   Small bug fixes
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Mon, 07 Jun 2010 20:30:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Fri, 11 Jun 2010 18:30:00 +0200
 
 mediabox (2010.05.08) unstable; urgency=low
 

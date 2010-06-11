@@ -209,7 +209,7 @@ class VideoPlayer(Player):
                 self.__is_playing = False
                 self.call_service(msgs.VIDEOPLAYER_SVC_RELEASE_DSP)
                 self.emit_message(msgs.MEDIA_EV_EOF)
-
+                self.emit_message(msgs.MEDIA_ACT_NEXT)
 
 
     def __on_update_position(self, ctx_id, pos, total):

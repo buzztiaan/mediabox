@@ -82,6 +82,8 @@ class AppWindow(Component, Window):
         if (platforms.MAEMO5):
             self.set_menu_item("fmtx", "FM Transmitter", True,
                                self.__on_menu_fmtx)
+        self.set_menu_item("downloads", "Downloads", True,
+                           self.__on_menu_downloads)
         self.set_menu_item("info", "About", True,
                            self.__on_menu_info)
                            
@@ -147,6 +149,11 @@ class AppWindow(Component, Window):
         platforms.plugin_execute("libcpfmtx.so")
 
 
+    def __on_menu_downloads(self):
+    
+        self.__show_dialog("downloader.DownloadManager")
+
+
     def __on_menu_info(self):
     
         dlg = InfoDialog(values.NAME + " " + \
@@ -205,10 +212,12 @@ class AppWindow(Component, Window):
         Shows the dialog with the given name.
         """
 
+        print name, self.__dialogs
         dialogs = [ d for d in self.__dialogs if repr(d) == name ]
         if (dialogs):
             dlg = dialogs[0]
             dlg.set_visible(True)
+            print "SHOW", dlg
             #if (not platforms.MAEMO5):
             #    self.set_visible(False)
         #end if     
