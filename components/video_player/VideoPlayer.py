@@ -227,7 +227,15 @@ class VideoPlayer(Player):
         if (self.__player):
             vol = int(v * 100)
             self.__player.set_volume(vol)
+            self.__volume = vol
 
+
+    def __on_change_player_volume(self, v):
+    
+        if (v != self.__volume):
+            self.__volume_slider.set_value(v / 100.0)
+            self.__volume = v
+            
 
     def __on_seek(self, progress):
     
@@ -318,6 +326,7 @@ class VideoPlayer(Player):
         self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
         self.__player.connect_status_changed(self.__on_status_changed)
         self.__player.connect_position_changed(self.__on_update_position)
+        self.__player.connect_volume_changed(self.__on_change_player_volume)
         
         self.__player.set_window(self.__screen.get_xid())
         

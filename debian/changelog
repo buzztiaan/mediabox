@@ -1,4 +1,4 @@
-mediabox (2010.06.11) unstable; urgency=low
+mediabox (2010.06.12) unstable; urgency=low
 
   Automatically scale down large images before storing as thumbnail.
   This increases scrolling speed in the lists and saves disk space
@@ -14,13 +14,15 @@ mediabox (2010.06.11) unstable; urgency=low
   
   MAFW backend for Maemo5 (yay, finally!)
   
+  MPlayer backend now available on Maemo5, too
+  
   Download manager and download option in YouTube and UPnP components
 
   Maemo4 and MeeGo netbook windowing stuff
   
   Small bug fixes
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Fri, 11 Jun 2010 18:30:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 12 Jun 2010 19:30:00 +0200
 
 mediabox (2010.05.08) unstable; urgency=low
 

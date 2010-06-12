@@ -1,6 +1,7 @@
 from AbstractBackend import AbstractBackend
 from utils import maemo
 from utils import logging
+import platforms
 
 import os
 import fcntl
@@ -77,38 +78,37 @@ class MPlayerBackend(AbstractBackend):
     def __start_mplayer(self):
     
         if (self._get_mode() == self.MODE_AUDIO):
+            if (platforms.MAEMO5):
+                ao_opts = "-ao pulse"
+            else:
+                ao_opts = ""                
+
             cmd = "LANG=C %s -quiet -slave " \
                   "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
                   "-input conf=\"%s\" "\
                   "-idle -osdlevel 0 -idx " \
                   "-cache 256 -cache-min 50 " \
-                  "-identify -novideo 2>&1 3>/dev/null" \
-                  % (_MPLAYER, _INPUT_CONF)
+                  "-identify -novideo %s 2>&1 3>/dev/null" \
+                  % (_MPLAYER, _INPUT_CONF, ao_opts)
         else:
-            product = maemo.get_product_code()
-            if (product == "?"):
-                logging.debug("mplayer backend detected non-maemo device")
+            if (platforms.MAEMO5):
+                ao_opts = "-ao pulse"
                 vo_opts = "-vo xv -softsleep"
-            elif (product == "SU-18"):
-                logging.debug("mplayer backend detected Nokia 770")
-                vo_opts = "-vo nokia770"
-                                          #"fb_overlay_only:" \
-                                          #"x=174:y=60:w=600:h=360")
+            elif (platforms.MAEMO4):
+                ao_opts = ""
+                vo_opts = "-vo xv -softsleep -lavdopts fast:lowres=1,480"
             else:
-                logging.debug("mplayer backend detected Nokia maemo-device")
-                vo_opts = ""
-                #vo_opts = "-vo xv:ck-method=auto "\
-                #          "-noslices -framedrop " \
-                #          "-lavdopts fast:lowres=1,480"
+                ao_opts = ""
+                vo_opts = "-vo xv"
         
             cmd = "LANG=C %s -quiet -slave " \
                   "-noconsolecontrols -nojoystick -nolirc -nomouseinput " \
                   "-input conf=\"%s\" "\
                   "-osdlevel 0 -idx " \
                   "-cache 256 -cache-min 50 " \
-                  "-identify -wid %d %s \"%s\" 2>&1 3>/dev/null" \
+                  "-identify -wid %d %s %s \"%s\" 2>&1 3>/dev/null" \
                   % (_MPLAYER, _INPUT_CONF,
-                     self.__window_id, vo_opts, self.__uri)
+                     self.__window_id, vo_opts, ao_opts, self.__uri)
 
         print cmd
         p = subprocess.Popen([cmd],
@@ -265,12 +265,13 @@ class MPlayerBackend(AbstractBackend):
         self.__busy_wait(0.25)
         self.__send_cmd("get_time_length")
         self.__send_cmd("get_time_pos")
+        gobject.idle_add(self.__send_cmd, "get_property volume")
         
        
         
     def _play(self):
     
-        self.__send_cmd("play")
+        self.__send_cmd("pause")
 
         
     def _stop(self):
@@ -290,7 +291,7 @@ class MPlayerBackend(AbstractBackend):
         
     def _set_volume(self, vol):
     
-        self.__send_cmd("volume %f 1" % vol)
+        self.__send_cmd("pausing_keep volume %f 1" % vol)
 
         
     def _get_position(self):
@@ -390,7 +391,9 @@ class MPlayerBackend(AbstractBackend):
             filename = self.__read_ans(data)
             
         elif (data.startswith("ANS_volume")):
-            print "VOLUME", self.__read_ans(data)
+            volume = int(float(self.__read_ans(data)))
+            self._report_volume(volume)
+            print "VOLUME", volume
 
         elif (data.startswith("AUDIO: ")):
             #print "HAS AUDIO"
