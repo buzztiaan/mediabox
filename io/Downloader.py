@@ -31,7 +31,7 @@ class Downloader(HTTPConnection):
     def __on_receive_data(self, resp, cb, args):
     
         if (not resp):
-            cb("", 0, 0, *args)
+            cb(None, 0, 0, *args)
             return
             
         status = resp.get_status()

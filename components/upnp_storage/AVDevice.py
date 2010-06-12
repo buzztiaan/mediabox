@@ -179,7 +179,7 @@ class AVDevice(Device):
                               mimetypes.get_video_types() +
                               mimetypes.get_image_types() + [f.DIRECTORY]):
             ext = os.path.splitext(f.name)[-1]
-            f.mimetype = mimetypes.lookup_ext(ext)
+            f.mimetype = mimetypes.ext_to_mimetype(ext)
 
         if (f.mimetype.startswith("image/")):
             f.thumbnail = f.resource
@@ -223,6 +223,11 @@ class AVDevice(Device):
     def __on_download(self, folder, f):
 
         dlg = FileDialog(FileDialog.TYPE_SAVE, "Save File")
+        if (os.path.splitext(f.name)[1]):
+            ext = ""
+        else:
+            ext = os.path.splitext(f.resource)[1]
+        dlg.set_filename(f.name + ext)
         dlg.run()
         
         destination = dlg.get_filename()

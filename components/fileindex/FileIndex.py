@@ -76,7 +76,7 @@ class FileIndex(Component):
     def __guess_mimetype(self, path):
         
         ext = os.path.splitext(path)[1]
-        return mimetypes.lookup_ext(ext)
+        return mimetypes.ext_to_mimetype(ext)
 
 
     def __inspect(self, path):

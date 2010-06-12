@@ -1,9 +1,13 @@
 import platforms
 
+import os
 import gtk
 if (platforms.MAEMO4 or platforms.MAEMO5):
     import gobject
     import hildon
+
+
+_MYDOCS = os.path.join(os.path.expanduser("~"), "MyDocs")
 
 
 class FileDialog(object):
@@ -17,6 +21,12 @@ class FileDialog(object):
         self.__title = title
         self.__dlg_type = dlg_type
         self.__selection = ""
+        self.__filename = ""
+        
+        
+    def set_filename(self, filename):
+    
+        self.__filename = filename
         
         
     def get_filename(self):
@@ -33,6 +43,11 @@ class FileDialog(object):
             
         dlg = gobject.new(hildon.FileChooserDialog, action = action)
         dlg.set_title(self.__title)
+        
+        #print dir(dlg)
+        #print dlg.get_safe_folder_uri()
+        dlg.set_current_name(self.__filename)
+        dlg.set_current_folder_uri(_MYDOCS)
         
         response = dlg.run()
         self.__selection = dlg.get_filename()

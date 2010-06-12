@@ -141,7 +141,7 @@ class LocalDevice(Device):
             item.name = os.path.splitext(os.path.basename(path))[0]
             item.acoustic_name = os.path.splitext(item.name)[0]
             ext = os.path.splitext(path)[-1].lower()
-            item.mimetype = mimetypes.lookup_ext(ext)
+            item.mimetype = mimetypes.ext_to_mimetype(ext)
             item.info = mimetypes.mimetype_to_name(item.mimetype) + " file"
         
         if (item.resource in _BEAUTIFUL_PLACES):

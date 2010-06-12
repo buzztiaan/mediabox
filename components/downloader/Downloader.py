@@ -1,6 +1,8 @@
 from com import Component, msgs
 from io import FileDownloader
 
+import os
+
 
 class Downloader(Component):
     """
@@ -17,22 +19,35 @@ class Downloader(Component):
         
     def handle_DOWNLOADER_SVC_GET(self, url, destination):
     
-        def on_data(data, amount, total):
+        def on_data(data, amount, total, destination):
             self.emit_message(msgs.DOWNLOADER_EV_PROGRESS,
                               download_id, amount, total)
         
-            if (not data and download_id in self.__downloaders):
+            if (data == "" and download_id in self.__downloaders):
                 del self.__downloaders[download_id]
                 self.emit_message(msgs.DOWNLOADER_EV_FINISHED, download_id)
                 self.emit_message(msgs.UI_ACT_SHOW_INFO,
                                   u"Finished downloading \xbb%s\xab" % url)
+                                  
+                # add to file index
+                self.call_service(msgs.FILEINDEX_SVC_DISCOVER,
+                                  destination,
+                                  os.path.getmtime(destination))
+
+            elif (data == None):
+                self.emit_message(msgs.UI_ACT_SHOW_INFO,
+                                  u"Downloading aborted")
+            #end if
 
 
-        dloader = FileDownloader(url, destination, on_data)
+        dloader = FileDownloader(url, destination, on_data, destination)
         download_id = hash(dloader)
         self.__downloaders[download_id] = dloader
         self.emit_message(msgs.DOWNLOADER_EV_STARTED,
                           download_id, url, destination)
+        self.emit_message(msgs.UI_ACT_SHOW_INFO,
+                          u"Download started")
+
         
         return download_id
         

@@ -2,6 +2,7 @@ from com import msgs
 from storage import Device, File
 from utils.MiniXML import MiniXML
 from utils import logging
+from utils import mimetypes
 from utils import threads
 from utils import urlquote
 from ui.dialog import FileDialog
@@ -657,8 +658,7 @@ class YouTube(Device):
             return
             
         dlg = FileDialog(FileDialog.TYPE_SAVE, "Save Video")
-        print dir(dlg)
-        #dlg.set_filename(filename)
+        dlg.set_filename(f.name + mimetypes.mimetype_to_ext(f.mimetype))
         dlg.run()
         
         destination = dlg.get_filename()

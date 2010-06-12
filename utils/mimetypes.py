@@ -10,6 +10,7 @@ import os
 _MIMETYPES_FILE = os.path.join(os.path.dirname(__file__), "..", "mimetypes.mapping")
 
 _EXT_TO_MIMETYPE = {}
+_MIMETYPE_TO_EXT = {}
 _MIMETYPE_TO_NAME = {}
 _VIDEO_TYPES = []
 _AUDIO_TYPES = []
@@ -42,8 +43,10 @@ def _load_mimetypes(path):
             
         _MIMETYPE_TO_NAME[mimetype] = name
         if (exts != "-"):
-            for ext in exts.split(","):
+            es = exts.split(",")
+            for ext in es:
                 _EXT_TO_MIMETYPE[ext] = mimetype
+            _MIMETYPE_TO_EXT[mimetype] = es[0]
         #end if
         
         if (mediatype == "A"):   _AUDIO_TYPES.append(mimetype)
@@ -53,7 +56,7 @@ def _load_mimetypes(path):
 
 
 
-def lookup_ext(ext):
+def ext_to_mimetype(ext):
     """
     Looks up the MIME type for the given file extension.
     @since: 0.96
@@ -63,6 +66,18 @@ def lookup_ext(ext):
     """
 
     return _EXT_TO_MIMETYPE.get(ext, "application/x-unknown")
+
+
+def mimetype_to_ext(mimetype):
+    """
+    Returns an extension for the given MIME type.
+    @since: 2010.06.12
+    
+    @param mimetype: MIME type
+    @return: file extension (including leading '.')
+    """
+    
+    return _MIMETYPE_TO_EXT.get(mimetype, "")
 
 
 def mimetype_to_name(mimetype):

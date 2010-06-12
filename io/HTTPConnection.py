@@ -128,8 +128,14 @@ class HTTPConnection(object):
         self.__socket_connected = False
         threads.run_threaded(f, self.__sock, host, port)
 
-        
 
+    def is_aborted(self):
+        """
+        Returns whether the connection has been aborted.
+        """
+    
+        return self.__is_aborted
+        
 
     def wait_until_closed(self):
         """
