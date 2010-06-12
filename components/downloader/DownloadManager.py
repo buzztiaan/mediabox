@@ -15,7 +15,7 @@ class DownloadManager(Dialog):
         self.__items = {}
 
         Dialog.__init__(self)
-        self.set_title("Downloads")
+        self.set_title("Active Downloads")
         
         self.__list = ThumbableGridView()
         self.add(self.__list)

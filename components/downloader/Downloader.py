@@ -27,7 +27,8 @@ class Downloader(Component):
                 del self.__downloaders[download_id]
                 self.emit_message(msgs.DOWNLOADER_EV_FINISHED, download_id)
                 self.emit_message(msgs.UI_ACT_SHOW_INFO,
-                                  u"Finished downloading \xbb%s\xab" % url)
+                                  u"Finished downloading \xbb%s\xab" \
+                                  % os.path.basename(destination))
                                   
                 # add to file index
                 self.call_service(msgs.FILEINDEX_SVC_DISCOVER,

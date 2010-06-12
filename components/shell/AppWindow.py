@@ -77,12 +77,12 @@ class AppWindow(Component, Window):
                              shuffle_selected, True,
                              self.__on_menu_shuffle)
 
-        self.set_menu_item("select-output", "Select Media Renderer", True,
+        self.set_menu_item("select-output", "Media Renderers", True,
                            self.__on_menu_select_output)
         if (platforms.MAEMO5):
             self.set_menu_item("fmtx", "FM Transmitter", True,
                                self.__on_menu_fmtx)
-        self.set_menu_item("downloads", "Downloads", True,
+        self.set_menu_item("downloads", "Active Downloads", True,
                            self.__on_menu_downloads)
         self.set_menu_item("info", "About", True,
                            self.__on_menu_info)
@@ -217,7 +217,6 @@ class AppWindow(Component, Window):
         if (dialogs):
             dlg = dialogs[0]
             dlg.set_visible(True)
-            print "SHOW", dlg
             #if (not platforms.MAEMO5):
             #    self.set_visible(False)
         #end if     
