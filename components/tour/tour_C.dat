@@ -260,6 +260,17 @@ MediaBox may not be compatible with all UPnP media shares.
 END
 
 
+BEGIN Saving Files from UPnP/DLNA Media Shares
+You can save files from media shares onto your device.
+
+Tap and hold on an media item to open the popup menu. Choose
+
+ → Download
+ 
+from there.
+END
+
+
 BEGIN Playing on UPnP Media Renderers (1)
 You can play music and videos on compatible UPnP media renderers in your network, e.g. for watching a movie on the big TV screen, or listening to music on your HiFi set.
 
@@ -298,11 +309,31 @@ You can browse clips from the YouTube video sharing service under
 
  [Videos → YouTube]
 
-Some videos are available in different formats and qualities. If there is more than
-one compatible format available, MediaBox will let you choose a format.
+Some videos are available in different formats and qualities. If there is more than one compatible format available, MediaBox will let you choose a format.
 
-Some content from the YouTube service or the service in general may not be accessible
-in your country, either for political reasons or interests of the content industry.
+Some content from the YouTube service or the service in general may not be accessible in your country, either for political reasons or interests of the content industry.
+END
+
+
+BEGIN Saving Files from YouTube
+You can save files from YouTube onto your device.
+
+Tap and hold on an media item to open the popup menu. Choose
+
+ → Download
+ 
+from there. If more than one compatible format of a video is available, MediaBox will let you choose a format.
+END
+
+
+BEGIN Managing Downloads
+Choose the menu item
+
+ → Downloads
+ 
+from the application menu.
+
+A dialog will appear that shows you the currently active downloads. Click on the [ABORT] button to the right of a download item to abort that download.
 END
 
 
