@@ -35,8 +35,12 @@ class Downloader(Component):
                                   os.path.getmtime(destination))
 
             elif (data == None):
+                try:
+                    os.unlink(destination)
+                except:
+                    pass
                 self.emit_message(msgs.UI_ACT_SHOW_INFO,
-                                  u"Downloading aborted")
+                                  u"Download aborted")
             #end if
 
 
