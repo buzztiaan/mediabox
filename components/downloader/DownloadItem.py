@@ -34,7 +34,7 @@ class DownloadItem(Item):
     def __pretty_size(self, s):
 
         if (s == -1):
-            return "unknown"
+            return "?"
             
         if (s > 1024 * 1024 * 1024):
             size = s / float(1024 * 1024 * 1024)
@@ -49,7 +49,7 @@ class DownloadItem(Item):
             size = s
             size_unit = "B"
 
-        return "%0.1f %s" % (size, size_unit)
+        return "%0.2f %s" % (size, size_unit)
 
 
     def render_at(self, cnv, x, y):
