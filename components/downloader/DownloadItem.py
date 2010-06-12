@@ -75,6 +75,10 @@ class DownloadItem(Item):
                            theme.font_mb_tiny,
                            12, 30, theme.color_list_item_subtext)
             pmap.set_clip_rect()
+
+            pmap.draw_pixbuf(theme.mb_download_abort,
+                             w - 80 + (80 - 42) / 2, (h - 42) / 2)
+
         #end if
 
         # copy to the given canvas

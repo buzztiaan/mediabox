@@ -158,6 +158,12 @@ class MAFWBackend(AbstractBackend):
         #end while
 
 
+    def _get_icon(self):
+    
+        from theme import theme
+        return theme.mb_backend_mafw
+
+
     def __on_renderer_added(self, registry, renderer):
 
         # renderer ought to be python-wrapped already

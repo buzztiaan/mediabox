@@ -670,7 +670,8 @@ class YouTube(Device):
     def get_file_actions(self, folder, f):
 
         actions = Device.get_file_actions(self, folder, f)
-        actions.append((None, "Download", self.__on_download))
+        if (f.mimetype != f.DIRECTORY):
+            actions.append((None, "Download", self.__on_download))
 
         return actions
 

@@ -2,12 +2,15 @@ import platforms
 
 import os
 import gtk
+import gobject
 if (platforms.MAEMO4 or platforms.MAEMO5):
-    import gobject
     import hildon
 
 
-_MYDOCS = os.path.join(os.path.expanduser("~"), "MyDocs")
+if (platforms.MAEMO4 or platforms.MAEMO5):
+    _MYDOCS = os.path.join(os.path.expanduser("~"), "MyDocs")
+else:
+    _MYDOCS = os.path.expanduser("~")
 
 
 class FileDialog(object):
@@ -40,14 +43,19 @@ class FileDialog(object):
             action = gtk.FILE_CHOOSER_ACTION_OPEN
         else:
             action = gtk.FILE_CHOOSER_ACTION_SAVE
-            
-        dlg = gobject.new(hildon.FileChooserDialog, action = action)
+
+        if (platforms.MAEMO4 or platforms.MAEMO5):            
+            dlg = gobject.new(hildon.FileChooserDialog, action = action)
+        else:
+            dlg = gtk.FileChooserDialog(parent = None, action = action,
+                                buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                         gtk.STOCK_SAVE, gtk.RESPONSE_OK))
         dlg.set_title(self.__title)
         
         #print dir(dlg)
         #print dlg.get_safe_folder_uri()
         dlg.set_current_name(self.__filename)
-        dlg.set_current_folder_uri(_MYDOCS)
+        dlg.set_current_folder(_MYDOCS)
         
         response = dlg.run()
         self.__selection = dlg.get_filename()
