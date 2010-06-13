@@ -465,7 +465,8 @@ class Window(Widget):
 
     def set_parent_window(self, parent):
     
-        self.__window.set_transient_for(parent._get_window_impl())
+        if (not platforms.MEEGO_NETBOOK):
+            self.__window.set_transient_for(parent._get_window_impl())
 
 
     def destroy(self):
