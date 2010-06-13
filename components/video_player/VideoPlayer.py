@@ -270,16 +270,6 @@ class VideoPlayer(Player):
         self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
         self.__update_layout()
         self.render()
-
-
-    """
-    def _visibility_changed(self):
-    
-        if (self.is_visible()):
-            self.emit_message(msgs.ASR_ACT_FORCE_LANDSCAPE, True)
-        else:
-            self.emit_message(msgs.ASR_ACT_FORCE_LANDSCAPE, False)
-    """
             
 
     def render_this(self):

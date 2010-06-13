@@ -151,7 +151,10 @@ class Window(Widget):
         self.__window.realize()
 
         if (platforms.MAEMO5):
-            self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
+            if (wtype == self.TYPE_TOPLEVEL):
+                self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
+            else:
+                self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
 
         self.__layout = gtk.Fixed()
         self.__layout.show()
@@ -206,6 +209,7 @@ class Window(Widget):
 
         changes = []
         for flag in [windowflags.FULLSCREEN,
+                     windowflags.ASR,
                      windowflags.PORTRAIT,
                      windowflags.CATCH_VOLUME_KEYS,
                      windowflags.BUSY,
@@ -392,6 +396,11 @@ class Window(Widget):
                                              [value])
 
 
+    def __unset_portrait_property(self, prop):
+
+        self.__window.window.property_delete(prop)
+
+
     def _update_flag(self, flag, value):
 
         if (flag == windowflags.FULLSCREEN):
@@ -404,13 +413,22 @@ class Window(Widget):
                     self.__window.fullscreen()
                 else:
                     self.__window.unfullscreen()
-            
+        
+        elif (flag == windowflags.ASR):
+            if (platforms.MAEMO5):
+                if (value):
+                    self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
+                    #self.__set_portrait_property("_HILDON_PORTRAIT_MODE_REQUEST", 0)
+                else:
+                    self.__unset_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT")
 
         elif (flag == windowflags.PORTRAIT):
             if (platforms.MAEMO5):
-                self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
-                self.__set_portrait_property("_HILDON_PORTRAIT_MODE_REQUEST",
-                                             value and 1 or 0)
+                #self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
+                if (value):
+                    self.__set_portrait_property("_HILDON_PORTRAIT_MODE_REQUEST", 1)
+                else:
+                    self.__unset_portrait_property("_HILDON_PORTRAIT_MODE_REQUEST")
 
         elif (flag == windowflags.BUSY):
             if (platforms.MAEMO5):

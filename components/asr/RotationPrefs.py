@@ -22,9 +22,6 @@ class RotationPrefs(Configurator):
 
     def __init__(self):
     
-        self.__is_portrait = False
-        
-    
         Configurator.__init__(self)
         
         self.__list = ThumbableGridView()
@@ -34,7 +31,8 @@ class RotationPrefs(Configurator):
         #self.__list.append_item(lbl)
         
         chbox = OptionItem("Landscape Mode", config.ORIENTATION_LANDSCAPE,
-                           "Portrait Mode", config.ORIENTATION_PORTRAIT)
+                           "Portrait Mode", config.ORIENTATION_PORTRAIT,
+                           "Automatic", config.ORIENTATION_AUTOMATIC)
         chbox.connect_changed(self.__on_select_orientation)
         chbox.select_by_value(config.orientation())
         self.__list.append_item(chbox)
@@ -61,11 +59,16 @@ class RotationPrefs(Configurator):
         self.__list.render()
     
         if (value == config.ORIENTATION_LANDSCAPE):
+            self.emit_message(msgs.ASR_ACT_ENABLE, False)
             self.emit_message(msgs.ASR_EV_LANDSCAPE)
-            self.__is_portrait = False
-        else:
+
+        elif (value == config.ORIENTATION_PORTRAIT):
+            self.emit_message(msgs.ASR_ACT_ENABLE, False)
             self.emit_message(msgs.ASR_EV_PORTRAIT)
-            self.__is_portrait == True
+
+        else:
+            self.emit_message(msgs.ASR_ACT_ENABLE, True)
+            self.emit_message(msgs.ASR_EV_LANDSCAPE)
             
         config.set_orientation(value)
         self.set_visible(False)
@@ -83,23 +86,7 @@ class RotationPrefs(Configurator):
         o = config.orientation()
         if (o == config.ORIENTATION_PORTRAIT):
             self.emit_message(msgs.ASR_EV_PORTRAIT)
-
-
-    def handle_ASR_EV_PORTRAIT(self):
-    
-        self.__is_portrait = True
-
-
-    def handle_ASR_EV_LANDSCAPE(self):
-    
-        self.__is_portrait = False
-
-
-    def handle_ASR_ACT_FORCE_LANDSCAPE(self, value):
-    
-        if (value):
+        elif (o == config.ORIENTATION_AUTOMATIC):
+            self.emit_message(msgs.ASR_ACT_ENABLE, True)
             self.emit_message(msgs.ASR_EV_LANDSCAPE)
-        else:
-            if (self.__is_portrait):
-                self.emit_message(msgs.ASR_EV_PORTRAIT)
 

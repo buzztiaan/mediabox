@@ -301,6 +301,11 @@ class AppWindow(Component, Window):
         gobject.timeout_add(0, loader, do_render)
 
 
+    def handle_ASR_ACT_ENABLE(self, value):
+    
+        self.set_flag(windowflags.ASR, value)
+
+
     def handle_ASR_EV_LANDSCAPE(self):
 
         self.__is_portrait = False

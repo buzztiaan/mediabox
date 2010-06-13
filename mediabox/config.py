@@ -17,6 +17,7 @@ MEDIA_IMAGE = 4
 
 ORIENTATION_LANDSCAPE = "landscape"
 ORIENTATION_PORTRAIT = "portrait"
+ORIENTATION_AUTOMATIC = "automatic"
 
 
 _cfg = Config("",
