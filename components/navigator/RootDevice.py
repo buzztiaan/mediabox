@@ -30,6 +30,9 @@ class RootDevice(Device):
         # list of favorited files
         self.__favorites = []
         
+        # a small cache for faster access
+        self.__cache = []
+        
         # table: type -> list of devices
         self.__device_lists = {
             Device.TYPE_SYSTEM:  [],
@@ -128,25 +131,28 @@ class RootDevice(Device):
 
     def get_contents(self, path, begin_at, end_at, cb, *args):
 
-        items = []
+        if (not self.__cache):
+            items = []
     
-        if (path.path == "/"):
-            items += self.__list_categories()
-            items += self.__list_devices(Device.TYPE_SYSTEM)
-            items += self.__list_favorites()
+            if (path.path == "/"):
+                items += self.__list_categories()
+                items += self.__list_devices(Device.TYPE_SYSTEM)
+                items += self.__list_favorites()
 
-        elif (path.path == "/audio"):
-            items += self.__list_devices(Device.TYPE_AUDIO)
+            elif (path.path == "/audio"):
+                items += self.__list_devices(Device.TYPE_AUDIO)
 
-        elif (path.path == "/video"):
-            items += self.__list_devices(Device.TYPE_VIDEO)
+            elif (path.path == "/video"):
+                items += self.__list_devices(Device.TYPE_VIDEO)
 
-        elif (path.path == "/image"):
-            items += self.__list_devices(Device.TYPE_IMAGE)
+            elif (path.path == "/image"):
+                items += self.__list_devices(Device.TYPE_IMAGE)
 
-        elif (path.path == "/storage"):
-            items += self.__list_devices(Device.TYPE_GENERIC)
+            elif (path.path == "/storage"):
+                items += self.__list_devices(Device.TYPE_GENERIC)
 
+        else:
+            items = self.__cache
         
         cnt = 0
         for f in items:
@@ -209,6 +215,7 @@ class RootDevice(Device):
 
             folder = self.get_file(_TYPE_MAP[device.TYPE])
             print "invalidating", folder, "due to", device
+            self.__cache = []
             self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
         #end if
 
@@ -223,5 +230,6 @@ class RootDevice(Device):
                 self.__device_lists[device.TYPE].remove(device)
 
             folder = self.get_file(_TYPE_MAP[device.TYPE])
+            self.__cache = []
             self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
         #end if
