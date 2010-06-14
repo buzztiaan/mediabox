@@ -151,6 +151,8 @@ class RootDevice(Device):
             elif (path.path == "/storage"):
                 items += self.__list_devices(Device.TYPE_GENERIC)
 
+            self.__cache = items[:]
+
         else:
             items = self.__cache
         
