@@ -131,30 +131,28 @@ class RootDevice(Device):
 
     def get_contents(self, path, begin_at, end_at, cb, *args):
 
-        if (not self.__cache):
-            items = []
+        items = []
     
-            if (path.path == "/"):
+        if (path.path == "/"):
+            if (self.__cache):
+                items += self.__cache
+            else:
                 items += self.__list_categories()
                 items += self.__list_devices(Device.TYPE_SYSTEM)
                 items += self.__list_favorites()
+                self.__cache = items
 
-            elif (path.path == "/audio"):
-                items += self.__list_devices(Device.TYPE_AUDIO)
+        elif (path.path == "/audio"):
+            items += self.__list_devices(Device.TYPE_AUDIO)
 
-            elif (path.path == "/video"):
-                items += self.__list_devices(Device.TYPE_VIDEO)
+        elif (path.path == "/video"):
+            items += self.__list_devices(Device.TYPE_VIDEO)
 
-            elif (path.path == "/image"):
-                items += self.__list_devices(Device.TYPE_IMAGE)
+        elif (path.path == "/image"):
+            items += self.__list_devices(Device.TYPE_IMAGE)
 
-            elif (path.path == "/storage"):
-                items += self.__list_devices(Device.TYPE_GENERIC)
-
-            self.__cache = items[:]
-
-        else:
-            items = self.__cache
+        elif (path.path == "/storage"):
+            items += self.__list_devices(Device.TYPE_GENERIC)
         
         cnt = 0
         for f in items:
