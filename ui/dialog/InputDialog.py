@@ -65,7 +65,7 @@ class InputDialog(Window):
         screen.fill_area(x, y, w, h, theme.color_mb_background)
 
         if (not platforms.MAEMO5):
-            self.__vbox.set_geometry(0, 0, w, h - 70)
+            self.__vbox.set_geometry(4, 4, w - 8, h - 78)
             self.__button_ok.set_geometry(w - 260, h - 60, 120, 60)
             self.__button_cancel.set_geometry(w - 130, h - 60, 120, 60)
 
@@ -130,7 +130,7 @@ class InputDialog(Window):
         w = gtk.gdk.screen_width()
         h = min(gtk.gdk.screen_height() - 120, len(self.__retrievers) * 100)
 
-        if (platforms.MAEMO4):
+        if (not platforms.MAEMO5):
             w -= 80
             h += 70
         self.set_window_size(w, h)

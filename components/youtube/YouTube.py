@@ -54,34 +54,6 @@ _STAR2_CHAR = u"\u2605"
 _N8x0_FORMAT_WHITELIST = [5, 6, 13]
 _N900_FORMAT_WHITELIST = [5, 6, 13, 17, 18]
 
-
-class _SearchContext(object):
-
-    def __init__(self):
-        
-        self.query = ""
-        self.url = ""
-        self.previous_path = ""
-        self.next_path = ""
-        self.start_index = 1
-        self.page_size = _PAGE_SIZE
-
-
-class _YTEntry(object):
-
-    def __init__(self):
-    
-        self.video_id = ""
-        self.title = ""
-        self.content = ""
-        self.authors = ""
-        self.category = "uncategorized"
-        self.duration = 0
-        self.view_count = 0
-        self.thumbnail_url = ""
-        self.player_url = ""
-        self.region_blocked = False
-
         
 
 class YouTube(Device):
@@ -225,9 +197,9 @@ class YouTube(Device):
     def __ls_menu(self, cb, *args):
     
         for name, category in [("Search", "video"),
-                             ("Featured", "recently_featured"),
-                             ("Most Viewed", "most_viewed"),
-                             ("Top Rated", "top_rated")]:            
+                               ("Featured", "recently_featured"),
+                               ("Most Viewed", "most_viewed"),
+                               ("Top Rated", "top_rated")]:            
             item = File(self)
             query = ""
             idx = 0
@@ -242,14 +214,13 @@ class YouTube(Device):
         cb(None, *args)
 
 
-    def __on_receive_xml(self, data, amount, total, xml, query, is_toc, cb, *args):
+    def __on_receive_xml(self, data, amount, total, xml, category, query, is_toc, cb, *args):
     
         if (not data):
             # finished loading
-            print xml[0]
             #self.__cache_search_result(url, xml[0])
             if (is_toc):
-                self.__parse_toc_xml(xml[0], query, cb, *args)
+                self.__parse_toc_xml(xml[0], category, query, cb, *args)
             else:
                 self.__parse_page_xml(xml[0], cb, *args)
         else:
@@ -257,7 +228,7 @@ class YouTube(Device):
             
 
 
-    def __parse_toc_xml(self, xml, query, cb, *args):
+    def __parse_toc_xml(self, xml, category, query, cb, *args):
 
         def on_receive_node(node):
             if (node.get_name() == "{%s}totalResults" % _XMLNS_OPENSEARCH):
@@ -271,7 +242,7 @@ class YouTube(Device):
                 for n in range(1, total_results, _PAGE_SIZE):
                     f = File(self)
                     f.name = "Page %d" % page
-                    f.path = File.pack_path("/search", f.name, query, "", n)
+                    f.path = File.pack_path("/search", f.name, category, query, n)
                     f.mimetype = f.DIRECTORY
                     f.info = "Results %d - %d" % (n, min(total_results, n + _PAGE_SIZE - 1))
                     cb(f, *args)
@@ -457,34 +428,36 @@ class YouTube(Device):
                 return
                 
             url = _VIDEO_SEARCH % (1, 1, query)
-            #print "URL", url
-            Downloader(url, self.__on_receive_xml, [""], "video," + query, True, cb, *args)
+            print "URL", url
+            Downloader(url, self.__on_receive_xml, [""], "video", query, True, cb, *args)
             
         else:
             url = _VIDEO_SEARCH % (start_index, _PAGE_SIZE, query)
-            #print "URL", url
-            Downloader(url, self.__on_receive_xml, [""], "video," + query, False, cb, *args)
+            print "URL", url
+            Downloader(url, self.__on_receive_xml, [""], "video", query, False, cb, *args)
         #end if
 
        
 
-    def __generic_search(self, name, cb, args, start_index):
+    def __generic_search(self, category, cb, args, start_index):
 
         start_index = int(start_index)
         
-        print name, start_index
+        print category, start_index
         if (start_index == 0):
-            url = _STD_FEEDS % (name, 1, 1)
-            Downloader(url, self.__on_receive_xml, [""], name, True, cb, *args)
+            url = _STD_FEEDS % (category, 1, 1)
+            Downloader(url, self.__on_receive_xml, [""], category, "", True, cb, *args)
         else:
-            url = _STD_FEEDS % (name, start_index, _PAGE_SIZE)
-            Downloader(url, self.__on_receive_xml, [""], name, False, cb, *args)
+            url = _STD_FEEDS % (category, start_index, _PAGE_SIZE)
+            Downloader(url, self.__on_receive_xml, [""], category, "", False, cb, *args)
 
    
 
     def __ls_search(self, path, cb, *args):
 
         prefix, name, category, query, idx = File.unpack_path(path)
+        print path
+        print prefix, name, category, query, idx
         if (category == "video"):
             self.__video_search(cb, args, query, idx)
         else:
