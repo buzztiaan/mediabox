@@ -81,6 +81,7 @@ class _YTEntry(object):
         self.thumbnail_url = ""
         self.player_url = ""
         self.region_blocked = False
+
         
 
 class YouTube(Device):
@@ -165,36 +166,33 @@ class YouTube(Device):
         return "YouTube"
         
         
-    def get_root(self):
-    
-        f = File(self)
-        f.path = "/"
-        f.name = "YouTube"
-        f.mimetype = f.DIRECTORY
-        f.resource = ""
-        f.info = "Browse and download videos from YouTube"
-        f.icon = theme.youtube_folder.get_path()
-        
-        return f
-        
-        
     def get_file(self, path):
-    
-        f = File(self)
-        f.path = path
-        f.mimetype = "video/x-flash-video"
+
+        parts = [ p for p in path.split("/") if p ]
+        len_parts = len(parts)
+        
+        f = None
+        if (path == "/"):
+            f = File(self)
+            f.path = "/"
+            f.name = "YouTube"
+            f.mimetype = f.DIRECTORY
+            f.resource = ""
+            f.info = "Browse and download videos from YouTube"
+            f.icon = theme.youtube_folder.get_path()
+
+        elif (path.startswith("/search")):
+            nil, name, category, query, idx = File.unpack_path(path)
+            f = File(self)
+            f.name = name
+            f.mimetype = f.DIRECTORY
+            f.path = path
+            f.resource = ""
+
+        elif (path.startswith("/videos")):
+            f = self.__make_video(path)
         
         return f
-        
-
-    def __parse_search_path(self, path):
-    
-        parts = path.split("/")
-        category_parts = parts[2].split(",")
-        category = category_parts[0]
-        params = category_parts[1:]
-        
-        return (category, params)
 
 
     def __get_cached_search(self, url):
@@ -222,23 +220,21 @@ class YouTube(Device):
             open(path, "w").write(xml)
         except:
             pass
-            
         
 
     def __ls_menu(self, cb, *args):
     
-        for name, path, mimetype, emblem in \
-          [#("Saved Videos", "/local", File.DIRECTORY, None),
-           ("Search", "/search/video,,0", File.DIRECTORY, None),
-           ("Featured Videos", "/search/recently_featured,0", File.DIRECTORY, None),
-           ("Most Viewed Videos", "/search/most_viewed,0", File.DIRECTORY, None),
-           ("Top Rated Videos", "/search/top_rated,0", File.DIRECTORY, None)]:
-           #("Categories", "/categories", File.DIRECTORY, None)]:
+        for name, category in [("Search", "video"),
+                             ("Featured", "recently_featured"),
+                             ("Most Viewed", "most_viewed"),
+                             ("Top Rated", "top_rated")]:            
             item = File(self)
-            item.path = path
-            item.resource = path
+            query = ""
+            idx = 0
+            item.path = File.pack_path("/search", name, category, query, idx)
+            item.resource = item.path
             item.name = name
-            item.mimetype = mimetype
+            item.mimetype = File.DIRECTORY
             
             cb(item, *args)
         #end for
@@ -246,19 +242,19 @@ class YouTube(Device):
         cb(None, *args)
 
 
-
-
     def __on_receive_xml(self, data, amount, total, xml, query, is_toc, cb, *args):
     
-        xml[0] += data
         if (not data):
             # finished loading
-            #print xml[0]
+            print xml[0]
             #self.__cache_search_result(url, xml[0])
             if (is_toc):
                 self.__parse_toc_xml(xml[0], query, cb, *args)
             else:
                 self.__parse_page_xml(xml[0], cb, *args)
+        else:
+            xml[0] += data
+            
 
 
     def __parse_toc_xml(self, xml, query, cb, *args):
@@ -274,9 +270,9 @@ class YouTube(Device):
                 page = 1
                 for n in range(1, total_results, _PAGE_SIZE):
                     f = File(self)
-                    f.path = "/search/%s,%d" % (query, n)
-                    f.mimetype = f.DIRECTORY
                     f.name = "Page %d" % page
+                    f.path = File.pack_path("/search", f.name, query, "", n)
+                    f.mimetype = f.DIRECTORY
                     f.info = "Results %d - %d" % (n, min(total_results, n + _PAGE_SIZE - 1))
                     cb(f, *args)
                     page += 1
@@ -293,31 +289,8 @@ class YouTube(Device):
     
         def on_receive_node(node):
             if (node.get_name() == "{%s}entry" % _XMLNS_ATOM):
-                entry = self.__parse_yt_entry(node)
-               
-                f = File(self)
-                f.path = entry.video_id
-                f.mimetype = "video/x-flash-video"
-                f.name = "%s" % entry.title
-                f.resource = entry.video_id
-                duration = entry.duration
-                secs = duration % 60
-                duration /= 60
-                mins = duration
-                if (entry.region_blocked):
-                    f.info += "This video cannot be viewed in your country."
-                    f.icon = theme.youtube_restricted.get_path()
-                else:
-                    #f.info = "%d:%02d, %s, %d views\nby %s" \
-                    f.info = "by %s\n" \
-                             "Duration: %d:%02d\tViews: %d\t" \
-                             "Rating: %s" \
-                             % (entry.authors,
-                                mins, secs, entry.view_count,
-                                entry.rating)
-                    f.thumbnailer = "youtube.YouTubeThumbnailer"
-                    f.thumbnailer_param = entry.thumbnail_url
-                
+                print node
+                f = self.__make_video_from_node(node)
                 cb(f, *args)
 
             elif (node.get_name() == "{%s}feed" % _XMLNS_ATOM):
@@ -330,26 +303,24 @@ class YouTube(Device):
         MiniXML(xml, callback = on_receive_node)
 
 
-    def __parse_yt_entry(self, node):
+    def __make_video_from_node(self, node):
         """
-        Parses the given entry node and returns a _YTEntry object.
+        Parses the given entry node and returns a file object.
         """
-        
-        entry = _YTEntry()
         
         # get ID
         s = node.get_pcdata("{%s}id" % _XMLNS_ATOM)
-        entry.video_id = s[s.rfind("/") + 1:]
+        video_id = s[s.rfind("/") + 1:]
 
         # get title and content 
-        entry.title = node.get_pcdata("{%s}title" % _XMLNS_ATOM)
-        entry.content = node.get_pcdata("{%s}content" % _XMLNS_ATOM)
+        title = node.get_pcdata("{%s}title" % _XMLNS_ATOM)
+        content = node.get_pcdata("{%s}content" % _XMLNS_ATOM)
 
         # get authors
         author_node = node.get_child("{%s}author" % _XMLNS_ATOM)
         authors = [ c.get_pcdata() for c in author_node.get_children()
                     if c.get_name() == "{%s}name" % _XMLNS_ATOM ]
-        entry.authors = ", ".join(authors)
+        authors = ", ".join(authors)
 
         # check for region restriction
         app_control = node.get_child("{%s}control" % _XMLNS_APP)
@@ -359,8 +330,8 @@ class YouTube(Device):
             if (yt_state):
                 reason_code = yt_state.get_attr("{%s}reasonCode" % _XMLNS_ATOM)
             if (reason_code == "requesterRegion"):
-                entry.region_blocked = True
-                entry.video_id = _REGION_BLOCKED
+                region_blocked = True
+                video_id = _REGION_BLOCKED
         #end if
 
         group_node = node.get_child("{%s}group" % _XMLNS_MRSS)
@@ -369,38 +340,81 @@ class YouTube(Device):
         thumbnail_nodes = [ c for c in group_node.get_children()
                             if c.get_name() == "{%s}thumbnail" % _XMLNS_MRSS ]
         if (thumbnail_nodes):
-            entry.thumbnail_url = thumbnail_nodes[0].get_attr("{%s}url" % _XMLNS_ATOM)
-                    
+            thumbnail_url = thumbnail_nodes[0].get_attr("{%s}url" % _XMLNS_ATOM)
+        else:
+            thumbnail_url = ""
+            
         # get category
         category_node = group_node.get_child("{%s}category" % _XMLNS_MRSS)
         if (category_node):
-            entry.category = category_node.get_attr("{%s}label" % _XMLNS_ATOM)
+            category = category_node.get_attr("{%s}label" % _XMLNS_ATOM)
+        else:
+            category = ""
 
         # get player URL
         player_node = group_node.get_child("{%s}player" % _XMLNS_MRSS)
         if (player_node):
-            entry.player_url = player_node.get_attr("{%s}url" % _XMLNS_ATOM)
+            player_url = player_node.get_attr("{%s}url" % _XMLNS_ATOM)
         else:
-            entry.player_url = _VIDEO_WATCH + os.path.basename(entry.video_id)
+            player_url = _VIDEO_WATCH + os.path.basename(entry.video_id)
 
         # get duration
         duration_node = group_node.get_child("{%s}duration" % _XMLNS_YT)
         if (duration_node):
-            entry.duration = int(duration_node.get_attr("{%s}seconds" % _XMLNS_ATOM))
+            duration = int(duration_node.get_attr("{%s}seconds" % _XMLNS_ATOM))
+        else:
+            duration = 0
             
         # get rating
         rating_node = node.get_child("{%s}rating" % _XMLNS_GOOGLE)
         if (rating_node):
-            entry.rating = self.__parse_rating(rating_node)
+            rating = self.__parse_rating(rating_node)
         else:
-            entry.rating = "unrated"
+            rating = "unrated"
         
         # get view count
         statistics_node = node.get_child("{%s}statistics" % _XMLNS_YT)
         if (statistics_node):
-            entry.view_count = int(statistics_node.get_attr("{%s}viewCount" % _XMLNS_ATOM))
+            view_count = int(statistics_node.get_attr("{%s}viewCount" % _XMLNS_ATOM))
+        else:
+            view_count = 0
+
+        secs = duration % 60
+        duration /= 60
+        mins = duration
+
+        info = "by %s\n" \
+               "Duration: %d:%02d\tViews: %d\t" \
+               "Rating: %s" \
+               % (authors,
+                  mins, secs,
+                  view_count,
+                  rating)
+
+        path = File.pack_path("/videos", title, info, video_id, thumbnail_url)
         
-        return entry
+        return self.__make_video(path)
+        
+        
+    def __make_video(self, path):
+    
+        prefix, title, info, video_id, thumbnail_url = File.unpack_path(path)
+        
+        f = File(self)
+        f.name = title
+        f.resource = video_id
+        f.path = path
+        f.mimetype = "video/x-flash-video"
+
+        if (video_id == _REGION_BLOCKED):
+           f.info = "This video cannot be viewed in your country."
+           f.icon = theme.youtube_restricted.get_path()
+        else:
+            f.info = info
+            f.thumbnailer = "youtube.YouTubeThumbnailer"
+            f.thumbnailer_param = thumbnail_url
+
+        return f
         
 
 
@@ -458,27 +472,23 @@ class YouTube(Device):
 
         start_index = int(start_index)
         
+        print name, start_index
         if (start_index == 0):
             url = _STD_FEEDS % (name, 1, 1)
             Downloader(url, self.__on_receive_xml, [""], name, True, cb, *args)
         else:
             url = _STD_FEEDS % (name, start_index, _PAGE_SIZE)
             Downloader(url, self.__on_receive_xml, [""], name, False, cb, *args)
-        
+
    
 
     def __ls_search(self, path, cb, *args):
 
-        category, params = self.__parse_search_path(path)
+        prefix, name, category, query, idx = File.unpack_path(path)
         if (category == "video"):
-            self.__video_search(cb, args, *params)
-        elif (category == "recently_featured"):
-            self.__generic_search("recently_featured", cb, args, *params)
-        elif (category == "most_viewed"):
-            self.__generic_search("most_viewed", cb, args, *params)
-        elif (category == "top_rated"):
-            self.__generic_search("top_rated", cb, args, *params)
-
+            self.__video_search(cb, args, query, idx)
+        else:
+            self.__generic_search(category, cb, args, idx)
 
 
     def __ls_local_videos(self, cb, *args):

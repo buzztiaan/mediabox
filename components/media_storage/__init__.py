@@ -11,7 +11,7 @@ def get_devices():
     from CameraStorage import CameraStorage
     
     from HistoryDevice import HistoryDevice
-    from BookmarkDevice import GenericBookmarkDevice
+    #from BookmarkDevice import GenericBookmarkDevice
     #from BookmarkDevice import AudioBookmarkDevice
     #from BookmarkDevice import VideoBookmarkDevice
     #from BookmarkDevice import ImageBookmarkDevice
@@ -23,8 +23,8 @@ def get_devices():
                ImageStorage,
                CameraStorage,
 
-               HistoryDevice,
-               GenericBookmarkDevice]
+               HistoryDevice]
+               #GenericBookmarkDevice]
                #AudioBookmarkDevice,
                #VideoBookmarkDevice,
                #ImageBookmarkDevice]

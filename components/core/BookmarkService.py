@@ -60,7 +60,7 @@ class BookmarkService(Component):
         #end for
         
         self.__is_dirty = False
-        self.emit_message(msgs.BOOKMARK_EV_INVALIDATED)
+        #self.emit_message(msgs.BOOKMARK_EV_INVALIDATED)
         
         
     def __save_bookmarks(self):

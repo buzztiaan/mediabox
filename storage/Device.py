@@ -218,22 +218,6 @@ class Device(Component):
         f.bookmarked = True
 
 
-    def __on_download_file(self, folder, f):
-    
-        # TODO: open save file dialog
-        import hildon
-        import gtk
-        import gobject
-        dlg = gobject.new(hildon.FileChooserDialog, action = gtk.FILE_CHOOSER_ACTION_SAVE)
-        dlg.run()
-        filename = dlg.get_filename()
-        dlg.destroy()
-        
-        if (filename):
-            self.call_service(msgs.DOWNLOADER_SVC_GET, f.resource,
-                              filename)
-
-
     def get_file_actions(self, folder, f):
         """
         Returns a list of actions for the given file.

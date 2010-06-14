@@ -163,6 +163,11 @@ class RootDevice(Device):
         self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
 
 
+    def __on_add_to_shelf(self, folder, f):
+    
+        f.bookmarked = True
+
+
     def __on_remove_from_shelf(self, folder, f):
     
         logging.debug("removing from shelf: %s", f.name)
@@ -173,6 +178,12 @@ class RootDevice(Device):
     def get_file_actions(self, folder, f):
     
         options = []
+        # allow putting storage devices on the shelf
+        print f.path
+        if (f.path == "/" and not f.bookmarked and folder.path != "/"):
+            options.append((None, "Add to Shelf",
+                           self.__on_add_to_shelf))
+
         if (f in self.__favorites):
             if (not f.full_path.startswith("playlist://")):
                 options.append((None, "Add to Playlist",

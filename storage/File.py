@@ -3,8 +3,8 @@ Class for representing a file or folder on a storage device.
 """
 
 import hashlib
-import gobject
-import gtk
+import base64
+import os
 
 
 class File(object):
@@ -327,16 +327,17 @@ class File(object):
         """
         
         return self.__device.get_file_actions(self, f)
+       
         
-        
+    """
     def get_children(self):
-        """
+        ""
         Returns a list of children of this folder.
         @since: 0.96
         @deprecated: L{get_children_async} should be used instead
         
         @return: list of File objects
-        """
+        ""
     
         def collector(f):
             if (f):
@@ -353,7 +354,8 @@ class File(object):
             gtk.main_iteration(True)
     
         return collection
-
+    """
+    
 
     def get_children_async(self, cb, *args):
         """
@@ -433,3 +435,38 @@ class File(object):
         """
         
         self.__device.shift_file(self, pos, amount)
+        
+        
+    @staticmethod
+    def pack_path(prefix, *items):
+        """
+        Packs the given string items into a valid file path.
+        @since: 2010.06.14
+        
+        @param prefix: path prefix
+        @param items: variable list of strings
+        @return: path string
+        """
+        
+        parts = ",".join([ base64.b64encode(str(i)) for i in items ])
+        return os.path.join(prefix, base64.b64encode(parts))
+
+
+    @staticmethod
+    def unpack_path(path):
+        """
+        Unpacks the given path into prefix and items.
+        @since: 2010.06.14
+        
+        @param path: path string
+        @return: tuple of path prefix and items
+        """
+        
+        prefix = os.path.dirname(path)
+        data = os.path.basename(path)
+        parts = base64.b64decode(data).split(",")
+        
+        items = [ base64.b64decode(p) for p in parts ]
+        
+        return [prefix] + items
+
