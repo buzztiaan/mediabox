@@ -233,3 +233,9 @@ class RootDevice(Device):
             self.__cache = []
             self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
         #end if
+        
+        
+    def handle_BOOKMARK_EV_INVALIDATED(self):
+    
+        self.__cache = []
+
