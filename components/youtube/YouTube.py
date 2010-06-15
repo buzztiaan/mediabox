@@ -368,6 +368,9 @@ class YouTube(Device):
         
         
     def __make_video(self, path):
+        """
+        Creates a video file object from the given path.
+        """
     
         prefix, title, info, video_id, thumbnail_url = File.unpack_path(path)
         
@@ -387,7 +390,6 @@ class YouTube(Device):
 
         return f
         
-
 
     def __parse_rating(self, node):
         """
@@ -428,22 +430,21 @@ class YouTube(Device):
                 return
                 
             url = _VIDEO_SEARCH % (1, 1, query)
-            print "URL", url
+            #print "URL", url
             Downloader(url, self.__on_receive_xml, [""], "video", query, True, cb, *args)
             
         else:
             url = _VIDEO_SEARCH % (start_index, _PAGE_SIZE, query)
-            print "URL", url
+            #print "URL", url
             Downloader(url, self.__on_receive_xml, [""], "video", query, False, cb, *args)
         #end if
 
        
-
-    def __generic_search(self, category, cb, args, start_index):
+    def __category_search(self, category, cb, args, start_index):
 
         start_index = int(start_index)
         
-        print category, start_index
+        #print category, start_index
         if (start_index == 0):
             url = _STD_FEEDS % (category, 1, 1)
             Downloader(url, self.__on_receive_xml, [""], category, "", True, cb, *args)
@@ -451,19 +452,19 @@ class YouTube(Device):
             url = _STD_FEEDS % (category, start_index, _PAGE_SIZE)
             Downloader(url, self.__on_receive_xml, [""], category, "", False, cb, *args)
 
-   
 
     def __ls_search(self, path, cb, *args):
 
         prefix, name, category, query, idx = File.unpack_path(path)
-        print path
-        print prefix, name, category, query, idx
+        #print path
+        #print prefix, name, category, query, idx
         if (category == "video"):
             self.__video_search(cb, args, query, idx)
         else:
-            self.__generic_search(category, cb, args, idx)
+            self.__category_search(category, cb, args, idx)
 
 
+    """
     def __ls_local_videos(self, cb, *args):
     
         videos = []
@@ -493,8 +494,9 @@ class YouTube(Device):
             self.__items.append(f)
         #end for
         cb(None, *args)
-        
-        
+    """ 
+
+ 
     def get_contents(self, folder, begin_at, end_at, cb, *args):
 
         if (begin_at > 0):
@@ -512,8 +514,8 @@ class YouTube(Device):
         elif (path.startswith("/search")):
             self.__ls_search(path, cb, *args)
             
-        elif (path.startswith("/local")):
-            self.__ls_local_videos(cb, *args)
+        #elif (path.startswith("/local")):
+        #    self.__ls_local_videos(cb, *args)
            
            
     def __get_video(self, f):
@@ -553,7 +555,6 @@ class YouTube(Device):
         else:
             ext = ".flv"
             
-        #self.emit_message(msgs.UI_ACT_HIDE_MESSAGE)
         logging.info("found FLV: %s", flv)
 
         if (self.__flv_downloader):
@@ -579,28 +580,7 @@ class YouTube(Device):
                 
             else:
                 self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
-                if (self.__keep_video):
-                    keep_dir = os.path.dirname(keep_path)
-                    if (not os.path.exists(keep_dir)):
-                        try:
-                            os.makedirs(os.path.dirname(keep_path))
-                        except:
-                            pass
-                    #end if
-                    try:
-                        os.rename(flv_path, keep_path)
-                    except:
-                        logging.error("could not save video '%s'\n%s" \
-                                      % (keep_path, logging.stacktrace()))
-                    # copy thumbnail
-                    self.__copy_thumbnail(f, keep_path)
-                #end if
             #end if
-        """
-
-        """
-        # handle locally saved videos
-        if (f.resource.startswith("/")): return f.resource
         """
 
         url, nil = self.__get_video(f)
@@ -659,26 +639,6 @@ class YouTube(Device):
         return actions
 
 
-    def delete_file(self, folder, idx):
-        """
-        Deletes the given file.
-        """
-
-        pass
-        """
-        f = self.__items[idx]
-        response = dialogs.question("Remove",
-                                    u"Remove video\n\xbb%s\xab?" % f.name)
-        if (response == 0):
-            try:
-                os.unlink(f.resource)
-            except:
-                pass
-        
-        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.__current_folder)
-        """
-
-
     def __make_filename(self, name, ext):
         """
         Creates a (hopefully) valid filename from the given name.
@@ -692,14 +652,5 @@ class YouTube(Device):
         for a, b in replace_map:
             name = name.replace(a, b)
 
-        #return urlquote.quote(name, " ") + ".flv"
         return name + ext
-
-
-    def __copy_thumbnail(self, f1, path):
-    
-        f2 = File(self)
-        f2.path = "/local" + path
-
-        self.call_service(msgs.MEDIASCANNER_SVC_COPY_THUMBNAIL, f1, f2)
 

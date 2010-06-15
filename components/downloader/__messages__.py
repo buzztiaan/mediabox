@@ -9,6 +9,18 @@ Returns a download ID token for later reference.
 @return: download ID
 """
 
+def DOWNLOADER_SVC_GET_RECURSIVE(f, destination): pass
+"""
+Schedules the given file object for downloading to the given destination.
+Returns a download ID token for later reference.
+If the file object is a directory, the destination is treated as a directory,
+too, and the directory's contents are downloaded recursively.
+
+@param f: file object
+@param destination: destination path in the local filesystem
+@return: download ID
+"""
+
 def DOWNLOADER_ACT_ABORT(download_id): pass
 """
 Causes the downloader to abort the download identified by the given ID token.

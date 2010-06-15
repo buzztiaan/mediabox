@@ -31,7 +31,7 @@ if (os.path.exists("/usr/bin/mplayer")):
 #end if
 
 # GStreamer playbin is quite broken on Maemo4; e.g. does not stream MP3 reliably
-if (not platforms.MAEMO4):
+if (True): #not platforms.MAEMO4):
     try:
         from GstBackend import GstBackend
         _PLAYERS["gst"] = GstBackend()

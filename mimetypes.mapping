@@ -16,7 +16,7 @@ image/gif                             .gif                GIF            I
 image/jpeg                            .jpg,.jpeg          JPEG           I
 image/png                             .png                PNG            I
 
-application/ogg                       -                   Ogg-Vorbis     A      # used by Rhythmbox UPnP server plugin
+application/ogg                       .ogg                Ogg-Vorbis     A      # used by Rhythmbox UPnP server plugin
 application/vnd.rn-realmedia          .ram,.ra            Realmedia      A
 application/vorbis                    -                   Ogg-Vorbis     A
 audio/*                               -                   Unknown-Audio  A

@@ -7,13 +7,6 @@ import os
 
 _BOOKMARK_FILE = os.path.join(values.USER_DIR, "bookmarks")
 
-# provide some useful initial bookmarks
-_INITIAL_BOOKMARKS = """
-file:///home/user/MyDocs
-file:///media/mmc1
-preferences:///Tour
-"""
-
 
 class BookmarkService(Component):
     """
@@ -36,11 +29,33 @@ class BookmarkService(Component):
 
         if (not os.path.exists(_BOOKMARK_FILE)):
             try:
-                open(_BOOKMARK_FILE, "w").write(_INITIAL_BOOKMARKS)
+                initial_bookmarks = self.__make_initial_bookmarks()
+                open(_BOOKMARK_FILE, "w").write(initial_bookmarks)
             except:
                 pass
         #end if
+
+
+    def __make_initial_bookmarks(self):
+        """
+        Creates a set of initial bookmarks that fit the platform well.
+        """
+
+        out = ""
+        if (platforms.MAEMO4 or platforms.MAEMO5):
+            out += "file:///home/user/MyDocs\n"
         
+        if (os.path.exists("/media")):
+            for media in os.listdir("/media"):
+                out += "file:///media/%s\n" % media
+        
+        if (platforms.MEEGO_NETBOOK):
+            out += "%s\n" % os.path.expanduser("~")
+
+        out += "preferences:///Tour\n"
+
+        return out
+
         
     def __load_bookmarks(self):
     
@@ -50,7 +65,7 @@ class BookmarkService(Component):
         try:
             lines = open(_BOOKMARK_FILE, "r").readlines()
         except:
-            #logging.error("could not load bookmarks\n%s", logging.stacktrace())
+            logging.error("could not load bookmarks\n%s", logging.stacktrace())
             return
         
         for line in lines:
@@ -87,7 +102,6 @@ class BookmarkService(Component):
             out = self.__items[:]
         
         return out
-
            
         
     def handle_BOOKMARK_SVC_ADD(self, f):

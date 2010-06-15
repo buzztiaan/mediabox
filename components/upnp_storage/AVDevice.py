@@ -222,25 +222,37 @@ class AVDevice(Device):
 
     def __on_download(self, folder, f):
 
-        dlg = FileDialog(FileDialog.TYPE_SAVE, "Save File")
-        if (os.path.splitext(f.name)[1]):
-            ext = ""
+        if (f.mimetype == f.DIRECTORY):
+            dlg = FileDialog(FileDialog.TYPE_FOLDER, "Save To")
+            dlg.run()
+
+            destination = dlg.get_filename()
+    
+            if (destination):
+                self.call_service(msgs.DOWNLOADER_SVC_GET_RECURSIVE,
+                                  f, destination)
+            
         else:
-            ext = os.path.splitext(f.resource)[1]
-        dlg.set_filename(f.name + ext)
-        dlg.run()
+            dlg = FileDialog(FileDialog.TYPE_SAVE, "Save File")
+
+            if (os.path.splitext(f.name)[1]):
+                ext = ""
+            else:
+                ext = os.path.splitext(f.resource)[1]
+            dlg.set_filename(f.name + ext)
+            dlg.run()
         
-        destination = dlg.get_filename()
-        if (destination):
-            self.call_service(msgs.DOWNLOADER_SVC_GET, f.resource,
-                              destination)
+            destination = dlg.get_filename()
+    
+            if (destination):
+                self.call_service(msgs.DOWNLOADER_SVC_GET, f.resource,
+                                  destination)
 
 
     def get_file_actions(self, folder, f):
 
         actions = Device.get_file_actions(self, folder, f)
-        if (f.mimetype != f.DIRECTORY):
-            actions.append((None, "Download", self.__on_download))
+        actions.append((None, "Download", self.__on_download))
 
         return actions
      

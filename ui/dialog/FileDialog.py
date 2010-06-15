@@ -17,6 +17,7 @@ class FileDialog(object):
 
     TYPE_OPEN = 0
     TYPE_SAVE = 1
+    TYPE_FOLDER = 2
     
 
     def __init__(self, dlg_type, title):
@@ -41,8 +42,10 @@ class FileDialog(object):
 
         if (self.__dlg_type == self.TYPE_OPEN):
             action = gtk.FILE_CHOOSER_ACTION_OPEN
-        else:
+        elif (self.__dlg_type == self.TYPE_SAVE):
             action = gtk.FILE_CHOOSER_ACTION_SAVE
+        else:
+            action = gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER
 
         if (platforms.MAEMO4 or platforms.MAEMO5):            
             dlg = gobject.new(hildon.FileChooserDialog, action = action)
@@ -54,7 +57,8 @@ class FileDialog(object):
         
         #print dir(dlg)
         #print dlg.get_safe_folder_uri()
-        dlg.set_current_name(self.__filename)
+        if (self.__dlg_type == self.TYPE_SAVE):
+            dlg.set_current_name(self.__filename)
         dlg.set_current_folder(_MYDOCS)
         
         response = dlg.run()

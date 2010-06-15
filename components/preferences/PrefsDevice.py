@@ -14,6 +14,8 @@ class PrefsDevice(Device):
 
     def __init__(self):
     
+        self.__cache = []
+    
         self.__configurators = []
     
         Device.__init__(self)
@@ -79,12 +81,16 @@ class PrefsDevice(Device):
 
         self.__configurators.sort(lambda a,b: cmp(a.TITLE, b.TITLE))
 
-        cnt = 0
-        items = []
-        for c in self.__configurators:
-            f = self.__make_configurator(c)
-            if (f): items.append(f)
-        #end for
+        if (self.__cache):
+            items = self.__cache
+        else:
+            items = []
+            for c in self.__configurators:
+                f = self.__make_configurator(c)
+                if (f): items.append(f)
+            #end for
+            self.__cache = items
+        #end if
 
         items.sort()
         
@@ -115,4 +121,5 @@ class PrefsDevice(Device):
     
         if (isinstance(comp, Configurator)):
             self.__configurators.append(comp)
+            self.__cache = []
 

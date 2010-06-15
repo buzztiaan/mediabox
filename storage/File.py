@@ -327,17 +327,18 @@ class File(object):
         """
         
         return self.__device.get_file_actions(self, f)
-       
-        
-    """
+
+
     def get_children(self):
-        ""
+        """
         Returns a list of children of this folder.
         @since: 0.96
-        @deprecated: L{get_children_async} should be used instead
         
         @return: list of File objects
-        ""
+        """
+    
+        import gtk
+        import gobject
     
         def collector(f):
             if (f):
@@ -349,12 +350,11 @@ class File(object):
     
         finished = [False]
         collection = []
-        self.get_children_async(collector)
+        self.get_contents(0, 0, collector)
         while (not finished[0]):
             gtk.main_iteration(True)
     
         return collection
-    """
     
 
     def get_children_async(self, cb, *args):

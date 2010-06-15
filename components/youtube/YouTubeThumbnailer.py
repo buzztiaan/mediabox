@@ -23,10 +23,6 @@ class YouTubeThumbnailer(Thumbnailer):
 
     def make_quick_thumbnail(self, f):
     
-        #thumb = self._get_thumbnail(f)
-        #if (thumb):
-        #    return (thumb, True)
-        #else:
         f.frame = (theme.mb_frame_video, 14, 4, 134, 112)
         return ("", False)
 
@@ -38,15 +34,7 @@ class YouTubeThumbnailer(Thumbnailer):
                 data[0] += d
             else:
                 cb("data://" + base64.b64encode(data[0]))
-                #imageloader.load_data(data[0], on_image)
-    
-        #def on_image(pbuf):
-        #    if (pbuf):
-        #        path = self._set_thumbnail(f, pbuf)
-        #    else:
-        #        path = ""
-        #    cb(path, *args)
 
     
         dl = Downloader(f.thumbnailer_param, on_download, [""])
-        
+
