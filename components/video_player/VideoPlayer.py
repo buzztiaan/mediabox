@@ -21,7 +21,7 @@ _LANDSCAPE_ARRANGEMENT = """
       <widget name="btn_nav" x1="0" y1="-64" x2="64" y2="100%"/>
       <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
 
-      <widget name="screen" x1="40" y1="0" x2="-80" y2="-64"/>
+      <widget name="screen" x1="40" y1="4" x2="-84" y2="-64"/>
       <widget name="progress" x1="90" y1="-50" x2="-90" y2="-10"/>
       <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
     </if-visible>
