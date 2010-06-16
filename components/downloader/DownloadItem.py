@@ -35,7 +35,6 @@ class DownloadItem(Item):
     
         self.__amount = amount
         self.__total = total
-        print amount, total
         self._invalidate_cached_pixmap()
 
 
@@ -46,13 +45,13 @@ class DownloadItem(Item):
             
         if (s > 1024 * 1024 * 1024):
             size = s / float(1024 * 1024 * 1024)
-            size_unit = "GB"
+            size_unit = "GiB"
         elif (s > 1024 * 1024):
             size = s / float(1024 * 1024)
-            size_unit = "MB"
+            size_unit = "MiB"
         elif (s > 1024):
             size = s / float(1024)
-            size_unit = "KB"
+            size_unit = "KiB"
         else:
             size = s
             size_unit = "B"

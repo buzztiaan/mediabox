@@ -71,7 +71,6 @@ class Downloader(Component):
         # if directory, recurse
         if (f.mimetype == f.DIRECTORY):
             # make directory for this
-            # TODO: replace unsafe chars centrally by static method in File class
             name = File.make_safe_name(f.name)
             newdir = os.path.join(destination, name)
             try:
