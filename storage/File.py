@@ -438,6 +438,29 @@ class File(object):
         
         
     @staticmethod
+    def make_safe_name(name):
+        """
+        Returns a filename-safe version of the given name.
+        @since: 2010.06.15
+        
+        @param name: a string
+        @return: a string that can be safely used for a filename
+        """
+
+        replace_map = [("/", "-"),
+                       ("!", ""),
+                       ("*", "+"),
+                       ("?", ""),
+                       ("\\", "-"),
+                       (":", "-")]
+                       
+        for a, b in replace_map:
+            name = name.replace(a, b)
+
+        return name
+
+        
+    @staticmethod
     def pack_path(prefix, *items):
         """
         Packs the given string items into a valid file path.

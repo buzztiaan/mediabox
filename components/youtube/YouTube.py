@@ -260,7 +260,6 @@ class YouTube(Device):
     
         def on_receive_node(node):
             if (node.get_name() == "{%s}entry" % _XMLNS_ATOM):
-                print node
                 f = self.__make_video_from_node(node)
                 cb(f, *args)
 
@@ -520,7 +519,7 @@ class YouTube(Device):
            
     def __get_video(self, f):
         """
-        Returns the video URL and a valid filename.
+        Returns the video URL.
         """
 
         if (f.resource == _REGION_BLOCKED):
@@ -562,9 +561,8 @@ class YouTube(Device):
 
         cache_folder = config.get_cache_folder()
         flv_path = os.path.join(cache_folder, ".tube.flv")
-        keep_path = self.__make_filename(f.name, ext)
 
-        return (flv + "&ext=" + ext, keep_path)
+        return flv + "&ext=" + ext
 
 
     def get_resource(self, f):
@@ -583,7 +581,7 @@ class YouTube(Device):
             #end if
         """
 
-        url, nil = self.__get_video(f)
+        url = self.__get_video(f)
         return url
 
         """
@@ -616,12 +614,14 @@ class YouTube(Device):
 
     def __on_download(self, folder, f):
 
-        url, filename = self.__get_video(f)
+        url = self.__get_video(f)
         if (not url):
             return
             
         dlg = FileDialog(FileDialog.TYPE_SAVE, "Save Video")
-        dlg.set_filename(f.name + mimetypes.mimetype_to_ext(f.mimetype))
+        name = File.make_safe_name(f.name)
+        ext = mimetypes.mimetype_to_ext(f.mimetype)
+        dlg.set_filename(name + ext)
         dlg.run()
         
         destination = dlg.get_filename()

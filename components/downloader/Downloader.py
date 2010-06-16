@@ -1,4 +1,5 @@
 from com import Component, msgs
+from storage import File
 from io import FileDownloader
 from utils import mimetypes
 
@@ -23,14 +24,21 @@ class Downloader(Component):
         Retrieves a queue of files recursively.
         """
         
-        def on_data(data, amount, total):
-            self.emit_message(msgs.DOWNLOADER_EV_PROGRESS,
-                              download_id, amount, 0)
-                
-            if (not data):
+        def on_data(data, amount, total, destname, destfile):
+            self.emit_message(msgs.DOWNLOADER_EV_PROGRESS, download_id,
+                              destname, amount, 0)
+           
+            if (data == ""):
                 # continue downloading next file in queue
                 self.__retrieve_file(download_id, base_destination, queue)
-
+            elif (data == None):
+                # abort downloading
+                try:
+                    os.unlink(destfile)
+                except:
+                    pass
+                self.emit_message(msgs.UI_ACT_SHOW_INFO,
+                                  u"Download aborted")
 
         def child_collector(f, newdir, collection):
             if (f):
@@ -64,7 +72,8 @@ class Downloader(Component):
         if (f.mimetype == f.DIRECTORY):
             # make directory for this
             # TODO: replace unsafe chars centrally by static method in File class
-            newdir = os.path.join(destination, f.name)
+            name = File.make_safe_name(f.name)
+            newdir = os.path.join(destination, name)
             try:
                 os.mkdir(newdir)
             except:
@@ -76,24 +85,26 @@ class Downloader(Component):
         # if file, download
         else:
             url = f.resource
+            name = File.make_safe_name(f.name)
             ext = mimetypes.mimetype_to_ext(f.mimetype)
-            print "EXTENSION", f.name, f.mimetype, ext
-            destfile = os.path.join(destination, f.name + ext)
-            dloader = FileDownloader(url, destfile, on_data)
+            destname = name + ext
+            destfile = os.path.join(destination, destname)
+            dloader = FileDownloader(url, destfile, on_data, destname, destfile)
+            self.__downloaders[download_id] = dloader
 
         
     def handle_DOWNLOADER_SVC_GET(self, url, destination):
     
-        def on_data(data, amount, total, destination):
-            self.emit_message(msgs.DOWNLOADER_EV_PROGRESS,
-                              download_id, amount, total)
+        def on_data(data, amount, total, destination, destname):
+            self.emit_message(msgs.DOWNLOADER_EV_PROGRESS, download_id,
+                              destname, amount, total)
         
             if (data == "" and download_id in self.__downloaders):
                 del self.__downloaders[download_id]
                 self.emit_message(msgs.DOWNLOADER_EV_FINISHED, download_id)
                 self.emit_message(msgs.UI_ACT_SHOW_INFO,
                                   u"Finished downloading \xbb%s\xab" \
-                                  % os.path.basename(destination))
+                                  % destname)
                                   
                 # add to file index
                 self.call_service(msgs.FILEINDEX_SVC_DISCOVER,
@@ -110,7 +121,9 @@ class Downloader(Component):
             #end if
 
 
-        dloader = FileDownloader(url, destination, on_data, destination)
+        destname = os.path.basename(destination)
+        dloader = FileDownloader(url, destination, on_data,
+                                 destination, destname)
         download_id = hash(dloader)
         self.__downloaders[download_id] = dloader
         self.emit_message(msgs.DOWNLOADER_EV_STARTED,

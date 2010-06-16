@@ -39,12 +39,13 @@ Gets emitted when a download starts.
 @param destination: destination path in the local file system
 """
 
-def DOWNLOADER_EV_PROGRESS(download_id, amount, total): pass
+def DOWNLOADER_EV_PROGRESS(download_id, name, amount, total): pass
 """
 Gets emitted during a download to report the progress for the download
 identified by the ID token.
 
 @param download_id: download ID
+@param name: name of download
 @param amount: amount of progress in bytes
 @param total: total amount in bytes (or 0 if unknown)
 """

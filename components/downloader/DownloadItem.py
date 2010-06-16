@@ -24,11 +24,19 @@ class DownloadItem(Item):
         Item.__init__(self)
 
 
+    def set_destination(self, dest):
+    
+        if (dest != self.__destination):
+            self.__destination = dest
+            self._invalidate_cached_pixmap()
+
+
     def set_amount(self, amount, total):
     
         self.__amount = amount
         self.__total = total
-        self._invalidate_cached_pixmap()        
+        print amount, total
+        self._invalidate_cached_pixmap()
 
 
     def __pretty_size(self, s):
@@ -60,20 +68,32 @@ class DownloadItem(Item):
         if (is_new):
             if (self.__total > 0):
                 percents = int((self.__amount / float(self.__total)) * 100)
+                circle_percents = percents - (percents % 10)
             else:
                 percents = 0
+                circle_percents = (self.__amount / 100) % 10
+
+            if (self.__total > 0):
+                size = "%s / %s" % (self.__pretty_size(self.__amount),
+                                    self.__pretty_size(self.__total))
+            else:
+                size = self.__pretty_size(self.__amount)
 
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
+            # place percentage circle here
+            #pmap.draw_pixbuf(theme.mb_download_progress,
+            #                 circle_percents * 64, 0,
+            #                 4, (h - 64) / 2, 64, 64)
+
+            print "ITEM SIZE", w, h
             pmap.set_clip_rect(0, 0, w - 80, h)
             pmap.draw_text("%s" % self.__destination,
                            theme.font_mb_plain,
-                           12, 2, theme.color_list_item_text)
-            pmap.draw_text("%s / %s - %s" % (self.__pretty_size(self.__amount),
-                                             self.__pretty_size(self.__total),
-                                             self.__domain),
+                           80, 2, theme.color_list_item_text)
+            pmap.draw_text("%s - %s" % (self.__domain, size),
                            theme.font_mb_tiny,
-                           12, 30, theme.color_list_item_subtext)
+                           80, 30, theme.color_list_item_subtext)
             pmap.set_clip_rect()
 
             pmap.draw_pixbuf(theme.mb_download_abort,

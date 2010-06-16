@@ -65,11 +65,12 @@ class DownloadManager(Dialog):
             self.__list.render()
 
 
-    def handle_DOWNLOADER_EV_PROGRESS(self, download_id, amount, total):
+    def handle_DOWNLOADER_EV_PROGRESS(self, download_id, name, amount, total):
     
         item = self.__items.get(download_id)
         if (item):
             item.set_amount(amount, total)
+            item.set_destination(name)
             idx = self.__list.get_items().index(item)
             self.__list.invalidate_item(idx)
 

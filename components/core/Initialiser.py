@@ -26,10 +26,13 @@ class Initialiser(Component):
             pass
         print "setting theme took %f seconds" % (time.time() - t1)
 
+        # utterly dirty hack no longer necessary when playing media through MAFW
+        """
         # make MediaBox play sound in silent mode
         if (platforms.MAEMO5):
             import gobject
             gobject.set_application_name("FMRadio")
+        """
 
         # satisfy maemo activation framework
         if (platforms.MAEMO4):
@@ -37,3 +40,4 @@ class Initialiser(Component):
             
         elif (platforms.MAEMO5):
             platforms.create_osso_context(values.OSSO_NAME, "1.0", False)
+

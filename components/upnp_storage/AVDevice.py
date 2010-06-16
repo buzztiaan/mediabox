@@ -234,12 +234,13 @@ class AVDevice(Device):
             
         else:
             dlg = FileDialog(FileDialog.TYPE_SAVE, "Save File")
-
+            name = File.make_safe_name(f.name)
             if (os.path.splitext(f.name)[1]):
                 ext = ""
             else:
                 ext = os.path.splitext(f.resource)[1]
-            dlg.set_filename(f.name + ext)
+            
+            dlg.set_filename(name + ext)
             dlg.run()
         
             destination = dlg.get_filename()

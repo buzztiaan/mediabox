@@ -292,7 +292,10 @@ class LyricsCaster(Component):
         mm = int(t[:idx1])
         if (idx2 != -1):
             ss = int(t[idx1 + 1:idx2])
-            xx = int(t[idx2 + 1:])
+            # as discussed on talk.maemo.org, omitting the milliseconds
+            # precision gives more accurate results (MAFW doesn't know about
+            # milliseconds anyway)
+            xx = 0 #int(t[idx2 + 1:])
         else:
             ss = int(t[idx1 + 1:])
             xx = 0
