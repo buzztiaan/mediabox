@@ -96,7 +96,7 @@ class DownloadItem(Item):
             pmap.draw_text("%s" % self.__destination,
                            theme.font_mb_plain,
                            80, 2, theme.color_list_item_text)
-            pmap.draw_text("%s - %s" % (self.__domain, size),
+            pmap.draw_text("%s\n%s" % (self.__domain, size),
                            theme.font_mb_tiny,
                            80, 30, theme.color_list_item_subtext)
             pmap.set_clip_rect()

@@ -25,7 +25,7 @@ class Downloader(Component):
     def __report_progress(self, download_id, destname, amount, total):
 
         now = time.time()
-        if (now > self.__last_progress_time + 0.25):
+        if (now > self.__last_progress_time + 1):
             self.emit_message(msgs.DOWNLOADER_EV_PROGRESS, download_id,
                               destname, amount, total)
             self.__last_progress_time = now
@@ -37,8 +37,7 @@ class Downloader(Component):
         """
         
         def on_data(data, amount, total, destname, destfile):
-            self.emit_message(msgs.DOWNLOADER_EV_PROGRESS, download_id,
-                              destname, amount, 0)
+            self.__report_progress(download_id, destname, amount, 0)
            
             if (data == ""):
                 # continue downloading next file in queue
@@ -107,8 +106,7 @@ class Downloader(Component):
     def handle_DOWNLOADER_SVC_GET(self, url, destination):
     
         def on_data(data, amount, total, destination, destname):
-            self.emit_message(msgs.DOWNLOADER_EV_PROGRESS, download_id,
-                              destname, amount, total)
+            self.__report_progress(download_id, destname, amount, total)
         
             if (data == "" and download_id in self.__downloaders):
                 del self.__downloaders[download_id]
