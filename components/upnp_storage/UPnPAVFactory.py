@@ -30,17 +30,17 @@ class UPnPAVFactory(Component):
             self.__dev_names[uuid] = descr.get_friendly_name()
             self.emit_message(msgs.CORE_EV_DEVICE_ADDED, dev_id, device)
             
-            self.emit_message(msgs.UI_ACT_SHOW_INFO,
-                              u"Discovered network storage \xbb%s\xab" \
-                              %  descr.get_friendly_name())
+            #self.emit_message(msgs.UI_ACT_SHOW_INFO,
+            #                  u"Discovered network storage \xbb%s\xab" \
+            #                  %  descr.get_friendly_name())
 
         elif (device_type in MediaRenderer.DEVICE_TYPES):
             device = MediaRenderer(descr)
             self.emit_message(msgs.MEDIA_EV_OUTPUT_ADDED, device)
             
-            self.emit_message(msgs.UI_ACT_SHOW_INFO,
-                              u"Discovered media renderer \xbb%s\xab" \
-                              %  descr.get_friendly_name())
+            #self.emit_message(msgs.UI_ACT_SHOW_INFO,
+            #                  u"Discovered media renderer \xbb%s\xab" \
+            #                  %  descr.get_friendly_name())
 
 
     def handle_SSDP_EV_DEVICE_GONE(self, uuid):

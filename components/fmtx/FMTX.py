@@ -55,23 +55,6 @@ class FMTX(Component):
                      dbus.String(u"%s" % self.__title[:64], variant_level = 1))
             self.__fmtx.Set("com.nokia.FMTx.Device", "rds_ps",
                      dbus.String(u"MediaBox", variant_level = 1))
-
-            """
-            # works, but is ugly
-            import os
-            os.system("/usr/bin/dbus-send --system --dest=com.nokia.FMTx " \
-                      "/com/nokia/fmtx/default " \
-                      "org.freedesktop.DBus.Properties.Set " \
-                      "string:'com.nokia.FMTx.Device' string:'rds_text' " \
-                      "variant:string:'%s'" % self.__title[:64])
-
-            os.system("/usr/bin/dbus-send --system --dest=com.nokia.FMTx " \
-                      "/com/nokia/fmtx/default " \
-                      "org.freedesktop.DBus.Properties.Set " \
-                      "string:'com.nokia.FMTx.Device' string:'rds_ps' " \
-                      "variant:string:'MediaBox'")
-            """
-
         #end if
 
 

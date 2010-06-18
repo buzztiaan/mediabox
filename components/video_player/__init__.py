@@ -8,7 +8,7 @@ def get_classes():
     from VideoInspector import VideoInspector
     classes = [DSPSemaphore, VideoPlayer, VideoInspector]
     
-    if (platforms.PLATFORM == platforms.MAEMO5):
+    if (platforms.MAEMO5):
         from OrgFreeDesktopThumbnailer import OrgFreeDesktopThumbnailer
         classes.append(OrgFreeDesktopThumbnailer)
     else:

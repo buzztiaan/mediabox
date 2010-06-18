@@ -128,7 +128,7 @@ class Downloader(Component):
         self.emit_message(msgs.DOWNLOADER_EV_STARTED,
                           download_id, url, destination)
         self.emit_message(msgs.UI_ACT_SHOW_INFO,
-                          u"Download started")
+                          u"Downloading")
         
         return download_id
         
@@ -140,10 +140,10 @@ class Downloader(Component):
         print "DOWNLOAD ID", download_id
         self.__downloaders[download_id] = download_queue
         self.__retrieve_file(download_id, destination, download_queue)
-        self.emit_message(msgs.DOWNLOADER_EV_STARTED,
-                          download_id, f.name, destination)
+        self.emit_message(msgs.DOWNLOADER_EV_STARTED, download_id,
+                          f.get_children()[0].resource, destination)
         self.emit_message(msgs.UI_ACT_SHOW_INFO,
-                          u"Download started")
+                          u"Downloading Folder")
         
         return download_id
         

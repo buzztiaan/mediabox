@@ -102,6 +102,12 @@ class File(object):
         @since: 0.96
         """
 
+        self.message = ""
+        """
+        text message displayed in the browser
+        @since: 2010.06.18
+        """
+
         self.index = 0
         """
         index number that can be used for sorting

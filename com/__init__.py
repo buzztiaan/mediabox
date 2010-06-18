@@ -10,15 +10,10 @@ import msgs
 from exc import *
 from Container import Container
 
-#from Applet import Applet
 from Component import Component
 from Configurator import Configurator
 from Dialog import Dialog
 from FileInspector import FileInspector
-#from Viewer import Viewer
 from MediaOutput import MediaOutput
 from Player import Player
 from Thumbnailer import Thumbnailer
-#from View import View
-#from Widget import Widget
-

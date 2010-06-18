@@ -2,6 +2,7 @@ from ui.itemview import Item
 from theme import theme
 
 import os
+import time
 
 
 class DownloadItem(Item):
@@ -67,10 +68,11 @@ class DownloadItem(Item):
         if (is_new):
             if (self.__total > 0):
                 percents = int((self.__amount / float(self.__total)) * 100)
-                circle_percents = percents - (percents % 10)
+                animation_percents = percents - (percents % 10)
             else:
                 percents = 0
-                circle_percents = (self.__amount / 100) % 10
+                t = int(time.time())
+                animation_percents = t % 10
 
             if (self.__total > 0):
                 size = "%s / %s" % (self.__pretty_size(self.__amount),
@@ -80,12 +82,11 @@ class DownloadItem(Item):
 
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
-            # place percentage circle here
-            #pmap.draw_pixbuf(theme.mb_download_progress,
-            #                 circle_percents * 64, 0,
-            #                 4, (h - 64) / 2, 64, 64)
+            # render animated progress
+            pmap.draw_subpixbuf(theme.mb_download_progress,
+                                animation_percents * 64, 0,
+                                4, (h - 64) / 2, 64, 64)
 
-            print "ITEM SIZE", w, h
             pmap.set_clip_rect(0, 0, w - 80, h)
             pmap.draw_text("%s" % self.__destination,
                            theme.font_mb_plain,

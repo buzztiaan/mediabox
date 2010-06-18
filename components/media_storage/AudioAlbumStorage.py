@@ -25,6 +25,7 @@ class AudioAlbumStorage(Device):
 
     def __init__(self):
     
+        self.__cache = []
         Device.__init__(self)
 
 
@@ -135,16 +136,22 @@ class AudioAlbumStorage(Device):
         len_parts = len(parts)
         
         items = []
+        
         alphabetical = False
         if (len_parts == 0):
-            # list albums
-            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
-                              "File.Folder, Audio.Album of File.Type='audio'")
-            for ffolder, album in res:
-                if (not album): continue
-                f = self.__make_album(ffolder, album)
-                if (f): items.append(f)
-            #end for
+            if (self.__cache):
+                items += self.__cache
+            else:
+                # list albums
+                res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
+                                  "File.Folder, Audio.Album of File.Type='audio'")
+                for ffolder, album in res:
+                    if (not album): continue
+                    f = self.__make_album(ffolder, album)
+                    if (f): items.append(f)
+                #end for
+                self.__cache = items[:]
+            #end if
                          
         elif (len_parts == 2):
             # list tracks
@@ -208,4 +215,14 @@ class AudioAlbumStorage(Device):
             elif (not d):
                 break
         #end while
+
+
+    def handle_FILEINDEX_ACT_SCAN(self):
+    
+        self.__cache = []
+        
+        
+    def handle_FILEINDEX_ACT_SCAN_FOLDER(self, path):
+    
+        self.__cache = []
 

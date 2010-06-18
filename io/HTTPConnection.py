@@ -13,7 +13,7 @@ import socket
 import urlparse
 
 
-_BUFFER_SIZE = 4096
+_BUFFER_SIZE = 512
 _CONNECTION_TIMEOUT = 30000
 
     

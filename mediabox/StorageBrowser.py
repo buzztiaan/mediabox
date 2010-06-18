@@ -524,7 +524,10 @@ class StorageBrowser(ThumbableGridView):
                     print logging.stacktrace()
 
             else:
-                if (len(self.get_files()) > 0):
+                message = self.get_current_folder().message
+                if (message):
+                    self.set_message(message)
+                elif (len(self.get_files()) > 0):
                     self.set_message("")
                 else:
                     self.set_message("Folder contains no media")

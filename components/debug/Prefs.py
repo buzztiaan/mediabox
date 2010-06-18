@@ -26,7 +26,7 @@ _LOG_LEVELS = {
 
 class Prefs(Configurator):
 
-    ICON = theme.mb_viewer_prefs
+    ICON = theme.mb_folder_genre
     TITLE = "Debugging"
     DESCRIPTION = "Information and settings for developers"
 
@@ -41,7 +41,7 @@ class Prefs(Configurator):
 
 
         lbl = Label("Log Level:",
-                    theme.font_mb_tiny, theme.color_mb_listitem_text)
+                    theme.font_mb_tiny, theme.color_list_item_text)
         self.__vbox.add(lbl)
 
         log_level = logging.get_level()
@@ -56,24 +56,24 @@ class Prefs(Configurator):
 
 
         lbl = Label("Running since: %s" % time.asctime(time.localtime(values.START_TIME)),
-                    theme.font_mb_tiny, theme.color_mb_listitem_text)
+                    theme.font_mb_tiny, theme.color_list_item_text)
         self.__vbox.add(lbl)
 
         lbl = Label("Device: %s" % maemo.get_product_code(),
-                    theme.font_mb_tiny, theme.color_mb_listitem_text)
+                    theme.font_mb_tiny, theme.color_list_item_text)
         self.__vbox.add(lbl)
 
         lbl = Label("OS: %s" % commands.getoutput("uname -a"),
-                    theme.font_mb_tiny, theme.color_mb_listitem_text)
+                    theme.font_mb_tiny, theme.color_list_item_text)
         self.__vbox.add(lbl)
         lbl.set_size(560, 0)
 
         self.__lbl_mem_size = Label("",
-                    theme.font_mb_tiny, theme.color_mb_listitem_text)
+                    theme.font_mb_tiny, theme.color_list_item_text)
         self.__vbox.add(self.__lbl_mem_size)
         
         self.__lbl_bpp = Label("",
-                    theme.font_mb_tiny, theme.color_mb_listitem_text)
+                    theme.font_mb_tiny, theme.color_list_item_text)
         self.__vbox.add(self.__lbl_bpp)
         
 
@@ -97,19 +97,14 @@ class Prefs(Configurator):
         
         self.__lbl_mem_size.set_text("Resident set size: %0.02f MB" \
                                      % self.__get_mem_size())
-        try:
-            composited = self.get_window().is_composited() and "composited" \
-                                                           or "not composited"
-        except:
-            composited = "not composited"
-        self.__lbl_bpp.set_text("Screen: %d x %d x %d, %s" \
+        self.__lbl_bpp.set_text("Screen: %d x %d x %d" \
                                 % (gtk.gdk.screen_width(),
                                    gtk.gdk.screen_height(),
-                                   screen.get_color_depth(),
-                                   composited))
+                                   screen.get_color_depth()))
         
-        self.__vbox.set_geometry(32, 32, w - 64, h - 64)
+        #self.__vbox.set_geometry(32, 32, w - 64, h - 64)
         screen.fill_area(x, y, w, h, theme.color_mb_background)
+        Configurator.render_this(self)
         
         
     def __on_select_log_level(self, level):
