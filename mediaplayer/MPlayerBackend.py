@@ -88,7 +88,6 @@ class MPlayerBackend(AbstractBackend):
                   "-input conf=\"%s\" "\
                   "-idle -osdlevel 0 -idx " \
                   "-cache 256 -cache-min 50 " \
-                  "-afm ffmpeg " \
                   "-identify -novideo %s 2>&1 3>/dev/null" \
                   % (_MPLAYER, _INPUT_CONF, ao_opts)
         else:
