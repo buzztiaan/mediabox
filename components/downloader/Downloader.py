@@ -4,6 +4,7 @@ from io import FileDownloader
 from utils import mimetypes
 
 import os
+import time
 
 
 class Downloader(Component):
@@ -13,10 +14,21 @@ class Downloader(Component):
 
     def __init__(self):
 
+        self.__last_progress_time = 0
+
         # table: download id -> handler
         self.__downloaders = {}
     
         Component.__init__(self)
+
+
+    def __report_progress(self, download_id, destname, amount, total):
+
+        now = time.time()
+        if (now > self.__last_progress_time + 0.25):
+            self.emit_message(msgs.DOWNLOADER_EV_PROGRESS, download_id,
+                              destname, amount, total)
+            self.__last_progress_time = now
 
 
     def __retrieve_file(self, download_id, base_destination, queue):

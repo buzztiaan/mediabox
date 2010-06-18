@@ -49,12 +49,7 @@ class WorldTV(Device):
                 data = open(xmlfile).read()
                 self.__tv_dom = MiniXML(data).get_dom()
             except:
-                pass        
-
-
-    def get_icon(self):
-    
-        return theme.worldtv_device
+                pass
         
         
     def get_prefix(self):
@@ -76,6 +71,7 @@ class WorldTV(Device):
             f.mimetype = f.DIRECTORY
             f.resource = ""
             f.info = "Watch TV streams from all over the world"
+            f.icon = theme.worldtv_device.get_path()
         else:
             f = File(self)
             f.path = path

@@ -34,9 +34,10 @@ class DownloadItem(Item):
 
     def set_amount(self, amount, total):
     
-        self.__amount = amount
-        self.__total = total
-        self._invalidate_cached_pixmap()
+        if (amount - self.__amount > 1024):
+            self.__amount = amount
+            self.__total = total
+            self._invalidate_cached_pixmap()
 
 
     def __pretty_size(self, s):
@@ -47,17 +48,21 @@ class DownloadItem(Item):
         if (s > 1024 * 1024 * 1024):
             size = s / float(1024 * 1024 * 1024)
             size_unit = "GiB"
+            format = "%0.1f %s"
         elif (s > 1024 * 1024):
             size = s / float(1024 * 1024)
             size_unit = "MiB"
+            format = "%0.1f %s"
         elif (s > 1024):
             size = s / float(1024)
             size_unit = "KiB"
+            format = "%d %s"
         else:
             size = s
             size_unit = "B"
+            format = "%d %s"
 
-        return "%0.2f %s" % (size, size_unit)
+        return format % (size, size_unit)
 
 
     def render_at(self, cnv, x, y):
