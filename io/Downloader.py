@@ -60,7 +60,7 @@ class Downloader(HTTPConnection):
             self.endheaders()
             self.send("", self.__on_receive_data, cb, args)
         
-        gtk.main_iteration(False)
+        #gtk.main_iteration(False)
         #while (gtk.events_pending()):
         #    gtk.main_iteration(False)
 
