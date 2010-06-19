@@ -585,8 +585,7 @@ class YouTube(Device):
         cache_folder = config.get_cache_folder()
         flv_path = os.path.join(cache_folder, ".tube.flv")
 
-        self.__flv_downloader = FileDownloader(flv, flv_path, on_dload,
-                                               flv_path)
+        self.__flv_downloader = FileDownloader(flv, flv_path, on_dload)
         
         # we don't give the downloaded file directly to the player because
         # if we did so, the player would fall off the video if it reached
