@@ -62,6 +62,7 @@ class FileDialog(object):
         dlg.set_current_folder(_MYDOCS)
         
         response = dlg.run()
-        self.__selection = dlg.get_filename()
+        if (response == gtk.RESPONSE_OK):
+            self.__selection = dlg.get_filename()
         dlg.destroy()
 
