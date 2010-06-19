@@ -73,7 +73,10 @@ class WorldTV(Device):
             f.info = "Watch TV streams from all over the world"
             f.icon = theme.worldtv_device.get_path()
         else:
+            prefix, node_nr, name, url = File.unpack_path(path)
             f = File(self)
+            f.name = name
+            f.resource = url
             f.path = path
             f.mimetype = "video/x-unknown"
 
@@ -89,26 +92,23 @@ class WorldTV(Device):
         else:
             folder.message = ""
     
-        path = folder.path
-        if (path[-1] == "/"): path = path[:-1]
         parts = [ p for p in folder.path.split("/") if p ]
-        len_parts = len(parts)
 
         node = self.__tv_dom
         for p in parts:
             if (not p): continue
-            node = node.get_children()[int(p)]
+            prefix, node_nr, name, url = File.unpack_path(p)
+            node = node.get_children()[int(node_nr)]
         #end for
         
         cnt = 0
         items = []
+        parent_path = folder.path
         for c in node.get_children():
-            c_path = path + "/" + str(cnt)
-            
             if (c.get_name() == "group"):
-                f = self.__parse_group(c_path, c)
+                f = self.__parse_group(parent_path, cnt, c)
             elif (c.get_name() == "item"):
-                f = self.__parse_item(c_path, c)
+                f = self.__parse_item(parent_path, cnt, c)
             else:
                 f = None
 
@@ -132,14 +132,14 @@ class WorldTV(Device):
 
 
 
-    def __parse_group(self, path, node):
+    def __parse_group(self, parent_path, node_nr, node):
     
         f = File(self)
         try:
             f.name = node.get_attr("title")
         except:
             return None
-        f.path = path
+        f.path = File.pack_path(parent_path, `node_nr`, f.name, "")
         f.mimetype = f.DIRECTORY
 
         if (f.name in _BLACKLISTED):
@@ -148,7 +148,7 @@ class WorldTV(Device):
         return f
         
         
-    def __parse_item(self, path, node):
+    def __parse_item(self, parent_path, node_nr, node):
     
         try:
             name = node.get_attr("title")
@@ -167,7 +167,7 @@ class WorldTV(Device):
         f = File(self)
         f.name = name
         f.resource = url
-        f.path = path
+        f.path = File.pack_path(parent_path, `node_nr`, name, url)
         f.mimetype = "video/x-unknown"
         f.thumbnail = theme.worldtv_device.get_path()
         
