@@ -73,7 +73,7 @@ class DownloadItem(Item):
         if (is_new):
             if (self.__total > 0):
                 percents = int((self.__amount / float(self.__total)) * 100)
-                animation_percents = percents - (percents % 10)
+                animation_percents = (percents - (percents % 10)) / 10
             else:
                 percents = 0
                 t = int(time.time())
