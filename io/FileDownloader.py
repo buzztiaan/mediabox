@@ -30,7 +30,10 @@ class FileDownloader(Downloader):
     
         if (data):
             # write data to file
-            self.__fd.write(data)
+            try:
+                self.__fd.write(data)
+            except IOError:
+                self.cancel()
            
         else:
             # finished downloading

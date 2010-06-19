@@ -62,13 +62,13 @@ class Headset(Component):
     def __handle_click(self):
 
         if (self.__click_count == 1):
-            self.emit_event(msgs.HWKEY_EV_HEADSET)
+            self.emit_message(msgs.HWKEY_EV_HEADSET)
 
         elif (self.__click_count == 2):
-            self.emit_event(msgs.HWKEY_EV_HEADSET_DOUBLE)
+            self.emit_message(msgs.HWKEY_EV_HEADSET_DOUBLE)
             
         elif (self.__click_count == 3):
-            self.emit_event(msgs.HWKEY_EV_HEADSET_TRIPLE)
+            self.emit_message(msgs.HWKEY_EV_HEADSET_TRIPLE)
             
         self.__click_count = 0
         self.__click_handler = None
@@ -94,12 +94,12 @@ class Headset(Component):
         if (state == "disconnected"):
             self.__is_connected = False
             logging.info("headphones disconnected")
-            self.emit_event(msgs.SYSTEM_EV_HEADPHONES_REMOVED)
+            self.emit_message(msgs.SYSTEM_EV_HEADPHONES_REMOVED)
 
         elif (state == "connected"):
             self.__is_connected = True
             logging.info("headphones connected")
-            self.emit_event(msgs.SYSTEM_EV_HEADPHONES_INSERTED)
+            self.emit_message(msgs.SYSTEM_EV_HEADPHONES_INSERTED)
 
         return True
 
