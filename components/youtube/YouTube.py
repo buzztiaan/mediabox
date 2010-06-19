@@ -556,37 +556,37 @@ class YouTube(Device):
             
         logging.info("found FLV: %s", flv)
 
+        return flv + "&ext=" + ext
+
+
+    def get_resource(self, f):
+
+        #"""    
+        def on_dload(d, a, t):
+            if (d):
+                self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
+                #print "%d / %d         " % (a, t)
+                #print gobject.main_depth()
+                #if (gobject.main_depth() < 3): 
+                #gtk.main_iteration(False)
+                
+            else:
+                self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
+            #end if
+        #"""
+
+        url = self.__get_video(f)
+        #return url
+
+        #"""
         if (self.__flv_downloader):
             self.__flv_downloader.cancel()
 
         cache_folder = config.get_cache_folder()
         flv_path = os.path.join(cache_folder, ".tube.flv")
 
-        return flv + "&ext=" + ext
-
-
-    def get_resource(self, f):
-
-        """    
-        def on_dload(d, a, t, flv_path, keep_path):
-            if (d):
-                self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
-                #print "%d / %d         " % (a, t)
-                #print gobject.main_depth()
-                #if (gobject.main_depth() < 3): 
-                gtk.main_iteration(False)
-                
-            else:
-                self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
-            #end if
-        """
-
-        url = self.__get_video(f)
-        return url
-
-        """
         self.__flv_downloader = FileDownloader(flv, flv_path, on_dload,
-                                               flv_path, keep_path)
+                                               flv_path)
         
         # we don't give the downloaded file directly to the player because
         # if we did so, the player would fall off the video if it reached
@@ -596,7 +596,7 @@ class YouTube(Device):
         self.__fileserver.allow(flv_path, "/" + f.resource + ".flv")
         
         return self.__fileserver.get_location() + "/" + f.resource + ".flv"
-        """
+        #"""
 
 
     def __ask_for_quality(self, fmts):
