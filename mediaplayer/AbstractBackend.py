@@ -269,6 +269,7 @@ class AbstractBackend(EventEmitter):
 
         if (self.__playing):
             pos, total = self.__position
+            print pos, total
             if (pos < 3):
                 pos, total = self._get_position()
                 timestamp = time.time()

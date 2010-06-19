@@ -45,7 +45,7 @@ _REGION_BLOCKED = "region blocked"
 _SEARCH_CACHE_DIR = os.path.join(values.USER_DIR, "youtube/search-cache")
 _VIDEO_FOLDER = "Saved Videos"
 
-_PAGE_SIZE = 25
+_PAGE_SIZE = 50
 
 
 _STAR_CHAR = u"\u2606"
@@ -576,26 +576,26 @@ class YouTube(Device):
         #"""
 
         url = self.__get_video(f)
-        #return url
 
-        #"""
         if (self.__flv_downloader):
             self.__flv_downloader.cancel()
 
-        cache_folder = config.get_cache_folder()
-        flv_path = os.path.join(cache_folder, ".tube.flv")
+        if (platforms.MAEMO4):
+            cache_folder = config.get_cache_folder()
+            flv_path = os.path.join(cache_folder, ".tube.flv")
 
-        self.__flv_downloader = FileDownloader(url, flv_path, on_dload)
+            self.__flv_downloader = FileDownloader(url, flv_path, on_dload)
         
-        # we don't give the downloaded file directly to the player because
-        # if we did so, the player would fall off the video if it reached
-        # the end of file before it was downloaded completely.
-        # instead we serve it on a webserver to make the player wait for
-        # more if the download rate is too low
-        self.__fileserver.allow(flv_path, "/" + f.resource + ".flv")
+            # we don't give the downloaded file directly to the player because
+            # if we did so, the player would fall off the video if it reached
+            # the end of file before it was downloaded completely.
+            # instead we serve it on a webserver to make the player wait for
+            # more if the download rate is too low
+            self.__fileserver.allow(flv_path, "/" + f.resource + ".flv")
         
-        return self.__fileserver.get_location() + "/" + f.resource + ".flv"
-        #"""
+            return self.__fileserver.get_location() + "/" + f.resource + ".flv"
+        else:
+            return url
 
 
     def __ask_for_quality(self, fmts):
