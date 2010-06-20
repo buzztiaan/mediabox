@@ -109,6 +109,8 @@ class WorldTV(Device):
                 f = self.__parse_group(parent_path, cnt, c)
             elif (c.get_name() == "item"):
                 f = self.__parse_item(parent_path, cnt, c)
+            elif (c.get_name() == "link"):
+                f = self.__parse_link(parent_path, cnt, c)
             else:
                 f = None
 
@@ -173,3 +175,29 @@ class WorldTV(Device):
         
         return f
 
+
+    def __parse_link(self, parent_path, node_nr, node):
+    
+        try:
+            name = node.get_attr("title")
+            url = node.get_attr("url")
+            category = node.get_attr("category")
+        except:
+            return None
+    
+        if (name in _BLACKLISTED):
+            return None
+    
+        if (not url.strip()):
+            return None
+        elif (url.endswith(".xml")):
+            return None
+      
+        f = File(self)
+        f.name = name
+        f.resource = url
+        f.path = File.pack_path(parent_path, `node_nr`, name, url)
+        f.mimetype = "video/x-unknown"
+        f.thumbnail = theme.worldtv_device.get_path()
+        
+        return f

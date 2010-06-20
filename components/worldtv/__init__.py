@@ -1,5 +1,9 @@
 def get_devices():
 
-    from WorldTV import WorldTV
-    return [WorldTV]
+    if (not platforms.MAEMO5):
+        # not Maemo5-ready yet
+        from WorldTV import WorldTV
+        return [WorldTV]
+    else:
+        return []
 

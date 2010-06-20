@@ -24,7 +24,7 @@ _LANDSCAPE_ARRANGEMENT = """
     <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
     
     <widget name="cover" x1="50" y1="10" x2="48%" y2="-64"/>
-    <widget name="trackinfo" x1="50%" y1="160" x2="-90" y2="260"/>
+    <widget name="trackinfo" x1="50%" y1="20" x2="-90" y2="120"/>
   </arrangement>
 """
 
@@ -72,19 +72,19 @@ class AudioPlayer(Player):
         # title label
         self.__lbl_title = Label("-", theme.font_mb_headline,
                                  theme.color_audio_player_trackinfo_title)
-        self.__lbl_title.set_alignment(Label.CENTERED)
+        #self.__lbl_title.set_alignment(Label.CENTERED)
         self.__trackinfo.add(self.__lbl_title, True)
 
 
         # artist and album labels
         self.__lbl_album = Label("-", theme.font_mb_plain,
                                  theme.color_audio_player_trackinfo_album)
-        self.__lbl_album.set_alignment(Label.CENTERED)
+        #self.__lbl_album.set_alignment(Label.CENTERED)
         self.__trackinfo.add(self.__lbl_album, True)
 
         self.__lbl_artist = Label("-", theme.font_mb_plain,
                                   theme.color_audio_player_trackinfo_artist)
-        self.__lbl_artist.set_alignment(Label.CENTERED)
+        #self.__lbl_artist.set_alignment(Label.CENTERED)
         self.__trackinfo.add(self.__lbl_artist, True)
         
         
@@ -153,8 +153,15 @@ class AudioPlayer(Player):
         w, h = self.get_size()
         if (w < h):
             self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
+            self.__lbl_title.set_alignment(Label.CENTERED)
+            self.__lbl_album.set_alignment(Label.CENTERED)
+            self.__lbl_artist.set_alignment(Label.CENTERED)
+
         else:
             self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
+            self.__lbl_title.set_alignment(Label.LEFT)
+            self.__lbl_album.set_alignment(Label.LEFT)
+            self.__lbl_artist.set_alignment(Label.LEFT)
 
         
     def get_mime_types(self):

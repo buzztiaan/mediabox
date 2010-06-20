@@ -19,7 +19,7 @@ class CoverArt(Widget):
     def _reload(self):
     
         self.__render_cover()
-        self.__render_lyrics()
+        #self.__render_lyrics()
         self.render()
         
 

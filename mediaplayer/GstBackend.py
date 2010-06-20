@@ -126,6 +126,15 @@ class GstBackend(AbstractBackend):
             self.__player.set_state(gst.STATE_NULL)
             self.__is_eof = True
 
+        elif (t == gst.MESSAGE_ELEMENT):
+            s = message.structure
+            if (s.has_name("redirect")):     
+                url = s["new-location"]
+                logging.debug("GStreamer got redirect: %s", url)
+                self.__player.set_state(gst.STATE_NULL)
+                self.__player.set_property("uri", url)
+                self.__player.set_state(gst.STATE_PLAYING)
+
         elif (t == gst.MESSAGE_BUFFERING):
             self._report_buffering(0)
             #query = gst.query_new_buffering(gst.FORMAT_PERCENT)
@@ -155,7 +164,7 @@ class GstBackend(AbstractBackend):
                     self._report_tag("PICTURE", tags[key].data)
                     print "Found cover image"
             #end for
-            
+    
 
     def __on_sync_message(self, bus, message):
     

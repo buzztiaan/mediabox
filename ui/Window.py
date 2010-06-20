@@ -152,7 +152,7 @@ class Window(Widget):
 
         if (platforms.MAEMO5):
             if (wtype == self.TYPE_TOPLEVEL):
-                self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
+                pass #self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
             else:
                 self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
 
