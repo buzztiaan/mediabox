@@ -1,3 +1,6 @@
+import platforms
+
+
 def get_devices():
 
     if (not platforms.MAEMO5):
