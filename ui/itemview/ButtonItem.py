@@ -13,6 +13,12 @@ class ButtonItem(Item):
         
         Item.__init__(self)
         
+    
+    def set_text(self, text):
+    
+        self.__label = text
+        self._invalidate_cached_pixmap()
+        
         
     def render_at(self, cnv, x, y):
     

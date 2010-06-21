@@ -117,7 +117,9 @@ class GridView(ItemView):
     def invalidate(self):
         """
         Invalidates this view. This causes the view to be redrawn completely
-        redrawn the next time it gets rendered.
+        the next time it gets rendered.
+        If you just want to update particular items, then L{invalidate_item} is
+        a better choice.
         """
         
         self.__is_invalidated = True
@@ -125,8 +127,8 @@ class GridView(ItemView):
 
     def invalidate_item(self, idx):
         """
-        Invalidates the given item. This causes the item to be redrawn the next
-        time the view gets rendered.
+        Invalidates the given item. This causes the item to be redrawn on screen
+        immediately.
         
         @param idx: index number of the item to invalidate
         """

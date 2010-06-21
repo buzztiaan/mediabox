@@ -1,3 +1,4 @@
+from ui.Window import Window
 from ui.layout import HBox
 from ui.layout import VBox
 from ui.Button import Button
@@ -10,7 +11,7 @@ _UP_ARROW = u"\u21e7"
 _DOWN_ARROW = u"\u21e9"
 
 
-class ClockSetter(HBox):
+class ClockSetter(Window):
 
     def __init__(self):
     
@@ -18,28 +19,32 @@ class ClockSetter(HBox):
         self.__values = [0] * 4
         
     
-        HBox.__init__(self)
-        self.set_spacing(12)
+        Window.__init__(self, Window.TYPE_DIALOG)
+        self.connect_closed(self.__on_close)
+
+        self.__hbox = HBox()
+        self.__hbox.set_spacing(12)
+        self.add(self.__hbox)
         
         for item in ["h1", "h2", ":", "m1", "m2"]:
             if (item == ":"):
-                lbl = Label(":", theme.font_mb_clocksetter,
-                            theme.color_mb_dialog_text)
+                lbl = Label(":", theme.font_sleeptimer_clocksetter,
+                                 theme.color_mb_text)
                 lbl.set_alignment(lbl.CENTERED)
-                self.add(lbl, True)
+                self.__hbox.add(lbl, True)
                 
             else:
                 vbox = VBox()
                 vbox.set_spacing(12)
-                self.add(vbox, True)
+                self.__hbox.add(vbox, True)
 
                 btn = Button(_UP_ARROW)
                 btn.set_size(80, 80)
                 btn.connect_clicked(self.__on_btn_down, item)
                 vbox.add(btn, False)
 
-                lbl = Label("0", theme.font_mb_clocksetter,
-                            theme.color_mb_dialog_text)
+                lbl = Label("0", theme.font_sleeptimer_clocksetter,
+                                 theme.color_mb_text)
                 lbl.set_alignment(lbl.CENTERED)
                 vbox.add(lbl, True)
                 self.__labels.append(lbl)
@@ -51,6 +56,18 @@ class ClockSetter(HBox):
             #end if
         #end for
 
+
+    def render_this(self):
+    
+        w, h = self.get_size()
+        screen = self.get_screen()
+        screen.fill_area(0, 0, w, h, theme.color_mb_background)
+        Window.render_this(self)
+
+
+    def __on_close(self):
+    
+        self.set_visible(False)
 
 
     def __on_btn_up(self, item):
