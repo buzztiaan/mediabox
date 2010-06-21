@@ -1,11 +1,9 @@
 from com import Configurator, msgs
 from ClockSetter import ClockSetter
-from ui.layout import HBox
-from ui.layout import VBox
-from ui.Image import Image
-from ui.Label import Label
-from ui.CheckBox import CheckBox
-from ui.Button import Button
+from ui.itemview import ThumbableGridView
+from ui.itemview import LabelItem
+from ui.itemview import ButtonItem
+from ui.itemview import CheckBoxItem
 from theme import theme
 from utils import logging
 import config
@@ -37,69 +35,42 @@ class SleepTimerPrefs(Configurator):
         
         self.__clock_setter = ClockSetter()
         
-        self.__vbox = VBox()
-        self.__vbox.set_spacing(12)
-        self.add(self.__vbox)
+        self.__list = ThumbableGridView()
+        self.add(self.__list)
         
-        hbox = HBox()
-        hbox.set_spacing(36)
-        self.__vbox.add(hbox, True)
+        #img = Image(theme.mb_sleep_timer_sleep)
+        #hbox.add(img, False)
 
-        img = Image(theme.mb_sleep_timer_sleep)
-        hbox.add(img, False)
+        lbl = LabelItem("MediaBox will start playing the file that is " \
+                        "selected at the moment of waking up.")
+        self.__list.append_item(lbl)
         
-        chk = CheckBox(config.get_sleep())
+        chk = CheckBoxItem("Fall asleep at", config.get_sleep())
         chk.connect_checked(self.__on_check_sleep)
-        hbox.add(chk, True)
-        lbl = Label("Fall asleep and stop playing at",
-                    theme.font_mb_plain, theme.color_mb_listitem_text)        
-        chk.add(lbl)
+        self.__list.append_item(chk)
 
-        btn = Button("%02d:%02d" % self.__sleep_time)
-        btn.set_size(160, 80)
+        btn = ButtonItem("%02d:%02d" % self.__sleep_time)
         btn.connect_clicked(self.__on_set_sleep, btn)
-        hbox.add(btn, False)
+        self.__list.append_item(btn)
 
-        hbox = HBox()
-        hbox.set_spacing(36)
-        self.__vbox.add(hbox, True)
+        #img = Image(theme.mb_sleep_timer_wakeup)
+        #hbox.add(img, False)
 
-        img = Image(theme.mb_sleep_timer_wakeup)
-        hbox.add(img, False)
-
-        chk = CheckBox(config.get_wakeup())
+        chk = CheckBoxItem("Wake up at", config.get_wakeup())
         chk.connect_checked(self.__on_check_wakeup)
-        hbox.add(chk, True)
-        lbl = Label("Wake up and start playing at",
-                    theme.font_mb_plain, theme.color_mb_listitem_text)        
-        chk.add(lbl)
+        self.__list.append_item(chk)
 
-        btn = Button("%02d:%02d" % self.__wakeup_time)
-        btn.set_size(160, 80)
+        btn = ButtonItem("%02d:%02d" % self.__wakeup_time)
         btn.connect_clicked(self.__on_set_wakeup, btn)
-        hbox.add(btn, False)
-
-        lbl = Label("MediaBox will start playing the file that is selected " \
-                    "at the moment of waking up.",
-                    theme.font_mb_plain, theme.color_mb_listitem_text)        
-        self.__vbox.add(lbl, True)
+        self.__list.append_item(btn)
 
 
         # status icon
-        self.__status_icon_sleep = Image(theme.mb_status_sleep)
-        self.__status_icon_sleep.connect_clicked(self.__on_clicked_status_icon)
-
-
-    def render_this(self):
+        #self.__status_icon_sleep = Image(theme.mb_status_sleep)
+        #self.__status_icon_sleep.connect_clicked(self.__on_clicked_status_icon)
     
-        x, y = self.get_screen_pos()
-        w, h = self.get_size()
-        screen = self.get_screen()
-        
-        self.__vbox.set_geometry(32, 32, w - 64, h - 64)
-        screen.fill_area(x, y, w, h, theme.color_mb_background)
 
-
+    """
     def __update_status_icons(self):
     
         if (self.__sleep_handler or self.__wakeup_handler):
@@ -108,8 +79,9 @@ class SleepTimerPrefs(Configurator):
         else:
             self.emit_message(msgs.UI_ACT_UNSET_STATUS_ICON,
                               self.__status_icon_sleep)
+    """
 
-
+    """
     def __on_clicked_status_icon(self):
     
         if (self.__sleep_handler):
@@ -126,7 +98,7 @@ class SleepTimerPrefs(Configurator):
               "Wake up at:\t\t %s" % (sleep_time, wakeup_time)
 
         self.call_service(msgs.DIALOG_SVC_INFO, "Sleep and Wake Up Times", msg)
-
+    """
         
     def __on_check_sleep(self, value):
     
@@ -141,7 +113,7 @@ class SleepTimerPrefs(Configurator):
             self.__sleep_handler = gobject.timeout_add(delta, self.__fall_asleep)
         
         config.set_sleep(value)
-        self.__update_status_icons()    
+        #self.__update_status_icons()    
         
         
     def __on_check_wakeup(self, value):
@@ -157,17 +129,20 @@ class SleepTimerPrefs(Configurator):
             self.__wakeup_handler = gobject.timeout_add(delta, self.__wakeup)
 
         config.set_wakeup(value)
-        self.__update_status_icons()
+        #self.__update_status_icons()
 
 
     def __on_set_sleep(self, btn):
     
         self.__clock_setter.set_time(*self.__sleep_time)
-        self.call_service(msgs.DIALOG_SVC_CUSTOM, theme.mb_sleep_timer_sleep,
-                          "Set Sleep Time", self.__clock_setter)
+        self.__clock_setter.run()
         self.__sleep_time = self.__clock_setter.get_time()
         config.set_sleep_time(*self.__sleep_time)
         btn.set_text("%02d:%02d" % self.__sleep_time)
+
+        idx = self.__list.get_items().index(btn)
+        self.__list.invalidate_item(idx)
+
         if (self.__sleep_handler):
             self.__on_check_sleep(True)
 
@@ -175,14 +150,17 @@ class SleepTimerPrefs(Configurator):
     def __on_set_wakeup(self, btn):
     
         self.__clock_setter.set_time(*self.__wakeup_time)
-        self.call_service(msgs.DIALOG_SVC_CUSTOM, theme.mb_sleep_timer_wakeup,
-                          "Set Wake Up Time", self.__clock_setter)
+        self.__clock_setter.run()
         self.__wakeup_time = self.__clock_setter.get_time()
         config.set_wakeup_time(*self.__wakeup_time)
         btn.set_text("%02d:%02d" % self.__wakeup_time)
+
+        idx = self.__list.get_items().index(btn)
+        self.__list.invalidate_item(idx)
+
         if (self.__wakeup_handler):
             self.__on_check_wakeup(True)
-
+        
 
     def __fall_asleep(self):
     
@@ -217,7 +195,7 @@ class SleepTimerPrefs(Configurator):
 
     def handle_COM_EV_APP_STARTED(self):
     
-        self.__update_status_icons()
+        #self.__update_status_icons()
         self.__on_check_sleep(config.get_sleep())
         self.__on_check_wakeup(config.get_wakeup())
 
