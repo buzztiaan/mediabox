@@ -34,7 +34,7 @@ class FileUndertaker(Component):
     def __remove_corpse(self, corpses):
 
         now = time.time()
-        while (time.time() < now + 0.05 and corpses):
+        while (time.time() < now + 0.01 and corpses):
             path = corpses.pop()[0]
             if (not self.__exists(path)):
                 self.call_service(msgs.FILEINDEX_SVC_REMOVE, path)

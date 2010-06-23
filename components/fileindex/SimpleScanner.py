@@ -37,8 +37,6 @@ class SimpleScanner(Component):
             return False
 
 
-
-
     def __scan(self, scanpath):
 
         paths = []
@@ -57,22 +55,8 @@ class SimpleScanner(Component):
 
         gobject.idle_add(self.__file_walker, paths)        
 
-
-    """
-    def handle_COM_EV_APP_STARTED(self):
-
-        if (config.scan_at_startup()):
-            self.__scan()
-    """
-    
-
-    """
-    def handle_FILEINDEX_ACT_SCAN(self):
-    
-        self.__scan()
-    """
     
     def handle_FILEINDEX_ACT_SCAN_FOLDER(self, path):
     
-        self.__scan(path)
+        gobject.idle_add(self.__scan, path)
 

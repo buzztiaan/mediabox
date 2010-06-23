@@ -5,6 +5,7 @@ from ui.itemview import CheckBoxItem
 from ui.itemview import LabelItem
 from theme import theme
 from mediabox import config as mb_config
+import platforms
 
 import time
 
@@ -26,25 +27,24 @@ class FileScannerPrefs(Configurator):
         self.__list = ThumbableGridView()
         self.add(self.__list)
 
+        if (platforms.MAEMO4 or platforms.MAEMO5):
+            chk = CheckBoxItem("Look for new media at startup (recommended)",
+                               mb_config.scan_at_startup())
+            chk.connect_checked(self.__on_check_startup)
+            self.__list.append_item(chk)        
 
-        chk = CheckBoxItem("Always update index at startup (recommended)",
-                           mb_config.scan_at_startup())
-        chk.connect_checked(self.__on_check_startup)
-        self.__list.append_item(chk)
+            btn = ButtonItem("Look for new media now")
+            btn.connect_clicked(self.__on_click_update)
+            self.__list.append_item(btn)
 
-        btn = ButtonItem("Update index now")
-        btn.connect_clicked(self.__on_click_update)
-        self.__list.append_item(btn)
-
-        lbl = LabelItem("If you prefer to browse the filesystem directly, you "
-                        "may clear the index and disable automatic updating "
-                        "of the index at startup.")
-        self.__list.append_item(lbl)
+        #lbl = LabelItem("You can manually scan folders for new media with the "
+        #                "'Scan for Media' option in the popup item menu.")
+        #self.__list.append_item(lbl)
 
         btn = ButtonItem("Clear index now")
         btn.connect_clicked(self.__on_click_clear)
         self.__list.append_item(btn)
-        
+
         
     def __on_check_startup(self, value):
     

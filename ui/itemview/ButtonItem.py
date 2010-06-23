@@ -13,6 +13,11 @@ class ButtonItem(Item):
         
         Item.__init__(self)
         
+        
+    def is_button(self):
+    
+        return True
+        
     
     def set_text(self, text):
     

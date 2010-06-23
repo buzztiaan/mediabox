@@ -24,7 +24,7 @@ class DBusInterface(Component, dbus.service.Object):
     @dbus.service.method("de.pycage.mediabox.control")
     def play(self):
     
-        self.emit_message(msgs.MEDIA_ACT_PAUSE)
+        self.emit_message(msgs.MEDIA_ACT_PLAY)
 
 
     @dbus.service.method("de.pycage.mediabox.control")

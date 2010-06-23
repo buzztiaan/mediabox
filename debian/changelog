@@ -1,4 +1,4 @@
-mediabox (2010.06.21) unstable; urgency=low
+mediabox (2010.06.23) unstable; urgency=low
 
   Automatically scale down large images before storing as thumbnail.
   This increases scrolling speed in the lists and saves disk space
@@ -24,11 +24,13 @@ mediabox (2010.06.21) unstable; urgency=low
 
   Maemo4 and MeeGo netbook windowing stuff
   
+  Support for the metalayer crawler service on Maemo4
+  
   Support for automatic screen rotation on N900
   
   Small bug fixes
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Mon, 21 Jun 2010 19:15:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 23 Jun 2010 18:30:00 +0200
 
 mediabox (2010.05.08) unstable; urgency=low
 

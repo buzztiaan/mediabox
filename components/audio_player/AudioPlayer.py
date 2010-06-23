@@ -354,15 +354,21 @@ class AudioPlayer(Player):
         self.__render_lyrics(words, hi_from, hi_to)
 
 
+    def handle_MEDIA_ACT_PLAY(self):
+    
+        if (self.__player and self.is_enabled()):
+            self.__player.play()
+
+
     def handle_MEDIA_ACT_PAUSE(self):
     
-        if (self.__player):
+        if (self.__player and self.is_enabled()):
             self.__player.pause()
 
 
     def handle_MEDIA_ACT_STOP(self):
     
-        if (self.__player):
+        if (self.__player and self.is_enabled()):
             self.__player.stop()
 
 

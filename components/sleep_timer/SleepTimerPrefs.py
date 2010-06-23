@@ -40,12 +40,8 @@ class SleepTimerPrefs(Configurator):
         
         #img = Image(theme.mb_sleep_timer_sleep)
         #hbox.add(img, False)
-
-        lbl = LabelItem("MediaBox will start playing the file that is " \
-                        "selected at the moment of waking up.")
-        self.__list.append_item(lbl)
         
-        chk = CheckBoxItem("Fall asleep at", config.get_sleep())
+        chk = CheckBoxItem("Fall asleep and stop playing at", config.get_sleep())
         chk.connect_checked(self.__on_check_sleep)
         self.__list.append_item(chk)
 
@@ -56,13 +52,18 @@ class SleepTimerPrefs(Configurator):
         #img = Image(theme.mb_sleep_timer_wakeup)
         #hbox.add(img, False)
 
-        chk = CheckBoxItem("Wake up at", config.get_wakeup())
+        chk = CheckBoxItem("Wake up at and start playing at", config.get_wakeup())
         chk.connect_checked(self.__on_check_wakeup)
         self.__list.append_item(chk)
 
         btn = ButtonItem("%02d:%02d" % self.__wakeup_time)
         btn.connect_clicked(self.__on_set_wakeup, btn)
         self.__list.append_item(btn)
+
+        lbl = LabelItem("MediaBox will start playing the file that is " \
+                        "selected at the moment of waking up.")
+        lbl.set_icon(theme.mb_sleep_timer_wakeup)
+        self.__list.append_item(lbl)
 
 
         # status icon
@@ -166,7 +167,7 @@ class SleepTimerPrefs(Configurator):
     
         self.__sleep_handler = None
         logging.debug("sleep timer falling asleep")
-        self.emit_message(msgs.MEDIA_ACT_STOP)
+        self.emit_message(msgs.MEDIA_ACT_PAUSE)
         self.__on_check_sleep(True)
         
         

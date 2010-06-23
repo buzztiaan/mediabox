@@ -9,8 +9,8 @@ def get_classes():
     classes = [DSPSemaphore, VideoPlayer, VideoInspector]
     
     if (platforms.MAEMO5):
-        from OrgFreeDesktopThumbnailer import OrgFreeDesktopThumbnailer
-        classes.append(OrgFreeDesktopThumbnailer)
+        from OrgFreeDesktopVideoThumbnailer import OrgFreeDesktopVideoThumbnailer
+        classes.append(OrgFreeDesktopVideoThumbnailer)
     else:
         from VideoThumbnailer import VideoThumbnailer
         classes.append(VideoThumbnailer)

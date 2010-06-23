@@ -4,11 +4,19 @@ from ui.layout import VBox
 from ui.Button import Button
 from ui.Label import Label
 from theme import theme
+import platforms
+
+import gtk
+
 
 
 # TODO: are these unicode chars supported on pre-Diablo maemo OS?
-_UP_ARROW = u"\u21e7"
-_DOWN_ARROW = u"\u21e9"
+#_UP_ARROW = u"\u21e7"
+#_DOWN_ARROW = u"\u21e9"
+
+# oh well, unicode support degraded from Diablo to Fremantle. let's use ASCII
+_UP_ARROW = "+"
+_DOWN_ARROW = "-"
 
 
 class ClockSetter(Window):
@@ -36,6 +44,7 @@ class ClockSetter(Window):
             else:
                 vbox = VBox()
                 vbox.set_spacing(12)
+                vbox.set_halign(VBox.HALIGN_CENTER)
                 self.__hbox.add(vbox, True)
 
                 btn = Button(_UP_ARROW)
@@ -130,4 +139,16 @@ class ClockSetter(Window):
         m = int(`m1` + `m2`)
 
         return (h, m)
+
+
+    def run(self):
+
+        w = gtk.gdk.screen_width()
+        h = 300
+        if (platforms.MAEMO4):
+            w -= 80
+        self.set_window_size(w, h)
+        
+        Window.run(self)
+
 

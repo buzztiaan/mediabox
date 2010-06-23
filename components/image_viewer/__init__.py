@@ -10,8 +10,8 @@ def get_classes():
                ImageInspector]
 
     if (platforms.MAEMO5):
-        from OrgFreeDesktopThumbnailer import OrgFreeDesktopThumbnailer
-        classes += [OrgFreeDesktopThumbnailer]
+        from OrgFreeDesktopImageThumbnailer import OrgFreeDesktopImageThumbnailer
+        classes += [OrgFreeDesktopImageThumbnailer]
     else:
         from ImageThumbnailer import ImageThumbnailer
         classes += [ImageThumbnailer]

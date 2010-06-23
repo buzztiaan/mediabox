@@ -1,3 +1,6 @@
+import platforms
+
+
 def get_classes():
 
     from FileIndex import FileIndex
@@ -8,10 +11,13 @@ def get_classes():
                FileUndertaker,
                FileScannerPrefs]
 
-    import os
-    if (os.path.exists("/usr/bin/tracker-files")):
+    if (platforms.MAEMO5):
         from TrackerScanner import TrackerScanner
         classes.append(TrackerScanner)
+
+    if (platforms.MAEMO4):
+        from MetalayerScanner import MetalayerScanner
+        classes.append(MetalayerScanner)
 
     from SimpleScanner import SimpleScanner
     classes.append(SimpleScanner)

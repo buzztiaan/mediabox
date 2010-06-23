@@ -88,6 +88,14 @@ class Item(EventEmitter):
         return self.__is_draggable
 
 
+    def is_button(self):
+        """
+        Override this method in your subclass if you want button-like behavior.
+        """
+    
+        return False
+
+
     def render_at(self, cnv, x, y):
 
         w, h = self.get_size()

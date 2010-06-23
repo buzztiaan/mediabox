@@ -283,6 +283,7 @@ class Navigator(Dialog):
         item.set_icon(thumbpath)
         
         if (not is_final):
+            print "SCHEDULING THUMBNAIL", c
             self.__tn_scheduler.add(item, c)
 
 
@@ -308,23 +309,26 @@ class Navigator(Dialog):
     def __update_thumbnail(self, item, thumbpath):
     
         item.set_icon(thumbpath)
-        #idx = self.get_items().index(item)
-        # TODO: only render if item is currently on screen
-        self.__browser.invalidate()
-        self.__browser.render()
+        idx = self.__browser.get_items().index(item)
+        self.__browser.invalidate_item(idx)
+        #self.__browser.invalidate()
+        #self.__browser.render()
 
 
     def __on_load_thumbnail(self, item, f):
 
         def on_loaded(thumbpath):
+            print "LOADED THUMBNAIL", thumbpath
             if (thumbpath):
                 self.__update_thumbnail(item, thumbpath)
             
             #if (self.is_visible()):
             self.__tn_scheduler.resume()
+            print "RESUMING SCHEDULER"
     
         # load thumbnail
         self.__tn_scheduler.halt()
+        print "HALTING SCHEDULER"
         self.call_service(msgs.THUMBNAIL_SVC_LOAD_THUMBNAIL, f, on_loaded)
         
 

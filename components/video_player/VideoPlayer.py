@@ -346,9 +346,17 @@ class VideoPlayer(Player):
                           f, logging.stacktrace())
 
 
+    def handle_MEDIA_ACT_PLAY(self):
+    
+        if (self.__player and self.is_enabled()):
+            if (not self.__is_playing):
+                self.__wait_for_dsp()
+            self.__player.play()
+
+
     def handle_MEDIA_ACT_PAUSE(self):
     
-        if (self.__player):
+        if (self.__player and self.is_enabled()):
             if (not self.__is_playing):
                 self.__wait_for_dsp()
             self.__player.pause()
@@ -357,7 +365,7 @@ class VideoPlayer(Player):
 
     def handle_MEDIA_ACT_STOP(self):
     
-        if (self.__player):
+        if (self.__player and self.is_enabled()):
             self.__player.stop()
 
 

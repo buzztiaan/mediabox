@@ -7,6 +7,7 @@ from HTTPConnection import HTTPConnection, parse_addr
 from utils import logging
 
 import gtk
+import gobject
 
 
 class Downloader(HTTPConnection):
@@ -60,7 +61,8 @@ class Downloader(HTTPConnection):
             self.endheaders()
             self.send("", self.__on_receive_data, cb, args)
         
-        #gtk.main_iteration(False)
-        #while (gtk.events_pending()):
-        #    gtk.main_iteration(False)
+        gobject.timeout_add(2, lambda :False)
+        gtk.main_iteration(True)
+        while (gtk.events_pending()):
+            gtk.main_iteration(False)
 

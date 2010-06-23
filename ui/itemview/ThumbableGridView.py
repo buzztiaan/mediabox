@@ -159,10 +159,9 @@ class ThumbableGridView(GridView):
 
         else:
             # handle clicking
-            #idx = self.get_item_at(px, py)
-            #self.set_cursor(idx)
-            #self.invalidate_item(idx)
-            pass
+            if (item.is_button()):
+                item.set_marked(True)
+                self.invalidate_item(idx)
         
 
 
@@ -179,6 +178,13 @@ class ThumbableGridView(GridView):
             self.invalidate()
 
             self.render()
+
+        else:
+            idx = self.get_item_at(px, py)
+            item = self.get_item(idx)
+            if (item.is_button()):
+                item.set_marked(False)
+                self.invalidate_item(idx)
 
         if (self.__autoscroll_handler):
             gobject.source_remove(self.__autoscroll_handler)
