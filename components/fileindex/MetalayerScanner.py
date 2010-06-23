@@ -22,7 +22,7 @@ class MetalayerScanner(Component):
         Component.__init__(self)
 
 
-    def __get_metalayer_files(self, category):
+    def __get_metalayer_files(self):
 
         try:
             conn = sqlite3.Connection(_META_DB)
