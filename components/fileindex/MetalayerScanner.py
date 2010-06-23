@@ -25,11 +25,11 @@ class MetalayerScanner(Component):
     def __get_metalayer_files(self):
 
         try:
-            conn = sqlite3.Connection(_META_DB)
+            conn = sqlite3.connect(_META_DB)
         except:
             return []
             
-        csr = conn.get_cursor()
+        csr = conn.cursor()
         csr.execute("SELECT Filename " \
                     "FROM Metadata " \
                     "WHERE Present=1")
