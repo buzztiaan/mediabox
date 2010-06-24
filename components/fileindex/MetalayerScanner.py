@@ -1,7 +1,6 @@
 from com import Component, msgs
 from mediabox import config
 
-import commands
 import os
 import gobject
 import time

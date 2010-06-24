@@ -39,16 +39,16 @@ class LabelItem(Item):
         if (is_new):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
-            x = 4
+            xpos = 4
             if (self.__icon):
                 pmap.draw_pixbuf(self.__icon,
                                  4, (h - self.__icon.get_height()) / 2)
-                x += self.__icon.get_width() + 16
+                xpos += self.__icon.get_width() + 16
             #end if
 
-            pmap.set_clip_rect(x, 0, w - x, h)
+            pmap.set_clip_rect(xpos, 0, w - xpos, h)
             pmap.draw_formatted_text(self.__label, self.__font,
-                                     x, 4, w - 4 - x, h - 8,
+                                     xpos, 4, w - 4 - xpos, h - 8,
                                      theme.color_list_item_text)
             pmap.set_clip_rect()
         #end if

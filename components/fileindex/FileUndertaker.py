@@ -51,7 +51,7 @@ class FileUndertaker(Component):
         gobject.timeout_add(1000, self.__remove_corpses)
 
 
-    def handle_FILEINDEX_ACT_SCAN(self):
+    def handle_FILEINDEX_ACT_BURY(self):
 
-        self.__remove_corpses()
+        gobject.idle_add(self.__remove_corpses)
 
