@@ -30,8 +30,7 @@ _VIDEO_SEARCH = "http://gdata.youtube.com/feeds/api/videos/" \
                 "?start-index=%d&max-results=%d&vq=%s"
 _VIDEO_WATCH = _YT + "/watch?v=%s"
 _VIDEO_FLV = _YT + "/get_video?video_id=%s"
-_STD_FEEDS = "http://gdata.youtube.com/feeds/standardfeeds/" \
-             "%s?start-index=%d&max-results=%d"
+_STD_FEEDS = "http://gdata.youtube.com/feeds/standardfeeds/"
 
 _XMLNS_ATOM = "http://www.w3.org/2005/Atom"
 _XMLNS_MRSS = "http://search.yahoo.com/mrss/"
@@ -39,6 +38,20 @@ _XMLNS_OPENSEARCH = "http://a9.com/-/spec/opensearchrss/1.0/"
 _XMLNS_GOOGLE = "http://schemas.google.com/g/2005"
 _XMLNS_YT = "http://gdata.youtube.com/schemas/2007"
 _XMLNS_APP = "http://purl.org/atom/app#"
+
+_VIDEOS_API = "http://gdata.youtube.com/feeds/api/videos"
+_SEARCH_PARAMS = "?start-index=%d&max-results=%d"
+_SEARCH_PARAMS2 = "&start-index=%d&max-results=%d"
+_CATEGORIES = {
+    "recently_featured": _STD_FEEDS + "recently_featured" + _SEARCH_PARAMS,
+    "most_viewed":       _STD_FEEDS + "most_viewed" + _SEARCH_PARAMS,
+    "most_popular":      _STD_FEEDS + "most_popular" + _SEARCH_PARAMS,
+    "top_rated":         _STD_FEEDS + "top_rated" + _SEARCH_PARAMS,
+    "watch_on_mobile":   _STD_FEEDS + "watch_on_mobile" + _SEARCH_PARAMS,
+    "music":             _VIDEOS_API + "?category=Music&orderby=published" + _SEARCH_PARAMS2,
+    "movie":             _VIDEOS_API + "?category=Movies&orderby=published" + _SEARCH_PARAMS2,
+    "news":              _VIDEOS_API + "?category=News&orderby=published" + _SEARCH_PARAMS2
+}
 
 _REGION_BLOCKED = "region blocked"
 
@@ -196,10 +209,17 @@ class YouTube(Device):
 
     def __ls_menu(self, cb, *args):
     
-        for name, category in [("Search", "video"),
-                               ("Featured", "recently_featured"),
-                               ("Most Viewed", "most_viewed"),
-                               ("Top Rated", "top_rated")]:            
+        for name, category, icon in [
+            ("Search", "video", theme.youtube_search),
+            ("Recently Featured", "recently_featured", None),
+            ("Most Viewed", "most_viewed", None),
+            ("Most Popular", "most_popular", None),
+            ("Top Rated", "top_rated", None),
+            ("Music", "music", None),
+            ("Movies", "movie", None),
+            ("News", "news", None),
+            ("For Mobile Phones", "watch_on_mobile", None)
+        ]:
             item = File(self)
             query = ""
             idx = 0
@@ -207,6 +227,8 @@ class YouTube(Device):
             item.resource = item.path
             item.name = name
             item.mimetype = File.DIRECTORY
+            if (icon):
+                item.icon = icon.get_path()
             
             cb(item, *args)
         #end for
@@ -445,10 +467,10 @@ class YouTube(Device):
         
         #print category, start_index
         if (start_index == 0):
-            url = _STD_FEEDS % (category, 1, 1)
+            url = _CATEGORIES[category] % (1, 1)
             Downloader(url, self.__on_receive_xml, [""], category, "", True, cb, *args)
         else:
-            url = _STD_FEEDS % (category, start_index, _PAGE_SIZE)
+            url = _CATEGORIES[category] % (start_index, _PAGE_SIZE)
             Downloader(url, self.__on_receive_xml, [""], category, "", False, cb, *args)
 
 
