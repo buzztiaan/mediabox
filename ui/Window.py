@@ -111,6 +111,9 @@ class Window(Widget):
                 self.__window.vbox.get_children()[0].hide()
             else:
                 self.__window = gtk.Dialog()
+                # hide some ugly separator :)
+                self.__window.vbox.get_children()[0].hide()
+
 
         # title bar on some platforms
         if (not platforms.MAEMO5 and wtype != self.TYPE_DIALOG):
@@ -409,15 +412,16 @@ class Window(Widget):
     def _update_flag(self, flag, value):
 
         if (flag == windowflags.FULLSCREEN):
-            if (platforms.MAEMO4 or platforms.MEEGO_NETBOOK):
-                if (self.__title_bar):
-                    self.__title_bar.set_visible(not value)
-                    self.render()
-            else:
+            if (platforms.MAEMO5):
                 if (value):
                     self.__window.fullscreen()
                 else:
                     self.__window.unfullscreen()
+            else:
+                if (self.__title_bar):
+                    self.__title_bar.set_visible(not value)
+                    self.render()
+            
         
         elif (flag == windowflags.ASR):
             if (platforms.MAEMO5):
@@ -656,4 +660,4 @@ class Window(Widget):
 
         #if (self.__exclusive_window[0] == self):
         #    self.__exclusive_window[0] = None
-        self.destroy()
+        gobject.timeout_add(0, self.destroy)
