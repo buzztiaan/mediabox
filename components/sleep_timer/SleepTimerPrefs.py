@@ -32,9 +32,7 @@ class SleepTimerPrefs(Configurator):
         
     
         Configurator.__init__(self)
-        
-        self.__clock_setter = ClockSetter()
-        
+                
         self.__list = ThumbableGridView()
         self.add(self.__list)
         
@@ -135,9 +133,10 @@ class SleepTimerPrefs(Configurator):
 
     def __on_set_sleep(self, btn):
     
-        self.__clock_setter.set_time(*self.__sleep_time)
-        self.__clock_setter.run()
-        self.__sleep_time = self.__clock_setter.get_time()
+        dlg = ClockSetter()
+        dlg.set_time(*self.__sleep_time)
+        dlg.run()
+        self.__sleep_time = dlg.get_time()
         config.set_sleep_time(*self.__sleep_time)
         btn.set_text("%02d:%02d" % self.__sleep_time)
 
@@ -149,10 +148,11 @@ class SleepTimerPrefs(Configurator):
 
 
     def __on_set_wakeup(self, btn):
-    
-        self.__clock_setter.set_time(*self.__wakeup_time)
-        self.__clock_setter.run()
-        self.__wakeup_time = self.__clock_setter.get_time()
+
+        dlg = ClockSetter()
+        dlg.set_time(*self.__wakeup_time)
+        dlg.run()
+        self.__wakeup_time = dlg.get_time()
         config.set_wakeup_time(*self.__wakeup_time)
         btn.set_text("%02d:%02d" % self.__wakeup_time)
 

@@ -17,7 +17,6 @@ class OptionDialog(Window):
         Window.__init__(self, Window.TYPE_DIALOG)
         self.set_flag(windowflags.EXCLUSIVE, True)
         self.connect_closed(self.__on_close)
-        self.set_visible(False)
         self.set_title(title)
         
         self.__list = ThumbableGridView()

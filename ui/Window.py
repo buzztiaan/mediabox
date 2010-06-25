@@ -654,6 +654,6 @@ class Window(Widget):
             gtk.main_iteration(True)
         #end while
 
-        if (self.__exclusive_window[0] == self):
-            self.__exclusive_window[0] = None
-
+        #if (self.__exclusive_window[0] == self):
+        #    self.__exclusive_window[0] = None
+        self.destroy()
