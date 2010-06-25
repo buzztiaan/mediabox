@@ -1,4 +1,5 @@
 from ui.Window import Window
+from ui import windowflags
 from ui.layout import HBox
 from ui.layout import VBox
 from ui.Button import Button
@@ -28,6 +29,7 @@ class ClockSetter(Window):
         
     
         Window.__init__(self, Window.TYPE_DIALOG)
+        self.set_flag(windowflags.EXCLUSIVE, True)
         self.connect_closed(self.__on_close)
 
         self.__hbox = HBox()

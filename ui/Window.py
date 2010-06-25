@@ -267,6 +267,11 @@ class Window(Widget):
 
 
     def __check_exclusive(self):
+        """
+        Checks for the presence of an exclusive window and hides it, if there
+        is one. This allows us to hide dialogs by clicking outside on platforms
+        where the window manager doesn't provide this feature already.
+        """
     
         if (self.__exclusive_window[0] and
             self.__exclusive_window[0] != self):

@@ -41,6 +41,11 @@ class MediaItem(Item):
         self._connect(self.EVENT_MENU_OPENED, cb, *args)
 
 
+    def is_button(self):
+    
+        return True
+
+
     def get_file(self):
     
         return self.__file

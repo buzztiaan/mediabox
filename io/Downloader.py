@@ -8,6 +8,7 @@ from utils import logging
 
 import gtk
 import gobject
+import time
 
 
 class Downloader(HTTPConnection):
@@ -60,9 +61,9 @@ class Downloader(HTTPConnection):
             #self.putheader("Connection", "close")
             self.endheaders()
             self.send("", self.__on_receive_data, cb, args)
-        
-        gobject.timeout_add(2, lambda :False)
-        gtk.main_iteration(True)
-        while (gtk.events_pending()):
+
+        # try to avoid starvation of GTK for high bandwidths
+        then = time.time() + 0.1
+        while (gtk.events_pending() and time.time() < then):
             gtk.main_iteration(False)
 
