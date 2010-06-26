@@ -170,7 +170,6 @@ class GstBackend(AbstractBackend):
         if (uri.startswith("/")): uri = "file://" + uri
         uri = uri.replace("\"", "\\\"")
         
-
         self.__player.set_state(gst.STATE_NULL)
         self.__start_gst()
 

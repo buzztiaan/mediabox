@@ -210,6 +210,12 @@ class AudioPlayer(Player):
                                            theme.mb_btn_play_2)
                 self.emit_message(msgs.MEDIA_EV_EOF)
                 self.emit_message(msgs.MEDIA_ACT_NEXT)
+                
+            elif (status == self.__player.STATUS_CONNECTING):
+                self.__progress.set_message("Connecting")
+
+            elif (status == self.__player.STATUS_BUFFERING):
+                self.__progress.set_message("Buffering")
 
 
     def __on_error(self, ctx_id, err):
