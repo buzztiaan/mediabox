@@ -605,7 +605,8 @@ class YouTube(Device):
         if (platforms.MAEMO4):
             cache_folder = config.get_cache_folder()
             try:
-                os.mkdir(cache_folder)
+                if (not os.path.exists(cache_folder)):
+                    os.mkdir(cache_folder)
             except:
                 return ""
             flv_path = os.path.join(cache_folder, ".tube.flv")
