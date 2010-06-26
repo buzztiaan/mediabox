@@ -3,6 +3,7 @@ delayed = True
 def get_classes():
 
     import platforms
+    import os
     from DSPSemaphore import DSPSemaphore
     from VideoPlayer import VideoPlayer
     from VideoInspector import VideoInspector
@@ -11,7 +12,7 @@ def get_classes():
     if (platforms.MAEMO5):
         from OrgFreeDesktopVideoThumbnailer import OrgFreeDesktopVideoThumbnailer
         classes.append(OrgFreeDesktopVideoThumbnailer)
-    elif (True or platforms.MAEMO4):
+    elif (os.path.exists("/usr/bin/mplayer")):
         from MPlayerThumbnailer import MPlayerThumbnailer
         classes.append(MPlayerThumbnailer)
     else:

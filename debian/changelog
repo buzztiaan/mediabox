@@ -1,4 +1,4 @@
-mediabox (2010.06.25) unstable; urgency=low
+mediabox (2010.06.26) unstable; urgency=low
 
   Automatically scale down large images before storing as thumbnail.
   This increases scrolling speed in the lists and saves disk space
@@ -30,7 +30,7 @@ mediabox (2010.06.25) unstable; urgency=low
   
   Small bug fixes
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Fri, 25 Jun 2010 06:15:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 26 Jun 2010 13:30:00 +0200
 
 mediabox (2010.05.08) unstable; urgency=low
 
