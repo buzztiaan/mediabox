@@ -373,7 +373,7 @@ class AbstractBackend(EventEmitter):
         @return: context ID
         """
 
-        if (uri.startswith("http")):
+        if (uri.startswith("http") and not uri.startswith("http://127.0.0.1")):
             s_type = self.__stream_analyzer.analyze(uri)
         else:
             s_type = StreamAnalyzer.STREAM
