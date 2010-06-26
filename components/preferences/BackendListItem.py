@@ -5,7 +5,7 @@ from theme import theme
 _READABLE_NAMES = {
     "xine": "Xine (experimental)",
     "gst": "GStreamer",
-    "mafw": "MAFW (experimental)",
+    "mafw": "MAFW",
     "oms": "OSSO Media Server",
     "mplayer": "MPlayer"
 }
