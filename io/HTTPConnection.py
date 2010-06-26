@@ -411,7 +411,7 @@ class HTTPConnection(object):
 
     def __finish_download(self, resp):
 
-        if (self.__close_connection):
+        if (self.__close_connection and self.__sock):
             self.__sock.close()
             self.__sock = None
             

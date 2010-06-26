@@ -63,36 +63,7 @@ class GstBackend(AbstractBackend):
             else:
                 volume = self.__volume
         
-        return volume
-
-
-    def __load_pls(self, uri):
-    
-        def on_load(d, amount, total, data):
-            if (d):
-                data[0] += d
-            else:
-                print "PLS DATA:"
-                print data[0]
-                filelines = [ l for l in data[0].splitlines()
-                              if l.startswith("File") ]
-                if (filelines):
-                    line = filelines[0]
-                    idx = line.find("=")
-                    uri = line[idx + 1:].strip()
-                    print "LOADING", uri
-                    self.__player.set_property("uri", "")
-                    self.__player.set_property("uri", uri)
-                    #self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
-                    #                          gst.SEEK_FLAG_FLUSH,
-                    #                          0)
-                    self._play()
-                #end if
-            #end if
-    
-        from io.Downloader import Downloader
-        dl = Downloader(uri, on_load, [""])
-        
+        return volume        
 
 
     def __start_gst(self):
@@ -202,16 +173,12 @@ class GstBackend(AbstractBackend):
 
         self.__player.set_state(gst.STATE_NULL)
         self.__start_gst()
-        if (uri.endswith(".pls")):
-            # playbin2 does not read PLS files
-            self.__load_pls(uri)
-        else:
-            print "LOAD", uri
-            self.__player.set_property("uri", uri)
-            self.__player.set_state(gst.STATE_PLAYING)
-            self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
-                                      gst.SEEK_FLAG_FLUSH,
-                                      0)
+
+        self.__player.set_property("uri", uri)
+        self.__player.set_state(gst.STATE_PLAYING)
+        self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
+                                  gst.SEEK_FLAG_FLUSH,
+                                  0)
         self._report_aspect_ratio(16/9.0)
         if (not platforms.MAEMO5):
             self._set_volume(self.__volume)

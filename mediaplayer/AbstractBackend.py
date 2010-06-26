@@ -1,8 +1,10 @@
+from StreamAnalyzer import StreamAnalyzer
 from utils.EventEmitter import EventEmitter
 from utils import logging
 
 import gobject
 import time
+import urllib
 
 
 
@@ -98,6 +100,8 @@ class AbstractBackend(EventEmitter):
         
         self.__position_handler = None
         self.__idle_handler = None
+        
+        self.__stream_analyzer = StreamAnalyzer()
         
         
         EventEmitter.__init__(self)
@@ -307,6 +311,31 @@ class AbstractBackend(EventEmitter):
         self.__idle_handler = gobject.timeout_add(_IDLE_TIMEOUT,
                                                   self.__on_idle_timeout)          
 
+
+    def __parse_playlist(self, url):
+        """
+        Parses the playlist at the given URL and returns a list of URLs.
+        """
+    
+        uris = []
+        try:
+            fd = urllib.urlopen(url)
+        except:
+            return uris
+            
+        data = fd.read()
+        fd.close()
+
+        filelines = [ l for l in data.splitlines()
+                      if l.startswith("File") ]
+        for line in filelines:
+            idx = line.find("=")
+            uri = line[idx + 1:].strip()
+            uris.append(uri)
+        #end for    
+
+        return uris
+
         
     def set_window(self, xid):
         """
@@ -343,6 +372,18 @@ class AbstractBackend(EventEmitter):
         @param ctx_id: context ID to use; for internal use only
         @return: context ID
         """
+
+        if (uri.startswith("http")):
+            s_type = self.__stream_analyzer.analyze(uri)
+        else:
+            s_type = StreamAnalyzer.STREAM
+
+        if (s_type == StreamAnalyzer.PLAYLIST):
+            uris = self.__parse_playlist(uri)
+            if (uris):
+                uri = uris[0]
+            else:
+                uri = ""
 
         self._ensure_backend()
         
