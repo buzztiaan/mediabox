@@ -4,7 +4,7 @@ import os
 
 
 _cfg = Config("youtube", [
-              ("cache-folder", Config.STRING, "/media/mmc1"),
+              ("cache-folder", Config.STRING, "/media/mmc1/.mediabox"),
               #("hi-quality", Config.BOOL, False),
               ("quality-type", Config.INTEGER, 0)
               ])
