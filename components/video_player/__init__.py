@@ -11,6 +11,9 @@ def get_classes():
     if (platforms.MAEMO5):
         from OrgFreeDesktopVideoThumbnailer import OrgFreeDesktopVideoThumbnailer
         classes.append(OrgFreeDesktopVideoThumbnailer)
+    elif (True or platforms.MAEMO4):
+        from MPlayerThumbnailer import MPlayerThumbnailer
+        classes.append(MPlayerThumbnailer)
     else:
         from VideoThumbnailer import VideoThumbnailer
         classes.append(VideoThumbnailer)

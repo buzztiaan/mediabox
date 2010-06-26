@@ -302,6 +302,13 @@ class Navigator(Dialog):
         self.__update_toolbar()
         #self.__update_menu()
 
+        # show or hide [Add] button
+        is_visible = self.__btn_add.is_visible()
+        if (f.folder_flags & f.ITEMS_ADDABLE and not is_visible):
+            self.__btn_add.set_visible(True)
+            self.__update_layout()
+            self.render()
+
         if (self.is_visible()):
             self.__tn_scheduler.resume()
 
