@@ -1,3 +1,9 @@
+mediabox (2010.06.30) unstable; urgency=low
+
+  Enabled playback position bookmarking from 0.96.x again
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 30 Jun 2010 18:30:00 +0200
+
 mediabox (2010.06.26) unstable; urgency=low
 
   Automatically scale down large images before storing as thumbnail.

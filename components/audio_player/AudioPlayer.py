@@ -8,6 +8,7 @@ from ui.Toolbar import Toolbar
 from ui.layout import Arrangement
 from ui.layout import HBox, VBox
 from ui.Pixmap import Pixmap
+from mediabox import media_bookmarks
 from mediabox import tagreader
 from utils import imageloader
 from utils import logging
@@ -19,7 +20,8 @@ import gobject
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
     <widget name="btn_nav" x1="0" y1="-64" x2="64" y2="100%"/>
-    <widget name="progress" x1="90" y1="-50" x2="-90" y2="-10"/>
+    <widget name="progress" x1="90" y1="-50" x2="-154" y2="-10"/>
+    <widget name="btn_star" x1="-154" y1="-64" x2="-90" y2="100%"/>
     <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
     <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
     
@@ -32,7 +34,8 @@ _LANDSCAPE_ARRANGEMENT = """
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
     <widget name="btn_nav" x1="-64" y1="0" x2="100%" y2="64"/>
-    <widget name="progress" x1="50" y1="-170" x2="-50" y2="-130"/>
+    <widget name="progress" x1="50" y1="-170" x2="-114" y2="-130"/>
+    <widget name="btn_star" x1="-114" y1="-184" x2="-50" y2="-120"/>
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
     <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
     
@@ -59,6 +62,8 @@ class AudioPlayer(Player):
 
         self.__offscreen_buffer = None
         
+        # the currently playing file object (e.g. used for bookmarking)
+        self.__current_file = None
     
         Player.__init__(self)
         self.set_visible(False)
@@ -101,6 +106,12 @@ class AudioPlayer(Player):
         # progress bar
         self.__progress = ProgressBar()
         self.__progress.connect_changed(self.__on_seek)
+        self.__progress.connect_bookmark_changed(self.__on_change_bookmark)
+
+        # star button for bookmarks
+        self.__btn_star = ImageButton(theme.mb_btn_bookmark_1,
+                                      theme.mb_btn_bookmark_2)
+        self.__btn_star.connect_clicked(self.__on_btn_star)
 
 
         # toolbar elements
@@ -128,6 +139,7 @@ class AudioPlayer(Player):
         self.__arr.add(self.__btn_navigator, "btn_nav")
         self.__arr.add(self.__toolbar, "toolbar")
         self.__arr.add(self.__progress, "progress")
+        self.__arr.add(self.__btn_star, "btn_star")
         self.__arr.add(self.__volume_slider, "slider")
         self.__arr.add(self.__cover_art, "cover")
         #self.__arr.add(self.__lbl_title, "lbl_title")
@@ -181,6 +193,12 @@ class AudioPlayer(Player):
         self.emit_message(msgs.MEDIA_ACT_PREVIOUS)
 
 
+    def __on_btn_star(self):
+    
+        print "ADDING BOOKMARK"
+        self.__progress.add_bookmark()
+
+
     def __on_btn_next(self):
         
         self.__sliding_direction = self.SLIDE_LEFT
@@ -216,6 +234,13 @@ class AudioPlayer(Player):
 
             elif (status == self.__player.STATUS_BUFFERING):
                 self.__progress.set_message("Buffering")
+
+
+    def __on_change_bookmark(self):
+    
+        media_bookmarks.set_bookmarks(self.__current_file,
+                                      self.__progress.get_bookmarks())
+
 
 
     def __on_error(self, ctx_id, err):
@@ -347,7 +372,11 @@ class AudioPlayer(Player):
             logging.error("error loading media file: %s\n%s",
                           f, logging.stacktrace())
 
+        self.__current_file = f
         self.__load_track_info(f)
+
+        # load bookmarks
+        self.__progress.set_bookmarks(media_bookmarks.get_bookmarks(f))
 
         self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 

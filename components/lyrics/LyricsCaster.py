@@ -228,9 +228,11 @@ class LyricsCaster(Component):
             idx2 = line.find("]", idx1)
             
             if (idx1 == -1 or idx2 == -1): break
-                           
-            timetags.append(line[idx1 + 1:idx2])
-            text = line[idx2 + 1:]
+
+            tag = line[idx1 + 1:idx2]
+            if (self.__is_valid_timetag(tag)):
+                timetags.append(tag)
+                text = line[idx2 + 1:]
             
             # look for multiple time tags
             if (len(line) > idx2 + 1 and line[idx2 + 1] == "["):
@@ -278,7 +280,12 @@ class LyricsCaster(Component):
             self.__lyrics.append((timestamp, line, pos1, pos2))
             pos1 = pos2
         #end for
+
+
+    def __is_valid_timetag(self, tag):
         
+        # TODO: validate timetag
+        return True
                 
                 
     def __make_timestamp(self, t):
