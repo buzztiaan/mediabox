@@ -283,10 +283,18 @@ class LyricsCaster(Component):
 
 
     def __is_valid_timetag(self, tag):
+        """
+        Validates the given time tag and returns whether it is valid or not.
+        """
         
-        # TODO: validate timetag
-        return True
-                
+        # just a quick inaccurate check
+        invalid_chars = [ c for c in tag
+                          if not c.isdigit() and not c in (":", ".") ]
+        if (invalid_chars):
+            return False
+        else:
+            return True
+
                 
     def __make_timestamp(self, t):
         """

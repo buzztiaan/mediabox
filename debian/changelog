@@ -1,8 +1,10 @@
-mediabox (2010.06.30) unstable; urgency=low
+mediabox (2010.07.01) unstable; urgency=low
 
   Enabled playback position bookmarking from 0.96.x again
+  
+  Fixed small bug in the LRC lyrics parser
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 30 Jun 2010 18:30:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 01 Jul 2010 18:00:00 +0200
 
 mediabox (2010.06.26) unstable; urgency=low
 

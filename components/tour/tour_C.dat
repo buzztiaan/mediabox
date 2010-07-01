@@ -105,6 +105,17 @@ Tip: You can fine-tune the position by dragging. The seeking starts only after y
 END
 
 
+BEGIN Media Bookmarks
+Pressing on the star button next to the progress bar in the audio and video players bookmarks the current position, marking it by a star on the progress bar.
+
+Click on a star bookmark on the progress bar to jump to that position.
+
+You can drag star bookmarks on the progress bar to reposition them. Drag the bookmark out of the progress bar to the left or right side in order to remove it.
+
+Not all media files support seeking and thus bookmarking positions.
+END
+
+
 BEGIN Volume Control and Zooming
 The INCREMENT and DECREMENT buttons on top of your device can be used for controlling the audio volume, or in the image viewer, for zooming in and out.
 
@@ -263,11 +274,13 @@ END
 BEGIN Saving Files from UPnP/DLNA Media Shares
 You can save files from media shares onto your device.
 
-Tap and hold on a media item to open the popup menu. Choose
+Tap and hold on a media item or folder to open the popup menu. Choose
 
  → Download
  
 from there.
+
+Downloading a folder will recursively download all its media contents.
 END
 
 
@@ -417,5 +430,18 @@ and uncheck the checkbox
  → Always update index at startup
  
 From now on, you have to scan folders manually if you want to put them in the index.
+END
+
+
+BEGIN Media Player Backends
+MediaBox supports various backends for playing media, depending on the platform it's running on.
+
+Go to
+
+ [Settings → Player Backends]
+
+to configure the backend to be used for a media type.
+
+Be careful, as inappropriate backends may cause problems or unexpected behavior. If you don't exactly know about the details of the backends, it's recommended to keep the default settings.
 END
 

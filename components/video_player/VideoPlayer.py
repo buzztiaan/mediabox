@@ -6,6 +6,7 @@ from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
 from ui.Slider import Slider
 from ui.layout import Arrangement
+from mediabox import media_bookmarks
 import mediaplayer
 import platforms
 from theme import theme
@@ -22,7 +23,8 @@ _LANDSCAPE_ARRANGEMENT = """
       <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
 
       <widget name="screen" x1="40" y1="4" x2="-84" y2="-64"/>
-      <widget name="progress" x1="90" y1="-50" x2="-90" y2="-10"/>
+      <widget name="progress" x1="90" y1="-50" x2="-154" y2="-10"/>
+      <widget name="btn_star" x1="-154" y1="-64" x2="-90" y2="100%"/>
       <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
     </if-visible>
     
@@ -42,7 +44,8 @@ _PORTRAIT_ARRANGEMENT = """
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
 
     <widget name="screen" x1="40" y1="0" x2="100%" y2="-80"/>
-    <widget name="progress" x1="50" y1="-130" x2="-50" y2="-90"/>
+    <widget name="progress" x1="50" y1="-170" x2="-114" y2="-130"/>
+    <widget name="btn_star" x1="-114" y1="-184" x2="-50" y2="-120"/>
     <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
   </arrangement>
 """
@@ -65,7 +68,10 @@ class VideoPlayer(Player):
         
         self.__blanking_handler = None
         self.__load_failed_handler = None
-        
+
+        # the currently playing file object (e.g. used for bookmarking)
+        self.__current_file = None
+
 
         Player.__init__(self)
         
@@ -86,6 +92,13 @@ class VideoPlayer(Player):
         # progress bar
         self.__progress = ProgressBar()
         self.__progress.connect_changed(self.__on_seek)
+        self.__progress.connect_bookmark_changed(self.__on_change_bookmark)
+
+
+        # star button for bookmarks
+        self.__btn_star = ImageButton(theme.mb_btn_bookmark_1,
+                                      theme.mb_btn_bookmark_2)
+        self.__btn_star.connect_clicked(self.__on_btn_star)
 
 
         # navigator button
@@ -122,6 +135,7 @@ class VideoPlayer(Player):
         self.__arr.add(self.__toolbar, "toolbar")
         self.__arr.add(self.__btn_navigator, "btn_nav")
         self.__arr.add(self.__progress, "progress")
+        self.__arr.add(self.__btn_star, "btn_star")
         self.__arr.add(self.__volume_slider, "slider")
         self.add(self.__arr)
 
@@ -146,6 +160,12 @@ class VideoPlayer(Player):
     def __on_btn_previous(self):
         
         self.emit_message(msgs.MEDIA_ACT_PREVIOUS)
+
+
+    def __on_btn_star(self):
+    
+        print "ADDING BOOKMARK"
+        self.__progress.add_bookmark()
 
 
     def __on_btn_next(self):
@@ -241,7 +261,13 @@ class VideoPlayer(Player):
         if (v != self.__volume):
             self.__volume_slider.set_value(v / 100.0)
             self.__volume = v
-            
+
+
+    def __on_change_bookmark(self):
+    
+        media_bookmarks.set_bookmarks(self.__current_file,
+                                      self.__progress.get_bookmarks())
+
 
     def __on_seek(self, progress):
     
@@ -345,6 +371,12 @@ class VideoPlayer(Player):
         try:
             self.__progress.set_message("Loading")
             self.__context_id = self.__player.load_video(f)
+
+            self.__current_file = f
+
+            # load bookmarks
+            self.__progress.set_bookmarks(media_bookmarks.get_bookmarks(f))
+
             self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
         except:
             self.__progress.set_message("Error")

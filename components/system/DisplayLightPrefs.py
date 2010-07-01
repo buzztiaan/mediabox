@@ -39,7 +39,7 @@ class DisplayLightPrefs(Configurator):
         self.add(self.__list)
         
         lbl = LabelItem("Keep display lit:")
-        lbl.set_font(theme.font_mb_headline)
+        #lbl.set_font(theme.font_mb_headline)
         self.__list.append_item(lbl)
         
         chbox = OptionItem("never", "no",

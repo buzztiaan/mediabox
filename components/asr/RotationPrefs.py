@@ -22,6 +22,8 @@ class RotationPrefs(Configurator):
 
     def __init__(self):
     
+        self.__have_unapplied_changes = False
+    
         Configurator.__init__(self)
         
         self.__list = ThumbableGridView()
@@ -38,13 +40,24 @@ class RotationPrefs(Configurator):
         self.__list.append_item(chbox)
 
         # abusing empty label for space... TODO: implement space item :)
-        lbl = LabelItem("")
-        self.__list.append_item(lbl)
+        #lbl = LabelItem("")
+        #self.__list.append_item(lbl)
 
         chk = CheckBoxItem("Swap volume/zoom keys in portrait mode",
                            config.portrait_swap_volume())
         chk.connect_checked(self.__on_check_swap)
         self.__list.append_item(chk)
+
+
+    def _visibility_changed(self):
+
+        Configurator._visibility_changed(self)
+    
+        if (not self.is_visible() and self.__have_unapplied_changes):
+            self.__have_unapplied_changed = False
+            
+            orientation = config.orientation()
+            self.__set_orientation(orientation)
 
 
     def render_this(self):
@@ -54,9 +67,16 @@ class RotationPrefs(Configurator):
 
 
     def __on_select_orientation(self, value):
+    
+        self.__have_unapplied_changes = True
 
         self.__list.invalidate()
         self.__list.render()
+
+        config.set_orientation(value)
+        
+
+    def __set_orientation(self, value):
     
         if (value == config.ORIENTATION_LANDSCAPE):
             self.emit_message(msgs.ASR_ACT_ENABLE, False)
@@ -69,9 +89,6 @@ class RotationPrefs(Configurator):
         else:
             self.emit_message(msgs.ASR_ACT_ENABLE, True)
             self.emit_message(msgs.ASR_EV_LANDSCAPE)
-            
-        config.set_orientation(value)
-        self.set_visible(False)
 
 
     def __on_check_swap(self, v):
