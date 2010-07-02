@@ -1,3 +1,4 @@
+from utils import logging
 import urllib
 
 
@@ -26,7 +27,6 @@ class StreamAnalyzer(object):
         data = fd.read(1024).strip()
         fd.close()
         
-        print "ANALYZE:"
         out = ""
         for d in data:
             if (33 <= ord(d) <= 127):
@@ -34,7 +34,7 @@ class StreamAnalyzer(object):
             else:
                 out += "\\%03d" % ord(d)
         #end for
-        print out
+        logging.debug("Analyzing stream:\n%s", out)
 
         if (data.startswith("[playlist]")):
             return self.PLAYLIST

@@ -550,9 +550,9 @@ class StorageBrowser(ThumbableGridView):
             #end if
 
             # don't block UI while loading non-local folders
-            import gtk
-            while (gtk.events_pending()):
-                gtk.main_iteration(False)
+            #import gtk
+            #while (gtk.events_pending()):
+            #    gtk.main_iteration(False)
 
             if (not f):
                 # last item has been reached

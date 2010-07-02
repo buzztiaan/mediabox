@@ -34,7 +34,7 @@ class AbstractBackend(EventEmitter):
     ERR_CONNECTION_TIMEOUT = 2
     ERR_NOT_SUPPORTED = 3
     ERR_SERVER_FULL = 4
-
+    
     EVENT_STARTED = "event-started"
     EVENT_KILLED = "event-killed"
     EVENT_SUSPENDED = "event-suspended"

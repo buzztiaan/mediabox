@@ -227,6 +227,7 @@ class YouTube(Device):
             item.resource = item.path
             item.name = name
             item.mimetype = File.DIRECTORY
+            item.folder_flags = File.ITEMS_UNSORTED
             if (icon):
                 item.icon = icon.get_path()
             
@@ -238,7 +239,13 @@ class YouTube(Device):
 
     def __on_receive_xml(self, data, amount, total, xml, category, query, is_toc, cb, *args):
     
-        if (not data):
+        if (data == None):
+            # error
+            logging.error("error downloading XML data")
+            self.__current_folder.message = "content not available"
+            cb(None, *args)
+            
+        elif (not data):
             # finished loading
             #self.__cache_search_result(url, xml[0])
             if (is_toc):
@@ -258,7 +265,7 @@ class YouTube(Device):
                 total_results = int(node.get_pcdata())
                 
                 # set a sane limit (YouTube cannot handle more anyway)
-                total_results = min(total_results, 40 * _PAGE_SIZE)
+                total_results = min(total_results, 20 * _PAGE_SIZE)
                 
                 page = 1
                 for n in range(1, total_results, _PAGE_SIZE):
@@ -569,7 +576,6 @@ class YouTube(Device):
 
         print "Requested Video Quality:", qtype
 
-        #qtype = config.get_quality_type()
         if (qtype in fmts):
             flv = flv + "&fmt=%d" % qtype
             ext = "." + formats.get_container(qtype)
@@ -611,6 +617,8 @@ class YouTube(Device):
                 return ""
             flv_path = os.path.join(cache_folder, ".tube.flv")
 
+            # the mplayer backend on Maemo5 doesn't work well with directly
+            # taking an URL from YouTube for some reason
             self.__flv_downloader = FileDownloader(url, flv_path, on_dload)
         
             # we don't give the downloaded file directly to the player because
@@ -663,20 +671,4 @@ class YouTube(Device):
             actions.append((None, "Download", self.__on_download))
 
         return actions
-
-
-    def __make_filename(self, name, ext):
-        """
-        Creates a (hopefully) valid filename from the given name.
-        """
-        
-        replace_map = [("/", "-"),
-                       ("?", ""),
-                       ("\\", "-"),
-                       (":", "-")]
-                       
-        for a, b in replace_map:
-            name = name.replace(a, b)
-
-        return name + ext
 

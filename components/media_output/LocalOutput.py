@@ -57,6 +57,12 @@ class LocalOutput(MediaOutput):
     def __on_error(self, ctx_id, err):
     
         self.emit_event(self.EVENT_ERROR, ctx_id, err)
+
+
+    def close(self):
+    
+        if (self.__backend):
+            self.__backend.close()
         
 
     def load_audio(self, f):

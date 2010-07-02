@@ -269,6 +269,12 @@ class VideoPlayer(Player):
                                       self.__progress.get_bookmarks())
 
 
+    def __on_error(self, ctx_id, err):
+    
+        if (ctx_id == self.__context_id and self.__player):
+            self.emit_message(msgs.UI_ACT_SHOW_INFO, self.__player.ERRORS[err])
+
+
     def __on_seek(self, progress):
     
         if (self.__player):
@@ -349,6 +355,7 @@ class VideoPlayer(Player):
         self.__player.connect_status_changed(self.__on_status_changed)
         self.__player.connect_position_changed(self.__on_update_position)
         self.__player.connect_volume_changed(self.__on_change_player_volume)
+        self.__player.connect_error(self.__on_error)
         
         self.__player.set_window(self.__screen.get_xid())
         
@@ -443,4 +450,10 @@ class VideoPlayer(Player):
             self.__volume_slider.set_value(self.__volume / 100.0)
             if (self.__player):
                 self.__player.set_volume(self.__volume)
+
+
+    def handle_COM_EV_APP_SHUTDOWN(self):
+    
+        if (self.__player):
+            self.__player.close()
 

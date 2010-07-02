@@ -22,6 +22,15 @@ class MediaOutput(Component, EventEmitter):
     ERR_NOT_SUPPORTED = 3
     ERR_SERVER_FULL = 4
 
+    # error messages
+    ERRORS = [
+        "Invalid media",
+        "Media not found",
+        "Connection timeout",
+        "Unsupported media format",
+        "Server is full"
+    ]
+
     # events
     EVENT_ERROR = "event-error"
     EVENT_VOLUME_CHANGED = "event-volume-changed"
@@ -67,6 +76,11 @@ class MediaOutput(Component, EventEmitter):
     def connect_tag_discovered(self, cb, *args):
     
         self._connect(self.EVENT_TAG_DISCOVERED, cb, *args)        
+
+
+    def close(self):
+    
+        pass
 
         
     def load_audio(self, f):

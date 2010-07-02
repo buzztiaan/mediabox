@@ -245,9 +245,8 @@ class AudioPlayer(Player):
 
     def __on_error(self, ctx_id, err):
     
-        if (ctx_id == self.__context_id):
-            # TODO: display readable text here...
-            self.emit_message(msgs.UI_ACT_SHOW_INFO, `err`)
+        if (ctx_id == self.__context_id and self.__player):
+            self.emit_message(msgs.UI_ACT_SHOW_INFO, self.__player.ERRORS[err])
 
 
     def __on_seek(self, progress):
@@ -429,4 +428,10 @@ class AudioPlayer(Player):
 
         if (self.is_enabled() and self.__player):
             self.__player.pause()
+
+
+    def handle_COM_EV_APP_SHUTDOWN(self):
+    
+        if (self.__player):
+            self.__player.close()
 

@@ -21,6 +21,9 @@ class Downloader(HTTPConnection):
     
     def __init__(self, url, cb, *args):
     
+        # location history for avoiding redirect loops
+        self.__location_history = []
+    
         host, port, path = parse_addr(url)
         HTTPConnection.__init__(self, host, port)
         self.putrequest("GET", path, "HTTP/1.1")
@@ -52,15 +55,23 @@ class Downloader(HTTPConnection):
 
         elif (300 <= status < 310):
             location = resp.getheaders()["LOCATION"]
-            host, port, path = parse_addr(location)
-            logging.debug("HTTP redirect to %s" % location)
-            self.redirect(host, port)
-            self.putrequest("GET", path, "HTTP/1.1")
-            self.putheader("Host", port and "%s:%d" % (host, port) or host)
-            self.putheader("User-Agent", "MediaBox")
-            #self.putheader("Connection", "close")
-            self.endheaders()
-            self.send("", self.__on_receive_data, cb, args)
+            if (not location in self.__location_history):
+                self.__location_history.append(location)
+                host, port, path = parse_addr(location)
+                logging.debug("HTTP redirect to %s" % location)
+                self.redirect(host, port)
+                self.putrequest("GET", path, "HTTP/1.1")
+                self.putheader("Host", port and "%s:%d" % (host, port) or host)
+                self.putheader("User-Agent", "MediaBox")
+                #self.putheader("Connection", "close")
+                self.endheaders()
+                self.send("", self.__on_receive_data, cb, args)
+            else:
+                self.__location_history.append(location)
+                logging.error("redirect loop detected:\n%s",
+                              "\n-> ".join(self.__location_history))
+                cb(None, 0, 0, *args)
+                return
 
         # try to avoid starvation of GTK for high bandwidths
         then = time.time() + 0.1

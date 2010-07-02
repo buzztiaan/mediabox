@@ -27,6 +27,9 @@ class ShoutcastDirectory(Device):
 
         # genre list
         self.__genres = []
+        
+        self.__current_folder = None
+        
     
         Device.__init__(self)
         
@@ -150,6 +153,7 @@ class ShoutcastDirectory(Device):
 
 
         path = folder.path
+        self.__current_folder = folder
 
         if (not path.endswith("/")): path += "/"
         parts = [ p for p in path.split("/") if p ]
@@ -185,9 +189,10 @@ class ShoutcastDirectory(Device):
                         if j == "name":
                             genres.append(n)
         except:
-            self.call_service(msgs.UI_ACT_SHOW_INFO,
-                              "An error occured while loading the list of genres.\n" \
-                              "Check your internet connection and try again.")
+            #self.call_service(msgs.UI_ACT_SHOW_INFO,
+            #                  "An error occured while loading the list of genres.\n" \
+            #                  "Check your internet connection and try again.")
+            self.__current_folder.message = "genre list not available"
             logging.error("SHOUTcast genre listing download failed:\n%s",
                           logging.stacktrace())
             
@@ -234,9 +239,10 @@ class ShoutcastDirectory(Device):
                     stations.append(station)
 
         except:
-            self.call_service(msgs.UI_ACT_SHOW_INFO,
-                              "An error occured while loading the list of stations.\n" \
-                              "Check your internet connection and try again.")
+            #self.call_service(msgs.UI_ACT_SHOW_INFO,
+            #                  "An error occured while loading the list of stations.\n" \
+            #                  "Check your internet connection and try again.")
+            self.__current_folder.message = "station list not available"
             logging.error("SHOUTcast station listing download failed\n%s",
                           logging.stacktrace())
 
