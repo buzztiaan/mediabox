@@ -274,6 +274,7 @@ class YouTube(Device):
                     f.path = File.pack_path("/search", f.name, category, query, n)
                     f.mimetype = f.DIRECTORY
                     f.info = "Results %d - %d" % (n, min(total_results, n + _PAGE_SIZE - 1))
+                    f.folder_flags = File.ITEMS_UNSORTED
                     cb(f, *args)
                     page += 1
                 #end for
