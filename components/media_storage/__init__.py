@@ -3,6 +3,7 @@ delayed = True
 def get_devices():
 
     from utils import maemo
+    from AdHocDevice import AdHocDevice
     from AudioStorage import AudioStorage
     from AudioAlbumStorage import AudioAlbumStorage
     from AudioArtistStorage import AudioArtistStorage
@@ -12,7 +13,8 @@ def get_devices():
     
     from HistoryDevice import HistoryDevice
     
-    devices = [AudioStorage,
+    devices = [AdHocDevice,
+               AudioStorage,
                AudioAlbumStorage,
                AudioArtistStorage,
                AudioGenreStorage,

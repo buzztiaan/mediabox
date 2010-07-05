@@ -384,12 +384,11 @@ class YouTube(Device):
         mins = duration
 
         info = "by %s\n" \
-               "Duration: %d:%02d\tViews: %d\t" \
-               "Rating: %s" \
+               "%d:%02d\t%s\t%s views" \
                % (authors,
                   mins, secs,
-                  view_count,
-                  rating)
+                  rating,
+                  view_count)
 
         path = File.pack_path("/videos", title, info, video_id, thumbnail_url)
         

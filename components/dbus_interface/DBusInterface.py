@@ -1,5 +1,5 @@
 from com import Component, msgs
-
+from storage import File
 import dbus
 import dbus.service
 
@@ -19,6 +19,16 @@ class DBusInterface(Component, dbus.service.Object):
                                      dbus.service.BusName("de.pycage.mediabox",
                                                           dbus.SessionBus()),
                                      "/de/pycage/mediabox/control")
+
+
+    @dbus.service.method("de.pycage.mediabox.control", in_signature = "ss")
+    def load(self, uri, mimetype):
+    
+        f = self.call_service(msgs.CORE_SVC_GET_FILE,
+                              "adhoc://" + File.pack_path("/", uri, mimetype))
+        print f
+        if (f):
+            self.emit_message(msgs.MEDIA_ACT_LOAD, f)
 
 
     @dbus.service.method("de.pycage.mediabox.control")

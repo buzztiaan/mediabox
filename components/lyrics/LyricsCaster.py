@@ -139,13 +139,16 @@ class LyricsCaster(Component):
         """
         
         try:
-            data = self.__decode(open(lrc_path).read())
-            lines = data.splitlines()
+            data = open(lrc_path).read()
+            #data = self.__decode(open(lrc_path).read())
+            lines = [ l for l in data.splitlines() if l.startswith("[") ]
         except:
             logging.error("error loading lyrics file '%s'\n%s",
                           lrc_path, logging.stacktrace())
             lines = []
-            
+        
+        lines = self.__decode("\n".join(lines)).splitlines()
+        
         for line in lines:
             self.__parse_line(line)
         self.__lyrics.sort(lambda a,b:cmp(a[0],b[0]))
