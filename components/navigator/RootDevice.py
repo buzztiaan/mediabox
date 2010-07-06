@@ -159,6 +159,7 @@ class RootDevice(Device):
             if (cnt < begin_at): continue
             if (end_at > 0 and cnt > end_at): break
             
+            print "ITEM", f
             cb(f, *args)
         #end for
         cb(None, *args)       

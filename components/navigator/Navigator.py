@@ -385,12 +385,7 @@ class Navigator(Dialog):
         
         folder = self.__browser.get_current_folder()
         if (folder):
-            f = folder.new_file()
-        #    if (f):
-        #        self.__browser.reload_current_folder()
-        
-
-
+            folder.new_file()
 
 
     def __load_file(self, f, is_manual):

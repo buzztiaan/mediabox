@@ -7,7 +7,7 @@ Standards-Version: 3.7.2
 
 Package: mediabox
 Architecture: any
-Depends: python2.5, python2.5-gtk2, python2.5-gobject, python2.5-osso, python2.5-hildon, python2.5-gnome, python2.5-dbus, python2.5-gstreamer
+Depends: python2.5, python2.5-gtk2, python2.5-gobject, python2.5-osso, python2.5-hildon, python2.5-gnome, python2.5-dbus, python2.5-gstreamer, mplayer
 Description: Media Center for Nokia Internet Tablets
  MediaBox Media Center was built to handle large collections of media and lets you browse and play your music and videos and show your photos either from your memory cards, or remotely over the network via UPnP/DLNA.
 XB-Maemo-Display-Name: MediaBox Media Center

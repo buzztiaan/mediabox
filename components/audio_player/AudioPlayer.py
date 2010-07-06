@@ -34,8 +34,7 @@ _LANDSCAPE_ARRANGEMENT = """
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
     <widget name="btn_nav" x1="-64" y1="0" x2="100%" y2="64"/>
-    <widget name="progress" x1="50" y1="-170" x2="-114" y2="-130"/>
-    <widget name="btn_star" x1="-114" y1="-184" x2="-50" y2="-120"/>
+    <widget name="progress" x1="50" y1="-170" x2="-50" y2="-130"/>
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
     <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
     
@@ -278,10 +277,10 @@ class AudioPlayer(Player):
                 self.emit_message(msgs.MEDIA_EV_TAG, "TITLE", title)
             if (album):
                 self.__lbl_album.set_text(album)
-                self.emit_message(msgs.MEDIA_EV_TAG, "ALBUM", title)
+                self.emit_message(msgs.MEDIA_EV_TAG, "ALBUM", album)
             if (artist):
                 self.__lbl_artist.set_text(artist)
-                self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", title)
+                self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", artist)
             if (cover):
                 imageloader.load_data(cover, self.__on_loaded_cover,
                                       self.__context_id)
@@ -323,6 +322,10 @@ class AudioPlayer(Player):
         self.__lbl_title.set_text(title)
         self.__lbl_artist.set_text(artist)
         self.__lbl_album.set_text(album)
+        
+        self.emit_message(msgs.MEDIA_EV_TAG, "TITLE", title)
+        self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", artist)
+        self.emit_message(msgs.MEDIA_EV_TAG, "ALBUM", album)
 
         if (self.__offscreen_buffer):
             self.render_buffered(self.__offscreen_buffer)
@@ -390,25 +393,25 @@ class AudioPlayer(Player):
 
     def handle_MEDIA_ACT_PLAY(self):
     
-        if (self.__player and self.is_enabled()):
+        if (self.__player and self.is_visible()):
             self.__player.play()
 
 
     def handle_MEDIA_ACT_PAUSE(self):
     
-        if (self.__player and self.is_enabled()):
+        if (self.__player and self.is_visible()):
             self.__player.pause()
 
 
     def handle_MEDIA_ACT_STOP(self):
     
-        if (self.__player and self.is_enabled()):
+        if (self.__player and self.is_visible()):
             self.__player.stop()
 
 
     def handle_INPUT_EV_VOLUME_UP(self, pressed):
     
-        if (self.is_enabled()):
+        if (self.is_visible()):
             self.__volume = min(100, self.__volume + 5)
             self.__volume_slider.set_value(self.__volume / 100.0)
             if (self.__player):
@@ -417,7 +420,7 @@ class AudioPlayer(Player):
         
     def handle_INPUT_EV_VOLUME_DOWN(self, pressed):
 
-        if (self.is_enabled()):    
+        if (self.is_visible()):    
             self.__volume = max(0, self.__volume - 5)
             self.__volume_slider.set_value(self.__volume / 100.0)
             if (self.__player):
@@ -426,7 +429,7 @@ class AudioPlayer(Player):
 
     def handle_INPUT_EV_PLAY(self, pressed):
 
-        if (self.is_enabled() and self.__player):
+        if (self.is_visible() and self.__player):
             self.__player.pause()
 
 

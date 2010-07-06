@@ -64,6 +64,9 @@ class Downloader(Component):
         # queue consists of (f, destination) tuples with destination being a local directory
         if (queue):
             f, destination = queue.pop(0)
+            if (not base_destination):
+                base_destination = destination
+            
         else:
             # nothing to pop, we're done
             self.emit_message(msgs.DOWNLOADER_EV_FINISHED, download_id)
@@ -149,7 +152,7 @@ class Downloader(Component):
         download_id = hash(f)
         print "DOWNLOAD ID", download_id
         self.__downloaders[download_id] = download_queue
-        self.__retrieve_file(download_id, destination, download_queue)
+        self.__retrieve_file(download_id, "", download_queue)
         self.emit_message(msgs.DOWNLOADER_EV_STARTED, download_id,
                           f.get_children()[0].resource, destination)
         self.emit_message(msgs.UI_ACT_SHOW_INFO,

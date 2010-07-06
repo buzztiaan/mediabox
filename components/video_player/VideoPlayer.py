@@ -44,8 +44,7 @@ _PORTRAIT_ARRANGEMENT = """
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
 
     <widget name="screen" x1="40" y1="0" x2="100%" y2="-80"/>
-    <widget name="progress" x1="50" y1="-170" x2="-114" y2="-130"/>
-    <widget name="btn_star" x1="-114" y1="-184" x2="-50" y2="-120"/>
+    <widget name="progress" x1="50" y1="-170" x2="-50" y2="-130"/>
     <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
   </arrangement>
 """
@@ -393,7 +392,7 @@ class VideoPlayer(Player):
 
     def handle_MEDIA_ACT_PLAY(self):
     
-        if (self.__player and self.is_enabled()):
+        if (self.__player and self.is_visible()):
             if (not self.__is_playing):
                 self.__wait_for_dsp()
             self.__player.play()
@@ -401,7 +400,7 @@ class VideoPlayer(Player):
 
     def handle_MEDIA_ACT_PAUSE(self):
     
-        if (self.__player and self.is_enabled()):
+        if (self.__player and self.is_visible()):
             if (not self.__is_playing):
                 self.__wait_for_dsp()
             self.__player.pause()
@@ -410,7 +409,7 @@ class VideoPlayer(Player):
 
     def handle_MEDIA_ACT_STOP(self):
     
-        if (self.__player and self.is_enabled()):
+        if (self.__player and self.is_visible()):
             self.__player.stop()
 
 
@@ -430,13 +429,13 @@ class VideoPlayer(Player):
         
     def handle_INPUT_EV_FULLSCREEN(self, pressed):
 
-        if (self.is_enabled()):
+        if (self.is_visible()):
             self.__toggle_fullscreen()
 
 
     def handle_INPUT_EV_VOLUME_UP(self, pressed):
 
-        if (self.is_enabled()):
+        if (self.is_visible()):
             self.__volume = min(100, self.__volume + 5)
             self.__volume_slider.set_value(self.__volume / 100.0)
             if (self.__player):
@@ -445,7 +444,7 @@ class VideoPlayer(Player):
         
     def handle_INPUT_EV_VOLUME_DOWN(self, pressed):
 
-        if (self.is_enabled()):
+        if (self.is_visible()):
             self.__volume = max(0, self.__volume - 5)
             self.__volume_slider.set_value(self.__volume / 100.0)
             if (self.__player):
