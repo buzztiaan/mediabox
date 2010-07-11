@@ -52,13 +52,17 @@ _CATEGORIES = {
     "movie":             _VIDEOS_API + "?category=Movies&orderby=published" + _SEARCH_PARAMS2,
     "news":              _VIDEOS_API + "?category=News&orderby=published" + _SEARCH_PARAMS2
 }
+_ICONS = {
+    "Search": theme.youtube_search,
+    "Movies": theme.mb_folder_video
+}
 
 _REGION_BLOCKED = "region blocked"
 
 _SEARCH_CACHE_DIR = os.path.join(values.USER_DIR, "youtube/search-cache")
 _VIDEO_FOLDER = "Saved Videos"
 
-_PAGE_SIZE = 50
+_PAGE_SIZE = 25
 
 
 _STAR_CHAR = u"\u2606"
@@ -173,6 +177,8 @@ class YouTube(Device):
             f.mimetype = f.DIRECTORY
             f.path = path
             f.resource = ""
+            if (name in _ICONS):
+                f.icon = _ICONS[name].get_path()
 
         elif (path.startswith("/videos")):
             f = self.__make_video(path)
@@ -209,16 +215,16 @@ class YouTube(Device):
 
     def __ls_menu(self, cb, *args):
     
-        for name, category, icon in [
-            ("Search", "video", theme.youtube_search),
-            ("Recently Featured", "recently_featured", None),
-            ("Today's Top Rated", "top_rated", None),
-            ("Most Viewed", "most_viewed", None),
-            ("Most Popular", "most_popular", None),
-            ("Music", "music", None),
-            ("Movies", "movie", None),
-            ("News", "news", None),
-            ("For Mobile Phones", "watch_on_mobile", None)
+        for name, category in [
+            ("Search", "video"),
+            ("Recently Featured", "recently_featured"),
+            ("Today's Top Rated", "top_rated"),
+            ("Most Viewed", "most_viewed"),
+            ("Most Popular", "most_popular"),
+            ("Music", "music"),
+            ("Movies", "movie"),
+            ("News", "news"),
+            ("For Mobile Phones", "watch_on_mobile")
         ]:
             item = File(self)
             query = ""
@@ -228,8 +234,8 @@ class YouTube(Device):
             item.name = name
             item.mimetype = File.DIRECTORY
             item.folder_flags = File.ITEMS_UNSORTED
-            if (icon):
-                item.icon = icon.get_path()
+            if (name in _ICONS):
+                item.icon = _ICONS[name].get_path()
             
             cb(item, *args)
         #end for
@@ -562,6 +568,9 @@ class YouTube(Device):
             logging.error("could not retrieve video\n%s", logging.stacktrace())
             return ""
 
+        if (not 18 in fmts): fmts.append(18)
+        fmts.sort()
+
         # filter out incompatible formats
         if (platforms.MAEMO5):
             fmts = [ fmt for fmt in fmts if fmt in _N900_FORMAT_WHITELIST ]
@@ -571,6 +580,8 @@ class YouTube(Device):
         # retrieve high-quality version, if desired
         if (len(fmts) > 1):
             qtype = self.__ask_for_quality(fmts)
+        elif (len(fmts) == 1):
+            qtype = fmts[0]
         else:
             qtype = 0
 

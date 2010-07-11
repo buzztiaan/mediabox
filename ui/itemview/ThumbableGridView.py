@@ -166,11 +166,6 @@ class ThumbableGridView(GridView):
 
 
     def __on_release_button(self, px, py):
-
-        #csr = self.get_cursor()
-        #if (csr != -1):
-        #    self.set_cursor(-1)
-        #    self.invalidate_item(csr)
         
         if (self.has_floating_item()):
             self.float_item(-1)

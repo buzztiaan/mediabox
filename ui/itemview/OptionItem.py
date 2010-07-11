@@ -1,8 +1,8 @@
-from Item import Item
+from ButtonItem import ButtonItem
 from theme import theme
 
 
-class OptionItem(Item):
+class OptionItem(ButtonItem):
 
     EVENT_CHANGED = "event-changed"
 
@@ -12,14 +12,22 @@ class OptionItem(Item):
         self.__values = []
         self.__current_choice = 0
 
-        Item.__init__(self)
+        ButtonItem.__init__(self, "")
+        self.connect_clicked(self.__on_click)
         self.set_options(*options)
 
 
     def connect_changed(self, cb, *args):
     
         self._connect(self.EVENT_CHANGED, cb, *args)
-        
+
+
+    def __on_click(self):
+
+        self.__current_choice += 1
+        self.__current_choice %= len(self.__values)
+        self.select(self.__current_choice)
+
 
     def set_options(self, *options):
     
@@ -35,7 +43,7 @@ class OptionItem(Item):
         
         self.select(0)
 
-        
+    """    
     def render_at(self, cnv, x, y):
     
         w, h = self.get_size()
@@ -56,7 +64,7 @@ class OptionItem(Item):
         
         # copy to the given canvas
         cnv.copy_buffer(pmap, 0, 0, x, y, w, h)
-
+    """
 
     def select(self, idx):
     
@@ -64,7 +72,7 @@ class OptionItem(Item):
         name = self.__names[idx]
         value = self.__values[idx]
 
-        self._invalidate_cached_pixmap()
+        self.set_text(name)
         self.emit_event(self.EVENT_CHANGED, value)
         
         
@@ -76,7 +84,7 @@ class OptionItem(Item):
         except:
             pass
 
-
+    """
     def click_at(self, px, py):
     
         w, h = self.get_size()
@@ -86,4 +94,4 @@ class OptionItem(Item):
             self.__current_choice %= len(self.__values)
             self.select(self.__current_choice)
         #end if
-
+    """

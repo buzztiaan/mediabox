@@ -128,7 +128,7 @@ class InputDialog(Window):
     def run(self):
     
         w = gtk.gdk.screen_width()
-        h = min(gtk.gdk.screen_height() - 120, len(self.__retrievers) * 100)
+        h = min(gtk.gdk.screen_height() - 120, len(self.__retrievers) * 120)
 
         if (not platforms.MAEMO5):
             w -= 80

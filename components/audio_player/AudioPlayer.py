@@ -163,12 +163,14 @@ class AudioPlayer(Player):
     
         w, h = self.get_size()
         if (w < h):
+            self.__btn_star.set_visible(False)
             self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
             self.__lbl_title.set_alignment(Label.CENTERED)
             self.__lbl_album.set_alignment(Label.CENTERED)
             self.__lbl_artist.set_alignment(Label.CENTERED)
 
         else:
+            self.__btn_star.set_visible(True)
             self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
             self.__lbl_title.set_alignment(Label.LEFT)
             self.__lbl_album.set_alignment(Label.LEFT)

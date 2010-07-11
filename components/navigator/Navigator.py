@@ -591,12 +591,12 @@ class Navigator(Dialog):
 
     def handle_INPUT_EV_UP(self, pressed):
 
-        if (self.is_enabled()):
+        if (self.is_visible()):
             self.__browser.move(0, -80)
 
 
     def handle_INPUT_EV_DOWN(self, pressed):
 
-        if (self.is_enabled()):
+        if (self.is_visible()):
             self.__browser.move(0, 80)
 

@@ -143,8 +143,10 @@ class VideoPlayer(Player):
     
         w, h = self.get_size()
         if (w < h):
+            self.__btn_star.set_visible(False)
             self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
         else:
+            self.__btn_star.set_visible(True)
             self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
 
 

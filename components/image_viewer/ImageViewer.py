@@ -297,18 +297,18 @@ class ImageViewer(Player):
 
     def handle_MEDIA_ACT_PAUSE(self):
     
-        if (self.is_enabled()):
+        if (self.is_visible()):
             self.__on_btn_play()
 
 
     def handle_INPUT_EV_VOLUME_UP(self, pressed):
     
-        if (self.is_enabled() and self.__image):
+        if (self.is_visible() and self.__image):
             self.__image.zoom_in(False)
         
         
     def handle_INPUT_EV_VOLUME_DOWN(self, pressed):
 
-        if (self.is_enabled() and self.__image):
+        if (self.is_visible() and self.__image):
             self.__image.zoom_out(False) 
 

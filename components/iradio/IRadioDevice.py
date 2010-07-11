@@ -33,7 +33,7 @@ class IRadioDevice(Device):
 
     def get_icon(self):
     
-        return theme.mb_folder_audio
+        return theme.mb_folder_audioclips
 
 
     def __make_station(self, name, url):
@@ -59,6 +59,7 @@ class IRadioDevice(Device):
             f = File(self)
             f.name = "Internet Radio"
             f.info = "Listen to Internet Radio"
+            f.path = "/"
             f.mimetype = File.DEVICE_ROOT
             f.icon = self.get_icon().get_path()
             f.folder_flags = File.ITEMS_ADDABLE | File.ITEMS_SORTABLE

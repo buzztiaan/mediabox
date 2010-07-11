@@ -138,7 +138,7 @@ class Window(Widget):
         self.__window.set_app_paintable(True)
         self.__window.set_double_buffered(False)
 
-        #self.__window.connect("configure-event", self.__on_configure)
+        self.__window.connect("configure-event", self.__on_configure)
         self.__window.connect("expose-event", self.__on_expose)
         self.__window.connect("button-press-event", self.__on_button_pressed)
         self.__window.connect("button-release-event", self.__on_button_released)
@@ -299,20 +299,19 @@ class Window(Widget):
                           gtk.gdk.color_parse(str(theme.color_mb_background)))
 
 
-    """
     def __on_configure(self, src, ev):
 
         if (self.__configure_event_handler):
             gobject.source_remove(self.__configure_event_handler)
-        self.__configure_event_handler = gobject.idle_add(
+        self.__configure_event_handler = gobject.timeout_add(0, 
                                                 self.__handle_configure_event)
 
 
-    def __handle_configure_event(self, ev):
-        ""
+    def __handle_configure_event(self):
+        """
         Handles the last window configure event in a row. Maemo5 sometimes
         shoots several in a row and we should only react on the last one.
-        ""
+        """
 
         self.__configure_event_handler = None
         w, h = self.__window.get_size()
@@ -324,29 +323,13 @@ class Window(Widget):
             self.set_size(w, h)
             self.render()
         #end if
-    """  
+
 
     def __on_expose(self, src, ev):
-    
-        x, y, w, h = ev.area
-        #if (self.__screen):
-        #    x, y, w, h = ev.area
-        #    self.__screen.restore(x, y, w, h)
-
-        if ((x, y) == (0, 0) and (w, h) != self.__size):
-            print "RESIZE", w, h
-            self.__screen = Pixmap(self.__window.window)
-            self.set_screen(self.__screen)
-            self.__size = (w, h)
-    
-            self.set_size(w, h)
-            self.render()
-            
-        elif (self.__screen):
+                
+        if (self.__screen):
+            x, y, w, h = ev.area
             self.__screen.restore(x, y, w, h)
-
-        #end if
-
 
 
     def __on_close_window(self, src, ev):

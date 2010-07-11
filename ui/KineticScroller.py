@@ -265,6 +265,7 @@ class KineticScroller(EventEmitter, Observable):
         
         if (abs(dx) > self.__drag_threshold or \
             abs(dy) > self.__drag_threshold):
+            print "ABORT TAP AND HOLD"
             self.__abort_tap_and_hold()
             self.__is_click = False
 
