@@ -358,10 +358,8 @@ class HTTPConnection(object):
             self.__callback(resp, *self.__user_args)
             self.__check_connection_queue()
 
-        elif (resp.get_status() == 404):
-            # file not found; abort
-            # TODO: invoke callback with error
-            pass
+        else:
+            self.__callback(resp, *self.__user_args)
 
         
         return False

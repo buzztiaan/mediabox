@@ -30,8 +30,8 @@ class ThumbnailService(Component):
             l = self.__mime_handlers.get(mt, [])
             l.append(thumbnailer)
             self.__mime_handlers[mt] = l
-            self.__thumbnailers[str(thumbnailer)] = thumbnailer
         #end for
+        self.__thumbnailers[str(thumbnailer)] = thumbnailer
 
 
     def handle_COM_EV_COMPONENT_LOADED(self, comp):
@@ -52,6 +52,7 @@ class ThumbnailService(Component):
         # the file object may state the desired thumbnailer
         if (f.thumbnailer):
             handlers = [ self.__thumbnailers.get(f.thumbnailer) ]
+            print handlers, self.__thumbnailers
             
         if (not handlers):
             mimetype = f.mimetype

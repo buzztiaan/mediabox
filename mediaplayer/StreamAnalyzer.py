@@ -39,6 +39,12 @@ class StreamAnalyzer(object):
         if (data.startswith("[playlist]")):
             return self.PLAYLIST
 
+        elif (data.startswith("http://")):
+            return self.PLAYLIST
+
+        elif (data.startswith("#EXTM3U")):
+            return self.PLAYLIST
+
         elif (data.startswith("<?xml")):
             if ("http://www.w3.org/2005/Atom" in data):
                 return self.ATOM_FEED

@@ -72,6 +72,10 @@ class Downloader(HTTPConnection):
                               "\n-> ".join(self.__location_history))
                 cb(None, 0, 0, *args)
                 return
+    
+        elif (400 <= status < 510):
+            cb(None, 0, 0, *args)
+            return
 
         # try to avoid starvation of GTK for high bandwidths
         then = time.time() + 0.1

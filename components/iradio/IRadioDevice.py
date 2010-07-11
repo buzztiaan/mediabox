@@ -33,7 +33,7 @@ class IRadioDevice(Device):
 
     def get_icon(self):
     
-        return theme.mb_folder_audioclips
+        return theme.iradio_device
 
 
     def __make_station(self, name, url):
@@ -47,6 +47,8 @@ class IRadioDevice(Device):
             f.mimetype = "application/vnd.rn-realmedia"
         else:
             f.mimetype = "audio/x-unknown"
+        f.thumbnailer = "iradio.IRadioThumbnailer"
+        f.thumbnailer_param = url
         
         return f
 
@@ -54,7 +56,6 @@ class IRadioDevice(Device):
     def get_file(self, path):
     
         f = None
-        print "GET FILE", path
         if (path == "/"):
             f = File(self)
             f.name = "Internet Radio"

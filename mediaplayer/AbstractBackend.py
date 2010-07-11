@@ -328,11 +328,18 @@ class AbstractBackend(EventEmitter):
 
         filelines = [ l for l in data.splitlines()
                       if l.startswith("File") ]
+        httplines = [ l for l in data.splitlines()
+                      if l.startswith("http") ]
         for line in filelines:
             idx = line.find("=")
             uri = line[idx + 1:].strip()
             uris.append(uri)
-        #end for    
+        #end for
+
+        for line in httplines:
+            uri = line.strip()
+            uris.append(uri)
+        #end for
 
         return uris
 
