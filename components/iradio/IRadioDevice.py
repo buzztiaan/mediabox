@@ -111,3 +111,25 @@ class IRadioDevice(Device):
             self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
         #end if
 
+
+    def __on_delete_item(self, folder, f):
+    
+        idx = 0
+        for location, name in self.__stations:
+            if (location == f.resource and name == f.name):
+                del self.__stations[idx]
+                inetstations.save_stations(self.__stations)
+                self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
+                break
+            #end if
+        #end for 
+        
+
+
+    def get_file_actions(self, folder, f):
+    
+        options = Device.get_file_actions(self, folder, f)
+        options.append((None, "Delete Station", self.__on_delete_item))
+
+        return options
+
