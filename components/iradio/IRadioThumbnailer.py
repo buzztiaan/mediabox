@@ -24,7 +24,7 @@ class IRadioThumbnailer(Thumbnailer):
     def make_quick_thumbnail(self, f):
 
         f.frame = (theme.iradio_frame, 86, 64, 48, 48)
-        return (theme.mb_file_unknown.get_path(), False)
+        return ("", False)
 
 
     def make_thumbnail(self, f, cb, *args):

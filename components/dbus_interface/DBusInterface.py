@@ -132,6 +132,8 @@ class DBusInterface(Component, dbus.service.Object):
     
         if (self.__need_report_position):
             self.__need_report_position = False
+            if (total == -1):
+                total = 0
             self.seek_signal(int(pos * 1000), int(total * 1000))
 
 

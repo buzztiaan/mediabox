@@ -54,7 +54,9 @@ _CATEGORIES = {
 }
 _ICONS = {
     "Search": theme.youtube_search,
-    "Movies": theme.mb_folder_video
+    "Today's Top Rated": theme.mb_folder_mydocs,
+    "Music": theme.mb_folder_audioclips,
+    "Movies": theme.mb_folder_videoclips
 }
 
 _REGION_BLOCKED = "region blocked"
