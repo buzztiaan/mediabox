@@ -61,6 +61,10 @@ class FileDialog(object):
             dlg.set_current_name(self.__filename)
         dlg.set_current_folder(_MYDOCS)
         
+        # run() is prone for deadlocks. emtpy event queue first
+        while (gtk.events_pending()):
+            gtk.main_iteration(True)
+            
         response = dlg.run()
         if (response == gtk.RESPONSE_OK):
             self.__selection = dlg.get_filename()

@@ -167,7 +167,7 @@ class SleepTimerPrefs(Configurator):
     
         self.__sleep_handler = None
         logging.debug("sleep timer falling asleep")
-        self.emit_message(msgs.MEDIA_ACT_PAUSE)
+        self.emit_message(msgs.MEDIA_ACT_STOP)
         self.__on_check_sleep(True)
         
         

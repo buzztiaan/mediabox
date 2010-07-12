@@ -32,27 +32,20 @@ class KineticScroller(EventEmitter, Observable):
     EVENT_SCROLLING_STARTED = "scrolling-started"
     EVENT_SCROLLING_STOPPED = "scrolling-stopped"
     EVENT_TAP_AND_HOLD = "tap-and-hold"
-
-    # deprecated
-    OBS_SCROLLING = 0
-    OBS_STOPPED = 1
-    OBS_CLICKED = 2
-    OBS_TAP_AND_HOLD = 3
-
+    
 
     def __init__(self, child):
     
-        self.__is_click = False
         self.__is_button_pressed = False        
     
         # timestamp of when the click began
         self.__click_begin = 0
+
+        # pointer position when pressing down
+        self.__click_down_pos = (0, 0)
     
         self.__child = child
 
-        self.__is_dragging = False
-        self.__drag_pointer = (0, 0)
-        self.__drag_begin = 0
         self.__pointer = (0, 0)
         self.__drag_threshold = _DRAG_THRESHOLD
                 
@@ -64,9 +57,9 @@ class KineticScroller(EventEmitter, Observable):
         self.__delta_s = (0, 0)
         self.__delta_t = 0
    
-        # this flag tells whether we are currently scrolling    
-        self.__scrolling = False
-        
+        # this flag tells whether scrolling has already been reported
+        self.__scrolling_is_reported = False
+                
         # whether the impulse handler is running
         self.__impulse_handler_running = False
         
@@ -128,7 +121,6 @@ class KineticScroller(EventEmitter, Observable):
         """
     
         self.__delta_s = (0, 0)
-        self.__is_dragging = False
         self.emit_event(self.EVENT_SCROLLING_STOPPED)
             
 
@@ -146,7 +138,6 @@ class KineticScroller(EventEmitter, Observable):
         """
         
         if (not self.__kinetic_enabled):
-            self.update_observer(self.OBS_STOPPED)
             return False
         
         delta_sx, delta_sy = self.__delta_s
@@ -158,7 +149,7 @@ class KineticScroller(EventEmitter, Observable):
         #else:
         #    self.__impulse_point = now
         
-        if (self.__is_dragging or (abs(delta_sx) < 1 and abs(delta_sy) < 1)):
+        if (self.__is_button_pressed or (abs(delta_sx) < 1 and abs(delta_sy) < 1)):
             # shut down impulse handler when not needed to save battery
             self.__impulse_handler_running = False
             self.emit_event(self.EVENT_SCROLLING_STOPPED)
@@ -175,9 +166,6 @@ class KineticScroller(EventEmitter, Observable):
             
             self.__delta_s = (vx * self.__delta_t, vy * self.__delta_t)
             
-            # do not call main_iteration from inside a main_iteration call,
-            # it will block
-            #gtk.main_iteration(False)
             gobject.timeout_add(0, self.__impulse_handler)
         
 
@@ -199,9 +187,7 @@ class KineticScroller(EventEmitter, Observable):
     
         self.__tap_and_hold_handler = None
         px, py = self.__pointer
-        self.__is_click = False
-        self.__is_dragging = False
-        self.__is_button_pressed = False
+        self.__click_begin = 0
         
         if (self.__kinetic_enabled):
             print "TAP AND HOLD", px, py
@@ -209,35 +195,31 @@ class KineticScroller(EventEmitter, Observable):
                 
         
     def __on_button_pressed(self, px, py):
-    
-        self.__pointer = (px, py)
+        
         self.__is_button_pressed = True
+        self.__scrolling_is_reported = False
+        self.__pointer = (px, py)
+        self.__click_down_pos = (px, py)
+        self.__delta_s = (0, 0)
 
         if (not self.__impulse_handler_running):
             self.__click_begin = time.time()
-            self.__is_click = True
+            self.__begin_tap_and_hold()
         else:
             # stop scrolling if the user clicks while scrolling
-            self.__is_click = False
             self.stop_scrolling()
-
-        self.__begin_tap_and_hold()
-        self.__is_dragging  = False
 
         
     def __on_button_released(self, px, py):
 
-        self.__pointer = (px, py)
         self.__is_button_pressed = False
-        self.__is_dragging = False
-        
+        self.__pointer = (px, py)
+
         self.__abort_tap_and_hold()
         
-        if (self.__is_click):
-            click_duration = (time.time() - self.__click_begin) * 1000
-            #print "click duration:", click_duration, "ms"
-            if (click_duration > _CLICK_THRESHOLD):
-                self.emit_event(self.EVENT_CLICKED, px, py)
+        click_duration = time.time() - self.__click_begin
+        if (_CLICK_THRESHOLD <= click_duration < _TAP_AND_HOLD_THRESHOLD):
+            self.emit_event(self.EVENT_CLICKED, px, py)
                 
         else:
             # start up impulse handler if not running
@@ -246,66 +228,44 @@ class KineticScroller(EventEmitter, Observable):
                 self.__impulse_handler()            
         #end if
 
-        self.__scrolling = False
-        self.__is_click = False
-
         
     def __on_drag(self, px, py):
 
         if (not self.__is_button_pressed or not self.__kinetic_enabled): return
 
-
+        begin_px, begin_py = self.__click_down_pos
         prev_px, prev_py = self.__pointer
 
         dx = px - prev_px
         dy = py - prev_py
+        
+        total_dx = px - begin_px
+        total_dy = py - begin_py
 
+        if ((dx, dy) == (0, 0)): return
 
         # begin dragging
-        
-        if (abs(dx) > self.__drag_threshold or \
-            abs(dy) > self.__drag_threshold):
-            print "ABORT TAP AND HOLD"
+        if (abs(total_dx) > self.__drag_threshold or \
+            abs(total_dy) > self.__drag_threshold):
+            self.__click_begin = 0
             self.__abort_tap_and_hold()
-            self.__is_click = False
 
-        if (not self.__is_dragging):
-            self.__is_dragging = True
-            self.__drag_pointer = (prev_px, prev_py)
-            self.__drag_begin = time.time()
-
-            self.__delta_s = (0, 0)
-            self.__scrolling = False
-
-        # handle dragging
-        elif (self.__is_dragging):
-            now = time.time()
-
-            if (self.__drag_pointer == (px, py)): return
-
-            prev_dsx, prev_dsy = self.__delta_s
-            dsx = self.__drag_pointer[0] - px
-            dsy = self.__drag_pointer[1] - py
-            self.__delta_s = (dsx, dsy)
-                
-            self.__delta_t = now - self.__impulse_point
-            if (self.__delta_t < 0.05): return
-            
-            self.__impulse_point = now
-            self.__drag_pointer = (px, py)
+        now = time.time()
+        self.__delta_s = (-dx, -dy)
+        self.__delta_t = now - self.__impulse_point
+        self.__impulse_point = now
+           
+        if (abs(dx) > 0.1 or abs(dx) > 0.1):
+            self.__child.move(self.__delta_s[0], self.__delta_s[1])
             self.__pointer = (px, py)
-            
-            if (abs(self.__delta_s[0]) > 0.1 or abs(self.__delta_s[1]) > 0.1):
                 
-                if (not self.__scrolling):
-                    self.emit_event(self.EVENT_SCROLLING_STARTED)
-                    self.__scrolling = True
-                    
-                self.__child.move(self.__delta_s[0], self.__delta_s[1])
+            if (not self.__scrolling_is_reported):
+                self.emit_event(self.EVENT_SCROLLING_STARTED)
+                self.__scrolling_is_reported = True
             
-            else:
-                self.emit_event(self.EVENT_SCROLLING_STOPPED)
-            #end if
-
+        else:
+            self.emit_event(self.EVENT_SCROLLING_STOPPED)
+            self.__scrolling_is_reported = False
+        
         #end if
 
