@@ -83,7 +83,9 @@ class PlaylistDevice(Device):
                                   u"There is already a list with name " \
                                   u"\xbb%s\xab." % name)
 
-            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, f)
+            else:
+                pl = self.__create_playlist(name)
+                self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, f)
         #end if
 
 
