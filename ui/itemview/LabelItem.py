@@ -17,7 +17,12 @@ class LabelItem(Item):
     
         self.__icon = icon
         self._invalidate_cached_pixmap()
-        
+
+
+    def get_icon(self):
+    
+        return self.__icon
+
         
     def set_font(self, font):
     
@@ -29,6 +34,11 @@ class LabelItem(Item):
     
         self.__label = text
         self._invalidate_cached_pixmap()
+        
+        
+    def get_text(self):
+    
+        return self.__label
         
         
     def render_at(self, cnv, x, y):

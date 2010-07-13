@@ -26,6 +26,9 @@ class Item(EventEmitter):
         self.__is_hilighted = False
         self.__is_marked = False
         self.__is_draggable = False
+        
+        # user-definable payload
+        self.__payload = None
 
         # caching accelerates list rendering. if we don't cache every item,
         # we can accelerate longer lists
@@ -54,6 +57,16 @@ class Item(EventEmitter):
     
         self.__size = (max(60, w), max(60, h))
         self._invalidate_cached_pixmap()
+
+
+    def set_payload(self, payload):
+    
+        self.__payload = payload
+
+
+    def get_payload(self):
+    
+        return self.__payload
 
 
     def set_hilighted(self, v):

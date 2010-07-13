@@ -1,13 +1,19 @@
+# List bullets: •
+# Arrow for menu paths: →
+
 BEGIN Getting Started With MediaBox
 This is a quick tour to get you started with MediaBox.
 
-In this tour you can
+The toolbar has three buttons:
 
- • tap on the left side of screen to go back to the previous page
+ • PREVIOUS
+     takes you back to the previous page
+
+ • CONTENTS
+     views the table of contents for skipping directly to a topic
  
- • tap on the right side of screen to advance to the next page
- 
- • tap on top of this window to leave the tour
+ • NEXT
+     takes you to the next page
 END
 
 
@@ -312,6 +318,10 @@ You can browse the SHOUTcast internet radio directory under
  [Music → SHOUTcast Radio]
  
 The SHOUTcast (http://www.shoutcast.com) directory lists thousands of internet radio stations of various genres.
+
+You can add custom stations under
+
+ [Music → Internet Radio]
 
 Tip: You can put stations you like on the shelf for quick access.
 END

@@ -16,7 +16,7 @@ _SCROLL_DELAY = 1.0 / _FPS
 _DRAG_THRESHOLD = 20
 
 # a click must last at least this long to be recognized as such
-_CLICK_THRESHOLD = 0
+_CLICK_THRESHOLD = 50
 
 # a tap-and-hold action must last at least this long to be recognized as such
 _TAP_AND_HOLD_THRESHOLD = 500
@@ -217,7 +217,7 @@ class KineticScroller(EventEmitter, Observable):
 
         self.__abort_tap_and_hold()
         
-        click_duration = time.time() - self.__click_begin
+        click_duration = (time.time() - self.__click_begin) * 1000
         if (_CLICK_THRESHOLD <= click_duration < _TAP_AND_HOLD_THRESHOLD):
             self.emit_event(self.EVENT_CLICKED, px, py)
                 

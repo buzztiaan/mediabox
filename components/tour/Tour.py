@@ -1,6 +1,11 @@
 from com import Configurator, msgs
+from ui.layout import Arrangement
+from ui import ImageButton
+from ui import Toolbar
 from ui import Pixmap
 from ui import Widget
+from ui.dialog import ListDialog
+from ui.itemview import LabelItem
 from theme import theme
 
 import gtk
@@ -8,6 +13,24 @@ import os
 
 
 _PATH = os.path.dirname(__file__)
+
+
+_LANDSCAPE_ARRANGEMENT = """
+  <arrangement>
+    <widget name="content" x1="0" y1="0" x2="-80" y2="100%"/>
+    <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
+  </arrangement>
+"""
+
+
+_PORTRAIT_ARRANGEMENT = """
+  <arrangement>
+    <widget name="content" x1="0" y1="0" x2="100%" y2="-80"/>
+    <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
+  </arrangement>
+"""
+
+
 
 class Tour(Configurator):
     """
@@ -30,9 +53,70 @@ class Tour(Configurator):
         Configurator.__init__(self)
 
         self.__tour_box = Widget()
-        self.__tour_box.connect_button_released(self.__on_click)
-        self.add(self.__tour_box)
+
+        # toolbar elements
+        self.__btn_toc = ImageButton(theme.mb_btn_play_1,
+                                     theme.mb_btn_play_2)
+        self.__btn_toc.connect_clicked(self.__on_btn_toc)
+
+        btn_previous = ImageButton(theme.mb_btn_previous_1,
+                                   theme.mb_btn_previous_2)
+        btn_previous.connect_clicked(self.__on_btn_previous)
+
+        btn_next = ImageButton(theme.mb_btn_next_1,
+                               theme.mb_btn_next_2)
+        btn_next.connect_clicked(self.__on_btn_next)
         
+        # toolbar
+        self.__toolbar = Toolbar()
+        self.__toolbar.set_toolbar(btn_previous,
+                                   self.__btn_toc,
+                                   btn_next)
+
+        # arrangement
+        self.__arr = Arrangement()
+        self.__arr.connect_resized(self.__update_layout)
+        self.__arr.add(self.__tour_box, "content")
+        self.__arr.add(self.__toolbar, "toolbar")
+        self.add(self.__arr)
+        
+
+    def __update_layout(self):
+    
+        w, h = self.get_size()
+        if (w < h):
+            self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
+
+        else:
+            self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
+
+
+    def __on_btn_previous(self):
+        
+        self.__go_back()
+
+
+    def __on_btn_toc(self):
+    
+        dlg = ListDialog("Table of Contents")
+        cnt = 0
+        for title, image, text in self.__pages:
+            item = LabelItem(title)
+            item.set_payload(cnt)
+            dlg.add_item(item)
+            cnt += 1
+        #end for
+        
+        dlg.run()
+        item = dlg.get_choice()
+        idx = item.get_payload()
+        self.__go_page(idx)
+
+
+    def __on_btn_next(self):
+        
+        self.__go_forward()
+
         
     def __on_click(self, px, py):
     
@@ -44,27 +128,37 @@ class Tour(Configurator):
             
             
     def __go_back(self):
-    
-        if (self.__current_page > 0):
-            self.__current_page -= 1
-            #self.render()
-            x, y = self.get_screen_pos()
-            w, h = self.get_size()
-            buf = Pixmap(None, w, h)
-            self.render_at(buf)
-            self.fx_slide_horizontal(buf, 0, 0, w, h, self.SLIDE_RIGHT)
+
+        self.__go_page(self.__current_page - 1)    
+
 
     def __go_forward(self):
     
-        if (self.__current_page < len(self.__pages) - 1):
-            self.__current_page += 1
-            #self.render()
-            x, y = self.get_screen_pos()
+        self.__go_page(self.__current_page + 1)
+
+
+    def __go_page(self, idx):
+
+        if (0 <= idx < len(self.__pages)):
+            if (idx < self.__current_page):
+                slide_mode = self.SLIDE_RIGHT
+            else:
+                slide_mode = self.SLIDE_LEFT
+                
+            self.__current_page = idx
+            
+            title, image, text = self.__pages[self.__current_page]
+            self.set_title(title)
+            
             w, h = self.get_size()
             buf = Pixmap(None, w, h)
             self.render_at(buf)
-            self.fx_slide_horizontal(buf, 0, 0, w, h, self.SLIDE_LEFT)
-    
+
+            box_x, box_y = self.__tour_box.get_screen_pos()
+            box_w, box_h = self.__tour_box.get_size()
+            self.fx_slide_horizontal(buf, box_x, box_y, box_w, box_h, slide_mode)
+        #end if
+
         
     def __parse_tour(self, data):
     
@@ -74,14 +168,20 @@ class Tour(Configurator):
         text = ""
         
         for line in data.splitlines():
-            if (line.startswith("BEGIN")):
+            if (line.startswith("#")):
+                continue
+
+            elif (line.startswith("BEGIN")):
                 title = line[6:].strip()
                 image = ""
                 text = ""
+
             elif (line.startswith("IMAGE ")):
                 image = line[6:].strip()
+
             elif (line.startswith("END")):
                 self.__pages.append((title, image, text))
+                
             else:
                 text += line + "\n"
         #end for
@@ -100,18 +200,19 @@ class Tour(Configurator):
             
     
     def __render_tour(self):
-    
+
+        self.__arr.render()    
         x, y = self.__tour_box.get_screen_pos()
         w, h = self.__tour_box.get_size()
         screen = self.__tour_box.get_screen()
         
         title, image, text = self.__pages[self.__current_page]
-        
+    
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         
         screen.draw_text("%d/%d" % (self.__current_page + 1, len(self.__pages)),
                          theme.font_mb_tiny,
-                         x + w - 42, y + h - 20,
+                         x + w - 42, y + 4,
                          theme.color_mb_text)
         
         if (w < h):
@@ -136,11 +237,6 @@ class Tour(Configurator):
                 text_x, text_y = 4, 4
                 text_w, text_h = w - 8, 320
         
-        if (title):
-            self.set_title(title)
-            #screen.draw_text(title, theme.font_mb_headline,
-            #                 title_x, title_y, "#ffffff")
-
         if (image):
             pbuf = gtk.gdk.pixbuf_new_from_file(os.path.join(_PATH, image))
             img_w, img_h = pbuf.get_width(), pbuf.get_height()
