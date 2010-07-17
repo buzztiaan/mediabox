@@ -55,8 +55,8 @@ class Tour(Configurator):
         self.__tour_box = Widget()
 
         # toolbar elements
-        self.__btn_toc = ImageButton(theme.mb_btn_play_1,
-                                     theme.mb_btn_play_2)
+        self.__btn_toc = ImageButton(theme.mb_btn_toc_1,
+                                     theme.mb_btn_toc_2)
         self.__btn_toc.connect_clicked(self.__on_btn_toc)
 
         btn_previous = ImageButton(theme.mb_btn_previous_1,
@@ -109,8 +109,9 @@ class Tour(Configurator):
         
         dlg.run()
         item = dlg.get_choice()
-        idx = item.get_payload()
-        self.__go_page(idx)
+        if (item):
+            idx = item.get_payload()
+            self.__go_page(idx)
 
 
     def __on_btn_next(self):
@@ -148,7 +149,7 @@ class Tour(Configurator):
             self.__current_page = idx
             
             title, image, text = self.__pages[self.__current_page]
-            self.set_title(title)
+            self.set_title(title.strip())
             
             w, h = self.get_size()
             buf = Pixmap(None, w, h)
@@ -166,13 +167,23 @@ class Tour(Configurator):
         title = ""
         image = ""
         text = ""
-        
+
+        section = 0
+        subsection = 0        
         for line in data.splitlines():
             if (line.startswith("#")):
                 continue
 
             elif (line.startswith("BEGIN")):
-                title = line[6:].strip()
+                section += 1
+                subsection = 0
+                title = "%d. %s" % (section, line[6:].strip())
+                image = ""
+                text = ""
+
+            elif (line.startswith("SUBBEGIN")):
+                subsection += 1
+                title = "%d.%d %s" % (section, subsection, line[9:].strip())
                 image = ""
                 text = ""
 
@@ -207,13 +218,15 @@ class Tour(Configurator):
         screen = self.__tour_box.get_screen()
         
         title, image, text = self.__pages[self.__current_page]
-    
+        self.set_title(title.strip())
+
+
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         
-        screen.draw_text("%d/%d" % (self.__current_page + 1, len(self.__pages)),
-                         theme.font_mb_tiny,
-                         x + w - 42, y + 4,
-                         theme.color_mb_text)
+        #screen.draw_text("%d/%d" % (self.__current_page + 1, len(self.__pages)),
+        #                 theme.font_mb_tiny,
+        #                 x + w - 42, y + 4,
+        #                 theme.color_mb_text)
         
         if (w < h):
             # portrait mode
@@ -221,10 +234,10 @@ class Tour(Configurator):
             image_x, image_y = 90, 4
             if (image):
                 text_x, text_y = 4, 320
-                text_w, text_h = w - 8, 320
+                text_w, text_h = w - 8, 240
             else:
                 text_x, text_y = 4, 4
-                text_w, text_h = w - 8, 620
+                text_w, text_h = w - 8, 540
 
         else:
             # landscape mode
@@ -232,10 +245,10 @@ class Tour(Configurator):
             image_x, image_y = 40, 4
             if (image):
                 text_x, text_y = 380, 4
-                text_w, text_h = 400, 320
+                text_w, text_h = 320, 320
             else:
                 text_x, text_y = 4, 4
-                text_w, text_h = w - 8, 320
+                text_w, text_h = w - 88, 320
         
         if (image):
             pbuf = gtk.gdk.pixbuf_new_from_file(os.path.join(_PATH, image))

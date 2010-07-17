@@ -38,7 +38,7 @@ class ListDialog(Window):
 
     def __on_close(self):
     
-        self.destroy()
+        self.set_visible(False)
 
 
     def __on_click_item(self, item):
