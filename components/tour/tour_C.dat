@@ -45,9 +45,9 @@ END
 SUBBEGIN Selecting Items
 Depending on your device, you select an item by either
 
- • tapping on an item once to hilight it, again to select it (N800 and N810)
+ • tapping on an item once to hilight it, and again to select it (N800 and N810)
  
- • or tapping on an item once select it (N900)
+ • or tapping on an item once to select it (N900)
 
 Tap and hold on an item to open the popup menu of that item.
 END
@@ -113,7 +113,9 @@ END
 SUBBEGIN Fullscreen Mode
 The image viewer and video player have a fullscreen mode.
 
-Double-tap on the screen to go fullscreen, or back. In the video player, it's also possible to tap once.
+Double-tap on the screen to go fullscreen, or back.
+
+In the video player, it's also possible to go fullscreen by tapping once.
 END
 
 
