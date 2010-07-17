@@ -295,8 +295,9 @@ class Window(Widget):
 
     def __update_window_background(self):
         
-        self.__window.modify_bg(gtk.STATE_NORMAL,
-                          gtk.gdk.color_parse(str(theme.color_mb_background)))
+        #self.__window.modify_bg(gtk.STATE_NORMAL,
+        #                  gtk.gdk.color_parse(str(theme.color_mb_background)))
+        pass
 
 
     def __on_configure(self, src, ev):

@@ -550,9 +550,10 @@ class StorageBrowser(ThumbableGridView):
             #end if
 
             # don't block UI while loading non-local folders
-            #import gtk
-            #while (gtk.events_pending()):
-            #    gtk.main_iteration(False)
+            if (time.time() > open_time + 1):
+                import gtk
+                while (gtk.events_pending()):
+                    gtk.main_iteration(False)
 
             if (not f):
                 # last item has been reached
@@ -565,6 +566,7 @@ class StorageBrowser(ThumbableGridView):
         cwd = self.get_current_folder()
         num_of_items = len(self.get_files())
         self.__token = (self.__token + 1) % 100
+        open_time = time.time()
         cwd.get_contents(num_of_items, 0, on_child, self.__token, cwd, [])
         
         

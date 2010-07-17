@@ -20,13 +20,16 @@ END
 
 BEGIN The Navigator
 IMAGE illus/shelf.jpg
-The navigator window lets you browse your media by tapping on icons.
+You can browse all of your media in the navigator.
+
+It gives you access to indexed media, filesystems, media shares, and whatever
+MediaBox supports through additional plugins.
 END
 
 
 SUBBEGIN Navigation Toolbar
 IMAGE illus/navigator.jpg
-The navigator toolbar has three buttons:
+The toolbar has three buttons:
 
  • HOME
     takes you to the start folder
@@ -40,15 +43,11 @@ END
 
 
 SUBBEGIN Selecting Items
-On Nokia N800 and N810:
+Depending on your device, you select an item by either
 
-Tap on an item once to highlight it, and tap again on the item to select it.
-The double-tapping approach was chosen to go well with these device's touch screen.
-
-On other devices:
-
-Tap on an item once to select it. The single-tapping approach goes well with
-highly responsive touch screens.
+ • tapping on an item once to hilight it, again to select it (N800 and N810)
+ 
+ • or tapping on an item once select it (N900)
 
 Tap and hold on an item to open the popup menu of that item.
 END
@@ -62,6 +61,7 @@ The start folder in the navigator is called the shelf. This is where you have ac
  • the filesystem and UPnP media shares
  • playlists
  • MediaBox settings
+ • some predefined shortcuts
  • ... and your shortcuts
 
 END
@@ -113,7 +113,7 @@ END
 SUBBEGIN Fullscreen Mode
 The image viewer and video player have a fullscreen mode.
 
-Double-tap on the screen to go fullscreen, or back.
+Double-tap on the screen to go fullscreen, or back. In the video player, it's also possible to tap once.
 END
 
 
@@ -128,7 +128,7 @@ END
 
 
 SUBBEGIN Media Bookmarks
-Pressing on the star button next to the progress bar in the audio and video players bookmarks the current position, marking it by a star on the progress bar.
+Tapping on the star button next to the progress bar in the audio and video players bookmarks the current position, marking it by a star on the progress bar.
 
 Click on a star bookmark on the progress bar to jump to that position.
 
@@ -263,6 +263,9 @@ END
 
 
 BEGIN UPnP/DLNA Devices
+MediaBox supports UPnP/DLNA media shares and media renderers.
+
+Not all UPnP media shares and media renderers may be compatible with MediaBox.
 END
 
 
@@ -274,8 +277,6 @@ UPnP media shares in your network appear in
 You can browse UPnP shares normally like the local filesystem.
 
 MediaBox supports playing music, videos, and viewing images from UPnP media shares.
-
-MediaBox may not be compatible with all UPnP media shares.
 END
 
 
@@ -300,8 +301,6 @@ In the media player tap on the window title to open the application menu. Choose
  → Select Media Renderer
  
 from there and select your media renderer device from a list.
-
-MediaBox may not be compatible with all UPnP media renderers.
 END
 
 
@@ -315,15 +314,9 @@ END
 
 
 BEGIN Playing Web Content
-END
+MediaBox supports accessing web content such as internet radio or video portals.
 
-
-SUBBEGIN Internet Radio
-You can add custom stations under
-
- [Music → Internet Radio]
-
-Tip: You can put stations you like on the shelf for quick access.
+The range of supported services can be extended through plugins.
 END
 
 
@@ -333,6 +326,16 @@ You can browse the SHOUTcast internet radio directory under
  [Music → SHOUTcast Radio]
  
 The SHOUTcast (http://www.shoutcast.com) directory lists thousands of internet radio stations of various genres.
+
+Tip: You can put stations you like on the shelf for quick access.
+END
+
+
+SUBBEGIN Internet Radio
+You can add custom stations under
+
+ [Music → Internet Radio]
+
 END
 
 
@@ -343,7 +346,7 @@ You can browse clips from the YouTube video sharing service under
 
 Some videos are available in different formats and qualities. If there is more than one compatible format available, MediaBox will let you choose a format.
 
-Some content from the YouTube service or the service in general may not be accessible in your country, either for political reasons or interests of the content industry.
+Some content from the YouTube service or the service in general may not be accessible in your country, either for political reasons or interests of the content industry; e.g. lots of music is currently blocked in Germany.
 END
 
 
@@ -378,7 +381,7 @@ from the application menu to configure it.
 
 MediaBox sends song title information via RDS text. 
 
-RDS song information is limited to 64 characters and not supported by many RDS-capable FM radios.
+RDS text is limited to 64 characters and not supported by many RDS-capable FM radios.
 END
 
 
@@ -407,9 +410,9 @@ END
 BEGIN Indexing Media
 MediaBox maintains an index over your media files.
 
-This lets you, for instance, browse your music by artist, or gives you quick access to all your videos without you having to locate them in the filesystem.
+This lets you, for instance, browse your music by artist, or gives you quick access to all your videos without having to locate them in the filesystem.
 
-Files that no longer exist get automatically removed from the index when you start MediaBox.
+Files that no longer exist get automatically removed from the index each time you start MediaBox.
 END
 
 
