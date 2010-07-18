@@ -1,5 +1,6 @@
 from ui.itemview.Item import Item
 from ui import pixbuftools
+from utils import logging
 from theme import theme
 
 import gtk
@@ -248,7 +249,9 @@ class MediaItem(Item):
                     icon = gtk.gdk.pixbuf_new_from_file(path)
 
             except:
-                import traceback; traceback.print_exc()
+                #import traceback; traceback.print_exc()
+                logging.error("could not load thumbnail of (%s): %s",
+                              self.__label, path)
                 icon = None
 
         else:

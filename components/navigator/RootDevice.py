@@ -104,7 +104,7 @@ class RootDevice(Device):
         self.__favorites = self.call_service(msgs.BOOKMARK_SVC_LIST, [])
         self.__favorites.sort(lambda a,b:cmp((a.device_id, a.name),
                                              (b.device_id, b.name)))
-        print "shelfed items", self.__favorites
+        #print "shelfed items", self.__favorites
         return self.__favorites
 
 
@@ -159,7 +159,6 @@ class RootDevice(Device):
             if (cnt < begin_at): continue
             if (end_at > 0 and cnt > end_at): break
             
-            print "ITEM", f
             cb(f, *args)
         #end for
         cb(None, *args)       
@@ -186,7 +185,7 @@ class RootDevice(Device):
     
         options = []
         # allow putting storage devices on the shelf
-        print f.path
+        #print f.path
         if (f.path == "/" and not f.bookmarked and folder.path != "/"):
             options.append((None, "Add to Shelf",
                            self.__on_add_to_shelf))

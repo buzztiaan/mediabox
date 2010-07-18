@@ -52,7 +52,7 @@ class ThumbnailService(Component):
         # the file object may state the desired thumbnailer
         if (f.thumbnailer):
             handlers = [ self.__thumbnailers.get(f.thumbnailer) ]
-            print handlers, self.__thumbnailers
+            #print handlers, self.__thumbnailers
             
         if (not handlers):
             mimetype = f.mimetype
@@ -82,7 +82,7 @@ class ThumbnailService(Component):
         # the file object may state the desired thumbnailer
         if (f.thumbnailer):
             handlers = [ self.__thumbnailers.get(f.thumbnailer) ]
-            print handlers, f
+            #print handlers, f
 
         if (not handlers):
             mimetype = f.mimetype

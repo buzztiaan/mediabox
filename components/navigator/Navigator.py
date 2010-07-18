@@ -283,7 +283,7 @@ class Navigator(Dialog):
         item.set_icon(thumbpath)
         
         if (not is_final):
-            print "SCHEDULING THUMBNAIL", c
+            #print "SCHEDULING THUMBNAIL", c
             self.__tn_scheduler.add(item, c)
 
 
@@ -325,17 +325,17 @@ class Navigator(Dialog):
     def __on_load_thumbnail(self, item, f):
 
         def on_loaded(thumbpath):
-            print "LOADED THUMBNAIL", thumbpath
+            #print "LOADED THUMBNAIL", thumbpath
             if (thumbpath):
                 self.__update_thumbnail(item, thumbpath)
             
             #if (self.is_visible()):
             self.__tn_scheduler.resume()
-            print "RESUMING SCHEDULER"
+            #print "RESUMING SCHEDULER"
     
         # load thumbnail
         self.__tn_scheduler.halt()
-        print "HALTING SCHEDULER"
+        #print "HALTING SCHEDULER"
         self.call_service(msgs.THUMBNAIL_SVC_LOAD_THUMBNAIL, f, on_loaded)
         
 

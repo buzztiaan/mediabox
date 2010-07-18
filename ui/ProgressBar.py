@@ -215,7 +215,7 @@ class ProgressBar(Widget):
     
         w, h = self.get_size()
         
-        progress_width = w * self.__progress
+        progress_width = int(w * self.__progress)
         if (self.__progress_pmap):
             pmap.copy_pixmap(self.__progress_pmap, 0, 0, 0, 0,
                              progress_width, h)
@@ -226,7 +226,7 @@ class ProgressBar(Widget):
     
         w, h = self.get_size()
         
-        amount_width = w * self.__amount
+        amount_width = int(w * self.__amount)
         if (1 < amount_width < w):
             height = 32
             y = (h - height) / 2

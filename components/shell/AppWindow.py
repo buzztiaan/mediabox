@@ -212,7 +212,7 @@ class AppWindow(Component, Window):
         Shows the dialog with the given name.
         """
 
-        print name, self.__dialogs
+        #print name, self.__dialogs
         dialogs = [ d for d in self.__dialogs if repr(d) == name ]
         if (dialogs):
             dlg = dialogs[0]
@@ -285,7 +285,7 @@ class AppWindow(Component, Window):
         if (not handlers):
             return
 
-        print "LOAD", f, mimetype, handlers
+        #print "LOAD", f, mimetype, handlers
 
         new_player = handlers[0]
         if (new_player != self.__current_player):
