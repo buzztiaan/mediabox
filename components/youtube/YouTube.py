@@ -104,12 +104,16 @@ class YouTube(Device):
     def __get_flv(self, ident):
 
         data = urllib.urlopen(_VIDEO_WATCH % ident).read()
+        #data = open("/home/mgrimme/Desktop/watch.html").read()
         # normalize
         data = "".join(data.split())
         
         t = self.__extract_t(data)
+        t = t.replace("%3D", "=")
+        print "found T:", t
         formats = self.__find_formats(data)
         fullid = "%s&t=%s" % (ident, t)
+        print "CALLING:", _VIDEO_FLV % fullid
         return (_VIDEO_FLV % fullid, formats)
         
 
@@ -136,13 +140,25 @@ class YouTube(Device):
         
     def __find_formats(self, html):
     
-        pos = html.find("\",\"fmt_map\":\"")
+        pos = html.find("\",\"fmt_url_map\":\"")
         if (pos != -1):
-            pos2 = html.find("\"", pos + 13)
-            fmt_map = urllib.unquote(html[pos + 13:pos2])
-            
-            print "Formats:", [ part.split("/")[0] for part in fmt_map.split(",") ]
-            return [ int(part.split("/")[0]) for part in fmt_map.split(",") ]
+            pos2 = html.find("\"", pos + 17)
+            fmt_map = urllib.unquote(html[pos + 17:pos2])
+            print fmt_map
+            parts = fmt_map.split("|")
+            formats = []
+            key = parts[0]
+            value = ""
+            for p in parts[1:]:
+                idx = p.rfind(",")
+                value = p[:idx].replace("\\/", "/")
+                formats.append((int(key), value))
+                key = p[idx + 1:]
+            #end for
+            print formats
+                
+            #print "Formats:", [ part.split("|")[0] for part in fmt_map.split(",") ]
+            return formats #[ int(part.split("|")[0]) for part in fmt_map.split(",") ]
 
         return []
       
@@ -570,25 +586,34 @@ class YouTube(Device):
             logging.error("could not retrieve video\n%s", logging.stacktrace())
             return ""
 
-        if (not 18 in fmts): fmts.append(18)
-        fmts.sort()
+        #if (not 18 in fmts): fmts.append(18)
+        fmts.sort(lambda a,b:cmp(a[0], b[0]))
+
+        f_ids = [ f[0] for f in fmts ]
 
         # filter out incompatible formats
         if (platforms.MAEMO5):
-            fmts = [ fmt for fmt in fmts if fmt in _N900_FORMAT_WHITELIST ]
+            f_ids = [ f for f in f_ids if f in _N900_FORMAT_WHITELIST ]
         elif (platforms.MAEMO4):
-            fmts = [ fmt for fmt in fmts if fmt in _N8x0_FORMAT_WHITELIST ]
+            f_ids = [ f for f in f_ids if f in _N8x0_FORMAT_WHITELIST ]
             
         # retrieve high-quality version, if desired
-        if (len(fmts) > 1):
-            qtype = self.__ask_for_quality(fmts)
-        elif (len(fmts) == 1):
-            qtype = fmts[0]
+        if (len(f_ids) > 1):
+            qtype = self.__ask_for_quality(f_ids)
+        elif (len(f_ids) == 1):
+            qtype = f_ids[0]
         else:
-            qtype = 0
+            qtype = 5
 
         print "Requested Video Quality:", qtype
 
+        for f_id, url in fmts:
+            if (f_id == qtype):
+                return url
+        #end for
+        return ""
+
+        """
         if (qtype in fmts):
             flv = flv + "&fmt=%d" % qtype
             ext = "." + formats.get_container(qtype)
@@ -597,8 +622,9 @@ class YouTube(Device):
             
         logging.info("found FLV: %s", flv)
 
-        return flv + "&ext=" + ext
-
+        return flv #+ "&ext=" + ext
+        """
+        
 
     def get_resource(self, f):
 
