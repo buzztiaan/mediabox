@@ -104,7 +104,6 @@ class YouTube(Device):
     def __get_flv(self, ident):
 
         data = urllib.urlopen(_VIDEO_WATCH % ident).read()
-        #data = open("/home/mgrimme/Desktop/watch.html").read()
         # normalize
         data = "".join(data.split())
         
@@ -113,7 +112,6 @@ class YouTube(Device):
         print "found T:", t
         formats = self.__find_formats(data)
         fullid = "%s&t=%s" % (ident, t)
-        print "CALLING:", _VIDEO_FLV % fullid
         return (_VIDEO_FLV % fullid, formats)
         
 
