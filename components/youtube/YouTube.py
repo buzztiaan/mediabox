@@ -102,19 +102,25 @@ class YouTube(Device):
 
 
     def __get_flv(self, ident):
+        """
+        Returns a dictionary of format IDs and video URLs for a given video
+        identified by its ID.
+        """
 
         data = urllib.urlopen(_VIDEO_WATCH % ident).read()
         # normalize
         data = "".join(data.split())
         
-        t = self.__extract_t(data)
-        t = t.replace("%3D", "=")
-        print "found T:", t
+        #t = self.__extract_t(data)
+        #t = t.replace("%3D", "=")
+        #print "found T:", t
+        #fullid = "%s&t=%s" % (ident, t)
+        #return (_VIDEO_FLV % fullid, formats)
         formats = self.__find_formats(data)
-        fullid = "%s&t=%s" % (ident, t)
-        return (_VIDEO_FLV % fullid, formats)
+        return formats
         
 
+    """
     def __extract_t(self, html):
     
         #open("/tmp/yt.html", "w").write(html)
@@ -134,31 +140,32 @@ class YouTube(Device):
             return t
         
         return ""
-        
+    """
         
     def __find_formats(self, html):
+        """
+        Returns a dictionary with the available formats and video URLs.
+        """
     
+        formats = {}
         pos = html.find("\",\"fmt_url_map\":\"")
         if (pos != -1):
             pos2 = html.find("\"", pos + 17)
-            fmt_map = urllib.unquote(html[pos + 17:pos2])
-            print fmt_map
+            fmt_map = urllib.unquote(html[pos + 17:pos2]) + ","
+            #print fmt_map
+
             parts = fmt_map.split("|")
-            formats = []
             key = parts[0]
-            value = ""
             for p in parts[1:]:
                 idx = p.rfind(",")
                 value = p[:idx].replace("\\/", "/")
-                formats.append((int(key), value))
+                formats[int(key)] = value
                 key = p[idx + 1:]
             #end for
-            print formats
-                
-            #print "Formats:", [ part.split("|")[0] for part in fmt_map.split(",") ]
-            return formats #[ int(part.split("|")[0]) for part in fmt_map.split(",") ]
+        #end if
 
-        return []
+        print "Formats:", formats
+        return formats
       
         
     def get_prefix(self):
@@ -579,15 +586,14 @@ class YouTube(Device):
             return ("", "")
         
         try:
-            flv, fmts = self.__get_flv(f.resource)
+            fmts = self.__get_flv(f.resource)
         except:
             logging.error("could not retrieve video\n%s", logging.stacktrace())
             return ""
 
         #if (not 18 in fmts): fmts.append(18)
-        fmts.sort(lambda a,b:cmp(a[0], b[0]))
-
-        f_ids = [ f[0] for f in fmts ]
+        f_ids = fmts.keys()
+        f_ids.sort()
 
         # filter out incompatible formats
         if (platforms.MAEMO5):
@@ -605,28 +611,14 @@ class YouTube(Device):
 
         print "Requested Video Quality:", qtype
 
-        for f_id, url in fmts:
-            if (f_id == qtype):
-                return url
-        #end for
-        return ""
-
-        """
-        if (qtype in fmts):
-            flv = flv + "&fmt=%d" % qtype
-            ext = "." + formats.get_container(qtype)
-        else:
-            ext = ".flv"
-            
+        flv = fmts[qtype]
+        ext = "." + formats.get_container(qtype)
         logging.info("found FLV: %s", flv)
-
-        return flv #+ "&ext=" + ext
-        """
+        return flv + "&ext=" + ext
         
 
     def get_resource(self, f):
 
-        #"""    
         def on_dload(d, a, t):
             if (d):
                 self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
@@ -638,24 +630,24 @@ class YouTube(Device):
             else:
                 self.emit_message(msgs.MEDIA_EV_DOWNLOAD_PROGRESS, f, a, t)
             #end if
-        #"""
 
         url = self.__get_video(f)
 
         if (self.__flv_downloader):
             self.__flv_downloader.cancel()
 
+        # the mplayer backend on Maemo4 doesn't work well with directly
+        # taking an URL from YouTube for some reason
         if (platforms.MAEMO4):
             cache_folder = config.get_cache_folder()
             try:
                 if (not os.path.exists(cache_folder)):
                     os.mkdir(cache_folder)
             except:
+                import traceback; traceback.print_exc()
                 return ""
             flv_path = os.path.join(cache_folder, ".tube.flv")
 
-            # the mplayer backend on Maemo5 doesn't work well with directly
-            # taking an URL from YouTube for some reason
             self.__flv_downloader = FileDownloader(url, flv_path, on_dload)
         
             # we don't give the downloaded file directly to the player because
@@ -665,9 +657,10 @@ class YouTube(Device):
             # more if the download rate is too low
             self.__fileserver.allow(flv_path, "/" + f.resource + ".flv")
         
-            return self.__fileserver.get_location() + "/" + f.resource + ".flv"
-        else:
-            return url
+            url = self.__fileserver.get_location() + "/" + f.resource + ".flv"
+        #end if
+        
+        return url
 
 
     def __ask_for_quality(self, fmts):

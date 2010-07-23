@@ -10,4 +10,7 @@
 34, flv, Type 34 - H.264/AAC - Standard
 35, flv, Type 35 - H.264/AAC - High
 37, mp4, Type 37 - H.264/AAC - 1080p
+38, video, Type 38 - Unknown Format
+43, webm, Type 43 - webm
+45, webm, Type 45 - webm
 

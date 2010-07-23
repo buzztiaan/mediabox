@@ -1,3 +1,17 @@
+mediabox (2010.07.23) unstable; urgency=low
+
+  Fixed bug with YouTube playback
+
+  Asynchronous HTTP downloader is now threaded
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Fri, 23 Jul 2010 18:30:00 +0200
+
+mediabox (2010.07.22) unstable; urgency=low
+
+  YouTube videos play again after YouTube changed their site
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 22 Jul 2010 21:15:00 +0200
+
 mediabox (2010.07.17) unstable; urgency=low
 
   Enabled playback position bookmarking from 0.96.x again

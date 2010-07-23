@@ -2,83 +2,131 @@
 HTTP downloader.
 """
 
-
-from HTTPConnection import HTTPConnection, parse_addr
+from utils import network
 from utils import logging
 
+from Queue import Queue
+import threading
+import httplib
 import gtk
 import gobject
 import time
 
 
-class Downloader(HTTPConnection):
+_CHUNK_SIZE = 65536
+
+
+class Downloader(object):
     """
     Class for handling asynchronous GET operations.
     
     The user callback is invoked repeatedly as data comes in.
     The transmission is finished when data = "" is passed to the callback.
+    The transmission aborted when data = None is passed to the callback.
     """
     
     def __init__(self, url, cb, *args):
     
+        # queue of (data, amount, total) tuples
+        self.__queue = Queue()
+        
+        self.__is_cancelled = False
+        self.__is_finished = False
+        
+        self.__url = url
+        self.__callback = cb
+        self.__args = args
+    
         # location history for avoiding redirect loops
         self.__location_history = []
+
+        self.__open(url)
+
+
+    def cancel(self):
     
-        host, port, path = parse_addr(url)
-        HTTPConnection.__init__(self, host, port)
-        self.putrequest("GET", path, "HTTP/1.1")
-        self.putheader("Host", port and "%s:%d" % (host, port) or host)
-        self.putheader("User-Agent", "MediaBox")
-        #self.putheader("Connection", "close")
-        self.endheaders()
-        self.send("", self.__on_receive_data, cb, args)
+        self.__is_cancelled = True
 
 
+    def wait_until_closed(self):
+        
+        while (not self.__is_finished):
+            gtk.main_iteration(False)
 
-    def __on_receive_data(self, resp, cb, args):
-    
-        if (not resp):
-            cb(None, 0, 0, *args)
-            return
+
+    def __open(self, url):
             
-        status = resp.get_status()
+        t = threading.Thread(target = self.__request_data, args = [url])
+        t.setDaemon(True)
+        t.start()
+        
+
+    def __request_data(self, url):
+    
+        host, port, path = network.parse_addr(url)
+        try:
+            conn = httplib.HTTPConnection(host, port or 80)
+            #print host, port, path
+            conn.putrequest("GET", path)
+            conn.putheader("User-Agent", "MediaBox")
+            conn.putheader("Connection", "close")
+            conn.endheaders()
+            resp = conn.getresponse()
+        except:
+            import traceback; traceback.print_exc()
+            print "on", self.__url
+            self.__queue_response(None, 0, 0)
+            self.__is_finished = True
+            return
+
+        status = resp.status
+        print self.__url, "STATUS", status, resp.reason
         
         if (status == 200):
-            amount, total = resp.get_amount()
-            data = resp.read()
-            if (data):
-                #print data
-                cb(data, amount, total, *args)
+            total = int(resp.getheader("Content-Length", "-1"))
+            amount = 0
             
-            if (not data or resp.finished()):
-                cb("", amount, total, *args)
+            while (not resp.isclosed()):
+                data = resp.read(_CHUNK_SIZE)
+                amount += len(data)
+                self.__queue_response(data, amount, total)
+                
+                if (not data or self.__is_cancelled):
+                    resp.close()
+                
+            #end while
+            self.__queue_response("", amount, total)
+            self.__is_finished = True
 
         elif (300 <= status < 310):
-            location = resp.getheaders()["LOCATION"]
+            location = resp.getheader("Location")
             if (not location in self.__location_history):
                 self.__location_history.append(location)
-                host, port, path = parse_addr(location)
                 logging.debug("HTTP redirect to %s" % location)
-                self.redirect(host, port)
-                self.putrequest("GET", path, "HTTP/1.1")
-                self.putheader("Host", port and "%s:%d" % (host, port) or host)
-                self.putheader("User-Agent", "MediaBox")
-                #self.putheader("Connection", "close")
-                self.endheaders()
-                self.send("", self.__on_receive_data, cb, args)
+                gobject.timeout_add(0, self.__open, location)
             else:
                 self.__location_history.append(location)
                 logging.error("redirect loop detected:\n%s",
                               "\n-> ".join(self.__location_history))
-                cb(None, 0, 0, *args)
-                return
+                self.__queue_response(None, 0, 0)
+                self.__is_finished = True
     
         elif (400 <= status < 510):
-            cb(None, 0, 0, *args)
-            return
+            self.__queue_response(None, 0, 0)
+            self.__is_finished = True
+            
 
-        # try to avoid starvation of GTK for high bandwidths
-        then = time.time() + 0.1
-        while (gtk.events_pending() and time.time() < then):
-            gtk.main_iteration(False)
+    def __queue_response(self, data, amount, total):
+    
+        self.__queue.put((data, amount, total))
+        gobject.timeout_add(0, self.__send_response)
+        
+        
+    def __send_response(self):
+    
+        data, amount, total = self.__queue.get_nowait()
+        try:
+            self.__callback(data, amount, total, *self.__args)
+        except:
+            pass
 
