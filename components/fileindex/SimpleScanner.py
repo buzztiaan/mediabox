@@ -41,7 +41,6 @@ class SimpleScanner(Component):
 
         paths = []
         for dirpath, dirnames, files in os.walk(scanpath):
-            #print "scanning", dirpath
             for f in files:
                 path = os.path.join(dirpath, f)
                 paths.append(path)

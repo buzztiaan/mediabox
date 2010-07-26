@@ -122,6 +122,7 @@ class IRadioDevice(Device):
                 self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
                 break
             #end if
+            idx += 1
         #end for 
         
 

@@ -79,12 +79,12 @@ class VideoStorage(Device):
     def get_contents(self, folder, begin_at, end_at, cb, *args):
 
         def folder_cmp(a, b):
-            if (a == "All Videos"):
+            if (a.name == "All Videos"):
                 return -1
-            if (b == "All Videos"):
+            if (b.name == "All Videos"):
                 return 1
             else:
-                return cmp(a, b)
+                return cmp(a.name, b.name)
 
 
         parts = [ p for p in folder.path.split("/") if p ]
@@ -120,7 +120,7 @@ class VideoStorage(Device):
             #end if
         #end if
             
-        items.sort()
+        items.sort(folder_cmp)
         
         cnt = -1
         for item in items:

@@ -28,7 +28,12 @@ _YT = "http://www.youtube.com"
 
 _VIDEO_SEARCH = "http://gdata.youtube.com/feeds/api/videos/" \
                 "?start-index=%d&max-results=%d&vq=%s"
-_VIDEO_WATCH = _YT + "/watch?v=%s"
+
+if (platforms.MAEMO5):
+    _VIDEO_WATCH = _YT + "/watch?v=%s&fmt=18"
+else:
+    _VIDEO_WATCH = _YT + "/watch?v=%s"
+
 _VIDEO_FLV = _YT + "/get_video?video_id=%s"
 _STD_FEEDS = "http://gdata.youtube.com/feeds/standardfeeds/"
 
@@ -701,4 +706,4 @@ class YouTube(Device):
             actions.append((None, "Download", self.__on_download))
 
         return actions
-
+_VIDEO_WATCH = _YT + "/watch?v=%s&fmt=18"

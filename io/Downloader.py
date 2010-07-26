@@ -76,7 +76,6 @@ class Downloader(object):
             import traceback; traceback.print_exc()
             print "on", self.__url
             self.__queue_response(None, 0, 0)
-            self.__is_finished = True
             return
 
         status = resp.status
@@ -87,7 +86,16 @@ class Downloader(object):
             amount = 0
             
             while (not resp.isclosed()):
-                data = resp.read(_CHUNK_SIZE)
+                data = ""
+                while (len(data) < _CHUNK_SIZE):
+                    d = resp.read(1024)
+                    if (not d):
+                        break
+                    else:
+                        data += d
+                    time.sleep(0.001)
+                #end while
+                #data = resp.read(_CHUNK_SIZE)
                 amount += len(data)
                 self.__queue_response(data, amount, total)
                 
@@ -95,8 +103,8 @@ class Downloader(object):
                     resp.close()
                 
             #end while
+            print "CLOSED", self.__url, amount, "read"
             self.__queue_response("", amount, total)
-            self.__is_finished = True
 
         elif (300 <= status < 310):
             location = resp.getheader("Location")
@@ -109,17 +117,15 @@ class Downloader(object):
                 logging.error("redirect loop detected:\n%s",
                               "\n-> ".join(self.__location_history))
                 self.__queue_response(None, 0, 0)
-                self.__is_finished = True
     
         elif (400 <= status < 510):
             self.__queue_response(None, 0, 0)
-            self.__is_finished = True
             
 
     def __queue_response(self, data, amount, total):
     
         self.__queue.put((data, amount, total))
-        gobject.timeout_add(0, self.__send_response)
+        gobject.idle_add(self.__send_response)
         
         
     def __send_response(self):
@@ -129,4 +135,7 @@ class Downloader(object):
             self.__callback(data, amount, total, *self.__args)
         except:
             pass
+
+        if (not data):
+            self.__is_finished = True
 

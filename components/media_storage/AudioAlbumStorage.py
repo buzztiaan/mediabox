@@ -65,6 +65,11 @@ class AudioAlbumStorage(Device):
         #f.info = artist
         f.mimetype = "application/x-music-folder"
         f.folder_flags = f.ITEMS_ENQUEUEABLE
+        f.comparable = (ffolder, album)
+
+        if (album == "All Tracks"):
+            f.icon = theme.mb_folder_audio.get_path()
+
 
         return f
         
@@ -88,7 +93,11 @@ class AudioAlbumStorage(Device):
             trackno = int(trackno)
         except:
             trackno = 0
-        f.index = trackno
+
+        if (album == "All Tracks"):
+            f.comparable = f.name.upper()
+        else:
+            f.comparable = trackno
         
         return f       
 
@@ -128,7 +137,15 @@ class AudioAlbumStorage(Device):
 
    
     def get_contents(self, folder, begin_at, end_at, cb, *args):
-    
+
+        def file_cmp(a, b):
+            if (a.name == "All Tracks"):
+                return -1
+            if (b.name == "All Tracks"):
+                return 1
+            else:
+                return cmp(a.comparable, b.comparable)
+
         path = folder.path
 
         if (not path.endswith("/")): path += "/"
@@ -137,7 +154,6 @@ class AudioAlbumStorage(Device):
         
         items = []
         
-        alphabetical = False
         if (len_parts == 0):
             if (self.__cache):
                 items += self.__cache
@@ -145,6 +161,7 @@ class AudioAlbumStorage(Device):
                 # list albums
                 res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                   "File.Folder, Audio.Album of File.Type='audio'")
+                res.add(("All Artists", "All Tracks"))
                 for ffolder, album in res:
                     if (not album): continue
                     f = self.__make_album(ffolder, album)
@@ -160,11 +177,14 @@ class AudioAlbumStorage(Device):
             #if (album == "All Tracks"):
             #    query = "File.Path of and File.Type='audio' File.Folder='%s'"
             #    query_args = (artist,)
-            #    alphabetical = True
             
-            query = "File.Path of and and File.Type='audio' " \
-                    "File.Folder='%s' Audio.Album='%s'"
-            query_args = (ffolder, album)
+            if (album == "All Tracks"):
+                query = "File.Path of File.Type='audio'"
+                query_args = ()
+            else:
+                query = "File.Path of and and File.Type='audio' " \
+                        "File.Folder='%s' Audio.Album='%s'"
+                query_args = (ffolder, album)
             
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                     query, *query_args)
@@ -175,10 +195,7 @@ class AudioAlbumStorage(Device):
             
         #end if
         
-        if (alphabetical):
-            items.sort(lambda a,b:cmp(a.name, b.name))
-        else:
-            items.sort()
+        items.sort(file_cmp)
 
         cnt = -1
         for item in items:

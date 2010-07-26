@@ -80,12 +80,12 @@ class ImageStorage(Device):
     def get_contents(self, folder, begin_at, end_at, cb, *args):
 
         def folder_cmp(a, b):
-            if (a == "All Pictures"):
+            if (a.name == "All Pictures"):
                 return -1
-            if (b == "All Pictures"):
+            if (b.name == "All Pictures"):
                 return 1
             else:
-                return cmp(a, b)
+                return cmp(a.name, b.name)
 
 
         parts = [ p for p in folder.path.split("/") if p ]
@@ -121,7 +121,7 @@ class ImageStorage(Device):
             #end if
         #end if
 
-        items.sort()
+        items.sort(folder_cmp)
         
         cnt = -1
         for item in items:

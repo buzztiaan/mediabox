@@ -108,6 +108,12 @@ class File(object):
         @since: 2010.06.18
         """
 
+        self.comparable = None
+        """
+        property that can be used for sorting files
+        @since: 2010.07.26
+        """
+
         self.index = 0
         """
         index number that can be used for sorting

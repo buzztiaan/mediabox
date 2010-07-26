@@ -78,12 +78,12 @@ class AudioStorage(Device):
     def get_contents(self, folder, begin_at, end_at, cb, *args):
 
         def folder_cmp(a, b):
-            if (a == "All Tracks"):
+            if (a.name == "All Tracks"):
                 return -1
-            if (b == "All Tracks"):
+            if (b.name == "All Tracks"):
                 return 1
             else:
-                return cmp(a, b)
+                return cmp(a.name, b.name)
 
 
         parts = [ p for p in folder.path.split("/") if p ]
@@ -104,7 +104,7 @@ class AudioStorage(Device):
             # list videos
             folder_name = urlquote.unquote(parts[0])
             if (folder_name == "All Tracks"):
-                query = "File.Path of File.Type='audio'"
+                query = "Audio.Title of File.Type='audio'"
                 query_args = ()
             else:
                 query = "File.Path of and File.Type='audio' File.Folder='%s'"
@@ -119,7 +119,7 @@ class AudioStorage(Device):
             #end if
         #end if
             
-        items.sort()
+        items.sort(folder_cmp)
         
         cnt = -1
         for item in items:

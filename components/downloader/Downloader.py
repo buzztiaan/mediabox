@@ -64,8 +64,6 @@ class Downloader(Component):
         # queue consists of (f, destination) tuples with destination being a local directory
         if (queue):
             f, destination = queue.pop(0)
-            if (not base_destination):
-                base_destination = destination
             
         else:
             # nothing to pop, we're done
@@ -94,6 +92,9 @@ class Downloader(Component):
             
             if (os.path.exists(newdir)):
                 f.get_contents(0, 0, child_collector, newdir, [])
+            
+            if (not base_destination):
+                base_destination = newdir
             
         # if file, download
         else:
