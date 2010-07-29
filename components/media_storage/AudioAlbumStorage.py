@@ -49,7 +49,6 @@ class AudioAlbumStorage(Device):
 
         f = File(self)
         f.is_local = True
-        print ffolder, album
         try:
             ff = urlquote.quote(ffolder, "")
         except:
@@ -65,11 +64,10 @@ class AudioAlbumStorage(Device):
         #f.info = artist
         f.mimetype = "application/x-music-folder"
         f.folder_flags = f.ITEMS_ENQUEUEABLE
-        f.comparable = (ffolder, album)
+        f.comparable = f.name
 
         if (album == "All Tracks"):
             f.icon = theme.mb_folder_audio.get_path()
-
 
         return f
         
@@ -122,9 +120,9 @@ class AudioAlbumStorage(Device):
             
         elif (len_parts == 2):
             # album
-            artist = urlquote.unquote(parts[0])
+            ffolder = urlquote.unquote(parts[0])
             album = urlquote.unquote(parts[1])
-            f = self.__make_album(artist, album)
+            f = self.__make_album(ffolder, album)
 
         elif (len_parts == 3):
             # track
@@ -161,7 +159,7 @@ class AudioAlbumStorage(Device):
                 # list albums
                 res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                   "File.Folder, Audio.Album of File.Type='audio'")
-                res.add(("All Artists", "All Tracks"))
+                res.add(("All Tracks", "All Tracks"))
                 for ffolder, album in res:
                     if (not album): continue
                     f = self.__make_album(ffolder, album)

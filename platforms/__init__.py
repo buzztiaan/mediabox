@@ -13,18 +13,28 @@ HTPC = ""
 
 def _check_maemo4():
 
-    v = os.system("cat /etc/osso_software_version | grep DIABLO >/dev/null 2>&1")
-    #v = os.system("cat /etc/apt/sources.list.d/hildon-application-manager.list " \
-    #              "| egrep 'gregale|bora|chinook|diablo' >/dev/null")
-    return (v == 0)
+    try:
+        import hildon
+    except:
+        return False
+    try:
+        # hildon.Window with set_app_menu is not Maemo4
+        hildon.Window.set_app_menu
+    except:
+        return True
+
+    return False
 
     
 def _check_maemo5():
 
-    v = os.system("cat /etc/apt/sources.list " \
-                  "    /etc/apt/sources.list.d/hildon-application-manager.list " \
-                  "| egrep fremantle >/dev/null")
-    return (v == 0)
+    try:
+        import hildon
+        hildon.Window.set_app_menu
+    except:
+        return False
+    else:
+        return True
 
 
 def _check_mer():
