@@ -50,6 +50,7 @@ class ThumbableGridView(GridView):
         self.connect_button_released(self.__on_release_button)
         self.connect_pointer_moved(self.__on_pointer_moved)
         self.add_overlay_renderer(self.__render_letter)
+        self.add_overlay_renderer(self.__check_slider)
         
         self.__kscr = KineticScroller(self)
         self.__kscr.connect_scrolling_started(self.__on_scrolling_started)
@@ -88,6 +89,18 @@ class ThumbableGridView(GridView):
             #end if
         #end if
 
+
+    def __check_slider(self, screen):
+    
+        # should the slider be visible?
+        if (self.__slider):
+            w, h = self.get_size()
+            t_w, t_h = self.get_total_size()
+            if (t_h <= h):
+                self.__slider.set_active(False)
+            else:
+                self.__slider.set_active(True)        
+        #end if
 
     def __on_scrolling_started(self):
     

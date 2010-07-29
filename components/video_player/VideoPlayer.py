@@ -300,11 +300,13 @@ class VideoPlayer(Player):
             self.__volume_slider.set_visible(False)
             self.__toolbar.set_visible(False)
             self.__btn_navigator.set_visible(False)
+            self.__btn_star.set_visible(False)
         else:
             self.__progress.set_visible(True)
             self.__volume_slider.set_visible(True)
             self.__toolbar.set_visible(True)
             self.__btn_navigator.set_visible(True)
+            self.__btn_star.set_visible(True)
 
         self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
         self.__update_layout()

@@ -706,4 +706,4 @@ class YouTube(Device):
             actions.append((None, "Download", self.__on_download))
 
         return actions
-_VIDEO_WATCH = _YT + "/watch?v=%s&fmt=18"
+

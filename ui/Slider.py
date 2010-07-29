@@ -33,6 +33,8 @@ class Slider(Widget):
         self.__grab_point = 0
         self.__previous_pos = 0
         
+        self.__is_active = True
+        
         # time of last motion
         self.__last_motion_time = 0
         
@@ -54,6 +56,13 @@ class Slider(Widget):
         if (self.__buffer):
             self.__buffer.fill_area(0, 0, w, h,
                                     self.__bg_color)
+
+
+    def set_active(self, value):
+    
+        self.__is_active = value
+        self.render()
+
 
 
     def set_image(self, pbuf):
@@ -127,13 +136,15 @@ class Slider(Widget):
         sh = self.__button_pbuf.get_height()
         
         self.__buffer.fill_area(0, 0, w, h, self.__bg_color)
-        if (self.__mode == self.HORIZONTAL):
-            pos = int((w - sw) * self.__value)
-            self.__buffer.draw_pixbuf(self.__button_pbuf, pos, 0)
-        else:
-            pos = int((h - sh) * self.__value)
-            self.__buffer.draw_pixbuf(self.__button_pbuf, 0, pos)
-        self.__previous_pos = pos
+        if (self.__is_active):
+            if (self.__mode == self.HORIZONTAL):
+                pos = int((w - sw) * self.__value)
+                self.__buffer.draw_pixbuf(self.__button_pbuf, pos, 0)
+            else:
+                pos = int((h - sh) * self.__value)
+                self.__buffer.draw_pixbuf(self.__button_pbuf, 0, pos)
+            self.__previous_pos = pos
+        #end if
 
         screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
         
