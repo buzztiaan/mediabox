@@ -96,7 +96,7 @@ class MPlayerBackend(AbstractBackend):
                 vo_opts = "-vo xv -softsleep -monitoraspect 15:9"
             elif (platforms.MAEMO4):
                 ao_opts = ""
-                vo_opts = "-vo xv -softsleep -lavdopts fast:lowres=1,480 " \
+                vo_opts = "-vo xv -softsleep -lavdopts fast " \
                           "-monitoraspect 15:9"
             else:
                 ao_opts = ""

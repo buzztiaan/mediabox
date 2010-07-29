@@ -6,6 +6,9 @@ mediabox (2010.07.29) unstable; urgency=low
   Option for "All Tracks" sorted by track name in the "Albums" section
   
   Performance improvements when listing indexed music
+  
+  Removed "lowres" parameter from mplayer command line when playing on N8x0
+  because this was messing up colors in some videos
 
  -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 29 Jul 2010 14:00:00 +0200
 

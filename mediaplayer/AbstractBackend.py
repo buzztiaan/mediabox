@@ -240,7 +240,7 @@ class AbstractBackend(EventEmitter):
 
             self._load(uri)
             #self._set_volume(self.__volume)
-            self._seek(pos)
+            gobject.idle_add(self._seek, pos)
             self._stop()
             self.__position = (0, 0)
             self.__watch_progress()
