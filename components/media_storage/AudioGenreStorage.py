@@ -45,7 +45,7 @@ class AudioGenreStorage(Device):
     def __make_genre(self, genre):
     
         f = File(self)
-        f.path = "/" + urlquote.quote(genre, "")
+        f.path = File.pack_path("/genres", genre)
         f.name = genre
         f.acoustic_name = genre
         f.mimetype = f.DIRECTORY
@@ -57,20 +57,19 @@ class AudioGenreStorage(Device):
 
     def __make_album(self, ffolder, album):
     
+        path = File.pack_path("/albums", ffolder, album)
         f = self.call_service(msgs.CORE_SVC_GET_FILE,
-                              "audio://albums/%s/%s" \
-                              % (urlquote.quote(ffolder, ""),
-                                 urlquote.quote(album, "")))
+                              "audio://albums" + path)
         return f
 
 
     def get_file(self, path):
 
-        parts = [ p for p in path.split("/") if p ]
-        len_parts = len(parts)
+        parts = File.unpack_path(path)
+        prefix = parts[0]
 
         f = None
-        if (len_parts == 0):
+        if (prefix == "/"):
             # root folder
             f = File(self)
             f.is_local = True
@@ -81,9 +80,9 @@ class AudioGenreStorage(Device):
             f.icon = self.get_icon().get_path()
             f.info = "Browse your music library by genre"
 
-        elif (len_parts == 1):
+        elif (prefix == "/genres"):
             # genre
-            genre = urlquote.unquote(parts[0])
+            genre = parts[1]
             f = self.__make_genre(genre)
 
         return f
@@ -93,12 +92,11 @@ class AudioGenreStorage(Device):
     
         path = folder.path
 
-        if (not path.endswith("/")): path += "/"
-        parts = [ p for p in path.split("/") if p ]
-        len_parts = len(parts)
+        parts = File.unpack_path(path)
+        prefix = parts[0]
         
         items = []
-        if (len_parts == 0):
+        if (prefix == "/"):
             # list genres
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                     "Audio.Genre of File.Type='audio'")
@@ -107,9 +105,9 @@ class AudioGenreStorage(Device):
                 if (f): items.append(f)
             #end for
             
-        elif (len_parts == 1):
+        elif (prefix == "/genres"):
             # list albums
-            genre = urlquote.unquote(parts[0])
+            genre = parts[1]
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                          "File.Folder, Audio.Album of and File.Type='audio'" \
                          "Audio.Genre='%s'",
@@ -129,31 +127,4 @@ class AudioGenreStorage(Device):
             cb(item, *args)
         #end for
         cb(None, *args)
-
-
-    def load(self, resource, maxlen, cb, *args):
-    
-        fd = open(resource, "r")
-        fd.seek(0, 2)
-        total_size = fd.tell()
-        fd.seek(0)
-        read_size = 0
-        while (True):
-            d = fd.read(65536)
-            read_size += len(d)
-            
-            try:
-                cb(d, read_size, total_size, *args)
-            except:
-                break
-            
-            if (d and maxlen > 0 and read_size >= maxlen):
-                try:
-                    cb("", read_size, total_size, *args)
-                except:
-                    pass
-                break
-            elif (not d):
-                break
-        #end while
 

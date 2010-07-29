@@ -8,9 +8,6 @@ from mediabox import values
 from theme import theme
 
 import os
-import gtk
-import gobject
-import threading
 
 
 
@@ -48,17 +45,8 @@ class AudioAlbumStorage(Device):
     def __make_album(self, ffolder, album):
 
         f = File(self)
-        f.is_local = True
-        try:
-            ff = urlquote.quote(ffolder, "")
-        except:
-            ff = "?"
-        try:
-            al = urlquote.quote(album, "")
-        except:
-            al = "?"
-        f.path = "/" + ff + \
-                 "/" + al
+        f.is_local = True            
+        f.path = File.pack_path("/albums", ffolder, album)
         f.name = album
         f.acoustic_name = f.name
         #f.info = artist
@@ -72,41 +60,40 @@ class AudioAlbumStorage(Device):
         return f
         
         
-    def __make_track(self, ffolder, album, resource):
+    #def __make_track(self, ffolder, album, resource, mimetype = "", f_title = "", f_artist = ""):
     
-        f = self.call_service(msgs.CORE_SVC_GET_FILE, resource)
-        if (not f): return None
-        
-        tags = tagreader.get_tags(f)
-        f.name = tags.get("TITLE") or f.name
-        f.info = tags.get("ARTIST") or "unknown"
-        f.acoustic_name = f.name + ", by " + f.info
-        #f.path = "/" + urlquote.quote(artist, "") + \
-        #         "/" + urlquote.quote(album, "") + \
-        #         "/" + urlquote.quote(resource, "")
+    def __make_track(self, artist, album, title, trackno, resource, mimetype):
+    
+        #f = self.call_service(msgs.CORE_SVC_GET_FILE, resource)
+        #if (not f): return None
 
-        try:
-            trackno = tags.get("TRACKNUMBER")
-            trackno = trackno.split("/")[0]
-            trackno = int(trackno)
-        except:
-            trackno = 0
+        path = File.pack_path("/tracks", artist, album, title, trackno,
+                              resource, mimetype)
+        
+        f = File(self)
+        f.path = path
+        f.is_local = True
+        f.resource = resource
+        f.name = title
+        f.info = artist or "unknown"
+        f.mimetype = mimetype
+        f.acoustic_name = f.name + ", by " + f.info
 
         if (album == "All Tracks"):
             f.comparable = f.name.upper()
         else:
             f.comparable = trackno
         
-        return f       
+        return f
 
 
     def get_file(self, path):
 
-        parts = [ p for p in path.split("/") if p ]
-        len_parts = len(parts)
+        parts = File.unpack_path(path)
+        prefix = parts[0]
         
         f = None
-        if (len_parts == 0):
+        if (prefix == "/"):
             # root folder
             f = File(self)
             f.is_local = True
@@ -118,18 +105,15 @@ class AudioAlbumStorage(Device):
             f.icon = self.get_icon().get_path()
             f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT            
             
-        elif (len_parts == 2):
+        elif (prefix == "/albums"):
             # album
-            ffolder = urlquote.unquote(parts[0])
-            album = urlquote.unquote(parts[1])
+            ffolder, album = parts[1:]
             f = self.__make_album(ffolder, album)
 
-        elif (len_parts == 3):
+        elif (prefix == "/tracks"):
             # track
-            artist = urlquote.unquote(parts[0])
-            album = urlquote.unquote(parts[1])
-            resource = urlquote.unquote(parts[1])
-            f = self.__make_track(artist, album, resource)
+            artist, album, title, trackno, resource, mimetype = parts[1:]
+            f = self.__make_track(artist, album, title, trackno, resource, mimetype)
         
         return f
 
@@ -145,20 +129,19 @@ class AudioAlbumStorage(Device):
                 return cmp(a.comparable, b.comparable)
 
         path = folder.path
+        parts = File.unpack_path(path)
+        prefix = parts[0]
 
-        if (not path.endswith("/")): path += "/"
-        parts = [ p for p in path.split("/") if p ]
-        len_parts = len(parts)
         
         items = []
         
-        if (len_parts == 0):
+        if (prefix == "/"):
             if (self.__cache):
                 items += self.__cache
             else:
                 # list albums
                 res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
-                                  "File.Folder, Audio.Album of File.Type='audio'")
+                               "File.Folder, Audio.Album of File.Type='audio'")
                 res.add(("All Tracks", "All Tracks"))
                 for ffolder, album in res:
                     if (not album): continue
@@ -168,26 +151,26 @@ class AudioAlbumStorage(Device):
                 self.__cache = items[:]
             #end if
                          
-        elif (len_parts == 2):
+        elif (prefix == "/albums"):
             # list tracks
-            ffolder = urlquote.unquote(parts[0])
-            album = urlquote.unquote(parts[1])
-            #if (album == "All Tracks"):
-            #    query = "File.Path of and File.Type='audio' File.Folder='%s'"
-            #    query_args = (artist,)
+            ffolder, album = parts[1:]
             
             if (album == "All Tracks"):
-                query = "File.Path of File.Type='audio'"
+                query = "File.Path, File.Format, " \
+                        "Audio.Title, Audio.Artist, Audio.Tracknumber " \
+                        "of File.Type='audio'"
                 query_args = ()
             else:
-                query = "File.Path of and and File.Type='audio' " \
+                query = "File.Path, File.Format, " \
+                        "Audio.Title, Audio.Artist, Audio.Tracknumber " \
+                        "of and and File.Type='audio' " \
                         "File.Folder='%s' Audio.Album='%s'"
                 query_args = (ffolder, album)
             
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                     query, *query_args)
-            for filepath, in res:
-                f = self.__make_track(ffolder, album, filepath)
+            for filepath, mimetype, title, artist, trackno in res:
+                f = self.__make_track(artist, album, title, trackno, filepath, mimetype)
                 if (f): items.append(f)
             #end for                
             
@@ -203,34 +186,7 @@ class AudioAlbumStorage(Device):
             cb(item, *args)
         #end for
         cb(None, *args)
-
-
-    def load(self, resource, maxlen, cb, *args):
     
-        fd = open(resource, "r")
-        fd.seek(0, 2)
-        total_size = fd.tell()
-        fd.seek(0)
-        read_size = 0
-        while (True):
-            d = fd.read(65536)
-            read_size += len(d)
-            
-            try:
-                cb(d, read_size, total_size, *args)
-            except:
-                break
-            
-            if (d and maxlen > 0 and read_size >= maxlen):
-                try:
-                    cb("", read_size, total_size, *args)
-                except:
-                    pass
-                break
-            elif (not d):
-                break
-        #end while
-
 
     def handle_FILEINDEX_ACT_SCAN(self):
     

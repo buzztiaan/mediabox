@@ -50,7 +50,7 @@ class AudioArtistStorage(Device):
     def __make_artist(self, artist):
     
         f = File(self)
-        f.path = "/" + urlquote.quote(artist, "")
+        f.path = File.pack_path("/artists", artist)
         f.name = artist
         f.acoustic_name = f.name
         f.mimetype = f.DIRECTORY
@@ -62,20 +62,19 @@ class AudioArtistStorage(Device):
 
     def __make_album(self, ffolder, album):
     
+        path = File.pack_path("/albums", ffolder, album)
         f = self.call_service(msgs.CORE_SVC_GET_FILE,
-                              "audio://albums/%s/%s" \
-                              % (urlquote.quote(ffolder, ""),
-                                 urlquote.quote(album, "")))
+                              "audio://albums" + path)
         return f
  
 
     def get_file(self, path):
 
-        parts = [ p for p in path.split("/") if p ]
-        len_parts = len(parts)
+        parts = File.unpack_path(path)
+        prefix = parts[0]
 
         f = None
-        if (len_parts == 0):
+        if (prefix == "/"):
             # root folder
             f = File(self)
             f.is_local = True
@@ -87,9 +86,9 @@ class AudioArtistStorage(Device):
             f.info = "Browse your music library by artist"
             #f.folder_flags = f.ITEMS_COMPACT
             
-        elif (len_parts == 1):
+        elif (prefix == "/artists"):
             # artist
-            artist = urlquote.unquote(parts[0])
+            artist = parts[1]
             f = self.__make_artist(artist)
     
         return f
@@ -98,13 +97,11 @@ class AudioArtistStorage(Device):
     def get_contents(self, folder, begin_at, end_at, cb, *args):
     
         path = folder.path
-
-        if (not path.endswith("/")): path += "/"
-        parts = [ p for p in path.split("/") if p ]
-        len_parts = len(parts)
+        parts = File.unpack_path(path)
+        prefix = parts[0]
         
         items = []
-        if (len_parts == 0):
+        if (prefix == "/"):
             # list artists
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                     "Audio.Artist of File.Type='audio'")
@@ -113,11 +110,12 @@ class AudioArtistStorage(Device):
                 if (f): items.append(f)
             #end for                                    
                        
-        elif (len_parts == 1):
+        elif (prefix == "/artists"):
             # list albums
-            artist = urlquote.unquote(parts[0])
+            artist = parts[1]
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
-                      "File.Folder, Audio.Album of and File.Type='audio' Audio.Artist='%s'",
+                      "File.Folder, Audio.Album " \
+                      "of and File.Type='audio' Audio.Artist='%s'",
                       artist)
             #res.add(("All Tracks",))
             for ffolder, album in res:
@@ -134,58 +132,4 @@ class AudioArtistStorage(Device):
             cb(item, *args)
         #end for
         cb(None, *args)
-
-
-
-    """
-    def __on_add_to_playlist(self, folder, f):
-    
-        self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
-
-
-    def __on_put_on_dashboard(self, folder, f):
-        
-        f.bookmarked = True
-
-
-    def __on_add_to_library(self, folder, f):
-    
-        self.emit_message(msgs,LIBRARY_ACT_ADD_MEDIAROOT, f)
-
-
-    def get_file_actions(self, folder, f):
-    
-        actions = []
-        actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
-        actions.append((None, "Put on Dashboard", self.__on_put_on_dashboard))
-        
-        return actions
-    """
-
-
-    def load(self, resource, maxlen, cb, *args):
-    
-        fd = open(resource, "r")
-        fd.seek(0, 2)
-        total_size = fd.tell()
-        fd.seek(0)
-        read_size = 0
-        while (True):
-            d = fd.read(65536)
-            read_size += len(d)
-            
-            try:
-                cb(d, read_size, total_size, *args)
-            except:
-                break
-            
-            if (d and maxlen > 0 and read_size >= maxlen):
-                try:
-                    cb("", read_size, total_size, *args)
-                except:
-                    pass
-                break
-            elif (not d):
-                break
-        #end while
 

@@ -78,12 +78,7 @@ class AudioStorage(Device):
     def get_contents(self, folder, begin_at, end_at, cb, *args):
 
         def folder_cmp(a, b):
-            if (a.name == "All Tracks"):
-                return -1
-            if (b.name == "All Tracks"):
-                return 1
-            else:
-                return cmp(a.name, b.name)
+            return cmp(a.name, b.name)
 
 
         parts = [ p for p in folder.path.split("/") if p ]
@@ -94,7 +89,6 @@ class AudioStorage(Device):
             # list folders
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                     "File.Folder of File.Type='audio'")
-            res.add(("All Tracks",))
             for folder_name, in res:
                 f = self.__make_folder(folder_name)
                 if (f): items.append(f)
@@ -103,12 +97,8 @@ class AudioStorage(Device):
         elif (len_parts == 1):
             # list videos
             folder_name = urlquote.unquote(parts[0])
-            if (folder_name == "All Tracks"):
-                query = "Audio.Title of File.Type='audio'"
-                query_args = ()
-            else:
-                query = "File.Path of and File.Type='audio' File.Folder='%s'"
-                query_args = (folder_name,)
+            query = "File.Path of and File.Type='audio' File.Folder='%s'"
+            query_args = (folder_name,)
                 
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                     query, *query_args)
