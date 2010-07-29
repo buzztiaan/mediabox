@@ -230,7 +230,6 @@ class GstBackend(AbstractBackend):
 
     def _seek(self, pos):
     
-        print "-> SEEKING", pos
         self.__pos_time = (0, 0, 0)
         self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
                                   gst.SEEK_FLAG_FLUSH,
