@@ -57,7 +57,7 @@ class NowPlaying(Widget, Component):
             self.__buffer = Pixmap(None, w, h)
 
         self.__buffer.fill_area(0, 0, w, h, theme.color_mb_background)
-        self.__buffer.draw_frame(theme.mb_button_1, 0, 0, w, h, True)
+        self.__buffer.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True)
 
         if (self.__cover):
             self.__buffer.fit_pixbuf(self.__cover, 8, 4, 72, 56)
