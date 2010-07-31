@@ -128,16 +128,16 @@ class Navigator(Component, Window):
                                       theme.mb_btn_dir_up_2)
         self.__btn_back.connect_clicked(self.__on_btn_back)
 
-        self.__btn_select_all = ImageButton(theme.mb_btn_dir_up_1,
-                                            theme.mb_btn_dir_up_2)
+        self.__btn_select_all = ImageButton(theme.mb_btn_select_all_1,
+                                            theme.mb_btn_select_all_2)
         self.__btn_select_all.connect_clicked(self.__on_btn_select_all)
 
-        self.__btn_select_none = ImageButton(theme.mb_btn_dir_up_1,
-                                             theme.mb_btn_dir_up_2)
+        self.__btn_select_none = ImageButton(theme.mb_btn_select_none_1,
+                                             theme.mb_btn_select_none_2)
         self.__btn_select_none.connect_clicked(self.__on_btn_select_none)
 
-        self.__btn_select_done = ImageButton(theme.mb_btn_dir_up_1,
-                                             theme.mb_btn_dir_up_2)
+        self.__btn_select_done = ImageButton(theme.mb_btn_select_done_1,
+                                             theme.mb_btn_select_done_2)
         self.__btn_select_done.connect_clicked(self.__on_btn_select_done)
 
 

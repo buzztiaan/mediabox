@@ -171,6 +171,7 @@ class MediaItem(Item):
             
             if (self.is_selected()):
                 offset = 64
+                pmap.draw_pixbuf(theme.mb_checked, (64 - 48) / 2, (h - 48) / 2)
             else:
                 offset = 4
             
