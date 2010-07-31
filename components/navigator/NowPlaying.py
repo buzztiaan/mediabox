@@ -60,20 +60,20 @@ class NowPlaying(Widget, Component):
         self.__buffer.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True)
 
         if (self.__cover):
-            self.__buffer.fit_pixbuf(self.__cover, 8, 4, 72, 56)
-            offset = 96
+            self.__buffer.fit_pixbuf(self.__cover, 8, 5, 120, h - 10)
+            offset = 134
         else:
             offset = 8
 
         self.__buffer.draw_text(self.__title,
-                                theme.font_mb_tiny,
+                                theme.font_mb_plain,
                                 offset, 4,
-                                theme.color_mb_text)
+                                theme.color_list_item_text)
 
         self.__buffer.draw_text(self.__info,
-                                theme.font_mb_micro,
-                                offset, 26,
-                                theme.color_mb_text)
+                                theme.font_mb_tiny,
+                                offset, 32,
+                                theme.color_list_item_subtext)
         
         self.__buffer.draw_pixbuf(theme.mb_btn_play_1,
                                   w - 64, (h - 64) / 2)
