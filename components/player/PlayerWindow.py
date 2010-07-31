@@ -185,7 +185,7 @@ class PlayerWindow(Dialog):
         else:
             do_render = False
             
-        self.set_visible(True)
+        #self.set_visible(True)
         self.set_flag(windowflags.BUSY, True)
         gobject.timeout_add(0, loader, do_render)
 

@@ -1,4 +1,5 @@
 from com import Component, Dialog, msgs
+from NowPlaying import NowPlaying
 from RootDevice import RootDevice
 from mediabox.StorageBrowser import StorageBrowser
 from ui.Button import Button
@@ -27,10 +28,24 @@ _LANDSCAPE_ARRANGEMENT = """
     <widget name="toolbar"
             x1="-80" y1="0" x2="100%" y2="100%"/>
 
-    <widget name="slider"
-            x1="0" y1="0" x2="40" y2="100%"/>
-    <widget name="browser"
-            x1="40" y1="0" x2="-80" y2="100%"/>
+    <if-visible name="now-playing">
+      <widget name="now-playing"
+              x1="0" y1="-64" x2="-80" y2="100%"/>
+
+      <widget name="slider"
+              x1="0" y1="0" x2="40" y2="-64"/>
+
+      <widget name="browser"
+              x1="40" y1="0" x2="-80" y2="-64"/>
+    </if-visible>
+
+    <if-invisible name="now-playing">
+      <widget name="slider"
+              x1="0" y1="0" x2="40" y2="100%"/>
+
+      <widget name="browser"
+              x1="40" y1="0" x2="-80" y2="100%"/>
+    </if-invisible>
   </arrangement>
 """
 
@@ -40,10 +55,24 @@ _PORTRAIT_ARRANGEMENT = """
     <widget name="toolbar"
             x1="0" y1="-80" x2="100%" y2="100%"/>
 
-    <widget name="slider"
-            x1="0" y1="0" x2="40" y2="-80"/>
-    <widget name="browser"
-            x1="40" y1="0" x2="100%" y2="-80"/>
+    <if-visible name="now-playing">
+      <widget name="now-playing"
+              x1="0" y1="0" x2="100%" y2="64"/>
+
+      <widget name="slider"
+              x1="0" y1="64" x2="40" y2="-80"/>
+
+      <widget name="browser"
+              x1="40" y1="64" x2="100%" y2="-80"/>
+    </if-visible>
+
+    <if-invisible name="now-playing">
+      <widget name="slider"
+              x1="0" y1="0" x2="40" y2="-80"/>
+
+      <widget name="browser"
+              x1="40" y1="0" x2="100%" y2="-80"/>
+    </if-invisible>
   </arrangement>
 """
 
@@ -92,6 +121,12 @@ class Navigator(Component, Window):
         Window.__init__(self, Window.TYPE_TOPLEVEL)
         self.connect_key_pressed(self.__on_key_press)
         self.connect_closed(self.__on_close_window)
+
+        # [Now Playing] button
+        self.__now_playing = NowPlaying()
+        self.__now_playing.set_visible(False)
+        self.__now_playing.connect_clicked(
+               lambda :self.__show_dialog("player.PlayerWindow"))
 
         # browser list slider
         self.__browser_slider = Slider(theme.mb_list_slider)
@@ -144,6 +179,7 @@ class Navigator(Component, Window):
         # arrangement
         self.__arr = Arrangement()
         self.__arr.connect_resized(self.__update_layout)
+        self.__arr.add(self.__now_playing, "now-playing")
         self.__arr.add(self.__browser_slider, "slider")
         self.__arr.add(self.__browser, "browser")
         self.__arr.add(self.__toolbar, "toolbar")
@@ -333,7 +369,7 @@ class Navigator(Component, Window):
     def __on_open_file(self, f):
             
         self.__load_file(f, True)
-        #self.set_visible(False)
+        self.__show_dialog("player.PlayerWindow")
 
 
     def __on_begin_folder(self, f):
@@ -504,14 +540,18 @@ class Navigator(Component, Window):
             self.__current_file = f
             self.__browser.hilight_file(f)
 
-            #self.set_visible(False)
-
             folder = self.__browser.get_current_folder()
             if (is_manual and folder != self.__play_folder):
                 self.__play_folder = folder
                 self.__play_files = [ fl for fl in self.__browser.get_files()
                                       if not fl.mimetype.endswith("-folder") ]
                 self.__random_files = []
+
+            if (not self.__now_playing.is_visible()):
+                self.__now_playing.set_visible(True)
+                self.__update_layout()
+                self.render()
+
 
 
     def __go_previous(self):

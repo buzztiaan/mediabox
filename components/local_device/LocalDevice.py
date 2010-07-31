@@ -7,7 +7,6 @@ from theme import theme
 
 import os
 import commands
-import gobject
 
 
 # some beautifications of places (table: path -> (name, info, icon))
@@ -197,39 +196,4 @@ class LocalDevice(Device):
             cb(item, *args)
         #end for
         cb(None, *args)
-        
-        
-    def load(self, f, maxlen, cb, *args):
-    
-        def on_data(fd, read_size, total_size):
-            data = fd.read(0xffff)
-            read_size[0] += len(data)
-            
-            try:
-                cb(data, read_size[0], total_size, *args)
-            except:
-                fd.close()
-                return False
-                
-            if (data and maxlen > 0 and read_size[0] >= maxlen):
-                try:
-                    cb("", read_size[0], total_size, *args)
-                except:
-                    pass
-                fd.close()
-                return False
-
-            elif (not data):
-                fd.close()
-                return False
-            
-            return True
-        
-
-        fd = open(f.resource, "r")
-        fd.seek(0, 2)
-        total_size = fd.tell()
-        fd.seek(0)
-        
-        gobject.timeout_add(50, on_data, fd, [0], total_size)
 
