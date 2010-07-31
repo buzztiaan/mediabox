@@ -369,7 +369,6 @@ class Navigator(Component, Window):
     def __on_open_file(self, f):
             
         self.__load_file(f, True)
-        self.__show_dialog("player.PlayerWindow")
 
 
     def __on_begin_folder(self, f):
@@ -552,6 +551,8 @@ class Navigator(Component, Window):
                 self.__update_layout()
                 self.render()
 
+            if (is_manual):
+                self.__show_dialog("player.PlayerWindow")
 
 
     def __go_previous(self):
