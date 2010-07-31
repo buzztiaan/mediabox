@@ -25,6 +25,9 @@ class ThumbableGridView(GridView):
     
         # the associated slider
         self.__slider = None
+        
+        # whether multi select is enabled
+        self.__multi_select = False
                
         # whether the index letter is enabled
         self.__letter_enabled = True
@@ -123,37 +126,35 @@ class ThumbableGridView(GridView):
         csr = self.get_cursor()
         item = self.get_item(idx)
 
-        # the touchscreen of Maemo4 devices is not sensitive enough for
-        # single click operation
-        if (self.__click_behavior == self.CLICK_BEHAVIOR_SINGLE or
-            (idx == self.get_cursor() and
-             time.time() - self.__last_cursor_time > 0.5)):
-            item.click_at(px - x, py - y)
-            self.set_cursor(-1)
-            self.invalidate_item(idx)
-        else:
-            self.set_cursor(idx)
-            self.__last_cursor_time = time.time()
-            if (csr != -1):
-                self.invalidate_item(csr)
-            self.invalidate_item(idx)
-            #self.render()    
+        if (self.__multi_select):
+            item.set_selected(not item.is_selected())
 
+        else:
+            # the touchscreen of Maemo4 devices is not sensitive enough for
+            # single click operation
+            if (self.__click_behavior == self.CLICK_BEHAVIOR_SINGLE or
+                (idx == self.get_cursor() and
+                 time.time() - self.__last_cursor_time > 0.5)):
+                item.click_at(px - x, py - y)
+                self.set_cursor(-1)
+            else:
+                self.set_cursor(idx)
+                self.__last_cursor_time = time.time()
+                if (csr != -1):
+                    self.invalidate_item(csr)
+                #self.render()
+            #end if
+        #end if
+        self.invalidate_item(idx)
+        
         
     def __on_tap_and_hold(self, px, py):
 
-        if (not self.has_floating_item()):
+        if (not self.__multi_select and not self.has_floating_item()):
             idx = self.get_item_at(px, py)
             x, y = self.get_position_of_item(idx)
             item = self.get_item(idx)
             item.tap_and_hold(px - x, py - y)
-
-            #csr = self.get_cursor()
-            #if (csr != -1):
-            #    self.set_cursor(idx)
-            #    self.invalidate_item(csr)
-            #    self.render()
-            #end if
         #end if
 
 
@@ -278,6 +279,33 @@ class ThumbableGridView(GridView):
                                                       self.__on_letter_timeout)
 
         return (dx, dy)
+
+
+    def set_multi_select(self, value):
+    
+        self.__multi_select = value
+        for item in self.get_items():
+            item.set_selected(False)
+        self.invalidate()
+        self.render()
+
+
+    def select_all(self):
+        
+        if (self.__multi_select):
+            for item in self.get_items():
+                item.set_selected(True)
+            self.invalidate()
+            self.render()
+        #end if            
+
+
+    def unselect_all(self):
+        
+        for item in self.get_items():
+            item.set_selected(False)
+        self.invalidate()
+        self.render()
 
 
     def set_letter_enabled(self, value):

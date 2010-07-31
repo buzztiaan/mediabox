@@ -23,8 +23,14 @@ class Item(EventEmitter):
     def __init__(self):
     
         self.__size = (240, 80)
+        
+        # a hilighted item is active (typically only one at a time)
         self.__is_hilighted = False
+        # a marked item is marked, e.g. to indicate a cursor
         self.__is_marked = False
+        # a selected item is selected for some action to be performed on it
+        self.__is_selected = False
+        
         self.__is_draggable = False
         
         # user-definable payload
@@ -91,9 +97,21 @@ class Item(EventEmitter):
         return self.__is_marked
 
 
+    def set_selected(self, v):
+    
+        self.__is_selected = v
+        self._invalidate_cached_pixmap()
+        
+        
+    def is_selected(self):
+    
+        return self.__is_selected
+
+
     def set_draggable(self, v):
     
         self.__is_draggable = v
+        self._invalidate_cached_pixmap()
         
         
     def is_draggable(self):

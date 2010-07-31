@@ -276,7 +276,7 @@ class PlaylistDevice(Device):
         Adds the given item to the playlist.
         """
         
-        if (count[0] >= 500): return
+        #if (count[0] >= 500): return
         
         if (f):
             # recurse into subfolders
@@ -315,11 +315,13 @@ class PlaylistDevice(Device):
         self.emit_message(msgs.UI_ACT_SHOW_INFO, u"\xbb%s\xab cleared." % f.name)
 
 
-    def __on_delete_item(self, folder, f):
+    def __on_delete_item(self, folder, *files):
     
         pl = self.__current_list
-        idx = pl.get_files().index(f)
-        pl.remove(idx)
+        for f in files:
+            idx = pl.get_files().index(f)
+            pl.remove(idx)
+        #end for
         pl.save()
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
 
@@ -346,6 +348,17 @@ class PlaylistDevice(Device):
         return options
         
         
+    def get_bulk_actions(self, folder):
+
+        options = []
+        if (folder.path != "/"):
+            options.append((None, "Remove from List", self.__on_delete_item))
+
+        return options
+    
+        
+        
+        
     def handle_PLAYLIST_SVC_GET_LISTS(self):
 
         if (self.__needs_playlist_reload):
@@ -357,7 +370,7 @@ class PlaylistDevice(Device):
         return names
 
 
-    def handle_PLAYLIST_ACT_APPEND(self, pl_name, f):        
+    def handle_PLAYLIST_ACT_APPEND(self, pl_name, *files):        
 
         if (self.__needs_playlist_reload):
             self.__load_playlists()
@@ -382,9 +395,10 @@ class PlaylistDevice(Device):
 
         if (playlist):
             self.emit_message(msgs.UI_ACT_SHOW_INFO,
-                          u"Adding \xbb%s\xab to %s" \
-                          % (f.name, playlist.get_name()))
-            self.__add_item_to_playlist(playlist, f)
+                          u"Adding %d items to %s" \
+                          % (len(files), playlist.get_name()))
+            for f in files:
+                self.__add_item_to_playlist(playlist, f)
 
             playlist.save()
             self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED,

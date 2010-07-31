@@ -115,7 +115,7 @@ class MediaItem(Item):
                                 0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
             
-            elif (self.is_hilighted()):
+            elif (self.is_hilighted() or self.is_selected()):
                 pmap.draw_frame(theme.mb_selection_frame,
                                 0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
@@ -169,7 +169,10 @@ class MediaItem(Item):
             else:
                 clip_rect = (0, 0, w, h)
             
-            offset = 4
+            if (self.is_selected()):
+                offset = 64
+            else:
+                offset = 4
             
             # render icon
             pbuf = self.__load_pixbuf(self.__icon)
@@ -177,7 +180,7 @@ class MediaItem(Item):
                 pmap.fit_pixbuf(pbuf, offset, 5, 120, h - 10)
                 del pbuf
                             
-            offset = 134
+            offset += 130
             
             # render text
             pmap.set_clip_rect(*clip_rect)

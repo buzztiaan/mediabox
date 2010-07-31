@@ -19,11 +19,10 @@ import gtk
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
     <if-visible name="toolbar">
-      <widget name="btn_nav" x1="0" y1="-64" x2="64" y2="100%"/>
       <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
 
       <widget name="screen" x1="40" y1="4" x2="-84" y2="-64"/>
-      <widget name="progress" x1="90" y1="-50" x2="-154" y2="-10"/>
+      <widget name="progress" x1="10" y1="-50" x2="-154" y2="-10"/>
       <widget name="btn_star" x1="-154" y1="-64" x2="-90" y2="100%"/>
       <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
     </if-visible>
@@ -40,7 +39,6 @@ _LANDSCAPE_ARRANGEMENT = """
 # we simply hide the video screen while in portrait mode and play sound only
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
-    <widget name="btn_nav" x1="-64" y1="0" x2="100%" y2="64"/>
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
 
     <widget name="screen" x1="40" y1="0" x2="100%" y2="-80"/>
@@ -99,13 +97,6 @@ class VideoPlayer(Player):
                                       theme.mb_btn_bookmark_2)
         self.__btn_star.connect_clicked(self.__on_btn_star)
 
-
-        # navigator button
-        self.__btn_navigator = ImageButton(theme.mb_btn_navigator_1,
-                                           theme.mb_btn_navigator_2)
-        self.__btn_navigator.connect_clicked(
-             lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "navigator.Navigator"))
-
         
         # toolbar elements
         self.__btn_play = ImageButton(theme.mb_btn_play_1,
@@ -132,7 +123,6 @@ class VideoPlayer(Player):
         self.__arr.connect_resized(self.__update_layout)
         self.__arr.add(self.__screen, "screen")
         self.__arr.add(self.__toolbar, "toolbar")
-        self.__arr.add(self.__btn_navigator, "btn_nav")
         self.__arr.add(self.__progress, "progress")
         self.__arr.add(self.__btn_star, "btn_star")
         self.__arr.add(self.__volume_slider, "slider")
@@ -299,13 +289,11 @@ class VideoPlayer(Player):
             self.__progress.set_visible(False)
             self.__volume_slider.set_visible(False)
             self.__toolbar.set_visible(False)
-            self.__btn_navigator.set_visible(False)
             self.__btn_star.set_visible(False)
         else:
             self.__progress.set_visible(True)
             self.__volume_slider.set_visible(True)
             self.__toolbar.set_visible(True)
-            self.__btn_navigator.set_visible(True)
             self.__btn_star.set_visible(True)
 
         self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)

@@ -21,7 +21,6 @@ _SLIDESHOW_MAX_TIMEOUT = 60
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
     <if-visible name="toolbar">
-      <widget name="btn_nav" x1="0" y1="-64" x2="64" y2="100%"/>
       <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
       <widget name="image" x1="0" y1="0" x2="-80" y2="100%"/>
     </if-visible>
@@ -37,7 +36,6 @@ _PORTRAIT_ARRANGEMENT = """
   <arrangement>
     <widget name="image" x1="0" y1="0" x2="100%" y2="-80"/>
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
-    <widget name="btn_nav" x1="-64" y1="0" x2="100%" y2="64"/>
 
     <!-- fullscreen mode -->
     <if-invisible name="toolbar">
@@ -70,7 +68,6 @@ class ImageViewer(Player):
         Player.__init__(self)
         
         self.__image = Image()
-        self.__image.add_overlay(self.__overlay_nav_button)
         self.__image.set_background(theme.color_image_viewer_background)
         #self.add(self.__image)
         
@@ -83,13 +80,6 @@ class ImageViewer(Player):
         #gestures.connect_tap_hold(self.__on_tap_hold)
         gestures.connect_tap_tap(self.__on_tap_tap)
         gestures.connect_swipe(self.__on_swipe)
-
-
-        # navigator button
-        self.__btn_navigator = EventBox()
-        self.__btn_navigator.connect_clicked(
-             lambda *a:self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "navigator.Navigator"))
-
         
         # toolbar
         self.__btn_play = ImageButton(theme.mb_btn_play_1,
@@ -115,7 +105,6 @@ class ImageViewer(Player):
         self.__arr.connect_resized(self.__update_layout)
         self.__arr.add(self.__image, "image")
         self.__arr.add(self.__toolbar, "toolbar")
-        self.__arr.add(self.__btn_navigator, "btn_nav")
         #self.__arr.add(self.__volume_slider, "slider")
         self.add(self.__arr)
 
@@ -254,11 +243,9 @@ class ImageViewer(Player):
         
         if (self.__is_fullscreen):
             self.__toolbar.set_visible(False)
-            self.__btn_navigator.set_visible(False)
             self.__image.set_background(theme.color_image_viewer_background_fullscreen)
         else:
             self.__toolbar.set_visible(True)
-            self.__btn_navigator.set_visible(True)
             self.__image.set_background(theme.color_image_viewer_background)
         
         self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
@@ -274,13 +261,6 @@ class ImageViewer(Player):
         
         #screen.fill_area(x, y, w, h, theme.color_mb_background)
         self.__arr.set_geometry(0, 0, w, h)
-
-
-    def __overlay_nav_button(self, screen, x, y, w, h):
-    
-        if (not self.__is_fullscreen):
-            bx, by = self.__btn_navigator.get_screen_pos()
-            screen.draw_pixbuf(theme.mb_btn_navigator_1, bx, by)
         
         
     def get_mime_types(self):

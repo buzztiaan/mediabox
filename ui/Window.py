@@ -74,7 +74,7 @@ class Window(Widget):
                 self.__window.set_app_menu(self.__menu)
             elif (platforms.MAEMO4):
                 self.__window = hildon.Window()
-                self.__window.set_menu(self.__menu)
+                #self.__window.set_menu(self.__menu)
                 self.__window.fullscreen()
             elif (platforms.MEEGO_NETBOOK):
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -86,7 +86,8 @@ class Window(Widget):
 
         elif (wtype == self.TYPE_SUBWINDOW):
             if (platforms.MAEMO5):
-                self.__window = gtk.Dialog()                
+                self.__window = hildon.StackableWindow()
+                self.__window.set_app_menu(self.__menu)
             elif (platforms.MAEMO4):
                 self.__window = gtk.Dialog()
                 self.__window.set_decorated(False)
@@ -100,9 +101,9 @@ class Window(Widget):
                 # hide some ugly separator :)
                 self.__window.vbox.get_children()[0].hide()                
             else:
-                self.__window = gtk.Dialog()
+                self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
                 # hide some ugly separator :)
-                self.__window.vbox.get_children()[0].hide()
+                #self.__window.vbox.get_children()[0].hide()
 
                             
         elif (wtype == self.TYPE_DIALOG):

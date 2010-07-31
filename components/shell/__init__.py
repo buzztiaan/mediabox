@@ -1,5 +1,5 @@
 def get_classes():
 
-    from AppWindow import AppWindow
-    return [AppWindow]
+    from PlayerWindow import PlayerWindow
+    return [PlayerWindow]
 

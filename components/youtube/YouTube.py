@@ -678,7 +678,7 @@ class YouTube(Device):
         if (dlg.get_choice() != -1):
             return fmts[dlg.get_choice()]
         else:
-            return 0
+            return 5
 
 
     def __on_download(self, folder, f):

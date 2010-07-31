@@ -208,14 +208,15 @@ class Device(Component):
         pass
 
     
-    def __on_add_to_playlist(self, folder, f):
+    def __on_add_to_playlist(self, folder, *files):
     
-        self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
+        self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", *files)
 
 
-    def __on_put_on_shelf(self, folder, f):
+    def __on_put_on_shelf(self, folder, *files):
         
-        f.bookmarked = True
+        for f in files:
+            f.bookmarked = True
 
 
     def get_file_actions(self, folder, f):
@@ -233,6 +234,22 @@ class Device(Component):
             actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
         if (not f.bookmarked):
             actions.append((None, "Put on Shelf", self.__on_put_on_shelf))
+        
+        return actions
+        
+        
+    def get_bulk_actions(self, folder):
+        """
+        Returns a list of bulk actions for files in the given folder.
+        @since: 2010.07.30
+        
+        @param folder: file object representing the folder
+        @return: list of (icon, action_name, callback) tuples
+        """
+
+        actions = []
+        if (folder.ITEMS_ENQUEUEABLE):
+            actions.append((None, "Add to Playlist", self.__on_add_to_playlist))
         
         return actions
 

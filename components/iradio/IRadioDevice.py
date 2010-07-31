@@ -112,25 +112,39 @@ class IRadioDevice(Device):
         #end if
 
 
-    def __on_delete_item(self, folder, f):
-    
-        idx = 0
-        for location, name in self.__stations:
-            if (location == f.resource and name == f.name):
-                del self.__stations[idx]
-                inetstations.save_stations(self.__stations)
-                self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
-                break
-            #end if
-            idx += 1
-        #end for 
-        
+    def __on_delete_item(self, folder, *files):
+
+        dirty = False    
+        for f in files:
+            idx = 0
+            for location, name in self.__stations:
+                if (location == f.resource and name == f.name):
+                    del self.__stations[idx]
+                    dirty = True
+                    break
+                #end if
+                idx += 1
+            #end for 
+        #end for    
+
+        if (dirty):
+            inetstations.save_stations(self.__stations)
+            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
+
 
 
     def get_file_actions(self, folder, f):
     
         options = Device.get_file_actions(self, folder, f)
         options.append((None, "Delete Station", self.__on_delete_item))
+
+        return options
+
+
+    def get_bulk_actions(self, folder):
+
+        options = Device.get_bulk_actions(self, folder)
+        options.append((None, "Delete Stations", self.__on_delete_item))
 
         return options
 

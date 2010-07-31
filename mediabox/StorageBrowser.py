@@ -39,9 +39,12 @@ class StorageBrowser(ThumbableGridView):
 
         # the currently hilighted file
         self.__hilighted_file = None
+
+        # handler for the bulk action
+        self.__bulk_action_handler = None
         
-        # whether we are performing a bulk operation
-        self.__is_bulk_operation = False
+        # whether we are performing a bulk action
+        self.__is_bulk_action = False
 
         # message text to display
         self.__message = ""
@@ -223,23 +226,54 @@ class StorageBrowser(ThumbableGridView):
         gobject.idle_add(self.load_folder, root, self.GO_NEW)
               
         
-    def begin_bulk_operation(self):
+    def begin_bulk_action(self):
         """
-        Marks the beginning of a bulk operation.
-        Invalidated folder don't get reloaded while a bulk operation is in
-        progress.
+        Marks the beginning of a bulk action. Returns C{True} if an action
+        was selected, C{False} otherwise.
         """
-    
+
+        cwd = self.get_current_folder()
+        
+        actions = cwd.get_bulk_actions()
+        if (not actions):
+            return False
+        
+        dlg = OptionDialog("Options")
+        callbacks = []
+        for icon, name, cb in actions:
+            dlg.add_option(icon, name)
+            callbacks.append(cb)
+
+        if (dlg.run() != 0):
+            return False
+
+        choice = dlg.get_choice()
+        if (choice != -1):
+            self.__bulk_action_handler = callbacks[choice]    
+            self.set_multi_select(True)
+
+            return True
+        else:
+            return False
+            
         self.__is_bulk_operation = True
         
         
-    def end_bulk_operation(self):
+    def perform_bulk_action(self):
         """
-        Marks the end of a bulk operation.
+        Performs the previously selected bulk action.
         """
         
-        self.__is_bulk_operation = False
-        self.reload_current_folder()
+        if (self.__bulk_action_handler):
+            cwd = self.get_current_folder()
+            selected = [ item.get_file() for item in self.get_items()
+                         if item.is_selected() ]
+
+            self.set_multi_select(False)
+            if (selected):
+                self.__bulk_action_handler(cwd, *selected)
+            self.__bulk_action_handler = None        
+        #end if
         
         
     def invalidate_folder(self, folder):
@@ -258,7 +292,7 @@ class StorageBrowser(ThumbableGridView):
                 found = True
         #end for
         
-        if (found and not self.__is_bulk_operation):
+        if (found):
             self.reload_current_folder()
     
         

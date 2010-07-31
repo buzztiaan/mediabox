@@ -173,8 +173,8 @@ class File(object):
     def __cmp__(self, other):
     
         if (other):
-            return cmp((self.index, self.name.upper(), self.full_path),
-                       (other.index, other.name.upper(), other.full_path))
+            return cmp((self.comparable, self.name.upper(), self.full_path),
+                       (other.comparable, other.name.upper(), other.full_path))
         else:
             return 1
 
@@ -339,6 +339,12 @@ class File(object):
         """
         
         return self.__device.get_file_actions(self, f)
+
+
+    def get_bulk_actions(self):
+        
+        return self.__device.get_bulk_actions(self)
+
 
 
     def get_children(self):

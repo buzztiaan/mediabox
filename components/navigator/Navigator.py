@@ -1,12 +1,13 @@
-from com import Dialog, msgs
+from com import Component, Dialog, msgs
 from RootDevice import RootDevice
 from mediabox.StorageBrowser import StorageBrowser
 from ui.Button import Button
 from ui.ImageButton import ImageButton
 from ui.Slider import Slider
 from ui.Toolbar import Toolbar
-from ui.dialog import OptionDialog
+from ui.dialog import InfoDialog
 from ui.layout import Arrangement
+from ui import Window
 from ui import windowflags
 from utils import mimetypes
 from utils import logging
@@ -16,6 +17,7 @@ import platforms
 from theme import theme
 
 import gobject
+import gtk
 import random
 import time
 
@@ -25,21 +27,10 @@ _LANDSCAPE_ARRANGEMENT = """
     <widget name="toolbar"
             x1="-80" y1="0" x2="100%" y2="100%"/>
 
-    <if-visible name="btn_add">
-      <widget name="btn_add"
-              x1="0" y1="0" x2="-80" y2="80"/>
-      <widget name="slider"
-              x1="0" y1="80" x2="40" y2="100%"/>
-      <widget name="browser"
-              x1="40" y1="80" x2="-80" y2="100%"/>
-    </if-visible>
-
-    <if-invisible name="btn_add">
-      <widget name="slider"
-              x1="0" y1="0" x2="40" y2="100%"/>
-      <widget name="browser"
-              x1="40" y1="0" x2="-80" y2="100%"/>
-    </if-invisible>                
+    <widget name="slider"
+            x1="0" y1="0" x2="40" y2="100%"/>
+    <widget name="browser"
+            x1="40" y1="0" x2="-80" y2="100%"/>
   </arrangement>
 """
 
@@ -49,32 +40,30 @@ _PORTRAIT_ARRANGEMENT = """
     <widget name="toolbar"
             x1="0" y1="-80" x2="100%" y2="100%"/>
 
-    <if-visible name="btn_add">
-      <widget name="btn_add"
-              x1="0" y1="0" x2="100%" y2="80"/>
-      <widget name="slider"
-              x1="0" y1="80" x2="40" y2="-80"/>
-      <widget name="browser"
-              x1="40" y1="80" x2="100%" y2="-80"/>
-    </if-visible>
-
-    <if-invisible name="btn_add">
-      <widget name="slider"
-              x1="0" y1="0" x2="40" y2="-80"/>
-      <widget name="browser"
-              x1="40" y1="0" x2="100%" y2="-80"/>
-    </if-invisible>                
+    <widget name="slider"
+            x1="0" y1="0" x2="40" y2="-80"/>
+    <widget name="browser"
+            x1="40" y1="0" x2="100%" y2="-80"/>
   </arrangement>
 """
 
+_MODE_NORMAL = 0
+_MODE_SELECT = 1
 
-class Navigator(Dialog):
+
+class Navigator(Component, Window):
     """
     Navigator dialog for browsing media.
     """
 
     def __init__(self):
     
+        # the current mode
+        self.__mode = _MODE_NORMAL
+        
+        # list of available dialog windows
+        self.__dialogs = []
+        
         # the file that is currently playing    
         self.__current_file = None
 
@@ -99,8 +88,10 @@ class Navigator(Dialog):
         self.__root_dev = RootDevice()
         
     
-        Dialog.__init__(self)
+        Component.__init__(self)
+        Window.__init__(self, Window.TYPE_TOPLEVEL)
         self.connect_key_pressed(self.__on_key_press)
+        self.connect_closed(self.__on_close_window)
 
         # browser list slider
         self.__browser_slider = Slider(theme.mb_list_slider)
@@ -117,11 +108,6 @@ class Navigator(Dialog):
         self.__browser.connect_file_opened(self.__on_open_file)
         self.__browser_slider.connect_button_pressed(
                                     lambda a,b:self.__browser.stop_scrolling())
-
-        # [Add] button
-        self.__btn_add = Button("Add New")
-        self.__btn_add.set_visible(False)
-        self.__btn_add.connect_clicked(self.__on_btn_add)
 
         # toolbar
         self.__toolbar = Toolbar()
@@ -142,15 +128,73 @@ class Navigator(Dialog):
                                       theme.mb_btn_dir_up_2)
         self.__btn_back.connect_clicked(self.__on_btn_back)
 
+        self.__btn_select_all = ImageButton(theme.mb_btn_dir_up_1,
+                                            theme.mb_btn_dir_up_2)
+        self.__btn_select_all.connect_clicked(self.__on_btn_select_all)
+
+        self.__btn_select_none = ImageButton(theme.mb_btn_dir_up_1,
+                                             theme.mb_btn_dir_up_2)
+        self.__btn_select_none.connect_clicked(self.__on_btn_select_none)
+
+        self.__btn_select_done = ImageButton(theme.mb_btn_dir_up_1,
+                                             theme.mb_btn_dir_up_2)
+        self.__btn_select_done.connect_clicked(self.__on_btn_select_done)
+
 
         # arrangement
         self.__arr = Arrangement()
         self.__arr.connect_resized(self.__update_layout)
         self.__arr.add(self.__browser_slider, "slider")
         self.__arr.add(self.__browser, "browser")
-        self.__arr.add(self.__btn_add, "btn_add")
         self.__arr.add(self.__toolbar, "toolbar")
         self.add(self.__arr)
+
+        # we have to fill the menu with content before showing the window on
+        # Maemo5 or the window will show no menu at all
+        self.__update_menu()
+        
+        self.set_visible(True)
+
+
+    def __update_menu(self):
+
+        folder = self.__browser.get_current_folder()
+        
+        repeat_selected = [mb_config.REPEAT_MODE_NONE,
+                           mb_config.REPEAT_MODE_ALL,
+                           mb_config.REPEAT_MODE_ONE] \
+                          .index(mb_config.repeat_mode())
+        shuffle_selected = [mb_config.SHUFFLE_MODE_NONE,
+                            mb_config.SHUFFLE_MODE_ONE] \
+                           .index(mb_config.shuffle_mode())
+                           
+        self.set_menu_choice("repeat", [(theme.mb_repeat_none, "No Repeat"),
+                                        (theme.mb_repeat_all, "Repeat All"),
+                                        (theme.mb_repeat_one, "Repeat One")],
+                             repeat_selected, True,
+                             self.__on_menu_repeat)
+        self.set_menu_choice("shuffle", [(theme.mb_shuffle_none, "No Shuffle"),
+                                        (theme.mb_shuffle_one, "Shuffle")],
+                             shuffle_selected, True,
+                             self.__on_menu_shuffle)
+        
+        self.set_menu_item("downloads", "Active Downloads", True,
+                           self.__on_menu_downloads)
+         
+        if (folder and folder.folder_flags & folder.ITEMS_ADDABLE):          
+            self.set_menu_item("add", "Add New", True,
+                               self.__on_menu_add)
+        else:
+            self.set_menu_item("add", "Add New", False,
+                               self.__on_menu_add)
+
+        self.set_menu_item("select", "Select Items for Action", True,
+                           self.__on_menu_select)
+        
+        self.set_menu_item("rearrange", "Rearrange Items", True,
+                           self.__on_menu_rearrange)
+        #self.set_menu_item("info", "About", True,
+        #                   self.__on_menu_info)
 
 
     def __update_layout(self):
@@ -170,9 +214,14 @@ class Navigator(Dialog):
         """
 
         cwd = self.__browser.get_current_folder()
-        items = [self.__btn_home,
-                 self.__btn_history,
-                 self.__btn_back]
+        if (self.__mode == _MODE_NORMAL):
+            items = [self.__btn_home,
+                     self.__btn_history,
+                     self.__btn_back]
+        else:
+            items = [self.__btn_select_all,
+                     self.__btn_select_none,
+                     self.__btn_select_done]
         
         self.__toolbar.set_toolbar(*items)
 
@@ -195,7 +244,7 @@ class Navigator(Dialog):
 
     def _visibility_changed(self):
         
-        Dialog._visibility_changed(self)
+        Window._visibility_changed(self)
         if (self.is_visible()):
             self.__tn_scheduler.resume()
 
@@ -211,30 +260,75 @@ class Navigator(Dialog):
         self.call_service(msgs.INPUT_SVC_SEND_KEY, keycode, True)
 
 
-    def __on_menu_select_output(self):
+    def __on_close_window(self):
     
-        self.emit_message(msgs.MEDIA_ACT_SELECT_OUTPUT, None)
+        self.emit_message(msgs.MEDIA_ACT_STOP)
+        self.emit_message(msgs.COM_EV_APP_SHUTDOWN)
+        gtk.main_quit()
+
+
+    def __on_menu_repeat(self, choice):
+    
+        if (choice == 0):
+            mb_config.set_repeat_mode(mb_config.REPEAT_MODE_NONE)
+        elif (choice == 1):
+            mb_config.set_repeat_mode(mb_config.REPEAT_MODE_ALL)
+        elif (choice == 2):
+            mb_config.set_repeat_mode(mb_config.REPEAT_MODE_ONE)
+        
+        
+    def __on_menu_shuffle(self, choice):
+    
+        if (choice == 0):
+            mb_config.set_shuffle_mode(mb_config.SHUFFLE_MODE_NONE)
+        elif (choice == 1):
+            mb_config.set_shuffle_mode(mb_config.SHUFFLE_MODE_ONE)
 
 
     def __on_menu_rearrange(self):
     
         def on_done():
-            self.__browser.set_drag_sort_enabled(False)
+            for item in self.__browser.get_items():
+                item.set_draggable(False)
+            self.__browser.invalidate()
+                
             self.__update_toolbar()
     
-        self.__browser.set_drag_sort_enabled(True)
+        for item in self.__browser.get_items():
+            item.set_draggable(True)
+        self.__browser.invalidate()
     
         btn_done = ImageButton(theme.mb_btn_history_1,
                                theme.mb_btn_history_2)
         btn_done.connect_clicked(on_done)
         self.__toolbar.set_toolbar(btn_done)
+
+
+    def __on_menu_downloads(self):
+    
+        self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "downloader.DownloadManager")
         
         
     def __on_menu_fmtx(self):
     
         import platforms
         platforms.plugin_execute("libcpfmtx.so")
-          
+
+
+    def __on_menu_select(self):
+        
+        if (self.__browser.begin_bulk_action()):
+            self.__mode = _MODE_SELECT
+            self.__update_toolbar()
+        #end if
+
+
+    def __on_menu_add(self):
+        
+        folder = self.__browser.get_current_folder()
+        if (folder):
+            folder.new_file()
+ 
        
     def __on_open_file(self, f):
             
@@ -250,16 +344,9 @@ class Navigator(Dialog):
         #self.set_title(f.name)
         self.set_flag(windowflags.BUSY, True)
         
-        # show or hide [Add] button
-        is_visible = self.__btn_add.is_visible()
-        if (f.folder_flags & f.ITEMS_ADDABLE and not is_visible):
-            self.__btn_add.set_visible(True)
-            self.__update_layout()
-            self.render()
-        elif (is_visible):
-            self.__btn_add.set_visible(False)
-            self.__update_layout()
-            self.render()
+        self.__update_layout()
+        self.__update_menu()
+        self.render()
         
         self.__update_items_per_row(f)
 
@@ -300,14 +387,6 @@ class Navigator(Dialog):
         self.emit_message(msgs.UI_ACT_TALK, acoustic_title)
         self.emit_message(msgs.CORE_EV_FOLDER_VISITED, f)
         self.__update_toolbar()
-        #self.__update_menu()
-
-        # show or hide [Add] button
-        is_visible = self.__btn_add.is_visible()
-        if (f.folder_flags & f.ITEMS_ADDABLE and not is_visible):
-            self.__btn_add.set_visible(True)
-            self.__update_layout()
-            self.render()
 
         if (self.is_visible()):
             self.__tn_scheduler.resume()
@@ -376,17 +455,32 @@ class Navigator(Dialog):
         self.__browser.go_parent()
         #self.__update_items_per_row(self.__browser.get_current_folder())
 
-            
-            
-    def __on_btn_add(self):
+
+    def __on_btn_select_all(self):  
         """
-        Reacts on pressing the [Add] button.
+        Reacts on pressing the [Select All] button.
         """
         
-        folder = self.__browser.get_current_folder()
-        if (folder):
-            folder.new_file()
+        self.__browser.select_all()
+        
+        
+    def __on_btn_select_none(self):
+        """
+        Reacts on pressing the [Select None] button.
+        """
+        
+        self.__browser.unselect_all()
+        
+        
+    def __on_btn_select_done(self):
+        """
+        Reacts on pressing the [Select Done] button.
+        """
 
+        self.__mode = _MODE_NORMAL
+        self.__update_toolbar()
+        self.__browser.perform_bulk_action()
+            
 
     def __load_file(self, f, is_manual):
         """
@@ -410,7 +504,7 @@ class Navigator(Dialog):
             self.__current_file = f
             self.__browser.hilight_file(f)
 
-            self.set_visible(False)
+            #self.set_visible(False)
 
             folder = self.__browser.get_current_folder()
             if (is_manual and folder != self.__play_folder):
@@ -512,6 +606,41 @@ class Navigator(Dialog):
         return True
 
 
+    def __show_dialog(self, name):
+        """
+        Shows the dialog with the given name.
+        """
+
+        #print name, self.__dialogs
+        dialogs = [ d for d in self.__dialogs if repr(d) == name ]
+        if (dialogs):
+            dlg = dialogs[0]
+            dlg.set_visible(True)
+        #end if
+
+
+    def handle_COM_EV_COMPONENT_LOADED(self, component):
+
+        if (isinstance(component, Dialog)):
+            if (repr(component) in [ repr(d) for d in self.__dialogs ]):
+                logging.error("a dialog with ID '%s' exists already.",
+                              repr(component))
+            else:
+                self.__dialogs.append(component)
+                #component.set_parent_window(self)
+
+
+    def handle_UI_ACT_SHOW_INFO(self, msg):
+    
+        dlg = InfoDialog(msg, self)
+        dlg.run()
+
+
+    def handle_UI_ACT_SHOW_DIALOG(self, name):
+    
+        self.__show_dialog(name)
+
+
     def handle_CORE_EV_THEME_CHANGED(self):
     
         self.render()
@@ -568,14 +697,14 @@ class Navigator(Dialog):
     def handle_ASR_EV_PORTRAIT(self):
         
         self.__is_portrait = True
-        self.set_visible(False)
+        self.set_flag(windowflags.PORTRAIT, True)
         self.__update_items_per_row(self.__browser.get_current_folder())
 
 
     def handle_ASR_EV_LANDSCAPE(self):
 
         self.__is_portrait = False
-        self.set_visible(False)
+        self.set_flag(windowflags.PORTRAIT, False)
         self.__update_items_per_row(self.__browser.get_current_folder())
                     
     

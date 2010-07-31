@@ -19,8 +19,7 @@ import gobject
 
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
-    <widget name="btn_nav" x1="0" y1="-64" x2="64" y2="100%"/>
-    <widget name="progress" x1="90" y1="-50" x2="-154" y2="-10"/>
+    <widget name="progress" x1="10" y1="-50" x2="-154" y2="-10"/>
     <widget name="btn_star" x1="-154" y1="-64" x2="-90" y2="100%"/>
     <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
     <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
@@ -33,7 +32,6 @@ _LANDSCAPE_ARRANGEMENT = """
 
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
-    <widget name="btn_nav" x1="-64" y1="0" x2="100%" y2="64"/>
     <widget name="progress" x1="50" y1="-170" x2="-50" y2="-130"/>
     <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
     <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
@@ -96,11 +94,6 @@ class AudioPlayer(Player):
         self.__volume_slider = Slider(theme.mb_list_slider)
         self.__volume_slider.set_mode(Slider.VERTICAL)
         self.__volume_slider.connect_value_changed(self.__on_change_volume)
-        
-        # navigator button
-        self.__btn_navigator = ImageButton(theme.mb_btn_navigator_1,
-                                           theme.mb_btn_navigator_2)
-        self.__btn_navigator.connect_clicked(self.__on_btn_navigator)
 
         # progress bar
         self.__progress = ProgressBar()
@@ -135,7 +128,6 @@ class AudioPlayer(Player):
         # arrangement
         self.__arr = Arrangement()
         self.__arr.connect_resized(self.__update_layout)
-        self.__arr.add(self.__btn_navigator, "btn_nav")
         self.__arr.add(self.__toolbar, "toolbar")
         self.__arr.add(self.__progress, "progress")
         self.__arr.add(self.__btn_star, "btn_star")
@@ -204,11 +196,6 @@ class AudioPlayer(Player):
         
         self.__sliding_direction = self.SLIDE_LEFT
         self.emit_message(msgs.MEDIA_ACT_NEXT)
-
-
-    def __on_btn_navigator(self):
-    
-        self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "navigator.Navigator")
               
             
     def __on_change_player_status(self, ctx_id, status):
