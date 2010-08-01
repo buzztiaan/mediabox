@@ -1,3 +1,4 @@
+from io import Downloader
 from utils import logging
 
 import gobject
@@ -75,21 +76,14 @@ def load(path, cb, *args):
             cb(None, *args)
             
 
-    def load_cb(cnt):
-        if (cnt[0] < 5):
-            cnt[0] += 1
-            return True
-        else:
-            cnt[0] = 0
+    def load_cb(d, amount, total):
 
-        d = fd.read(_CHUNK_SIZE)
         if (d):
             if (not aborted[0]):
                 try:
                     loader.write(d)
                 except:
                     pass
-            gtk.main_iteration(False)
             return True
         else:
             try:
@@ -115,16 +109,8 @@ def load(path, cb, *args):
             aborted[0] = True
 
 
-    
-    try:
-        fd = open(path, "r")
-    except:
-        cb(None, *args)
-        return
-    
     aborted = [False]
     loader = gtk.gdk.PixbufLoader()
     loader.connect("size-prepared", on_size_available)
-        
-    gobject.idle_add(load_cb, [0])
+    dl = Downloader(path, load_cb)
 
