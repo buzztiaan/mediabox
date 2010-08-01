@@ -10,7 +10,7 @@ from ui.layout import HBox, VBox
 from ui.Pixmap import Pixmap
 from mediabox import media_bookmarks
 from mediabox import tagreader
-from utils import imageloader
+from mediabox import imageloader
 from utils import logging
 from theme import theme
 

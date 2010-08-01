@@ -30,13 +30,13 @@ _LANDSCAPE_ARRANGEMENT = """
 
     <if-visible name="now-playing">
       <widget name="now-playing"
-              x1="0" y1="-80" x2="-80" y2="100%"/>
+              x1="0" y1="0" x2="-80" y2="80"/>
 
       <widget name="slider"
-              x1="0" y1="0" x2="40" y2="-80"/>
+              x1="0" y1="80" x2="40" y2="100%"/>
 
       <widget name="browser"
-              x1="40" y1="0" x2="-80" y2="-80"/>
+              x1="40" y1="80" x2="-80" y2="100%"/>
     </if-visible>
 
     <if-invisible name="now-playing">

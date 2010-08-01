@@ -1,5 +1,5 @@
 from com import Thumbnailer
-from utils import imageloader
+from mediabox import imageloader
 from theme import theme
 
 import gtk

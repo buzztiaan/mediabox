@@ -1,6 +1,6 @@
 from com import Thumbnailer, msgs
 from io.Downloader import Downloader
-from utils import imageloader
+from mediabox import imageloader
 from theme import theme
 
 import base64

@@ -1,6 +1,6 @@
 from com import Component, msgs
 from mediabox import tagreader
-from utils import imageloader
+from mediabox import imageloader
 from theme import theme
 
 import os
