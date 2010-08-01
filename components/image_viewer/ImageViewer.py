@@ -265,7 +265,7 @@ class ImageViewer(Player):
         
     def get_mime_types(self):
     
-        return ["image/*"]        
+        return ["image/*"]
 
         
     def load(self, f):

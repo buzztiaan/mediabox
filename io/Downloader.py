@@ -8,6 +8,7 @@ from utils import logging
 from Queue import Queue
 import threading
 import httplib
+import os
 import gtk
 import gobject
 import time
@@ -56,10 +57,44 @@ class Downloader(object):
 
     def __open(self, url):
             
-        t = threading.Thread(target = self.__request_data, args = [url])
+        if (url.startswith("/")):
+            # local file
+            t = threading.Thread(target = self.__request_local, args = [url])
+        else:
+            # remote file
+            t = threading.Thread(target = self.__request_data, args = [url])
+
         t.setDaemon(True)
         t.start()
         
+        
+    def __request_local(self, url):
+    
+        try:
+            total = os.stat(url).st_size
+            fd = open(url, "r")
+        except:
+            self.__queue_response(None, 0, 0)
+            return
+            
+        amount = 0
+        while (True):
+            data = fd.read(_CHUNK_SIZE)
+            if (not data):
+                break
+            time.sleep(0.001)
+            amount += len(data)
+            self.__queue_response(data, amount, total)
+        #end while
+        
+        try:
+            fd.close()
+        except:
+            pass
+        
+        print "CLOSED", self.__url, amount, "read"
+        self.__queue_response("", amount, total)
+
 
     def __request_data(self, url):
     
@@ -73,8 +108,6 @@ class Downloader(object):
             conn.endheaders()
             resp = conn.getresponse()
         except:
-            import traceback; traceback.print_exc()
-            print "on", self.__url
             self.__queue_response(None, 0, 0)
             return
 

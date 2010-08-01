@@ -1,7 +1,6 @@
 from ui.Widget import Widget
 from ui.Pixmap import Pixmap, TEMPORARY_PIXMAP
 from io.Downloader import Downloader
-from utils.Observable import Observable
 from utils import logging
 
 import gtk
@@ -23,19 +22,10 @@ _CHUNK_SIZE = 50000
 
 
 
-class Image(Widget, Observable):
+class Image(Widget):
     """
     Class for rendering images.
-    """    
-
-    OBS_BEGIN_LOADING = 0
-    OBS_END_LOADING = 1
-    OBS_PROGRESS = 2
-    OBS_RENDERED = 3
-    OBS_ZOOMING = 4
-    OBS_SCALE_RANGE = 5
-    OBS_SMOOTHING = 6  
-    
+    """
 
     def __init__(self):
 
@@ -86,20 +76,11 @@ class Image(Widget, Observable):
         # the loader contains the complete image
         self.__loader = None
         self.__is_loading = False
-        self.__is_preloading = False
         self.__currently_loading = None
         self.__pixbuf = None
         
         # flag for aborting the load process if it would cause trouble
         self.__loading_aborted = False
-        
-        # preloaded pixbuf
-        self.__preloaded_pixbuf = None
-        # preloaded file
-        self.__preloaded_file = None
-        
-        # handler for scheduling the preloader
-        self.__scheduled_preloader = None
         
         # slide from right or left
         self.__slide_from_right = True
@@ -187,7 +168,6 @@ class Image(Widget, Observable):
 
     def __hi_quality_render(self):
 
-       self.update_observer(self.OBS_SMOOTHING)
        self.__invalidated = True
        self._render(True)
 
@@ -309,8 +289,6 @@ class Image(Widget, Observable):
         #for i in range(3): gc.collect()
         self.__invalidated = True
 
-        self.update_observer(self.OBS_ZOOMING,
-                             self.__zoom_level, self.__zoom_value)
         self.scroll_to(cx * self.__zoom_value, cy * self.__zoom_value)
         #gobject.timeout_add(0, self.scroll_to, cx * self.__zoom_value,
         #                                       cy * self.__zoom_value)
@@ -433,7 +411,6 @@ class Image(Widget, Observable):
             for o in self.__overlays:
                 o(TEMPORARY_PIXMAP, x, y, width, height)
             screen.copy_pixmap(TEMPORARY_PIXMAP, x, y, x, y, width, height)
-            self.update_observer(self.OBS_RENDERED)
 
 
         
@@ -503,77 +480,9 @@ class Image(Widget, Observable):
             if (self.__hi_quality_timer):
                 gobject.source_remove(self.__hi_quality_timer)
             
-            if (self.__scheduled_preloader):
-                gobject.source_remove(self.__scheduled_preloader)
-                self.__scheduled_preloader = None
-            
             self.__current_file = f
-            
-            # case 1: image is not preloaded
-            #         simply load image, cancelling any running load operation
-            if (self.__preloaded_file != f):
-                logging.debug("preloading image %s", f)
-                self.__is_preloading = False
-                self.__load_img(f, self.__use_pixbuf)
-                
-            # case 2: image is currently being preloaded
-            #         make the remaining preloading process visible
-            elif (not self.__preloaded_pixbuf):
-                logging.debug("using preloading image %s", f)
-                self.update_observer(self.OBS_BEGIN_LOADING)
-                self.__is_preloading = False
-                
-            # case 3: image is already preloaded and can be used
-            #         use image
-            elif (self.__preloaded_pixbuf):
-                logging.debug("using preloaded image %s", f)
-                self.update_observer(self.OBS_BEGIN_LOADING)
-                self.__drag_amount = 0
-                self.__use_pixbuf(self.__preloaded_pixbuf)
-                self.update_observer(self.OBS_END_LOADING)
+            self.__load_img(f, self.__use_pixbuf)
 
-            # TODO: there's still one bug:
-            #       when cancelling loading of a file and reloading the same
-            #       file again before the cancelled loader didn't terminate,
-            #       the cancelled loader becomes active again and closes the
-            #       pixbuf loader before the new loader finished writing to it
-            #
-            #       this does not apply to normal use-cases, though
-
-            # disable preloaded stuff
-            self.__preloaded_pixbuf = None
-            self.__preloaded_file = None
-
-
-
-    def preload(self, f):
-        """
-        Preloads the given image file.
-        """
-
-        def on_load(pixbuf):
-            if (self.__is_preloading):
-                self.__preloaded_pixbuf = pixbuf
-            else:
-                self.__use_pixbuf(pixbuf)
-
-
-        if (f != self.__current_file):
-            # case 1: nothing is loading at the moment
-            #         simply load
-            if (not self.__is_loading):
-                logging.debug("preloading image %s", f)
-                self.__preloaded_file = f
-                self.__is_preloading = True
-                self.__scheduled_preloader = None
-                self.__load_img(f, on_load)
-                
-            # case 2: something is loading
-            #         schedule preloader for later
-            else:
-                logging.debug("preloading image %s later", f)
-                self.__scheduled_preloader = gobject.timeout_add(500,
-                                                               self.preload, f)
 
 
     def __load_img(self, f, cb, *args):
@@ -581,20 +490,10 @@ class Image(Widget, Observable):
         Loads the image.
         """
 
-        def on_data(d, amount, total, size_read, f):
-            if (f != self.__currently_loading): return
+        def on_data(d, amount, total):
+        
             if (d):
-                size_read[0] += len(d)
-                try:
-                    if (not self.__loading_aborted):
-                        self.__loader.write(d)
-                except:
-                    pass
-                    
-                if (not self.__is_preloading):
-                    self.__progress = size_read[0] / float(total) * 100
-                    self.render()
-                    self.update_observer(self.OBS_PROGRESS, size_read[0], total)
+                self.__loader.write(d)
             else:
                 try:
                     self.__loader.close()
@@ -602,15 +501,7 @@ class Image(Widget, Observable):
                     cb(pixbuf, *args)
                 except:
                     pass
-                    
-                self.__progress = 0
-                if (not self.__is_preloading):
-                    self.__drag_amount = 0
-                    self.render()
-                    self.update_observer(self.OBS_END_LOADING)
-
-                self.__is_loading = False
-
+                
 
         self.__currently_loading = f
         self.__is_loading = True
@@ -622,17 +513,8 @@ class Image(Widget, Observable):
         self.__loader = gtk.gdk.PixbufLoader()
         self.__loader.connect("size-prepared", self.__on_check_size)
 
-        if (not self.__is_preloading):
-            self.update_observer(self.OBS_BEGIN_LOADING, f)
-
-        try:
-            f.load(0, on_data, [0], f)
-        except:
-            if (not self.__is_preloading):
-                self.update_observer(self.OBS_END_LOADING)
-
-            self.__is_loading = False
-                           
+        dl = Downloader(f.resource, on_data)
+              
         
     def __finish_loading(self):
         """
@@ -717,7 +599,6 @@ class Image(Widget, Observable):
             self.__zoom_levels.append(fitting2)
         self.__zoom_levels.sort()
 
-        self.update_observer(self.OBS_SCALE_RANGE, len(self.__zoom_levels))
         self.__zoom_fit = self.__zoom_levels.index(fitting)
         self.__zoom_100 = self.__zoom_levels.index(100)
         self.zoom_fit(animated = False)
