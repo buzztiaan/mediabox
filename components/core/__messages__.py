@@ -391,17 +391,6 @@ Displays an info notification.
 @param text: text to display
 """
 
-def UI_ACT_SHOW_MESSAGE(text, subtext, icon): pass
-"""
-Displays an overlay message. The message is displayed until
-L{UI_ACT_HIDE_MESSAGE} is called.
-
-
-@param text: title text
-@param subtext: message text
-@param icon: pixbuf object or C{None}
-"""
-
 def UI_ACT_HIDE_MESSAGE(): pass
 """
 Hides the current overlay message, if there is any.

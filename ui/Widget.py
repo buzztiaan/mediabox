@@ -523,7 +523,9 @@ class Widget(EventEmitter):
         @return: whether this widget may currently render
         """
     
-        return (self.get_screen() and self.is_visible() and not self.is_frozen())
+        return (self.get_screen() and self.is_visible() and
+                not self.is_frozen() and
+                self.__size[0] > 0 and self.__size[1] > 0)
         
 
     """

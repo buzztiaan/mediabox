@@ -34,7 +34,7 @@ class FileUndertaker(Component):
     def __remove_corpse(self, corpses):
 
         now = time.time()
-        while (time.time() < now + 0.01 and corpses):
+        while (time.time() < now + 0.003 and corpses):
             path = corpses.pop()[0]
             if (not self.__exists(path)):
                 self.call_service(msgs.FILEINDEX_SVC_REMOVE, path)
@@ -49,6 +49,9 @@ class FileUndertaker(Component):
     def handle_COM_EV_APP_STARTED(self):
 
         gobject.timeout_add(1000, self.__remove_corpses)
+        #self.emit_message(msgs.UI_ACT_SHOW_INFO,
+        #                  "not invoking undertaker")
+        #pass
 
 
     def handle_FILEINDEX_ACT_BURY(self):

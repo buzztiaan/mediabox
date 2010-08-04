@@ -223,7 +223,8 @@ class StorageBrowser(ThumbableGridView):
         """
         
         root = device.get_root()
-        gobject.idle_add(self.load_folder, root, self.GO_NEW)
+        print "SET ROOT DEVICE", device, root
+        self.load_folder(root, self.GO_NEW)
               
         
     def begin_bulk_action(self):

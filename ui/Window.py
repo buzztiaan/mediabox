@@ -158,7 +158,7 @@ class Window(Widget):
         self.__window.realize()
 
         if (platforms.MAEMO5):
-            if (wtype == self.TYPE_TOPLEVEL):
+            if (wtype in [self.TYPE_TOPLEVEL, self.TYPE_SUBWINDOW]):
                 pass #self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
             else:
                 self.__set_portrait_property("_HILDON_PORTRAIT_MODE_SUPPORT", 1)
@@ -302,12 +302,22 @@ class Window(Widget):
 
 
     def __on_configure(self, src, ev):
-
-        if (self.__configure_event_handler):
-            gobject.source_remove(self.__configure_event_handler)
-        self.__configure_event_handler = gobject.timeout_add(0, 
-                                                self.__handle_configure_event)
-
+        
+        w = ev.width
+        h = ev.height
+        if ((w, h) != self.__size):
+            self.__size = (w, h)
+            if (self.__configure_event_handler):
+                gobject.source_remove(self.__configure_event_handler)
+            else:
+                # freeze rendering at the first of possibly several configure events
+                # in a row
+                self.set_frozen(True)
+                
+            self.__configure_event_handler = gobject.timeout_add(0, 
+                                                    self.__handle_configure_event)
+        #end if
+        
 
     def __handle_configure_event(self):
         """
@@ -315,16 +325,17 @@ class Window(Widget):
         shoots several in a row and we should only react on the last one.
         """
 
+        # thaw rendering at the last of possibly several configure events in
+        # a row
+        self.set_frozen(False)
+
         self.__configure_event_handler = None
         w, h = self.__window.get_size()
-        if ((w, h) != self.__size):
-            self.__screen = Pixmap(self.__window.window)
-            self.set_screen(self.__screen)
-            self.__size = (w, h)
+        self.__screen = Pixmap(self.__window.window)
+        self.set_screen(self.__screen)
 
-            self.set_size(w, h)
-            self.render()
-        #end if
+        self.set_size(w, h)
+        self.render()
 
 
     def __on_expose(self, src, ev):

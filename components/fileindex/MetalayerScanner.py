@@ -3,8 +3,8 @@ from mediabox import config
 
 import os
 import gobject
-import time
 import sqlite3
+import threading
 
 
 _META_DB = os.path.expanduser("~/.meta_storage")
@@ -34,38 +34,36 @@ class MetalayerScanner(Component):
                     "WHERE Present=1")
         lines = [ row[0] for row in csr ]
         conn.close()
-        
-        gobject.idle_add(self.__process_metalayer_files, lines)
-
-
-    def __process_metalayer_files(self, lines):
-    
-        now = time.time()
-        while (time.time() < now + 0.05 and lines):
+            
+        while (lines):
             line = lines.pop(0)
             path = line.strip()
             try:
                 mtime = int(os.path.getmtime(path))
-                self.call_service(msgs.FILEINDEX_SVC_DISCOVER, path, mtime)
             except:
-                pass
+                continue
+
+            gobject.timeout_add(0, self.call_service,
+                                msgs.FILEINDEX_SVC_DISCOVER, path, mtime)
         #end while
-        
-        if (lines):
-            return True
-        else:
-            self.emit_message(msgs.UI_ACT_SHOW_INFO,
-                              "Scanning for media finished.")
-            return False
+
+        gobject.idle_add(self.emit_message, msgs.UI_ACT_SHOW_INFO,
+                         "Scanning for media finished.")
 
 
     def handle_COM_EV_APP_STARTED(self):
 
         if (config.scan_at_startup()):
-            gobject.idle_add(self.__get_metalayer_files)
+            t = threading.Thread(target = self.__get_metalayer_files)
+            t.setDaemon(True)
+            t.start()
+            #gobject.idle_add(self.__get_metalayer_files)
 
 
     def handle_FILEINDEX_ACT_SCAN(self):
     
-        gobject.idle_add(self.__get_metalayer_files)
+        #gobject.idle_add(self.__get_metalayer_files)
+        t = threading.Thread(target = self.__get_metalayer_files)
+        t.setDaemon(True)
+        t.start()
 

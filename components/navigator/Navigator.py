@@ -13,6 +13,7 @@ from ui import windowflags
 from utils import mimetypes
 from utils import logging
 from mediabox import config as mb_config
+from mediabox import values
 from utils.ItemScheduler import ItemScheduler
 import platforms
 from theme import theme
@@ -136,6 +137,7 @@ class Navigator(Component, Window):
         
         # file browser
         self.__browser = StorageBrowser()
+        self.__browser.set_root_device(self.__root_dev)
         self.__browser.associate_with_slider(self.__browser_slider)
         self.__browser.connect_folder_begin(self.__on_begin_folder)
         self.__browser.connect_folder_progress(self.__on_progress_folder)
@@ -184,6 +186,7 @@ class Navigator(Component, Window):
         self.__arr.add(self.__browser, "browser")
         self.__arr.add(self.__toolbar, "toolbar")
         self.add(self.__arr)
+        self.__arr.set_visible(False)
 
         # we have to fill the menu with content before showing the window on
         # Maemo5 or the window will show no menu at all
@@ -227,10 +230,10 @@ class Navigator(Component, Window):
         self.set_menu_item("select", "Select Items for Action", True,
                            self.__on_menu_select)
         
-        self.set_menu_item("rearrange", "Rearrange Items", True,
-                           self.__on_menu_rearrange)
-        #self.set_menu_item("info", "About", True,
-        #                   self.__on_menu_info)
+        #self.set_menu_item("rearrange", "Rearrange Items", True,
+        #                   self.__on_menu_rearrange)
+        self.set_menu_item("info", "About", True,
+                           self.__on_menu_info)
 
 
     def __update_layout(self):
@@ -283,9 +286,6 @@ class Navigator(Component, Window):
         Window._visibility_changed(self)
         if (self.is_visible()):
             self.__tn_scheduler.resume()
-
-            if (not self.__browser.get_path()):
-                self.__browser.set_root_device(self.__root_dev)
             
         else:
             self.__tn_scheduler.halt()
@@ -365,6 +365,11 @@ class Navigator(Component, Window):
         if (folder):
             folder.new_file()
  
+ 
+    def __on_menu_info(self):
+    
+        self.__show_dialog("core.AboutDialog")
+ 
        
     def __on_open_file(self, f):
             
@@ -406,7 +411,8 @@ class Navigator(Component, Window):
         
         if (not is_final):
             #print "SCHEDULING THUMBNAIL", c
-            self.__tn_scheduler.add(item, c)
+            #self.__tn_scheduler.add(item, c)
+            pass
 
 
     def __on_complete_folder(self, f):
@@ -432,8 +438,6 @@ class Navigator(Component, Window):
         item.set_icon(thumbpath)
         idx = self.__browser.get_items().index(item)
         self.__browser.invalidate_item(idx)
-        #self.__browser.invalidate()
-        #self.__browser.render()
 
 
     def __on_load_thumbnail(self, item, f):
@@ -660,6 +664,30 @@ class Navigator(Component, Window):
         #end if
 
 
+    def render_this(self):
+    
+        if (self.__arr.is_visible()):
+            Window.render_this(self)
+            
+        else:
+            x, y = self.get_screen_pos()
+            w, h = self.get_size()
+            screen = self.get_screen()
+        
+            screen.fill_area(x, y, w, h, theme.color_mb_background)
+            screen.draw_centered_text(values.NAME + " " + values.VERSION,
+                                      theme.font_mb_headline,
+                                      x, h / 2 - 30, w, 30, theme.color_mb_text)
+            screen.draw_centered_text(values.COPYRIGHT,
+                                      theme.font_mb_plain,
+                                      x, h / 2, w, 30, theme.color_mb_text)
+            screen.draw_centered_text("Loading... Please Wait",
+                                      theme.font_mb_plain,
+                                      x, h - 80, w, 20, theme.color_mb_text)
+            screen.fit_pixbuf(theme.mb_logo,
+                              w - 120, h - 120, 120, 120)
+
+
     def handle_COM_EV_COMPONENT_LOADED(self, component):
 
         if (isinstance(component, Dialog)):
@@ -669,6 +697,12 @@ class Navigator(Component, Window):
             else:
                 self.__dialogs.append(component)
                 #component.set_parent_window(self)
+
+
+    def handle_COM_EV_APP_STARTED(self):
+    
+        self.__arr.set_visible(True)
+        self.render()
 
 
     def handle_UI_ACT_SHOW_INFO(self, msg):
@@ -718,12 +752,6 @@ class Navigator(Component, Window):
             self.__is_searching = True
             self.__search_term = key
         #end if
-
-    
-    def handle_COM_EV_APP_STARTED(self):
-
-        #gobject.idle_add(self.__browser.set_root_device, self.__root_dev)
-        pass
 
 
     def handle_CORE_EV_SEARCH_CLOSED(self):

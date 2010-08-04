@@ -100,7 +100,12 @@ class NowPlaying(Widget, Component):
         if (not is_final):
             self.call_service(msgs.THUMBNAIL_SVC_LOAD_THUMBNAIL, f, on_loaded)
 
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        #buf = Pixmap(None, w, h)
         self.__render()
+        #self.render_at(buf)
+        #self.fx_slide_vertical(buf, x, y, w, h, self.SLIDE_UP)
         self.render()
 
             

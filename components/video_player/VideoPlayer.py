@@ -22,8 +22,8 @@ _LANDSCAPE_ARRANGEMENT = """
       <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
 
       <widget name="screen" x1="40" y1="4" x2="-84" y2="-64"/>
-      <widget name="progress" x1="10" y1="-50" x2="-154" y2="-10"/>
-      <widget name="btn_star" x1="-154" y1="-64" x2="-90" y2="100%"/>
+      <widget name="progress" x1="80" y1="-50" x2="-90" y2="-10"/>
+      <widget name="btn_star" x1="10" y1="-64" x2="74" y2="100%"/>
       <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
     </if-visible>
     
@@ -35,7 +35,7 @@ _LANDSCAPE_ARRANGEMENT = """
 """
 
 # hmm, there is no such thing as portrait mode video. Fremantle either does not
-# rotate or will just crash, depending on firmware version
+# rotate or will just crash, depending on the firmware version
 # we simply hide the video screen while in portrait mode and play sound only
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
@@ -133,7 +133,8 @@ class VideoPlayer(Player):
     
         w, h = self.get_size()
         if (w < h):
-            self.__btn_star.set_visible(False)
+            if (not self.__is_fullscreen):
+                self.__btn_star.set_visible(False)
             self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
         else:
             self.__btn_star.set_visible(True)
@@ -166,8 +167,6 @@ class VideoPlayer(Player):
 
     def __on_tap(self, px, py):
     
-        #if (self.__player):
-        #    self.__player.pause()
         self.__toggle_fullscreen()
 
 

@@ -6,13 +6,15 @@ def get_classes():
     from DirectoryService import DirectoryService
     from MediaOutputService import MediaOutputService
     from ThumbnailService import ThumbnailService
+    from AboutDialog import AboutDialog
 
     return [Initialiser,
             IdleDetector,
             BookmarkService,
             DirectoryService,
             MediaOutputService,
-            ThumbnailService]
+            ThumbnailService,
+            AboutDialog]
 
 
 

@@ -16,6 +16,16 @@ import time
 
 _CHUNK_SIZE = 65536
 
+_MAX_CONNECTIONS = 1
+
+
+# every net connection puts a token into this queue and takes on from it when
+# done
+# while the queue is full, new connections have to wait for being able to
+# put a token
+# this way we limit the amount of concurrent connections
+_connection_queue = Queue(_MAX_CONNECTIONS)
+
 
 class Downloader(object):
     """
@@ -51,8 +61,14 @@ class Downloader(object):
 
     def wait_until_closed(self):
         
-        while (not self.__is_finished):
+        now = time.time()
+        while (time.time() < now + 10 and not self.__is_finished):
             gtk.main_iteration(False)
+        #end while
+        if (self.__is_finished):
+            print "closed"
+        else:
+            print "timeout"
 
 
     def __open(self, url):
@@ -70,6 +86,8 @@ class Downloader(object):
         
     def __request_local(self, url):
     
+        _connection_queue.put(True)
+        
         try:
             total = os.stat(url).st_size
             fd = open(url, "r")
@@ -97,6 +115,8 @@ class Downloader(object):
 
 
     def __request_data(self, url):
+    
+        _connection_queue.put(True)
     
         host, port, path = network.parse_addr(url)
         try:
@@ -130,7 +150,8 @@ class Downloader(object):
                 #end while
                 #data = resp.read(_CHUNK_SIZE)
                 amount += len(data)
-                self.__queue_response(data, amount, total)
+                if (data):
+                    self.__queue_response(data, amount, total)
                 
                 if (not data or self.__is_cancelled):
                     resp.close()
@@ -164,11 +185,12 @@ class Downloader(object):
     def __send_response(self):
     
         data, amount, total = self.__queue.get_nowait()
+        if (not data and not self.__is_finished):
+            self.__is_finished = True
+            _connection_queue.get()
+
         try:
             self.__callback(data, amount, total, *self.__args)
         except:
             pass
-
-        if (not data):
-            self.__is_finished = True
 

@@ -19,8 +19,8 @@ import gobject
 
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
-    <widget name="progress" x1="10" y1="-50" x2="-154" y2="-10"/>
-    <widget name="btn_star" x1="-154" y1="-64" x2="-90" y2="100%"/>
+    <widget name="progress" x1="80" y1="-50" x2="-90" y2="-10"/>
+    <widget name="btn_star" x1="10" y1="-64" x2="74" y2="100%"/>
     <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
     <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
     

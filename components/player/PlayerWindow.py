@@ -106,12 +106,9 @@ class PlayerWindow(Dialog):
 
     def __on_menu_info(self):
     
-        dlg = InfoDialog(values.NAME + " " + \
-                         values.VERSION + " - " + \
-                         values.COPYRIGHT,
-                         self)
-        dlg.run()
-
+        self.emit_message(msgs.UI_ACT_SHOW_DIALOG,
+                          "core.AboutDialog")
+                          
 
     def __on_key_press(self, keycode):
     

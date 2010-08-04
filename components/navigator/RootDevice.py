@@ -24,6 +24,8 @@ class RootDevice(Device):
 
     def __init__(self):
     
+        self.__initialized = False
+    
         # table: id -> device
         self.__devices = {}
         
@@ -101,7 +103,7 @@ class RootDevice(Device):
     def __list_favorites(self):
 
         # get bookmarks
-        self.__favorites = self.call_service(msgs.BOOKMARK_SVC_LIST, [])
+        self.__favorites = self.call_service(msgs.BOOKMARK_SVC_LIST, []) or []
         self.__favorites.sort(lambda a,b:cmp((a.device_id, a.name),
                                              (b.device_id, b.name)))
         #print "shelfed items", self.__favorites
@@ -130,6 +132,10 @@ class RootDevice(Device):
         
 
     def get_contents(self, path, begin_at, end_at, cb, *args):
+
+        if (not self.__initialized):
+            cb(None, *args)
+            return
 
         items = []
     
@@ -202,6 +208,7 @@ class RootDevice(Device):
 
     def handle_COM_EV_APP_STARTED(self):
     
+        self.__initialized = True
         self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_file("/"))
 
     
@@ -214,9 +221,11 @@ class RootDevice(Device):
                 self.__device_lists[device.TYPE].append(device)
 
             folder = self.get_file(_TYPE_MAP[device.TYPE])
-            print "invalidating", folder, "due to", device
             self.__cache = []
-            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
+
+            if (self.__initialized):
+                print "invalidating", folder, "due to", device
+                self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
         #end if
 
 
@@ -231,7 +240,9 @@ class RootDevice(Device):
 
             folder = self.get_file(_TYPE_MAP[device.TYPE])
             self.__cache = []
-            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
+            
+            if (self.__initialized):
+                self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
         #end if
         
         
