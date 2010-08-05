@@ -189,7 +189,7 @@ class StorageBrowser(ThumbableGridView):
         if (not actions):
             return
         
-        dlg = OptionDialog("Options")
+        dlg = OptionDialog("Actions")
         callbacks = []
         for icon, name, cb in actions:
             dlg.add_option(icon, name)
@@ -239,7 +239,7 @@ class StorageBrowser(ThumbableGridView):
         if (not actions):
             return False
         
-        dlg = OptionDialog("Options")
+        dlg = OptionDialog("Actions")
         callbacks = []
         for icon, name, cb in actions:
             dlg.add_option(icon, name)

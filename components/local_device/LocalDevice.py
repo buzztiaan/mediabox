@@ -85,21 +85,36 @@ class LocalDevice(Device):
         self.emit_message(msgs.PLAYLIST_ACT_APPEND, "", f)
 
 
-    def __on_delete_file(self, folder, f):
+    def __on_delete_file(self, folder, *files):
     
-        dlg = OptionDialog("Really delete this file?")
-        dlg.add_option(None, "Yes, delete from device")
-        dlg.add_option(None, "No, keep it")
+        if (len(files) == 1):
+            dlg = OptionDialog("Really delete this entry?")
+            dlg.add_option(None, "Yes, delete from device")
+            dlg.add_option(None, "No, keep it")
+        else:
+            dlg = OptionDialog("Really delete %d entries?" % len(files))
+            dlg.add_option(None, "Yes, delete from device")
+            dlg.add_option(None, "No, keep them")
+        
         ret = dlg.run()
         if (ret == 0):
             choice = dlg.get_choice()
             if (choice == 0):
-                try:
-                    os.unlink(f.resource)
-                    self.emit_message(msgs.FILEINDEX_SVC_REMOVE, f.resource)
-                except:
-                    pass
+                fail_cnt = 0
+                for f in files:
+                    try:
+                        if (f.mimetype == f.DIRECTORY):
+                            os.rmdir(f.resource)
+                        else:
+                            os.unlink(f.resource)
+                        self.emit_message(msgs.FILEINDEX_SVC_REMOVE, f.resource)
+                    except:
+                        fail_cnt += 1
+                #end for
                 self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
+                if (fail_cnt > 0):
+                    self.emit_message(msgs.UI_ACT_SHOW_INFO,
+                                      "Could not remove %d entries" % fail_cnt)
             #end if
         #end if
 
@@ -115,8 +130,16 @@ class LocalDevice(Device):
 
         if (f.mimetype == f.DIRECTORY):
             actions.append((None, "Scan for Media", self.__on_add_to_file_index))
-        else:
-            actions.append((None, "Delete File", self.__on_delete_file))
+
+        actions.append((None, "Delete", self.__on_delete_file))
+        
+        return actions
+
+
+    def get_bulk_actions(self, folder):
+    
+        actions = Device.get_bulk_actions(self, folder)
+        actions.append((None, "Delete", self.__on_delete_file))
         
         return actions
 

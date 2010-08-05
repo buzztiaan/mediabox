@@ -173,7 +173,7 @@ class PlaylistDevice(Device):
 
 
     def __lookup_playlist(self, name):
-    
+
         for n, pl in self.__lists:
             if (n == name):
                 return pl
@@ -407,6 +407,10 @@ class PlaylistDevice(Device):
 
 
     def handle_MEDIA_EV_LOADED(self, viewer, f):
+    
+        if (self.__needs_playlist_reload):
+            self.__load_playlists()
+            self.__needs_playlist_reload = False
     
         pl = self.__lookup_playlist(_PLAYLIST_RECENT_50)
         if (not pl): return

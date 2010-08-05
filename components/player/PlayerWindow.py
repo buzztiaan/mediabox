@@ -70,8 +70,8 @@ class PlayerWindow(Dialog):
         if (platforms.MAEMO5):
             self.set_menu_item("fmtx", "FM Transmitter", True,
                                self.__on_menu_fmtx)
-        self.set_menu_item("info", "About", True,
-                           self.__on_menu_info)
+        #self.set_menu_item("info", "About", True,
+        #                   self.__on_menu_info)
 
 
     def __on_menu_repeat(self, choice):
@@ -187,23 +187,21 @@ class PlayerWindow(Dialog):
         gobject.timeout_add(0, loader, do_render)
 
 
-    """
     def handle_ASR_ACT_ENABLE(self, value):
     
         self.set_flag(windowflags.ASR, value)
-    """
 
 
     def handle_ASR_EV_LANDSCAPE(self):
 
         self.__is_portrait = False
-        #self.set_flag(windowflags.PORTRAIT, False)
+        self.set_flag(windowflags.PORTRAIT, False)
         self.render()
         
         
     def handle_ASR_EV_PORTRAIT(self):
 
         self.__is_portrait = True
-        #self.set_flag(windowflags.PORTRAIT, True)
+        self.set_flag(windowflags.PORTRAIT, True)
         self.render()
 

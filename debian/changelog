@@ -1,4 +1,4 @@
-mediabox (2010.08.03) unstable; urgency=low
+mediabox (2010.08.05) unstable; urgency=low
 
   Fixed bug where deleting an internet radio station always deleted the first
   in the list
@@ -13,8 +13,13 @@ mediabox (2010.08.03) unstable; urgency=low
   because this was messing up colors in some videos
   
   Navigator window is now the main window
+  
+  Fixed bug where the "Recent 50" playlist was not loaded automatically and thus
+  did not record entries
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 03 Aug 2010 18:30:00 +0200
+  Improved startup time
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 05 Aug 2010 18:15:00 +0200
 
 mediabox (2010.07.24) unstable; urgency=low
 

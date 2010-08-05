@@ -232,8 +232,8 @@ class Navigator(Component, Window):
         
         #self.set_menu_item("rearrange", "Rearrange Items", True,
         #                   self.__on_menu_rearrange)
-        self.set_menu_item("info", "About", True,
-                           self.__on_menu_info)
+        #self.set_menu_item("info", "About", True,
+        #                   self.__on_menu_info)
 
 
     def __update_layout(self):
@@ -411,8 +411,7 @@ class Navigator(Component, Window):
         
         if (not is_final):
             #print "SCHEDULING THUMBNAIL", c
-            #self.__tn_scheduler.add(item, c)
-            pass
+            self.__tn_scheduler.add(item, c)
 
 
     def __on_complete_folder(self, f):
@@ -435,6 +434,7 @@ class Navigator(Component, Window):
 
     def __update_thumbnail(self, item, thumbpath):
     
+        #pass
         item.set_icon(thumbpath)
         idx = self.__browser.get_items().index(item)
         self.__browser.invalidate_item(idx)
@@ -761,6 +761,11 @@ class Navigator(Component, Window):
         self.__browser.render()
         self.__is_searching = False
         self.__search_term = ""
+
+
+    def handle_ASR_ACT_ENABLE(self, value):
+    
+        self.set_flag(windowflags.ASR, value)
 
 
     def handle_ASR_EV_PORTRAIT(self):

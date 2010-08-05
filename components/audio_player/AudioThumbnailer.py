@@ -38,6 +38,18 @@ class AudioThumbnailer(Thumbnailer):
 
     def make_thumbnail(self, f, cb, *args):
     
+        def on_child(c, children):
+        
+            if (c):
+                children.append(c)
+                if (len(children) == 1):
+                    self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
+                                      c, on_loaded, f.mimetype)
+    
+            else:
+                if (not children):
+                    cb("", *args)
+    
         def on_loaded(pbuf, mimetype):
             if (pbuf):
                 path = self._set_thumbnail(f, pbuf)    
@@ -46,15 +58,11 @@ class AudioThumbnailer(Thumbnailer):
                 path = ""
             cb(path, *args)
 
+
         if (f.mimetype == "application/x-music-folder"):
-            children = f.get_children()
-            if (children):
-                self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
-                                  children[0], on_loaded, f.mimetype)
-            else:
-                cb("", *args)
+            f.get_contents(0, 0, on_child, [])
                 
         else:
             self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
                               f, on_loaded, f.mimetype)
-        
+
