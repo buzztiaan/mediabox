@@ -706,7 +706,8 @@ class Navigator(Component, Window):
         self.__arr.set_visible(True)
         self.render()
         
-        if (values.uri):
+        if (values.uri and (values.uri.startswith("http://") or
+                            os.path.exists(values.uri))):
             ext = os.path.splitext(values.uri)[1]
             mimetype = mimetypes.ext_to_mimetype(ext)
             f = self.call_service(msgs.CORE_SVC_GET_FILE,
