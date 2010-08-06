@@ -27,7 +27,7 @@ for o, v in opts:
     elif (o == "-q"):
         log_count = 0
     elif (o == "-h" or o == "--help"):
-        print "Usage: %s [-v|-q] [-h|--help] [plugin ...]" \
+        print "Usage: %s [-v|-q] [-h|--help] [uri]" \
               % os.path.basename(sys.argv[0])
         print ""
         print "  -h, --help            Show this help."
@@ -36,29 +36,21 @@ for o, v in opts:
         sys.exit(0)
 #end for
 
+if (args):
+    values.uri = args[0]
+else:
+    values.uri = ""
+
 logging.set_level(_LOG_LEVELS[min(4, log_count)])
 
 
 comp_dir = os.path.join(values.MEDIABOX_DIR, "components")
 plugins = [ os.path.join(comp_dir, d) for d in os.listdir(comp_dir) 
             if not d.startswith(".") ]
-plugins += args
-
-
-#import gtk
-#win = gtk.Window(gtk.WINDOW_TOPLEVEL)
-#win.set_title("MediaBox")
-#lbl = gtk.Button("Loading Components")
-#lbl.show()
-#win.add(lbl)
-#win.show()
-#while (gtk.gdk.events_pending()):
-#    gtk.main_iteration(False)
-
+#plugins += args
 
 logging.debug("initializing application")
 container = Container(plugins)
-#win.destroy()
 
 logging.debug("running application")
 import gobject; gobject.threads_init()

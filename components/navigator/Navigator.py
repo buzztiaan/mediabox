@@ -12,6 +12,7 @@ from ui import Window
 from ui import windowflags
 from utils import mimetypes
 from utils import logging
+from storage import File
 from mediabox import config as mb_config
 from mediabox import values
 from utils.ItemScheduler import ItemScheduler
@@ -22,6 +23,7 @@ import gobject
 import gtk
 import random
 import time
+import os
 
 
 _LANDSCAPE_ARRANGEMENT = """
@@ -703,7 +705,17 @@ class Navigator(Component, Window):
     
         self.__arr.set_visible(True)
         self.render()
-
+        
+        if (values.uri):
+            ext = os.path.splitext(values.uri)[1]
+            mimetype = mimetypes.ext_to_mimetype(ext)
+            f = self.call_service(msgs.CORE_SVC_GET_FILE,
+                                  "adhoc://" + File.pack_path("/", values.uri,
+                                                              mimetype))
+            print f
+            self.__load_file(f, True)
+        #end if
+        
 
     def handle_UI_ACT_SHOW_INFO(self, msg):
     
