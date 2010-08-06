@@ -394,8 +394,10 @@ class AudioPlayer(Player):
 
     def handle_MEDIA_ACT_STOP(self):
     
+        print "ACT STOP", self.is_visible()
         if (self.__player and self.is_visible()):
             self.__player.stop()
+            print "DO STOP"
 
 
     def handle_INPUT_EV_VOLUME_UP(self, pressed):

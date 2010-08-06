@@ -16,7 +16,7 @@ import time
 
 _CHUNK_SIZE = 65536
 
-_MAX_CONNECTIONS = 1
+_MAX_CONNECTIONS = 4
 
 
 # every net connection puts a token into this queue and takes on from it when

@@ -537,6 +537,9 @@ class Navigator(Component, Window):
             self.emit_message(msgs.UI_ACT_SHOW_DIALOG, cfg_name)
 
         else:
+            if (is_manual):
+                self.__show_dialog("player.PlayerWindow")
+                
             #if (not f.mimetype in mimetypes.get_image_types()):
             self.emit_message(msgs.MEDIA_ACT_STOP)
             self.emit_message(msgs.MEDIA_ACT_LOAD, f)
@@ -544,6 +547,7 @@ class Navigator(Component, Window):
             # update set of play files
             self.__current_file = f
             self.__browser.hilight_file(f)
+            self.__browser.render()
 
             folder = self.__browser.get_current_folder()
             if (is_manual and folder != self.__play_folder):
@@ -557,8 +561,6 @@ class Navigator(Component, Window):
                 self.__update_layout()
                 self.render()
 
-            if (is_manual):
-                self.__show_dialog("player.PlayerWindow")
 
 
     def __go_previous(self):
