@@ -8,6 +8,7 @@ import gobject
 
 _HAL_SERVICE = "org.freedesktop.Hal"
 _HEADSET_PATH = "/org/freedesktop/Hal/devices/platform_retu_headset_logicaldev_input"
+_AVRCP_PATH = "/org/freedesktop/Hal/devices/computer_logicaldev_input_1"
 _HAL_DEVICE_IFACE = "org.freedesktop.Hal.Device"
 
 _HEADPHONE_SYS = "/sys/devices/platform/gpio-switch/headphone/state"
@@ -35,6 +36,15 @@ class Headset(Component):
             device.connect_to_signal("Condition", self.__on_hal_condition)
         except:
             logging.warning("unable to monitor headset button")
+
+        # monitor AVRCP
+        try:
+            bus = maemo.get_system_bus()
+            obj = bus.get_object(_HAL_SERVICE, _AVRCP_PATH)
+            device = dbus.Interface(obj, _HAL_DEVICE_IFACE)
+            device.connect_to_signal("Condition", self.__on_hal_condition)
+        except:
+            logging.warning("unable to monitor AVRCP status")
 
         # monitor headset status
         try:
@@ -84,6 +94,19 @@ class Headset(Component):
                 gobject.source_remove(self.__click_handler)
 
             self.__click_handler = gobject.timeout_add(700, self.__handle_click)
+
+        elif ((arg1, arg2) == ("ButtonPressed", "play-cd")):
+            self.emit_message(msgs.MEDIA_ACT_PLAY)
+
+        elif ((arg1, arg2) == ("ButtonPressed", "pause-cd")):
+            self.emit_message(msgs.MEDIA_ACT_STOP)
+
+        elif ((arg1, arg2) == ("ButtonPressed", "previous-song")):
+            self.emit_message(msgs.MEDIA_ACT_PREVIOUS)
+
+        elif ((arg1, arg2) == ("ButtonPressed", "next-song")):
+            self.emit_message(msgs.MEDIA_ACT_NEXT)
+            
 
 
     def __on_connect(self, src, cond):
