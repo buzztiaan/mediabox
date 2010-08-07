@@ -115,7 +115,7 @@ class MediaItem(Item):
                                 0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
             
-            elif (self.is_hilighted() or self.is_selected()):
+            elif (self.is_hilighted()):
                 pmap.draw_frame(theme.mb_selection_frame,
                                 0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
@@ -134,6 +134,9 @@ class MediaItem(Item):
                                     5, h - 26, w - 10, 26,
                                     theme.color_list_item_text)
             pmap.set_clip_rect()
+
+            if (self.is_selected()):
+                pmap.draw_pixbuf(theme.mb_checked, 8, 8)
             
         #end if
         
