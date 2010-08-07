@@ -79,6 +79,8 @@ _PORTRAIT_ARRANGEMENT = """
   </arrangement>
 """
 
+_PERSISTED_PATH = os.path.join(values.USER_DIR, "navigator-path")
+
 _MODE_NORMAL = 0
 _MODE_SELECT = 1
 
@@ -117,8 +119,6 @@ class Navigator(Component, Window):
         # scheduler for creating thumbnails one by one
         self.__tn_scheduler = ItemScheduler()
         
-        self.__root_dev = RootDevice()
-        
     
         Component.__init__(self)
         Window.__init__(self, Window.TYPE_TOPLEVEL)
@@ -139,7 +139,7 @@ class Navigator(Component, Window):
         
         # file browser
         self.__browser = StorageBrowser()
-        self.__browser.set_root_device(self.__root_dev)
+        #self.__browser.set_root_device(self.__root_dev)
         self.__browser.associate_with_slider(self.__browser_slider)
         self.__browser.connect_folder_begin(self.__on_begin_folder)
         self.__browser.connect_folder_progress(self.__on_progress_folder)
@@ -219,15 +219,15 @@ class Navigator(Component, Window):
                              shuffle_selected, True,
                              self.__on_menu_shuffle)
         
-        self.set_menu_item("downloads", "Active Downloads", True,
-                           self.__on_menu_downloads)
-         
         if (folder and folder.folder_flags & folder.ITEMS_ADDABLE):          
             self.set_menu_item("add", "Add New", True,
                                self.__on_menu_add)
         else:
             self.set_menu_item("add", "Add New", False,
                                self.__on_menu_add)
+        
+        self.set_menu_item("downloads", "Active Downloads", True,
+                           self.__on_menu_downloads)
 
         self.set_menu_item("select", "Select Items for Action", True,
                            self.__on_menu_select)
@@ -705,6 +705,21 @@ class Navigator(Component, Window):
 
     def handle_COM_EV_APP_STARTED(self):
     
+        # try to restore previous path stack
+        try:
+            data = open(_PERSISTED_PATH, "r").read()
+            path_stack = []
+            for d in data.split("\n"):
+                f = self.call_service(msgs.CORE_SVC_GET_FILE, d)
+                if (f):
+                    path_stack.append(f)
+                    self.emit_message(msgs.CORE_EV_FOLDER_VISITED, f)
+                #end if
+            #end for
+            self.__browser.set_path_stack(path_stack)
+        except:
+            pass
+    
         self.__arr.set_visible(True)
         self.render()
         
@@ -718,7 +733,25 @@ class Navigator(Component, Window):
             print f
             self.__load_file(f, True)
         #end if
-        
+
+    
+    def handle_COM_EV_APP_SHUTDOWN(self):
+
+        # save path stack for next start
+        data = [ f.full_path for f in self.__browser.get_path_stack() ]
+    
+        try:
+            open(_PERSISTED_PATH, "w").write("\n".join(data))
+        except:
+            import traceback; traceback.print_exc()
+            pass
+
+
+    def handle_CORE_EV_DEVICE_ADDED(self, ident, device):
+            
+        if (repr(device) == "navigator.RootDevice"):
+            self.__browser.set_root_device(device)
+         
 
     def handle_UI_ACT_SHOW_INFO(self, msg):
     

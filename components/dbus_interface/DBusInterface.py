@@ -26,7 +26,7 @@ class DBusInterface(Component, dbus.service.Object):
     
         f = self.call_service(msgs.CORE_SVC_GET_FILE,
                               "adhoc://" + File.pack_path("/", uri, mimetype))
-        print f
+        print "Loading by D-Bus request:", f
         if (f):
             self.emit_message(msgs.MEDIA_ACT_LOAD, f)
 

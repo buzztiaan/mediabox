@@ -125,7 +125,7 @@ class RootDevice(Device):
                 if (c.path == path):
                     f = c
                     break
-            #end fir
+            #end for
         #end if
 
         return f

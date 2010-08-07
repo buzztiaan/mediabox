@@ -314,8 +314,8 @@ class Window(Widget):
                 # in a row
                 self.set_frozen(True)
                 
-            self.__configure_event_handler = gobject.timeout_add(0, 
-                                                    self.__handle_configure_event)
+            self.__configure_event_handler = gobject.idle_add( 
+                                                 self.__handle_configure_event)
         #end if
         
 

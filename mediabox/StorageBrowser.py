@@ -225,7 +225,23 @@ class StorageBrowser(ThumbableGridView):
         root = device.get_root()
         print "SET ROOT DEVICE", device, root
         self.load_folder(root, self.GO_NEW)
-              
+
+
+    def get_path_stack(self):
+        """
+        Returns the path stack.
+        """
+        
+        return [ p for p, s in self.__path_stack ]
+        
+        
+    def set_path_stack(self, stack):
+        """
+        Loads a path stack.
+        """
+        
+        self.__path_stack = [ [s, _STATUS_INVALID] for s in stack ]
+
         
     def begin_bulk_action(self):
         """

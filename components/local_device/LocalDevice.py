@@ -88,11 +88,11 @@ class LocalDevice(Device):
     def __on_delete_file(self, folder, *files):
     
         if (len(files) == 1):
-            dlg = OptionDialog("Really delete this entry?")
+            dlg = OptionDialog("Really delete this item?")
             dlg.add_option(None, "Yes, delete from device")
             dlg.add_option(None, "No, keep it")
         else:
-            dlg = OptionDialog("Really delete %d entries?" % len(files))
+            dlg = OptionDialog("Really delete %d items?" % len(files))
             dlg.add_option(None, "Yes, delete from device")
             dlg.add_option(None, "No, keep them")
         
@@ -114,7 +114,7 @@ class LocalDevice(Device):
                 self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
                 if (fail_cnt > 0):
                     self.emit_message(msgs.UI_ACT_SHOW_INFO,
-                                      "Could not remove %d entries" % fail_cnt)
+                                      "Could not remove %d items" % fail_cnt)
             #end if
         #end if
 

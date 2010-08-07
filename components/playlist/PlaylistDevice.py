@@ -200,6 +200,9 @@ class PlaylistDevice(Device):
             self.__load_playlists()
             self.__needs_playlist_reload = False
 
+        if (path == "/"):
+            return self.get_root()
+            
         name = urlquote.unquote(path[1:])
         pl = self.__lookup_playlist(name)
         

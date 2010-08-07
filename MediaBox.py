@@ -1,5 +1,32 @@
 #! /usr/bin/env python
 
+"""
+171     if have_dbus:
+172         # Try to find an already-running instance of gPodder
+173         session_bus = dbus.SessionBus()
+174
+175         # Obtain a reference to an existing instance; don't call get_object if
+176         # such an instance doesn't exist as it *will* create a new instance
+177         if session_bus.name_has_owner(gpodder.dbus_bus_name):
+178             try:
+179                 remote_object = session_bus.get_object(gpodder.dbus_bus_name, \
+180                         gpodder.dbus_gui_object_path)
+181             except dbus.exceptions.DBusException:
+182                 remote_object = None
+183         else:
+184             remote_object = None
+185     else:
+186         # No D-Bus available :/
+187         remote_object = None
+188
+189     if remote_object is not None:
+190         # An instance of GUI is already running
+191         print >>sys.stderr, 'Existing instance running - activating via D-Bus.'
+192         remote_object.show_gui_window(dbus_interface=gpodder.dbus_interface)
+193         if options.subscribe:
+194             remote_object.subscribe_to_url(options.subscribe)
+"""
+
 from mediabox import values
 from com import Container
 from utils import logging

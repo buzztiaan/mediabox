@@ -5,6 +5,7 @@ NAME=mediabox
 ICON_FILE=maemo-data/mediabox-mc.png
 DESKTOP_FILE=maemo-data/mediabox-mc.desktop
 SERVICE_FILE=maemo-data/de.pycage.mediabox.service
+SERVICE_FILE2=maemo-data/de.pycage.maemo.mediabox.service
 
 # installation destination
 LIBDIR=/opt/${NAME}
@@ -58,6 +59,7 @@ install-maemo:
 	mkdir -p ${_ICONDIR} ${_SERVICEDIR} ${_DESKTOPDIR}
 	cp ${ICON_FILE} ${_ICONDIR}
 	cp ${SERVICE_FILE} ${_SERVICEDIR}
+	cp ${SERVICE_FILE2} ${_SERVICEDIR}
 	cp ${DESKTOP_FILE} ${_DESKTOPDIR}
 
 purge:

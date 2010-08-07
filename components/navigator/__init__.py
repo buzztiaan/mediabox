@@ -5,3 +5,9 @@ def get_classes():
     return [Navigator,
             GenericThumbnailer]
 
+
+def get_devices():
+
+    from RootDevice import RootDevice
+    return [RootDevice]
+
