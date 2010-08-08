@@ -65,6 +65,7 @@ class NowPlaying(Widget, Component):
         else:
             offset = 8
 
+        self.__buffer.set_clip_rect(offset, 0, w - offset - 72, h)
         self.__buffer.draw_text(self.__title,
                                 theme.font_mb_plain,
                                 offset, 4,
@@ -74,8 +75,9 @@ class NowPlaying(Widget, Component):
                                 theme.font_mb_tiny,
                                 offset, 32,
                                 theme.color_list_item_subtext)
+        self.set_clip_rect()
         
-        self.__buffer.draw_pixbuf(theme.mb_btn_play_1,
+        self.__buffer.draw_pixbuf(theme.mb_now_playing,
                                   w - 64, (h - 64) / 2)
 
 
