@@ -1,4 +1,4 @@
-mediabox (2010.08.07) unstable; urgency=low
+mediabox (2010.08.08) unstable; urgency=low
 
   Fixed bug where deleting an internet radio station always deleted the first
   in the list
@@ -23,7 +23,7 @@ mediabox (2010.08.07) unstable; urgency=low
 
   Improved startup time
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 07 Aug 2010 14:30:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 08 Aug 2010 15:30:00 +0200
 
 mediabox (2010.07.24) unstable; urgency=low
 
