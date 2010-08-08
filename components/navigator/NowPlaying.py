@@ -75,7 +75,7 @@ class NowPlaying(Widget, Component):
                                 theme.font_mb_tiny,
                                 offset, 32,
                                 theme.color_list_item_subtext)
-        self.set_clip_rect()
+        self.__buffer.set_clip_rect()
         
         self.__buffer.draw_pixbuf(theme.mb_now_playing,
                                   w - 64, (h - 64) / 2)
