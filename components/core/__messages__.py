@@ -347,6 +347,12 @@ when a thumbnail has been found or was created.
 @param args: variable list of arguments to the callback handler
 """
 
+def THUMBNAIL_EV_LOADING(): pass
+"""
+Gets emitted when the thumbnailer starts loading.
+@since: 2010.08.08
+"""
+
 
 def UI_ACT_FREEZE(): pass
 """

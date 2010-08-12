@@ -65,7 +65,7 @@ class NowPlaying(Widget, Component):
         else:
             offset = 8
 
-        self.__buffer.set_clip_rect(offset, 0, w - offset - 72, h)
+        self.__buffer.set_clip_rect(offset, 0, w - offset - 64, h)
         self.__buffer.draw_text(self.__title,
                                 theme.font_mb_plain,
                                 offset, 4,

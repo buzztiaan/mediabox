@@ -32,6 +32,11 @@ class _OrgFreeDesktopThumbnailer(object):
         self.__thumbnailer.connect_to_signal("Error", self.__on_error)
 
 
+    def is_busy(self):
+    
+        return self.__handles
+
+
     def queue(self, uri, mimetypes, cb, *args):
     
         handle = self.__thumbnailer.Queue([uri], mimetypes, 0)

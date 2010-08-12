@@ -554,6 +554,7 @@ class Navigator(Component, Window):
                 self.__play_folder = folder
                 self.__play_files = [ fl for fl in self.__browser.get_files()
                                       if not fl.mimetype.endswith("-folder") ]
+                self.__filter_play_files()
                 self.__random_files = []
 
             if (not self.__now_playing.is_visible()):
@@ -653,6 +654,22 @@ class Navigator(Component, Window):
         self.__load_file(next_item, False)
         
         return True
+
+
+    def __filter_play_files(self):
+        """
+        Filters the list of playfiles to see if there's cover art to remove
+        from the list.
+        """
+        
+        size = len(self.__play_files)
+        img_size = len([f for f in self.__play_files
+                        if f.mimetype in mimetypes.get_image_types() ])
+        ratio = img_size / float(size)
+        
+        if (ratio < 0.5):
+            self.__play_files = [ f for f in self.__play_files
+                             if not f.mimetype in mimetypes.get_image_types() ]
 
 
     def __show_dialog(self, name):
@@ -776,6 +793,7 @@ class Navigator(Component, Window):
         if (folder and folder == self.__play_folder):
             self.__play_files = [ fl for fl in folder.get_children()
                                   if not fl.mimetype.endswith("-folder") ]
+            self.__filter_play_files()
             self.__random_files = []
 
 

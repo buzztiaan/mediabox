@@ -96,6 +96,8 @@ class ThumbnailService(Component):
             cb("", *args)
             return ""
 
+        self.emit_message(msgs.THUMBNAIL_EV_LOADING)
+
         try:
             handlers[0].make_thumbnail(f, cb, *cb_args)
         except:

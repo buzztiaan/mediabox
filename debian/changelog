@@ -1,3 +1,9 @@
+mediabox (2010.08.12) unstable; urgency=low
+
+  Try to skip cover art when playing from a folder or playlist
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 12 Aug 2010 18:30:00 +0200
+
 mediabox (2010.08.08) unstable; urgency=low
 
   Fixed bug where deleting an internet radio station always deleted the first

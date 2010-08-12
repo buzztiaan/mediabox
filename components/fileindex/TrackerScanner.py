@@ -5,6 +5,7 @@ import commands
 import os
 import gobject
 import threading
+import time
 
 
 class TrackerScanner(Component):
@@ -45,6 +46,7 @@ class TrackerScanner(Component):
                 
             gobject.timeout_add(0, self.call_service,
                                 msgs.FILEINDEX_SVC_DISCOVER, path, mtime)
+            time.sleep(0.01)
         #end while
   
         gobject.idle_add(self.emit_message, msgs.UI_ACT_SHOW_INFO,

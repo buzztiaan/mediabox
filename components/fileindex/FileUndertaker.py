@@ -27,7 +27,7 @@ class FileUndertaker(Component):
 
         corpses = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                     "File.Path of all")
-        gobject.timeout_add(500, self.__remove_corpse, corpses)
+        gobject.timeout_add(1500, self.__remove_corpse, corpses)
         return False
         
 

@@ -47,6 +47,8 @@ class ThumbableGridView(GridView):
         # click behavior for selecting items
         self.__click_behavior = self.CLICK_BEHAVIOR_SINGLE
         
+        # index of the marked item
+        self.__marked_idx = -1
         
         GridView.__init__(self)
         self.connect_button_pressed(self.__on_press_button)
@@ -174,8 +176,14 @@ class ThumbableGridView(GridView):
         else:
             # handle clicking
             if (item.is_button()):
+                if (self.__marked_idx != -1):
+                    item2 = self.get_item(self.__marked_idx)
+                    item2.set_marked(False)
+                    self.invalidate_item(item2)
+                    
                 item.set_marked(True)
                 self.invalidate_item(idx)
+                self.__marked_idx = idx
         
 
 
@@ -192,8 +200,10 @@ class ThumbableGridView(GridView):
             idx = self.get_item_at(px, py)
             item = self.get_item(idx)
             if (item.is_button()):
-                item.set_marked(False)
-                self.invalidate_item(idx)
+                item2 = self.get_item(self.__marked_idx)
+                item2.set_marked(False)
+                self.invalidate_item(self.__marked_idx)
+                self.__marked_idx = -1
 
         if (self.__autoscroll_handler):
             gobject.source_remove(self.__autoscroll_handler)
