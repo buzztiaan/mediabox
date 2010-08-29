@@ -11,6 +11,8 @@ class Player(Component, Widget):
 
     def __init__(self):
     
+        self.__is_active = False
+    
         Component.__init__(self)
         Widget.__init__(self)
         
@@ -32,6 +34,23 @@ class Player(Component, Widget):
             return "%d:%02d:%02d" % (hours, mins, secs)
         else:
             return "%0d:%02d" % (mins, secs)
+
+
+    def set_player_active(self, value):
+        """
+        Sets whether this player is active. Only active players may react to
+        events.
+        """
+    
+        self.__is_active = value
+        
+        
+    def is_player_active(self):
+        """
+        Returns whether this player is currently active.
+        """
+    
+        return self.__is_active
 
         
     def get_mime_types(self):

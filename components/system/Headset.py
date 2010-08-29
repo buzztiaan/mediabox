@@ -96,10 +96,10 @@ class Headset(Component):
             self.__click_handler = gobject.timeout_add(700, self.__handle_click)
 
         elif ((arg1, arg2) == ("ButtonPressed", "play-cd")):
-            self.emit_message(msgs.MEDIA_ACT_PLAY)
+            self.emit_message(msgs.MEDIA_ACT_PAUSE)
 
         elif ((arg1, arg2) == ("ButtonPressed", "pause-cd")):
-            self.emit_message(msgs.MEDIA_ACT_STOP)
+            self.emit_message(msgs.MEDIA_ACT_PAUSE)
 
         elif ((arg1, arg2) == ("ButtonPressed", "previous-song")):
             self.emit_message(msgs.MEDIA_ACT_PREVIOUS)

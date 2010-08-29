@@ -383,7 +383,7 @@ class VideoPlayer(Player):
 
     def handle_MEDIA_ACT_PLAY(self):
     
-        if (self.__player and self.is_visible()):
+        if (self.__player and self.is_player_active()):
             if (not self.__is_playing):
                 self.__wait_for_dsp()
             self.__player.play()
@@ -391,16 +391,15 @@ class VideoPlayer(Player):
 
     def handle_MEDIA_ACT_PAUSE(self):
     
-        if (self.__player and self.is_visible()):
+        if (self.__player and self.is_player_active()):
             if (not self.__is_playing):
                 self.__wait_for_dsp()
-            self.__player.pause()
-                
+            self.__player.pause()                
 
 
     def handle_MEDIA_ACT_STOP(self):
     
-        if (self.__player and self.is_visible()):
+        if (self.__player and self.is_player_active()):
             self.__player.stop()
 
 

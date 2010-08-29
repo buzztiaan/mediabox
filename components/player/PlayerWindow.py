@@ -152,8 +152,7 @@ class PlayerWindow(Dialog):
 
     def handle_MEDIA_ACT_LOAD(self, f):
     
-        def loader(do_render):
-            if (do_render): self.render()
+        def loader():
             self.__current_player.load(f)
             self.set_title(f.name)
             self.set_flag(windowflags.BUSY, False)
@@ -175,16 +174,17 @@ class PlayerWindow(Dialog):
         new_player = handlers[0]
         if (new_player != self.__current_player):
             new_player.set_visible(True)
+            new_player.set_player_active(True)
             if (self.__current_player):
                 self.__current_player.set_visible(False)
+                self.__current_player.set_player_active(False)
             self.__current_player = new_player
-            do_render = True
-        else:
-            do_render = False
+            self.render()
+        #end if
             
         #self.set_visible(True)
         self.set_flag(windowflags.BUSY, True)
-        gobject.timeout_add(0, loader, do_render)
+        gobject.timeout_add(0, loader)
 
 
     def handle_ASR_ACT_ENABLE(self, value):

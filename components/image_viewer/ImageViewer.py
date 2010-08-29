@@ -277,7 +277,7 @@ class ImageViewer(Player):
 
     def handle_MEDIA_ACT_PAUSE(self):
     
-        if (self.is_visible()):
+        if (self.is_player_active()):
             self.__on_btn_play()
 
 

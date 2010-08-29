@@ -1,8 +1,17 @@
-mediabox (2010.08.12) unstable; urgency=low
+mediabox (2010.08.17) unstable; urgency=low
 
   Try to skip cover art when playing from a folder or playlist
+  
+  Fixed reading of ID3v2.4 tags with an extended header
+  
+  "Open URL" dialog for entering custom URLs
+  
+  Sleep Timer and MediaBox Home Widget also work while the player window is not
+  visible
+  
+  Exports cover art and other images via D-Bus signal and a file
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 12 Aug 2010 18:30:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 17 Aug 2010 18:00:00 +0200
 
 mediabox (2010.08.08) unstable; urgency=low
 

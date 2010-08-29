@@ -6,6 +6,7 @@ from ui.Button import Button
 from ui.ImageButton import ImageButton
 from ui.Slider import Slider
 from ui.Toolbar import Toolbar
+from ui.dialog import InputDialog
 from ui.dialog import InfoDialog
 from ui.layout import Arrangement
 from ui import Window
@@ -226,6 +227,9 @@ class Navigator(Component, Window):
             self.set_menu_item("add", "Add New", False,
                                self.__on_menu_add)
         
+        self.set_menu_item("openurl", "Open URL...", True,
+                           self.__on_menu_open_url)
+        
         self.set_menu_item("downloads", "Active Downloads", True,
                            self.__on_menu_downloads)
 
@@ -341,6 +345,20 @@ class Navigator(Component, Window):
         btn_done.connect_clicked(on_done)
         self.__toolbar.set_toolbar(btn_done)
 
+
+    def __on_menu_open_url(self):
+    
+        dlg = InputDialog("URL to open")
+        dlg.add_input("URL", "http://")
+        
+        if (dlg.run() == dlg.RETURN_OK):
+            url = dlg.get_values()[0]
+            f = self.call_service(msgs.CORE_SVC_GET_FILE,
+                       "adhoc://" + File.pack_path("/", url, "audio/x-unknown"))
+            if (f):
+                self.__load_file(f, True)
+        #end if
+        
 
     def __on_menu_downloads(self):
     
@@ -791,10 +809,15 @@ class Navigator(Component, Window):
         if (self.is_visible()):
             self.__browser.invalidate_folder(folder)
         if (folder and folder == self.__play_folder):
+            prev_play_files = self.__play_files[:]
             self.__play_files = [ fl for fl in folder.get_children()
                                   if not fl.mimetype.endswith("-folder") ]
             self.__filter_play_files()
-            self.__random_files = []
+            # remove from random files what's no longer there and add to random
+            # files what's new in play files
+            self.__random_files = [ f for f in self.__play_files
+                                    if f in self.__random_files or
+                                       f not in prev_play_files ]
 
 
     def handle_CORE_EV_DEVICE_REMOVED(self, dev_id):

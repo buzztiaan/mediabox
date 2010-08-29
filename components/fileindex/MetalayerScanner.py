@@ -5,6 +5,7 @@ import os
 import gobject
 import sqlite3
 import threading
+import time
 
 
 _META_DB = os.path.expanduser("~/.meta_storage")
@@ -23,6 +24,10 @@ class MetalayerScanner(Component):
 
     def __get_metalayer_files(self):
 
+        def discover(path, mtime, lock):
+            self.call_service(msgs.FILEINDEX_SVC_DISCOVER, path, mtime)
+            lock.release()
+
         try:
             conn = sqlite3.connect(_META_DB)
         except:
@@ -35,6 +40,7 @@ class MetalayerScanner(Component):
         lines = [ row[0] for row in csr ]
         conn.close()
             
+        lock = threading.Lock()
         while (lines):
             line = lines.pop(0)
             path = line.strip()
@@ -43,8 +49,9 @@ class MetalayerScanner(Component):
             except:
                 continue
 
-            gobject.timeout_add(0, self.call_service,
-                                msgs.FILEINDEX_SVC_DISCOVER, path, mtime)
+            lock.acquire()
+            gobject.idle_add(discover, path, mtime, lock)
+            time.sleep(0.01)
         #end while
 
         gobject.idle_add(self.emit_message, msgs.UI_ACT_SHOW_INFO,

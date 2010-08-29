@@ -42,6 +42,7 @@ _PORTRAIT_ARRANGEMENT = """
 """
 
 
+
 class AudioPlayer(Player):
     """
     Player component for playing audio files.
@@ -296,8 +297,10 @@ class AudioPlayer(Player):
         if (ctx_id == self.__context_id):
             if (pbuf):
                 self.__cover_art.set_cover(pbuf)
+                self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", pbuf)
             else:
                 self.__cover_art.unset_cover()
+                self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", None)
         #end if
 
 
@@ -382,22 +385,20 @@ class AudioPlayer(Player):
 
     def handle_MEDIA_ACT_PLAY(self):
     
-        if (self.__player and self.is_visible()):
+        if (self.__player and self.is_player_active()):
             self.__player.play()
 
 
     def handle_MEDIA_ACT_PAUSE(self):
     
-        if (self.__player and self.is_visible()):
+        if (self.__player and self.is_player_active()):
             self.__player.pause()
 
 
     def handle_MEDIA_ACT_STOP(self):
     
-        print "ACT STOP", self.is_visible()
-        if (self.__player and self.is_visible()):
+        if (self.__player and self.is_player_active()):
             self.__player.stop()
-            print "DO STOP"
 
 
     def handle_INPUT_EV_VOLUME_UP(self, pressed):

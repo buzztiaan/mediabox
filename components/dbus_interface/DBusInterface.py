@@ -1,7 +1,14 @@
 from com import Component, msgs
 from storage import File
+from mediabox import values
+from utils import mimetypes
+
 import dbus
 import dbus.service
+import os
+
+# location of exported picture (cover art, etc.)
+_PICTURE_LOCATION = os.path.join(values.USER_DIR, "picture.jpg")
 
 
 class DBusInterface(Component, dbus.service.Object):
@@ -24,6 +31,11 @@ class DBusInterface(Component, dbus.service.Object):
     @dbus.service.method("de.pycage.mediabox.control", in_signature = "ss")
     def load(self, uri, mimetype):
     
+        if (not mimetype):
+            ext = os.path.splitext(uri)[1]
+            mimetype = mimetypes.ext_to_mimetype(ext)
+    
+        print uri, mimetype
         f = self.call_service(msgs.CORE_SVC_GET_FILE,
                               "adhoc://" + File.pack_path("/", uri, mimetype))
         print "Loading by D-Bus request:", f
@@ -107,6 +119,15 @@ class DBusInterface(Component, dbus.service.Object):
     def handle_MEDIA_EV_TAG(self, key, value):
     
         print key, value, type(key), type(value)
+        
+        if (key == "PICTURE" and value):
+            try:
+                pbuf = value
+                pbuf.save(_PICTURE_LOCATION, "jpeg")
+                value = _PICTURE_LOCATION
+            except:
+                value = ""
+        
         self.tag_signal(key, value or "")
     
     

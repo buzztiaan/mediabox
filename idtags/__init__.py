@@ -49,6 +49,8 @@ def read_fd(fd):
                 tags = id3v2tags.read(fd, id3v2tags.REV2)
             elif (major == "\x03"):
                 tags = id3v2tags.read(fd, id3v2tags.REV3)
+            elif (major == "\x04"):
+                tags = id3v2tags.read(fd, id3v2tags.REV4)
             else:
                 tags = id3v2tags.read(fd, id3v2tags.REV4)
         else:
@@ -115,5 +117,7 @@ if (__name__ == "__main__"):
     for k, v in read(sys.argv[1]).items():
         if (len(v) < 80):
             print "%s:\t%s" % (k, v)
+        else:
+            print "%s:\t[...]" % k
     print "took %0.5f seconds" % (time.time() - now)
 

@@ -31,11 +31,16 @@ class TrackerScanner(Component):
 
     def __get_tracker_list(self):
     
+        def discover(path, mtime, lock):
+            self.call_service(msgs.FILEINDEX_SVC_DISCOVER, path, mtime)
+            lock.release()
+    
         lines = []
         lines += self.__get_tracker_files("Music")    
         lines += self.__get_tracker_files("Videos")
         lines += self.__get_tracker_files("Images")
 
+        lock = threading.Lock()
         while (lines):
             line = lines.pop(0)
             path = line.strip()
@@ -44,8 +49,8 @@ class TrackerScanner(Component):
             except:
                 continue
                 
-            gobject.timeout_add(0, self.call_service,
-                                msgs.FILEINDEX_SVC_DISCOVER, path, mtime)
+            lock.acquire()
+            gobject.idle_add(discover, path, mtime, lock)
             time.sleep(0.01)
         #end while
   

@@ -38,23 +38,35 @@ class REV4:
     flag_ingroup = 0x0002
     encodings = ("latin1", "utf-16", "utf_16_be", "utf-8")
     
+_FLAG_UNSYNCHRONISATION = 1 << 7
+_FLAG_EXTENDED_HEADER =   1 << 6
+_FLAG_EXPERIMENTAL =      1 << 5
+_FLAG_FOOTER_PRESENT =    1 << 4
+
 
 def _read_tagsoup(fd):
 
     fd.read(3)
     vmaj = ord(fd.read(1))
     vrev = ord(fd.read(1))
-    flags = fd.read(1)
-    
+    flags = ord(fd.read(1))
+
     size = (ord(fd.read(1)) << 21) + \
            (ord(fd.read(1)) << 14) + \
            (ord(fd.read(1)) << 7) + \
            ord(fd.read(1))
     
+    if (flags & _FLAG_EXTENDED_HEADER):
+        ext_size = (ord(fd.read(1)) << 21) + \
+                   (ord(fd.read(1)) << 14) + \
+                   (ord(fd.read(1)) << 7) + \
+                   ord(fd.read(1))
+        fd.read(ext_size - 4)
+    
     soup = fd.read(size - 10)
     #print "Size: " + hex(len(soup)) + ", Flags: " + hex(ord(flags))
 
-    return soup
+    return soup, flags
 
 
 def _read_frame(soup, pos, params):
@@ -128,7 +140,8 @@ def _parse_tagsoup(soup, params):
 def read(fd, params):
 
     #print "Reading ID3v2 tags", params.version
-    tagsoup = _read_tagsoup(fd)
+    tagsoup, flags = _read_tagsoup(fd)
+
     tags = _parse_tagsoup(tagsoup, params)
 
     return tags

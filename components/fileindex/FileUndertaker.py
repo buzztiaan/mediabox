@@ -48,10 +48,10 @@ class FileUndertaker(Component):
 
     def handle_COM_EV_APP_STARTED(self):
 
-        gobject.timeout_add(1000, self.__remove_corpses)
+        #gobject.timeout_add(1000, self.__remove_corpses)
         #self.emit_message(msgs.UI_ACT_SHOW_INFO,
         #                  "not invoking undertaker")
-        #pass
+        pass
 
 
     def handle_FILEINDEX_ACT_BURY(self):

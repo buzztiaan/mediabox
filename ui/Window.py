@@ -183,7 +183,7 @@ class Window(Widget):
                                     gtk.gdk.KEY_RELEASE_MASK)
         self.__layout.put(self.__vidscreen, 0, 0)
 
-        gobject.timeout_add(0, self.__update_window_background)
+        self.__update_window_background()
 
 
     def connect_closed(self, cb, *args):
@@ -314,7 +314,7 @@ class Window(Widget):
                 # in a row
                 self.set_frozen(True)
                 
-            self.__configure_event_handler = gobject.idle_add( 
+            self.__configure_event_handler = gobject.timeout_add(100,
                                                  self.__handle_configure_event)
         #end if
         
@@ -332,6 +332,7 @@ class Window(Widget):
         self.__configure_event_handler = None
         w, h = self.__window.get_size()
         self.__screen = Pixmap(self.__window.window)
+        self.__screen.fill_area(0, 0, w, h, theme.color_mb_background)
         self.set_screen(self.__screen)
 
         self.set_size(w, h)
@@ -506,7 +507,7 @@ class Window(Widget):
             elif (platforms.MAEMO4):
                 if (self.__wtype != self.TYPE_TOPLEVEL and self.__has_size_set):
                     w, h = self.__window.get_size()
-                    self.__window.move(0, 480 - h)
+                    self.__window.move(0, 480 - max(h, 400))
 
             #endif
 

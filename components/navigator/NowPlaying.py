@@ -86,6 +86,7 @@ class NowPlaying(Widget, Component):
         def on_loaded(thumbpath):
             if (thumbpath):
                 self.__cover = self.__load_pixbuf(f, thumbpath)
+                self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", self.__cover)
                 
                 self.__render()
                 self.render()
@@ -117,6 +118,8 @@ class NowPlaying(Widget, Component):
             self.__info = value
         elif (tag == "TITLE"):
             self.__title = value
+        elif (tag == "PICTURE"):
+            self.__cover = value
             
         self.__render()
         self.render()

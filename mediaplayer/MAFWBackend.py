@@ -290,6 +290,7 @@ class MAFWBackend(AbstractBackend):
                                                     "volume",
                                                     ctypes.c_uint(volume))
         self.__last_volume_change_time = time.time()
+        self.__volume = volume
 
 
     def _is_eof(self):

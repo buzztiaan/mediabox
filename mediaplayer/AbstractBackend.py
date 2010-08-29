@@ -234,14 +234,14 @@ class AbstractBackend(EventEmitter):
     
         if (self.__suspension_point):
             uri, pos = self.__suspension_point
-            self.__suspension_point = None
+            #self.__suspension_point = None
 
             self._ensure_backend()
 
             self._load(uri)
             #self._set_volume(self.__volume)
-            gobject.idle_add(self._seek, pos)
-            self._stop()
+            #gobject.idle_add(self._seek, pos)
+            #self._stop()
             self.__position = (0, 0)
             self.__watch_progress()
             
@@ -272,6 +272,13 @@ class AbstractBackend(EventEmitter):
         """
 
         if (self.__playing):
+            # seek to suspension point
+            if (self.__suspension_point):
+                url, pos = self.__suspension_point
+                self.__suspension_point = None
+                self._seek(pos)
+            #end if
+
             pos, total = self.__position
             if (pos < 3):
                 pos, total = self._get_position()
@@ -289,7 +296,7 @@ class AbstractBackend(EventEmitter):
                                     self.__context_id, pos, total)
 
             if (total > 0 and total - pos < 1):
-                delay = 200
+                delay = int(total - pos) * 1000 #200
             else:
                 delay = 500
             self.__position_handler = \
@@ -406,7 +413,7 @@ class AbstractBackend(EventEmitter):
         #self._set_volume(self.__volume)
         
         print "DELAY PLAY", uri
-        gobject.timeout_add(0, self.play)
+        gobject.idle_add(self.play)
 
         if (ctx_id != -1):
             self.__context_id = ctx_id

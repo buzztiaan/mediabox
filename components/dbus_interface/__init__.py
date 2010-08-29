@@ -1,4 +1,4 @@
-delayed = True
+#delayed = True
 
 def get_classes():
 
