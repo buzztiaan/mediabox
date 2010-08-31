@@ -17,6 +17,7 @@ from storage import File
 from mediabox import config as mb_config
 from mediabox import values
 from utils.ItemScheduler import ItemScheduler
+from utils import mimetypes
 import platforms
 from theme import theme
 
@@ -353,10 +354,7 @@ class Navigator(Component, Window):
         
         if (dlg.run() == dlg.RETURN_OK):
             url = dlg.get_values()[0]
-            f = self.call_service(msgs.CORE_SVC_GET_FILE,
-                       "adhoc://" + File.pack_path("/", url, "audio/x-unknown"))
-            if (f):
-                self.__load_file(f, True)
+            self.__load_url(url)
         #end if
         
 
@@ -539,7 +537,21 @@ class Navigator(Component, Window):
         self.__mode = _MODE_NORMAL
         self.__update_toolbar()
         self.__browser.perform_bulk_action()
-            
+
+
+    def __load_uri(self, uri, mimetype):
+    
+        if (not mimetype):
+            ext = os.path.splitext(uri)[1]
+            mimetype = mimetypes.ext_to_mimetype(ext)
+    
+        f = self.call_service(msgs.CORE_SVC_GET_FILE,
+                              "adhoc://" + File.pack_path("/", uri, mimetype))
+        print "Loading URI:", f
+        if (f):
+            self.__load_file(f, True)
+
+
 
     def __load_file(self, f, is_manual):
         """
@@ -869,6 +881,11 @@ class Navigator(Component, Window):
         self.__is_portrait = False
         self.set_flag(windowflags.PORTRAIT, False)
         self.__update_items_per_row(self.__browser.get_current_folder())
+                    
+
+    def handle_MEDIA_ACT_LOAD_URI(self, uri, mimetype):
+    
+        self.__load_uri(uri, mimetype)
                     
     
     def handle_MEDIA_ACT_PREVIOUS(self):

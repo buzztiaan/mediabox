@@ -146,6 +146,15 @@ def CORE_EV_THEME_CHANGED(): pass
 Gets emitted when the theme has changed.
 """
 
+def MEDIA_ACT_LOAD_URI(uri, mimetype = ""): pass
+"""
+Loads the given URI into the appropriate media player.
+Tries to guess the MIME type if none was specified.
+@since: 2010.08.31
+
+@param uri: URI to load
+@param mimetype: mimetype of media format
+"""
 
 def MEDIA_ACT_LOAD(f): pass
 """

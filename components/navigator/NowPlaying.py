@@ -59,7 +59,7 @@ class NowPlaying(Widget, Component):
         self.__buffer.fill_area(0, 0, w, h, theme.color_mb_background)
         self.__buffer.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True)
 
-        if (self.__cover):
+        if (self.__cover and h > 10):
             self.__buffer.fit_pixbuf(self.__cover, 8, 5, 120, h - 10)
             offset = 134
         else:

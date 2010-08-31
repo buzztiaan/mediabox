@@ -11,6 +11,7 @@ from theme import theme
 
 import gobject
 import gtk
+import os
 
 
 # it's useful to swap the mapping of the increment and decrement keys in

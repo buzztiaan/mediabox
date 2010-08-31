@@ -43,6 +43,7 @@ class AdHocDevice(Device):
         
         f = File(self)
         f.name = path
+        f.path = path
         f.resource = path
         f.mimetype = mimetype
     

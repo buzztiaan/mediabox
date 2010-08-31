@@ -272,19 +272,19 @@ class AbstractBackend(EventEmitter):
         """
 
         if (self.__playing):
-            # seek to suspension point
-            if (self.__suspension_point):
-                url, pos = self.__suspension_point
-                self.__suspension_point = None
-                self._seek(pos)
-            #end if
-
             pos, total = self.__position
             if (pos < 3):
                 pos, total = self._get_position()
                 timestamp = time.time()
                 beginpos = pos
             else:
+                # seek to suspension point
+                if (self.__suspension_point):
+                    url, pos = self.__suspension_point
+                    self.__suspension_point = None
+                    self._seek(pos)
+                #end if
+            
                 # we don't ask the backend for position every time because
                 # this could be inefficient with some backends
                 pos = beginpos + (time.time() - timestamp)
@@ -483,7 +483,11 @@ class AbstractBackend(EventEmitter):
         self.stop()
         self.emit_event(self.EVENT_ERROR, self.__context_id, err)
         self.__eof_reached = True
-       
+      
+      
+    def get_position(self):
+    
+        return self.__position 
         
         
     def play(self):
@@ -498,7 +502,6 @@ class AbstractBackend(EventEmitter):
             self._play()
 
         self.__playing = True
-        print "PLAY"
         self.emit_event(self.EVENT_STATUS_CHANGED,
                         self.__context_id, self.STATUS_PLAYING)
         self.__watch_progress()

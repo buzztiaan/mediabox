@@ -1,7 +1,5 @@
 from com import Component, msgs
-from storage import File
 from mediabox import values
-from utils import mimetypes
 
 import dbus
 import dbus.service
@@ -31,16 +29,7 @@ class DBusInterface(Component, dbus.service.Object):
     @dbus.service.method("de.pycage.mediabox.control", in_signature = "ss")
     def load(self, uri, mimetype):
     
-        if (not mimetype):
-            ext = os.path.splitext(uri)[1]
-            mimetype = mimetypes.ext_to_mimetype(ext)
-    
-        print uri, mimetype
-        f = self.call_service(msgs.CORE_SVC_GET_FILE,
-                              "adhoc://" + File.pack_path("/", uri, mimetype))
-        print "Loading by D-Bus request:", f
-        if (f):
-            self.emit_message(msgs.MEDIA_ACT_LOAD, f)
+        self.emit_message(msgs.MEDIA_ACT_LOAD_URI, uri, mimetype)
 
 
     @dbus.service.method("de.pycage.mediabox.control")

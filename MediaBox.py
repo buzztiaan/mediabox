@@ -9,6 +9,7 @@ import getopt
 
 try:
     import dbus
+    import dbus.glib
 except:
     dbus = None
     
