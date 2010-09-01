@@ -62,7 +62,7 @@ class Resumer(Component):
                 return
         
             try:
-                os.path.unlink(_RESUME_FILE)
+                os.unlink(_RESUME_FILE)
             except:
                 pass
                 
