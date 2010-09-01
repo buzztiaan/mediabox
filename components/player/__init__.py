@@ -1,5 +1,7 @@
 def get_classes():
 
     from PlayerWindow import PlayerWindow
-    return [PlayerWindow]
+    from Resumer import Resumer
+    return [PlayerWindow,
+            Resumer]
 

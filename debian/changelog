@@ -1,4 +1,4 @@
-mediabox (2010.08.17) unstable; urgency=low
+mediabox (2010.09.01) unstable; urgency=low
 
   Try to skip cover art when playing from a folder or playlist
   
@@ -10,8 +10,12 @@ mediabox (2010.08.17) unstable; urgency=low
   visible
   
   Exports cover art and other images via D-Bus signal and a file
+  
+  Can load files using the command line into a running instance of MediaBox
+  
+  Resumes playback after restart
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 17 Aug 2010 18:00:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 01 Sep 2010 18:30:00 +0200
 
 mediabox (2010.08.08) unstable; urgency=low
 

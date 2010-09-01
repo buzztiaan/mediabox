@@ -273,17 +273,19 @@ class AbstractBackend(EventEmitter):
 
         if (self.__playing):
             pos, total = self.__position
+ 
+            if (self.__suspension_point and pos > 0):
+                # seek to suspension point
+                url, pos = self.__suspension_point
+                self.__suspension_point = None
+                self._seek(pos)
+            #end if
+
             if (pos < 3):
                 pos, total = self._get_position()
                 timestamp = time.time()
                 beginpos = pos
             else:
-                # seek to suspension point
-                if (self.__suspension_point):
-                    url, pos = self.__suspension_point
-                    self.__suspension_point = None
-                    self._seek(pos)
-                #end if
             
                 # we don't ask the backend for position every time because
                 # this could be inefficient with some backends

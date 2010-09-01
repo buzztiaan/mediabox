@@ -587,11 +587,6 @@ class Navigator(Component, Window):
                 self.__filter_play_files()
                 self.__random_files = []
 
-            if (not self.__now_playing.is_visible()):
-                self.__now_playing.set_visible(True)
-                self.__update_layout()
-                self.render()
-
 
 
     def __go_previous(self):
@@ -881,6 +876,14 @@ class Navigator(Component, Window):
         self.__is_portrait = False
         self.set_flag(windowflags.PORTRAIT, False)
         self.__update_items_per_row(self.__browser.get_current_folder())
+
+
+    def handle_MEDIA_EV_LOADED(self, player, f):
+    
+        if (not self.__now_playing.is_visible()):
+            self.__now_playing.set_visible(True)
+            self.__update_layout()
+            self.render()
                     
 
     def handle_MEDIA_ACT_LOAD_URI(self, uri, mimetype):

@@ -50,6 +50,8 @@ else:
 logging.set_level(_LOG_LEVELS[min(4, log_count)])
 
 
+# check if MediaBox is running already, and load the file given on the command
+# line into the running instance in this case. thanks to thp for this trick!
 if (dbus):
     bus = dbus.SessionBus()
     if (bus.name_has_owner("de.pycage.mediabox")):
@@ -61,7 +63,7 @@ if (dbus):
     else:
         proxy = None
                                
-    if (proxy):
+    if (proxy and values.uri):
         proxy.load(values.uri, "")
         sys.exit(0)
 #end if
