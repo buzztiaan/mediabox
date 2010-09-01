@@ -43,7 +43,8 @@ class Resumer(Component):
         
     def handle_MEDIA_EV_PAUSE(self):
     
-        self.__is_playing = False
+        #self.__is_playing = False
+        pass
         
         
     def handle_MEDIA_EV_EOF(self):
@@ -81,7 +82,7 @@ class Resumer(Component):
         
     def handle_COM_EV_APP_SHUTDOWN(self):
 
-        if (self.__current_file):
+        if (self.__current_file and self.__is_playing):
             data = "\n".join([self.__current_file.full_path,
                               str(int(self.__current_pos))])
     
