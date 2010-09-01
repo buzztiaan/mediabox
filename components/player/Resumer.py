@@ -37,8 +37,9 @@ class Resumer(Component):
     
         self.__is_playing = True
         if (self.__to_seek > 0):
-            self.emit_message(msgs.MEDIA_ACT_SEEK, self.__to_seek)
+            pos = self.__to_seek
             self.__to_seek = 0
+            self.emit_message(msgs.MEDIA_ACT_SEEK, pos)
 
         
     def handle_MEDIA_EV_PAUSE(self):
@@ -70,9 +71,7 @@ class Resumer(Component):
                 path, pos = data.split("\n")
                 f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
                 if (f):
-                    #self.emit_message(msgs.UI_ACT_SHOW_DIALOG,
-                    #                  "player.PlayerWindow")
-                    self.emit_message(msgs.MEDIA_ACT_LOAD, f)
+                    self.emit_message(msgs.MEDIA_ACT_PREPARE, f)
                     self.__to_seek = int(pos)
             except:
                 pass
@@ -82,7 +81,7 @@ class Resumer(Component):
         
     def handle_COM_EV_APP_SHUTDOWN(self):
 
-        if (self.__current_file and self.__is_playing):
+        if (self.__current_file):
             data = "\n".join([self.__current_file.full_path,
                               str(int(self.__current_pos))])
     

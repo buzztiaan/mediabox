@@ -129,7 +129,7 @@ class Navigator(Component, Window):
 
         # [Now Playing] button
         self.__now_playing = NowPlaying()
-        self.__now_playing.set_visible(False)
+        #self.__now_playing.set_visible(False)
         self.__now_playing.connect_clicked(
                lambda :self.__show_dialog("player.PlayerWindow"))
 
@@ -881,7 +881,6 @@ class Navigator(Component, Window):
     def handle_MEDIA_EV_LOADED(self, player, f):
     
         if (not self.__now_playing.is_visible()):
-            self.__now_playing.set_visible(True)
             self.__update_layout()
             self.render()
                     

@@ -17,8 +17,20 @@ class NowPlaying(Widget, Component):
         self.__info = ""
         self.__cover = None
         
+        self.__prepared_file = None
+        
+        
         Component.__init__(self)
         Widget.__init__(self)
+        
+        self.connect_clicked(self.__on_click)
+        
+        
+    def __on_click(self):
+    
+        if (self.__prepared_file):
+            self.emit_message(msgs.MEDIA_ACT_LOAD, self.__prepared_file)
+            self.__prepared_file = None
         
         
         
@@ -81,6 +93,39 @@ class NowPlaying(Widget, Component):
                                   w - 64, (h - 64) / 2)
 
 
+
+    def handle_MEDIA_ACT_PREPARE(self, f):
+
+        def on_loaded(thumbpath):
+            if (thumbpath):
+                self.__cover = self.__load_pixbuf(f, thumbpath)
+                self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", self.__cover)
+                
+                self.__render()
+                self.render()
+                
+        self.__prepared_file = f
+        self.__cover = None
+        self.__title = f.name
+        self.__info = f.info
+
+        thumbpath, is_final = \
+          self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, f)
+        if (thumbpath):
+            self.__cover = self.__load_pixbuf(f, thumbpath)
+
+        if (not is_final):
+            self.call_service(msgs.THUMBNAIL_SVC_LOAD_THUMBNAIL, f, on_loaded)
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        #buf = Pixmap(None, w, h)
+        self.__render()
+        #self.render_at(buf)
+        #self.fx_slide_vertical(buf, x, y, w, h, self.SLIDE_UP)
+        self.render()
+
+
     def handle_MEDIA_EV_LOADED(self, player, f):
 
         def on_loaded(thumbpath):
@@ -91,6 +136,7 @@ class NowPlaying(Widget, Component):
                 self.__render()
                 self.render()
                 
+        self.__prepared_file = None
         self.__cover = None
         self.__title = f.name
         self.__info = f.info

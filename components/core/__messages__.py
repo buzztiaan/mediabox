@@ -146,6 +146,14 @@ def CORE_EV_THEME_CHANGED(): pass
 Gets emitted when the theme has changed.
 """
 
+def MEDIA_ACT_PREPARE(f): pass
+"""
+Prepares the given file for loading.
+@since: 2010.09.01
+
+@param f: file object to prepare
+"""
+
 def MEDIA_ACT_LOAD_URI(uri, mimetype = ""): pass
 """
 Loads the given URI into the appropriate media player.
