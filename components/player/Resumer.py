@@ -44,8 +44,7 @@ class Resumer(Component):
         
     def handle_MEDIA_EV_PAUSE(self):
     
-        #self.__is_playing = False
-        pass
+        self.__is_playing = False
         
         
     def handle_MEDIA_EV_EOF(self):
