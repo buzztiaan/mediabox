@@ -83,7 +83,7 @@ class Resumer(Component):
 
         if (self.__current_file):
             data = "\n".join([self.__current_file.full_path,
-                              str(self.__current_pos)])
+                              str(int(self.__current_pos))])
     
             try:
                 open(_RESUME_FILE, "w").write(data)

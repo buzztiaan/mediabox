@@ -401,6 +401,12 @@ class AudioPlayer(Player):
             self.__player.stop()
 
 
+    def handle_MEDIA_ACT_SEEK(self, pos):
+    
+        if (self.__player and self.is_player_active()):
+            self.__player.seek(pos)
+
+
     def handle_INPUT_EV_VOLUME_UP(self, pressed):
     
         if (self.is_visible()):
