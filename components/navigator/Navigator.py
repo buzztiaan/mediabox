@@ -18,6 +18,7 @@ from mediabox import config as mb_config
 from mediabox import values
 from utils.ItemScheduler import ItemScheduler
 from utils import mimetypes
+from utils import state
 import platforms
 from theme import theme
 
@@ -81,7 +82,7 @@ _PORTRAIT_ARRANGEMENT = """
   </arrangement>
 """
 
-_PERSISTED_PATH = os.path.join(values.USER_DIR, "navigator-path")
+_STATEFILE = os.path.join(values.USER_DIR, "navigator-state")
 
 _MODE_NORMAL = 0
 _MODE_SELECT = 1
@@ -116,8 +117,6 @@ class Navigator(Component, Window):
         self.__key_hold_down_timestamp = 0
         self.__skip_letter = False
         
-        self.__is_portrait = False
-
         # scheduler for creating thumbnails one by one
         self.__tn_scheduler = ItemScheduler()
         
@@ -130,13 +129,10 @@ class Navigator(Component, Window):
         # [Now Playing] button
         self.__now_playing = NowPlaying()
         #self.__now_playing.set_visible(False)
-        self.__now_playing.connect_clicked(
-               lambda :self.__show_dialog("player.PlayerWindow"))
 
         # browser list slider
         self.__browser_slider = Slider(theme.mb_list_slider)
         self.__browser_slider.set_mode(Slider.VERTICAL)
-        #self.add(self.__browser_slider)
 
         
         # file browser
@@ -277,7 +273,7 @@ class Navigator(Component, Window):
         w, h = self.get_size()
         
         if (folder and folder.folder_flags & folder.ITEMS_COMPACT):
-            if (self.__is_portrait):
+            if (w < h):
                 self.__browser.set_items_per_row(2)
             else:
                 self.__browser.set_items_per_row(4)
@@ -286,7 +282,7 @@ class Navigator(Component, Window):
             
         self.__browser.invalidate()
         #self.__browser.render()
-   
+
 
     def _visibility_changed(self):
         
@@ -747,20 +743,30 @@ class Navigator(Component, Window):
 
     def handle_COM_EV_APP_STARTED(self):
     
-        # try to restore previous path stack
+        # load state
         try:
-            data = open(_PERSISTED_PATH, "r").read()
+            path, play_files, play_folder, current_file = state.load(_STATEFILE)
+            
             path_stack = []
-            for d in data.split("\n"):
-                f = self.call_service(msgs.CORE_SVC_GET_FILE, d)
+            for p in path:
+                f = self.call_service(msgs.CORE_SVC_GET_FILE, p)
                 if (f):
                     path_stack.append(f)
                     self.emit_message(msgs.CORE_EV_FOLDER_VISITED, f)
                 #end if
             #end for
             self.__browser.set_path_stack(path_stack)
+            
+            self.__play_files = [ self.call_service(msgs.CORE_SVC_GET_FILE, p)
+                                  for p in play_files ]
+            self.__play_folder = self.call_service(msgs.CORE_SVC_GET_FILE,
+                                                   play_folder)
+            self.__current_file = self.call_service(msgs.CORE_SVC_GET_FILE,
+                                                    current_file)
+            
         except:
             pass
+        
     
         self.__arr.set_visible(True)
         self.render()
@@ -779,14 +785,14 @@ class Navigator(Component, Window):
     
     def handle_COM_EV_APP_SHUTDOWN(self):
 
-        # save path stack for next start
-        data = [ f.full_path for f in self.__browser.get_path_stack() ]
-    
-        try:
-            open(_PERSISTED_PATH, "w").write("\n".join(data))
-        except:
-            import traceback; traceback.print_exc()
-            pass
+        # save state for next start
+        path = [ f.full_path for f in self.__browser.get_path_stack() ]
+        play_files = [ f.full_path for f in self.__play_files ]
+        
+        state.save(_STATEFILE, path,
+                               play_files,
+                               self.__play_folder and self.__play_folder.full_path or "",
+                               self.__current_file and self.__current_file.full_path or "")
 
 
     def handle_CORE_EV_DEVICE_ADDED(self, ident, device):
@@ -866,14 +872,12 @@ class Navigator(Component, Window):
 
     def handle_ASR_EV_PORTRAIT(self):
         
-        self.__is_portrait = True
         self.set_flag(windowflags.PORTRAIT, True)
         self.__update_items_per_row(self.__browser.get_current_folder())
 
 
     def handle_ASR_EV_LANDSCAPE(self):
 
-        self.__is_portrait = False
         self.set_flag(windowflags.PORTRAIT, False)
         self.__update_items_per_row(self.__browser.get_current_folder())
 

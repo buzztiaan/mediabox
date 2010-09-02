@@ -1,4 +1,4 @@
-mediabox (2010.09.01) unstable; urgency=low
+mediabox (2010.09.02) unstable; urgency=low
 
   Try to skip cover art when playing from a folder or playlist
   
@@ -15,7 +15,7 @@ mediabox (2010.09.01) unstable; urgency=low
   
   Resumes playback after restart
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 01 Sep 2010 18:30:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 02 Sep 2010 18:30:00 +0200
 
 mediabox (2010.08.08) unstable; urgency=low
 

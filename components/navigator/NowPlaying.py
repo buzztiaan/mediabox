@@ -14,8 +14,8 @@ class NowPlaying(Widget, Component):
         self.__buffer = None
         
         self.__title = ""
-        self.__info = ""
-        self.__cover = None
+        self.__info = "- no media loaded -"
+        self.__cover = theme.mb_logo
         
         self.__prepared_file = None
         
@@ -31,7 +31,9 @@ class NowPlaying(Widget, Component):
         if (self.__prepared_file):
             self.emit_message(msgs.MEDIA_ACT_LOAD, self.__prepared_file)
             self.__prepared_file = None
-        
+        elif (self.__title):
+            self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "player.PlayerWindow")
+
         
         
     def set_size(self, w, h):
@@ -78,7 +80,7 @@ class NowPlaying(Widget, Component):
             offset = 8
 
         self.__buffer.set_clip_rect(offset, 0, w - offset - 64, h)
-        self.__buffer.draw_text(self.__title,
+        self.__buffer.draw_text(self.__title or "MediaBox",
                                 theme.font_mb_plain,
                                 offset, 4,
                                 theme.color_list_item_text)
@@ -89,8 +91,9 @@ class NowPlaying(Widget, Component):
                                 theme.color_list_item_subtext)
         self.__buffer.set_clip_rect()
         
-        self.__buffer.draw_pixbuf(theme.mb_now_playing,
-                                  w - 64, (h - 64) / 2)
+        if (self.__title):
+            self.__buffer.draw_pixbuf(theme.mb_now_playing,
+                                      w - 64, (h - 64) / 2)
 
 
 

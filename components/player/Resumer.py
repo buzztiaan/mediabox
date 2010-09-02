@@ -74,7 +74,7 @@ class Resumer(Component):
                     self.__to_seek = int(pos)
             except:
                 pass
-                
+        
         #end if
                 
         
