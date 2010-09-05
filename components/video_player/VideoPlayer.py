@@ -56,7 +56,6 @@ class VideoPlayer(Player):
     def __init__(self):
 
         self.__is_fullscreen = False
-        self.__is_portrait = False
         self.__volume = 50
 
         self.__player = None
@@ -311,11 +310,14 @@ class VideoPlayer(Player):
         screen.fill_area(x, y, w, h, theme.color_mb_background)
         self.__arr.set_geometry(0, 0, w, h)
         
-        if (self.__is_portrait):
+        if (w < h):
+            self.__screen.set_visible(False)
             screen.draw_centered_text("Video cannot be displayed in\n" \
                                       "portrait mode.",
                                       theme.font_mb_plain,
                                       0, h / 2 - 80, w, 0, theme.color_mb_text)
+        else:
+            self.__screen.set_visible(True)
 
         
     def get_mime_types(self):
@@ -405,14 +407,12 @@ class VideoPlayer(Player):
 
     def handle_ASR_EV_LANDSCAPE(self):
 
-        self.__is_portrait = False
         self.__screen.set_visible(True)
         self.render()
         
-        
+    """
     def handle_ASR_EV_PORTRAIT(self):
 
-        self.__is_portrait = True
         self.__screen.set_visible(False)
         self.render()
         
@@ -421,6 +421,7 @@ class VideoPlayer(Player):
 
         if (self.is_visible()):
             self.__toggle_fullscreen()
+    """
 
 
     def handle_INPUT_EV_VOLUME_UP(self, pressed):

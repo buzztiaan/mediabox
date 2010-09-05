@@ -206,13 +206,14 @@ class NowPlaying(Widget, Component):
         pbuf.fill(0x00000000)
         
         frm, x, y, w, h = f.frame
-        if (frm):
-            pixbuftools.draw_pbuf(pbuf, frm, 0, 0)
-        else:
+        if (not frm):
             x, y, w, h = 0, 0, 160, 160
         if (icon):            
-            pixbuftools.fit_pbuf(pbuf, icon, x, y, w, h)
+            pixbuftools.fit_pbuf(pbuf, icon, 0, 0, 160, 160, True)#x, y, w, h)
+            #pixbuftools.draw_pbuf(pbuf, icon, 0, 0)
             del icon
+        if (frm):
+            pixbuftools.draw_pbuf(pbuf, frm, 0, 0)
 
         return pbuf
-
+        
