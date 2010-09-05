@@ -455,7 +455,7 @@ class GridView(ItemView):
 
         def fx(params):
             from_x, to_x = params
-            dx = (to_x - from_x) / 3
+            dx = (to_x - from_x) / 4
             
             if (dx > 0):
                 screen.move_area(x + dx, y, w - dx, h, -dx, 0)
@@ -496,7 +496,7 @@ class GridView(ItemView):
 
         def fx(params):
             from_x, to_x = params
-            dx = (to_x - from_x) / 3
+            dx = (to_x - from_x) / 4
             
             if (dx > 0):
                 screen.move_area(x, y, w - dx, h, dx, 0)

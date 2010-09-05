@@ -24,7 +24,7 @@ class AudioThumbnailer(Thumbnailer):
     def make_quick_thumbnail(self, f):
 
         #if (f.mimetype == "application/x-music-folder"):
-        f.frame = (theme.mb_frame_music_album, 25, 5, 106, 106)
+        f.frame = (theme.mb_frame_music_album, 5, 5, 150, 150)
         #else:
         #    f.frame = (theme.mb_file_audio, 0, 40, 80, 80)
 
@@ -52,10 +52,11 @@ class AudioThumbnailer(Thumbnailer):
     
         def on_loaded(pbuf, mimetype):
             if (pbuf):
-                path = self._set_thumbnail(f, pbuf)    
+                path = self._set_thumbnail(f, pbuf)
                 del pbuf
             else:
-                path = ""
+                path = self._set_thumbnail(f, theme.mb_default_cover)
+                #path = theme.mb_logo.get_path()
             cb(path, *args)
 
 

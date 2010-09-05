@@ -4,7 +4,6 @@ from RootDevice import RootDevice
 from mediabox.StorageBrowser import StorageBrowser
 from ui.Button import Button
 from ui.ImageButton import ImageButton
-from ui.Slider import Slider
 from ui.Toolbar import Toolbar
 from ui.dialog import InputDialog
 from ui.dialog import InfoDialog
@@ -34,24 +33,11 @@ _LANDSCAPE_ARRANGEMENT = """
     <widget name="toolbar"
             x1="-80" y1="0" x2="100%" y2="100%"/>
 
-    <if-visible name="now-playing">
-      <widget name="now-playing"
-              x1="0" y1="0" x2="-80" y2="80"/>
+    <widget name="now-playing"
+            x1="0" y1="0" x2="-80" y2="80"/>
 
-      <widget name="slider"
-              x1="0" y1="80" x2="40" y2="100%"/>
-
-      <widget name="browser"
-              x1="40" y1="80" x2="-80" y2="100%"/>
-    </if-visible>
-
-    <if-invisible name="now-playing">
-      <widget name="slider"
-              x1="0" y1="0" x2="40" y2="100%"/>
-
-      <widget name="browser"
-              x1="40" y1="0" x2="-80" y2="100%"/>
-    </if-invisible>
+    <widget name="browser"
+            x1="0" y1="80" x2="-80" y2="100%"/>
   </arrangement>
 """
 
@@ -61,24 +47,11 @@ _PORTRAIT_ARRANGEMENT = """
     <widget name="toolbar"
             x1="0" y1="-80" x2="100%" y2="100%"/>
 
-    <if-visible name="now-playing">
-      <widget name="now-playing"
-              x1="0" y1="0" x2="100%" y2="80"/>
+    <widget name="now-playing"
+            x1="0" y1="0" x2="100%" y2="80"/>
 
-      <widget name="slider"
-              x1="0" y1="80" x2="40" y2="-80"/>
-
-      <widget name="browser"
-              x1="40" y1="80" x2="100%" y2="-80"/>
-    </if-visible>
-
-    <if-invisible name="now-playing">
-      <widget name="slider"
-              x1="0" y1="0" x2="40" y2="-80"/>
-
-      <widget name="browser"
-              x1="40" y1="0" x2="100%" y2="-80"/>
-    </if-invisible>
+    <widget name="browser"
+            x1="0" y1="80" x2="100%" y2="-80"/>
   </arrangement>
 """
 
@@ -110,6 +83,9 @@ class Navigator(Component, Window):
 
         # list for choosing random files from when in shuffle mode
         self.__random_files = []
+
+        # current window size (for detecting resizing)
+        self.__window_size = (0, 0)
         
         self.__is_searching = False
         self.__search_term = ""
@@ -130,21 +106,14 @@ class Navigator(Component, Window):
         self.__now_playing = NowPlaying()
         #self.__now_playing.set_visible(False)
 
-        # browser list slider
-        self.__browser_slider = Slider(theme.mb_list_slider)
-        self.__browser_slider.set_mode(Slider.VERTICAL)
-
         
         # file browser
         self.__browser = StorageBrowser()
         #self.__browser.set_root_device(self.__root_dev)
-        self.__browser.associate_with_slider(self.__browser_slider)
         self.__browser.connect_folder_begin(self.__on_begin_folder)
         self.__browser.connect_folder_progress(self.__on_progress_folder)
         self.__browser.connect_folder_complete(self.__on_complete_folder)
         self.__browser.connect_file_opened(self.__on_open_file)
-        self.__browser_slider.connect_button_pressed(
-                                    lambda a,b:self.__browser.stop_scrolling())
 
         # toolbar
         self.__toolbar = Toolbar()
@@ -182,7 +151,6 @@ class Navigator(Component, Window):
         self.__arr = Arrangement()
         self.__arr.connect_resized(self.__update_layout)
         self.__arr.add(self.__now_playing, "now-playing")
-        self.__arr.add(self.__browser_slider, "slider")
         self.__arr.add(self.__browser, "browser")
         self.__arr.add(self.__toolbar, "toolbar")
         self.add(self.__arr)
@@ -274,13 +242,13 @@ class Navigator(Component, Window):
         
         if (folder and folder.folder_flags & folder.ITEMS_COMPACT):
             if (w < h):
-                self.__browser.set_items_per_row(2)
+                self.__browser.set_items_per_row(3)
             else:
                 self.__browser.set_items_per_row(4)
         else:
             self.__browser.set_items_per_row(1)
             
-        self.__browser.invalidate()
+        #self.__browser.invalidate()
         #self.__browser.render()
 
 
@@ -708,12 +676,17 @@ class Navigator(Component, Window):
 
     def render_this(self):
     
+        w, h = self.get_size()
+        
+        if ((w, h) != self.__window_size):
+            self.__update_items_per_row(self.__browser.get_current_folder())
+            self.__window_size = (w, h)
+    
         if (self.__arr.is_visible()):
             Window.render_this(self)
             
         else:
             x, y = self.get_screen_pos()
-            w, h = self.get_size()
             screen = self.get_screen()
         
             screen.fill_area(x, y, w, h, theme.color_mb_background)
@@ -758,7 +731,8 @@ class Navigator(Component, Window):
             self.__browser.set_path_stack(path_stack)
             
             self.__play_files = [ self.call_service(msgs.CORE_SVC_GET_FILE, p)
-                                  for p in play_files ]
+                                  for p in play_files
+                                  if self.call_service(msgs.CORE_SVC_GET_FILE, p) ]
             self.__play_folder = self.call_service(msgs.CORE_SVC_GET_FILE,
                                                    play_folder)
             self.__current_file = self.call_service(msgs.CORE_SVC_GET_FILE,
@@ -873,13 +847,13 @@ class Navigator(Component, Window):
     def handle_ASR_EV_PORTRAIT(self):
         
         self.set_flag(windowflags.PORTRAIT, True)
-        self.__update_items_per_row(self.__browser.get_current_folder())
+        #self.__update_items_per_row(self.__browser.get_current_folder())
 
 
     def handle_ASR_EV_LANDSCAPE(self):
 
         self.set_flag(windowflags.PORTRAIT, False)
-        self.__update_items_per_row(self.__browser.get_current_folder())
+        #self.__update_items_per_row(self.__browser.get_current_folder())
 
 
     def handle_MEDIA_EV_LOADED(self, player, f):

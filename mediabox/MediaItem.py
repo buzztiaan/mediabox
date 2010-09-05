@@ -84,7 +84,7 @@ class MediaItem(Item):
         self.__is_compact = v
         w, h = self.get_size()
         if (self.__is_compact): 
-            self.set_size(w, 150)
+            self.set_size(w, 180)
             #self.__render_compact()
         else:
             self.set_size(w, 100)
@@ -113,6 +113,25 @@ class MediaItem(Item):
         pmap, is_new = self._get_cached_pixmap()
         if (is_new):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
+           
+            # render icon
+            pbuf = self.__load_pixbuf(self.__icon)
+            if (pbuf):
+                #pmap.fit_pixbuf(pbuf, 4, 4, w - 8, h - 32)
+                p_w = pbuf.get_width()
+                p_h = pbuf.get_height()
+                pmap.draw_pixbuf(pbuf, (w - p_w) / 2, (h - 22 - p_h) / 2)
+                #del pbuf
+
+            # render text
+            pmap.set_clip_rect(5, 0, w - 10, h)
+            pmap.draw_centered_text(self.__label, theme.font_mb_tiny,
+                                    5, h - 22, w - 10, 22,
+                                    theme.color_list_item_text)
+            pmap.set_clip_rect()
+
+            if (self.is_selected()):
+                pmap.draw_pixbuf(theme.mb_checked, 8, 8)
 
             # render selection frame
             if (self.is_marked()):
@@ -124,24 +143,6 @@ class MediaItem(Item):
                 pmap.draw_frame(theme.mb_selection_frame,
                                 0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
-           
-            # render icon
-            pbuf = self.__load_pixbuf(self.__icon)
-            if (pbuf):
-                #pmap.fit_pixbuf(pbuf, 4, 4, w - 8, h - 32)
-                p_w = pbuf.get_width()
-                pmap.draw_pixbuf(pbuf, (w - p_w) / 2, 4)
-                #del pbuf
-
-            # render text
-            pmap.set_clip_rect(5, 0, w - 10, h)
-            pmap.draw_centered_text(self.__label, theme.font_mb_plain,
-                                    5, h - 26, w - 10, 26,
-                                    theme.color_list_item_text)
-            pmap.set_clip_rect()
-
-            if (self.is_selected()):
-                pmap.draw_pixbuf(theme.mb_checked, 8, 8)
             
         #end if
         
@@ -160,16 +161,6 @@ class MediaItem(Item):
         if (is_new):
             pmap.fill_area(0, 0, w, h, theme.color_mb_background)
 
-            # render selection frame
-            if (self.is_marked()):
-                pmap.draw_frame(theme.mb_cursor_frame,
-                                0, 0, w, h, True,
-                                pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
-            
-            elif (self.is_hilighted()):
-                pmap.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True,
-                                pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
-
             # render grip
             if (self.is_draggable()):
                 pmap.draw_pixbuf(theme.mb_item_grip, w - 32, (h - 80) / 2)
@@ -186,20 +177,31 @@ class MediaItem(Item):
             # render icon
             pbuf = self.__load_pixbuf(self.__icon)
             if (pbuf):
-                pmap.fit_pixbuf(pbuf, offset, 5, 120, h - 10)
+                pmap.fit_pixbuf(pbuf, offset, 0, 100, 100)
                 del pbuf
                             
-            offset += 130
+            offset += 100
             
             # render text
             pmap.set_clip_rect(*clip_rect)
-            pmap.draw_text(self.__label, theme.font_mb_plain,
-                           offset, 12,
+            pmap.draw_text(self.__label, theme.font_mb_tiny,
+                           offset, 24,
                            theme.color_list_item_text)
             pmap.draw_text(self.__sublabel, theme.font_mb_tiny,
-                           offset, 40,
+                           offset, 48,
                            theme.color_list_item_subtext)
             pmap.set_clip_rect()
+
+            # render selection frame
+            if (self.is_marked()):
+                pmap.draw_frame(theme.mb_cursor_frame,
+                                0, 0, w, h, True,
+                                pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
+            
+            elif (self.is_hilighted()):
+                pmap.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True,
+                                pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
+
         #end if
         
         return pmap
@@ -269,17 +271,18 @@ class MediaItem(Item):
         else:
             icon = None
 
-        pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
+        pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 160)
         pbuf.fill(0x00000000)
         
         frm, x, y, w, h = self.__file.frame
+        if (not frm):
+            x, y, w, h = 0, 0, 160, 160
+        if (icon):            
+            pixbuftools.fit_pbuf(pbuf, icon, 0, 0, 160, 160, True)#x, y, w, h)
+            #pixbuftools.draw_pbuf(pbuf, icon, 0, 0)
+            del icon
         if (frm):
             pixbuftools.draw_pbuf(pbuf, frm, 0, 0)
-        else:
-            x, y, w, h = 0, 0, 160, 120
-        if (icon):            
-            pixbuftools.fit_pbuf(pbuf, icon, x, y, w, h)
-            del icon
 
         self.__trim_cache()
         if (path and path.startswith("/")):

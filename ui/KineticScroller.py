@@ -166,7 +166,7 @@ class KineticScroller(EventEmitter, Observable):
             
             self.__delta_s = (vx * self.__delta_t, vy * self.__delta_t)
             
-            gobject.timeout_add(0, self.__impulse_handler)
+            gobject.timeout_add(20, self.__impulse_handler)
         
 
     def __begin_tap_and_hold(self):

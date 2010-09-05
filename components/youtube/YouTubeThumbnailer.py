@@ -23,8 +23,8 @@ class YouTubeThumbnailer(Thumbnailer):
 
     def make_quick_thumbnail(self, f):
     
-        #f.frame = (theme.mb_frame_video, 14, 4, 134, 112)
-        return (theme.mb_frame_video.get_path(), False)
+        f.frame = (theme.mb_frame_video, 9, 5, 142, 150)
+        return (theme.mb_default_video.get_path(), False)
 
 
     def make_thumbnail(self, f, cb, *args):

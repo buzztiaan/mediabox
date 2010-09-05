@@ -61,14 +61,15 @@ def draw_pbuf(pbuf1, pbuf2, x, y, w = -1, h = -1):
     else:
         w = pbuf2.get_width()
         h = pbuf2.get_height()
-        
+    
     subpbuf = pbuf1.subpixbuf(x, y, w, h)
-    pbuf2.composite(subpbuf, 0, 0, w, h, 0, 0, 1, 1,
-                    gtk.gdk.INTERP_NEAREST, 0xff)
-    del subpbuf
+    if (subpbuf):
+        pbuf2.composite(subpbuf, 0, 0, w, h, 0, 0, 1, 1,
+                        gtk.gdk.INTERP_NEAREST, 0xff)
+        del subpbuf
 
 
-def fit_pbuf(pbuf1, pbuf2, x, y, w, h):
+def fit_pbuf(pbuf1, pbuf2, x, y, w, h, fit_square = False):
 
     _reload(pbuf1, pbuf2)
     pbuf1_w = pbuf1.get_width()
@@ -78,17 +79,29 @@ def fit_pbuf(pbuf1, pbuf2, x, y, w, h):
     
     sx = w / float(pbuf2_w)
     sy = h / float(pbuf2_h)
-    scale = min(sx, sy)
+    if (fit_square):
+        scale = max(sx, sy)
+    else:
+        scale = min(sx, sy)
 
     new_w = int(pbuf2_w * scale)
     new_h = int(pbuf2_h * scale)
-    offx = (w - new_w) / 2
-    offy = (h - new_h) / 2
+    if (fit_square):
+        offx = (new_w - w) / 2
+        offy = (new_h - h) / 2
+    else:
+        offx = (w - new_w) / 2
+        offy = (h - new_h) / 2
 
     pbuf2 = pbuf2.scale_simple(new_w, new_h, gtk.gdk.INTERP_BILINEAR)
-    subpbuf = pbuf1.subpixbuf(x + offx, y + offy, new_w, new_h)
-    pbuf2.composite(subpbuf, 0, 0, new_w, new_h, 0, 0, 1, 1,
-                    gtk.gdk.INTERP_NEAREST, 0xff)
+    if (fit_square):
+        subpbuf = pbuf1.subpixbuf(x, y, w, h)
+        pbuf2.composite(subpbuf, 0, 0, w, h, -offx, -offy, 1, 1,
+                        gtk.gdk.INTERP_NEAREST, 0xff)
+    else:
+        subpbuf = pbuf1.subpixbuf(x + offx, y + offy, new_w, new_h)
+        pbuf2.composite(subpbuf, 0, 0, new_w, new_h, 0, 0, 1, 1,
+                        gtk.gdk.INTERP_NEAREST, 0xff)
     del subpbuf
     
 

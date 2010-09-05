@@ -135,7 +135,7 @@ class Window(Widget):
             self.__title_bar = None
             
         self.__window.set_title(" ")
-        self.__window.set_default_size(800, 480)
+        self.__window.set_default_size(480, 800) #800, 480)
         self.__window.set_app_paintable(True)
         self.__window.set_double_buffered(False)
 
@@ -151,7 +151,7 @@ class Window(Widget):
         self.__window.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                                  gtk.gdk.BUTTON_RELEASE_MASK |
                                  gtk.gdk.POINTER_MOTION_MASK |
-                                 gtk.gdk.POINTER_MOTION_HINT_MASK |
+                                 #gtk.gdk.POINTER_MOTION_HINT_MASK |
                                  gtk.gdk.KEY_PRESS_MASK |
                                  gtk.gdk.KEY_RELEASE_MASK)
 

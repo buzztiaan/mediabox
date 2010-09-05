@@ -8,7 +8,7 @@ import time
 
 
 # hide the letter display after this many milliseconds without scrolling
-_LETTER_TIMEOUT = 100
+_LETTER_TIMEOUT = 500
 
 # letters are only displayed if the list is at least this many times bigger
 # than the screen size
@@ -22,9 +22,16 @@ class ThumbableGridView(GridView):
     
 
     def __init__(self):
-    
-        # the associated slider
-        self.__slider = None
+       
+        # value of the built-in slider
+        self.__slider_value = 0.0
+        
+        # slider grab position
+        self.__slider_grab_pos = 0
+        
+        # whether the user is using the slider
+        self.__is_sliding = False
+       
         
         # whether multi select is enabled
         self.__multi_select = False
@@ -55,7 +62,7 @@ class ThumbableGridView(GridView):
         self.connect_button_released(self.__on_release_button)
         self.connect_pointer_moved(self.__on_pointer_moved)
         self.add_overlay_renderer(self.__render_letter)
-        self.add_overlay_renderer(self.__check_slider)
+        self.add_overlay_renderer(self.__render_slider)
         
         self.__kscr = KineticScroller(self)
         self.__kscr.connect_scrolling_started(self.__on_scrolling_started)
@@ -95,17 +102,14 @@ class ThumbableGridView(GridView):
         #end if
 
 
-    def __check_slider(self, screen):
+    def __render_slider(self, screen):
     
-        # should the slider be visible?
-        if (self.__slider):
-            w, h = self.get_size()
-            t_w, t_h = self.get_total_size()
-            if (t_h <= h):
-                self.__slider.set_active(False)
-            else:
-                self.__slider.set_active(True)        
-        #end if
+        w, h = self.get_size()
+        t_w, t_h = self.get_total_size()
+        if (self.__letter_visible and t_h > h * 2):
+            h -= theme.mb_list_slider.get_height()
+            screen.draw_pixbuf(theme.mb_list_slider, 0, self.__slider_value * h)
+
 
     def __on_scrolling_started(self):
     
@@ -131,7 +135,7 @@ class ThumbableGridView(GridView):
         if (self.__multi_select):
             item.set_selected(not item.is_selected())
 
-        else:
+        elif (px > 40):
             # the touchscreen of Maemo4 devices is not sensitive enough for
             # single click operation
             if (self.__click_behavior == self.CLICK_BEHAVIOR_SINGLE or
@@ -165,7 +169,7 @@ class ThumbableGridView(GridView):
         idx = self.get_item_at(px, py)
         item = self.get_item(idx)
         w, h = self.get_size()
-        
+
         if (px > w - 80 and item.is_draggable()):
             # handle drag-sorting
             self.float_item(idx, px - w, py)
@@ -173,6 +177,13 @@ class ThumbableGridView(GridView):
             self.invalidate()
             self.render()
 
+        elif (px < 40):
+            self.stop_scrolling()
+            self.__is_sliding = True
+            w, h = self.get_size()
+            h -= theme.mb_list_slider.get_height()
+            self.__slider_grab_pos = py - self.__slider_value * h
+            
         else:
             # handle clicking
             if (item.is_button()):
@@ -195,6 +206,10 @@ class ThumbableGridView(GridView):
             self.invalidate()
 
             self.render()
+
+        elif (self.__is_sliding):
+            self.stop_scrolling()
+            self.__is_sliding = False
 
         else:
             idx = self.get_item_at(px, py)
@@ -238,17 +253,17 @@ class ThumbableGridView(GridView):
                 self.__autoscroll_handler = gobject.timeout_add(
                                                  50, self.__do_autoscroll, 30)
 
+        elif (self.__is_sliding):
+            w, h = self.get_size()
+            total_w, total_h = self.get_total_size()
+            percent = (py - self.__slider_grab_pos) / \
+                      float((h - theme.mb_list_slider.get_height()))
+            percent = max(min(percent, 1.0), 0.0)
+            prev_offset = self.get_offset()
+            offset = int((total_h - h) * percent)
+            #self.stop_scrolling()
+            self.move(0, offset - prev_offset)
         #end if
-
-
-        
-    def __on_drag_slider(self, percent):
-
-        w, h = self.get_size()
-        total_w, total_h = self.get_total_size()
-        prev_offset = self.get_offset()
-        offset = int((total_h - h) * (1.0 - percent))
-        self.move(0, offset - prev_offset)
 
 
     def __on_letter_timeout(self):
@@ -341,6 +356,15 @@ class ThumbableGridView(GridView):
 
     def __update_slider(self):
 
+        w, h = self.get_size()
+        total_w, total_h = self.get_total_size()
+        if (total_h <= h):
+            percent = 0.0
+        else:
+            percent = self.get_offset() / float(total_h - h)
+        self.__slider_value = percent
+
+        """
         if (self.__slider):
             w, h = self.get_size()
             total_w, total_h = self.get_total_size()
@@ -350,20 +374,8 @@ class ThumbableGridView(GridView):
                 percent = self.get_offset() / float(total_h - h)
             self.__slider.set_value(1.0 - percent)
         #end if    
-    
-
-        
-    def associate_with_slider(self, slider):
         """
-        Associates this item view with a slider widget. Only one slider may be
-        associated with the item view at a time.
-        
-        @param slider: slider widget
-        """
-    
-        self.__slider = slider
-        self.__slider.connect_value_changed(self.__on_drag_slider)
-        
+       
         
     def connect_item_activated(self, cb, *args):
         

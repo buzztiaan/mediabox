@@ -202,14 +202,14 @@ class NowPlaying(Widget, Component):
         else:
             icon = None
 
-        pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 120)
+        pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 160)
         pbuf.fill(0x00000000)
         
         frm, x, y, w, h = f.frame
         if (frm):
             pixbuftools.draw_pbuf(pbuf, frm, 0, 0)
         else:
-            x, y, w, h = 0, 0, 160, 120
+            x, y, w, h = 0, 0, 160, 160
         if (icon):            
             pixbuftools.fit_pbuf(pbuf, icon, x, y, w, h)
             del icon

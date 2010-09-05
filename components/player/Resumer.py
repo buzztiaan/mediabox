@@ -25,7 +25,9 @@ class Resumer(Component):
         
     def handle_MEDIA_EV_LOADED(self, player, f):
     
-        self.__current_file = f
+        if (f != self.__current_file):
+            self.__current_file = f
+            self.__to_seek = 0
         
         
     def handle_MEDIA_EV_POSITION(self, pos, total):

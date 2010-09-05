@@ -9,10 +9,10 @@ import gtk
 
 
 # do not use any thumbnails from before this date
-_TN_EPOCH = 1275153936
+_TN_EPOCH = 1283602486
 
 # static pixbuf for scaling down
-_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 120, 120)
+_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 160)
 
 
 class Thumbnailer(Component):
@@ -87,7 +87,7 @@ class Thumbnailer(Component):
         # always scale down large thumbnails
         if (pbuf.get_width() > 160 or pbuf.get_height() > 160):
             _PBUF.fill(0x00000000)
-            pixbuftools.fit_pbuf(_PBUF, pbuf, 0, 0, 120, 120)
+            pixbuftools.fit_pbuf(_PBUF, pbuf, 0, 0, 160, 160, True)
             pbuf = _PBUF
         #end if
     

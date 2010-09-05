@@ -29,14 +29,14 @@ class OrgFreeDesktopVideoThumbnailer(Thumbnailer):
 
     def make_quick_thumbnail(self, f):
 
-        f.frame = (theme.mb_frame_video, 14, 4, 134, 112)
+        f.frame = (theme.mb_frame_video, 9, 5, 142, 150)
     
         thumb = self._get_thumbnail(f)
         if (thumb):
             return (thumb, True)
         else:
             is_final = not f.is_local
-            return ("", is_final)
+            return (theme.mb_default_video.get_path(), is_final)
 
 
     def make_thumbnail(self, f, cb, *args):

@@ -29,9 +29,9 @@ class OrgFreeDesktopImageThumbnailer(Thumbnailer):
     def make_quick_thumbnail(self, f):
 
         if (f.mimetype == "application/x-image-folder"):
-            f.frame = (theme.mb_frame_image_album, 14, 10, 133, 96)
+            f.frame = (theme.mb_frame_image_album, 13, 12, 148, 143)
         else:
-            f.frame = (theme.mb_frame_image, 7, 7, 142, 102)
+            f.frame = (theme.mb_frame_image, 5, 5, 150, 150)
     
         thumb = self._get_thumbnail(f)
         if (thumb):

@@ -1,7 +1,6 @@
 from ui import Window
 from ui import windowflags
 from ui.itemview import ThumbableGridView
-from ui.Slider import VSlider
 from theme import theme
 
 import gtk
@@ -22,18 +21,13 @@ class ListDialog(Window):
         self.__list = ThumbableGridView()
         self.add(self.__list)
         
-        self.__slider = VSlider(theme.mb_list_slider)
-        self.add(self.__slider)
-        self.__list.associate_with_slider(self.__slider)
-
 
     def render_this(self):
     
         w, h = self.get_size()
         screen = self.get_screen()
 
-        self.__slider.set_geometry(0, 0, 40, h)
-        self.__list.set_geometry(40, 0, w - 40, h)
+        self.__list.set_geometry(0, 0, w, h)
 
 
     def __on_close(self):
