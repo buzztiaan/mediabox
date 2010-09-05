@@ -151,6 +151,7 @@ class ClockSetter(Window):
             w -= 80
         self.set_window_size(w, h)
         
+        self.set_flag(windowflags.EXCLUSIVE, True)
         Window.run(self)
 
 
