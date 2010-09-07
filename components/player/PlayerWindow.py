@@ -32,8 +32,6 @@ class PlayerWindow(Dialog):
         # table: MIME type -> [handlers]
         self.__mime_handlers = {}
     
-        self.__is_portrait = False
-
         # the currently active player component
         self.__current_player = None
         
@@ -113,7 +111,8 @@ class PlayerWindow(Dialog):
 
     def __on_key_press(self, keycode):
     
-        if (self.__is_portrait and 
+        w, h = self.get_size()
+        if (w < h and
               mb_config.portrait_swap_volume() and
               keycode in _PORTRAIT_MODE_KEYSWAP):
             keycode = _PORTRAIT_MODE_KEYSWAP[keycode]
@@ -195,14 +194,12 @@ class PlayerWindow(Dialog):
 
     def handle_ASR_EV_LANDSCAPE(self):
 
-        self.__is_portrait = False
         self.set_flag(windowflags.PORTRAIT, False)
         self.render()
         
         
     def handle_ASR_EV_PORTRAIT(self):
 
-        self.__is_portrait = True
         self.set_flag(windowflags.PORTRAIT, True)
         self.render()
 

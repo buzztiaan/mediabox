@@ -33,7 +33,7 @@ class AudioThumbnailer(Thumbnailer):
             return (thumb, True)
         else:
             is_final = not f.is_local            
-            return ("", is_final)
+            return (theme.mb_default_cover.get_path(), is_final)
 
 
     def make_thumbnail(self, f, cb, *args):

@@ -89,10 +89,11 @@ class Window(Widget):
                 self.__window = hildon.StackableWindow()
                 self.__window.set_app_menu(self.__menu)
             elif (platforms.MAEMO4):
-                self.__window = gtk.Dialog()
-                self.__window.set_decorated(False)
+                self.__window = gtk.Window()
+                #self.__window.set_decorated(False)
+                self.__window.fullscreen()
                 # hide some ugly separator :)
-                self.__window.vbox.get_children()[0].hide()
+                #self.__window.vbox.get_children()[0].hide()
             elif (platforms.MEEGO_NETBOOK):
                 self.__window = gtk.Dialog()
                 self.__window.set_decorated(False)
@@ -151,7 +152,7 @@ class Window(Widget):
         self.__window.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                                  gtk.gdk.BUTTON_RELEASE_MASK |
                                  gtk.gdk.POINTER_MOTION_MASK |
-                                 #gtk.gdk.POINTER_MOTION_HINT_MASK |
+                                 gtk.gdk.POINTER_MOTION_HINT_MASK |
                                  gtk.gdk.KEY_PRESS_MASK |
                                  gtk.gdk.KEY_RELEASE_MASK)
 

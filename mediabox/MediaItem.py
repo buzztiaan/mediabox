@@ -123,16 +123,6 @@ class MediaItem(Item):
                 pmap.draw_pixbuf(pbuf, (w - p_w) / 2, (h - 22 - p_h) / 2)
                 #del pbuf
 
-            # render text
-            pmap.set_clip_rect(5, 0, w - 10, h)
-            pmap.draw_centered_text(self.__label, theme.font_mb_tiny,
-                                    5, h - 22, w - 10, 22,
-                                    theme.color_list_item_text)
-            pmap.set_clip_rect()
-
-            if (self.is_selected()):
-                pmap.draw_pixbuf(theme.mb_checked, 8, 8)
-
             # render selection frame
             if (self.is_marked()):
                 pmap.draw_frame(theme.mb_cursor_frame,
@@ -143,6 +133,17 @@ class MediaItem(Item):
                 pmap.draw_frame(theme.mb_selection_frame,
                                 0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
+
+            # render text
+            pmap.set_clip_rect(5, 0, w - 10, h)
+            pmap.draw_centered_text(self.__label, theme.font_mb_tiny,
+                                    5, h - 22, w - 10, 22,
+                                    theme.color_list_item_text)
+            pmap.set_clip_rect()
+
+            if (self.is_selected()):
+                pmap.draw_pixbuf(theme.mb_checked, 8, 8)
+
             
         #end if
         
@@ -180,17 +181,7 @@ class MediaItem(Item):
                 pmap.fit_pixbuf(pbuf, offset, 0, 100, 100)
                 del pbuf
                             
-            offset += 100
-            
-            # render text
-            pmap.set_clip_rect(*clip_rect)
-            pmap.draw_text(self.__label, theme.font_mb_tiny,
-                           offset, 24,
-                           theme.color_list_item_text)
-            pmap.draw_text(self.__sublabel, theme.font_mb_tiny,
-                           offset, 48,
-                           theme.color_list_item_subtext)
-            pmap.set_clip_rect()
+            offset += 120
 
             # render selection frame
             if (self.is_marked()):
@@ -201,6 +192,16 @@ class MediaItem(Item):
             elif (self.is_hilighted()):
                 pmap.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True,
                                 pmap.TOP | pmap.BOTTOM | pmap.LEFT | pmap.RIGHT)
+            
+            # render text
+            pmap.set_clip_rect(*clip_rect)
+            pmap.draw_text(self.__label, theme.font_mb_tiny,
+                           offset, 24,
+                           theme.color_list_item_text)
+            pmap.draw_text(self.__sublabel, theme.font_mb_tiny,
+                           offset, 48,
+                           theme.color_list_item_subtext)
+            pmap.set_clip_rect()
 
         #end if
         
@@ -277,9 +278,9 @@ class MediaItem(Item):
         frm, x, y, w, h = self.__file.frame
         if (not frm):
             x, y, w, h = 0, 0, 160, 160
-        if (icon):            
-            pixbuftools.fit_pbuf(pbuf, icon, 0, 0, 160, 160, True)#x, y, w, h)
-            #pixbuftools.draw_pbuf(pbuf, icon, 0, 0)
+        if (icon):
+            # icons get cropped automatically, unless they're square
+            pixbuftools.fit_pbuf(pbuf, icon, 0, 0, 160, 160, True)
             del icon
         if (frm):
             pixbuftools.draw_pbuf(pbuf, frm, 0, 0)

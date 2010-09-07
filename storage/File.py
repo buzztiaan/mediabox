@@ -134,11 +134,9 @@ class File(object):
 
         self.thumbnailer_param = None
         
-        
         self.icon = ""
         """
-        may contain the path of an icon image (deprecated) or a pixbuf that can
-        be used instead of a thumbnail. the image should be of a proper size
+        may contain the path of an icon image
         @since: 0.96.4
         """        
         

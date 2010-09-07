@@ -6,9 +6,11 @@ from ui.dialog import FileDialog
 from utils.MiniXML import MiniXML
 from upnp.SOAPProxy import SOAPProxy
 from upnp import didl_lite
+from ui import pixbuftools
 from utils import mimetypes
 from utils import logging
 from utils import urlquote
+from mediabox import imageloader
 from mediabox import values
 from theme import theme
 
@@ -26,6 +28,7 @@ _SERVICE_CONTENT_DIRECTORY_2 = "urn:schemas-upnp-org:service:ContentDirectory:2"
 
 _CACHE_DIR = os.path.join(values.USER_DIR, "upnpcache")
 
+_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 160)
 
 
 class AVDevice(Device):
@@ -48,7 +51,7 @@ class AVDevice(Device):
         """
 
         self.__description = descr
-        self.__icon = None
+        self.__icon = theme.mb_folder_upnp_mediaserver.get_path()
     
         dtype = descr.get_device_type()
         if (dtype == "urn:schemas-upnp-org:device:MediaServer:1"):
@@ -65,6 +68,9 @@ class AVDevice(Device):
                 self.__cds_proxy = None
 
         Device.__init__(self)
+
+        # try to retrieve device icon
+        self.__retrieve_icon()
 
         # create cache if it does not exist yet
         if (not os.path.exists(_CACHE_DIR)):        
@@ -87,22 +93,32 @@ class AVDevice(Device):
         #end if
 
 
-    def get_prefix(self):
-    
-        return "upnp://%s" % self.__description.get_udn()
+    def __retrieve_icon(self):
+
+        def on_icon(pbuf):
+            print "GOT ICON", pbuf
+            if (pbuf):
+                _PBUF.fill(0x00000000)
+                pixbuftools.fit_pbuf(_PBUF, pbuf, 0, 0, 160, 160)
+                _PBUF.save("/tmp/icon", "png")
+                self.__icon = "data://" + base64.b64encode(open("/tmp/icon", "r").read())
+                os.unlink("/tmp/icon")
+            #end if
+
+        icon_url = self.__description.get_icon_url(96, 96)
+        if (icon_url):
+            imageloader.load(icon_url, on_icon)
 
 
     def get_icon(self):
+    
+        print "GET ICON", self.__icon
+        return self.__icon        
 
-        if (not self.__icon):
-            icon_url = self.__description.get_icon_url(96, 96)
-            if (icon_url):
-                data = urllib.urlopen(icon_url).read()
-                self.__icon = "data://" + base64.b64encode(data)
-            else:
-                self.__icon = theme.mb_folder_upnp_mediaserver.get_path()
-           
-        return self.__icon
+
+    def get_prefix(self):
+    
+        return "upnp://%s" % self.__description.get_udn()
 
         
     def get_name(self):
