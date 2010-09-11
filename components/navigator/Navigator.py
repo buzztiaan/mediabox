@@ -1,4 +1,4 @@
-from com import Component, Dialog, msgs
+from com import Component, Dialog, Widget, msgs
 from NowPlaying import NowPlaying
 from RootDevice import RootDevice
 from mediabox.StorageBrowser import StorageBrowser
@@ -34,10 +34,10 @@ _LANDSCAPE_ARRANGEMENT = """
             x1="-80" y1="0" x2="100%" y2="100%"/>
 
     <widget name="now-playing"
-            x1="0" y1="0" x2="-80" y2="80"/>
+            x1="-160" y1="0" x2="-80" y2="100%"/>
 
     <widget name="browser"
-            x1="0" y1="80" x2="-80" y2="100%"/>
+            x1="0" y1="0" x2="-160" y2="100%"/>
   </arrangement>
 """
 
@@ -73,6 +73,8 @@ class Navigator(Component, Window):
         
         # list of available dialog windows
         self.__dialogs = []
+        
+        self.__widgets = []
         
         # the file that is currently playing    
         self.__current_file = None
@@ -712,6 +714,12 @@ class Navigator(Component, Window):
             else:
                 self.__dialogs.append(component)
                 #component.set_parent_window(self)
+
+        elif (isinstance(component, Widget)):
+            if (repr(component) in [ repr(d) for d in self.__widgets ]):
+                pass
+            else:
+                self.__widgets.append(component)
 
 
     def handle_COM_EV_APP_STARTED(self):

@@ -1,3 +1,9 @@
+mediabox (2010.09.11) unstable; urgency=low
+
+  Fixed bug where updating the playing progress got stuck
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 11 Sep 2010 21:00:00 +0200
+
 mediabox (2010.09.07) unstable; urgency=low
 
   Try to skip cover art when playing from a folder or playlist

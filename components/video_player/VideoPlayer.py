@@ -29,7 +29,7 @@ _LANDSCAPE_ARRANGEMENT = """
     
     <!-- fullscreen mode -->
     <if-invisible name="toolbar">
-      <widget name="screen" x1="0%" y1="0%" x2="100%" y2="100%"/>
+      <widget name="screen" x1="1" y1="1" x2="-1" y2="-1"/>
     </if-invisible>
   </arrangement>
 """
@@ -307,7 +307,10 @@ class VideoPlayer(Player):
         
         if (w == 0 or h == 0): return
         
-        screen.fill_area(x, y, w, h, theme.color_mb_background)
+        if (self.__is_fullscreen):
+            screen.fill_area(x, y, w, h, "#000000")
+        else:
+            screen.fill_area(x, y, w, h, theme.color_mb_background)
         self.__arr.set_geometry(0, 0, w, h)
         
         if (w < h):

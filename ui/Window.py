@@ -28,16 +28,16 @@ class Window(Widget):
     RETURN_YES = 2
     RETURN_NO = 3
 
-
-    EVENT_RAISED = "event-raised"
-    EVENT_HID = "event-hid"
     EVENT_CLOSED = "event-closed"
 
     # one window may be exclusive at a time. input in other windows will be
     # ignored and the exclusive window gets hidden in such case (e.g. for
     # simulating the Maemo5 dialog paradigma on Maemo4)
     __exclusive_window = [None]
-        
+    
+    # window stack for systems which don't support stackable windows
+    __window_stack = []
+    
 
     def __init__(self, wtype):
 
@@ -63,15 +63,21 @@ class Window(Widget):
         self.__is_button_pressed = False
         self.__screen = None
 
+        # whether this window should be stackable
+        self.__is_stackable = False
+
         # timeout handler for handling the window configure events
         self.__configure_event_handler = None
         
         Widget.__init__(self)
 
         if (wtype == self.TYPE_TOPLEVEL):
+            self.__is_stackable = True
             if (platforms.MAEMO5):
                 self.__window = hildon.StackableWindow()
                 self.__window.set_app_menu(self.__menu)
+                # stacking is handled by Maemo5
+                self.__is_stackable = False
             elif (platforms.MAEMO4):
                 self.__window = hildon.Window()
                 #self.__window.set_menu(self.__menu)
@@ -85,9 +91,12 @@ class Window(Widget):
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 
         elif (wtype == self.TYPE_SUBWINDOW):
+            self.__is_stackable = True
             if (platforms.MAEMO5):
                 self.__window = hildon.StackableWindow()
                 self.__window.set_app_menu(self.__menu)
+                # stacking is handled by Maemo5
+                self.__is_stackable = False
             elif (platforms.MAEMO4):
                 self.__window = gtk.Window()
                 #self.__window.set_decorated(False)
@@ -190,16 +199,6 @@ class Window(Widget):
     def connect_closed(self, cb, *args):
     
         self._connect(self.EVENT_CLOSED, cb, *args)
-
-
-    def connect_raised(self, cb, *args):
-    
-        self._connect(self.EVENT_RAISED, cb, *args)
-
-
-    def connect_hid(self, cb, *args):
-    
-        self._connect(self.EVENT_HID, cb, *args)
 
 
     def get_window(self):
@@ -450,6 +449,10 @@ class Window(Widget):
             else:
                 if (self.__title_bar):
                     self.__title_bar.set_visible(not value)
+                    #if (value):
+                    #    self.__window.fullscreen()
+                    #else:
+                    #    self.__window.unfullscreen()
                     self.render()
             
         
@@ -514,11 +517,24 @@ class Window(Widget):
 
             self.render()
             self.__window.show()
-            self.emit_event(self.EVENT_RAISED)
+            if (self.__is_stackable and not self.__window in self.__window_stack):
+                if (self.__window_stack):
+                    x, y = self.__window_stack[-1].get_position()
+                    self.__window.move(x, y)
+                    self.__window_stack[-1].hide()
+                self.__window_stack.append(self.__window)
+            #self.emit_event(self.EVENT_RAISED)
+            
         else:
-            self.emit_event(self.EVENT_HID)
+            #self.emit_event(self.EVENT_HID)
+            if (self.__is_stackable and self.__window in self.__window_stack):
+                self.__window_stack.pop(-1)
+                if (self.__window_stack):
+                    x, y = self.__window.get_position()
+                    self.__window_stack[-1].move(x, y)
+                    self.__window_stack[-1].show()
             self.__window.hide()
-
+            
 
     def set_parent_window(self, parent):
     

@@ -53,7 +53,7 @@ class NowPlaying(Widget, Component):
 
         pbuf = self.__buffer.render_on_pixbuf()
         if (w < h):
-            rpbuf = pbuf.rotate_simple(gtk.gdk.PIXBUF_ROTATE_COUNTERCLOCKWISE)
+            rpbuf = pbuf.rotate_simple(gtk.gdk.PIXBUF_ROTATE_CLOCKWISE)
             del pbuf
             pbuf = rpbuf
   
@@ -74,12 +74,12 @@ class NowPlaying(Widget, Component):
         self.__buffer.draw_frame(theme.mb_selection_frame, 0, 0, w, h, True)
 
         if (self.__cover and h > 10):
-            self.__buffer.fit_pixbuf(self.__cover, 8, 5, 120, h - 10)
-            offset = 134
+            self.__buffer.fit_pixbuf(self.__cover, 8, 5, h - 10, h - 10)
+            offset = h + 8
         else:
             offset = 8
 
-        self.__buffer.set_clip_rect(offset, 0, w - offset - 64, h)
+        self.__buffer.set_clip_rect(offset, 0, w - offset, h)
         self.__buffer.draw_text(self.__title or "MediaBox",
                                 theme.font_mb_plain,
                                 offset, 4,
@@ -91,9 +91,9 @@ class NowPlaying(Widget, Component):
                                 theme.color_list_item_subtext)
         self.__buffer.set_clip_rect()
         
-        if (self.__title):
-            self.__buffer.draw_pixbuf(theme.mb_now_playing,
-                                      w - 64, (h - 64) / 2)
+        #if (self.__title):
+        #    self.__buffer.draw_pixbuf(theme.mb_now_playing,
+        #                              w - 64, (h - 64) / 2)
 
 
 

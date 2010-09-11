@@ -17,3 +17,4 @@ from FileInspector import FileInspector
 from MediaOutput import MediaOutput
 from Player import Player
 from Thumbnailer import Thumbnailer
+from Widget import Widget

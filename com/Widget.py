@@ -20,3 +20,13 @@ class Widget(Component, _Widget):
         Component.__init__(self)
         _Widget.__init__(self)
         self.set_visible(False)
+        
+        
+    def set_flag(*args):
+    
+        pass
+        
+        
+    def set_title(*args):
+    
+        pass

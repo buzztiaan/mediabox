@@ -84,7 +84,7 @@ class AbstractBackend(EventEmitter):
         self.__suspension_point = None
 
         # current position and total length
-        self.__position = (0, 0)
+        self.__position = (-1, -1)
         
         # whether we are at end-of-file
         self.__eof_reached = False
@@ -242,7 +242,7 @@ class AbstractBackend(EventEmitter):
             #self._set_volume(self.__volume)
             #gobject.idle_add(self._seek, pos)
             #self._stop()
-            self.__position = (0, 0)
+            self.__position = (-1, -1)
             self.__watch_progress()
             
         elif (self.__eof_reached):
@@ -251,7 +251,7 @@ class AbstractBackend(EventEmitter):
             self._load(self.__uri)
             #self._set_volume(self.__volume)
             self._stop()
-            self.__position = (0, 0)
+            self.__position = (-1, -1)
             self.__watch_progress()
         #end if
 
@@ -286,19 +286,17 @@ class AbstractBackend(EventEmitter):
                 timestamp = time.time()
                 beginpos = pos
             else:
-            
                 # we don't ask the backend for position every time because
                 # this could be inefficient with some backends
                 pos = beginpos + (time.time() - timestamp)
-                
+
             self.__position = (pos, total)
-            if (pos != 0 or total > 0):
-                if (pos >= 0):
-                    self.emit_event(self.EVENT_POSITION_CHANGED,
-                                    self.__context_id, pos, total)
+            if (pos >= 0):
+                self.emit_event(self.EVENT_POSITION_CHANGED,
+                                self.__context_id, pos, total)
 
             if (total > 0 and total - pos < 1):
-                delay = int(total - pos) * 1000 #200
+                delay = max(0, int((total - pos) * 1000))
             else:
                 delay = 500
             self.__position_handler = \
@@ -306,7 +304,7 @@ class AbstractBackend(EventEmitter):
                                       beginpos, timestamp)
 
             # detect EOF
-            if (pos > 1 and self._is_eof()):
+            if (pos >= 0 and self._is_eof()):
                 self.__on_eof()
                 
 
@@ -414,8 +412,8 @@ class AbstractBackend(EventEmitter):
         self._load(uri)
         #self._set_volume(self.__volume)
         
-        print "DELAY PLAY", uri
-        gobject.idle_add(self.play)
+        print "PLAYING", uri
+        self.play()
 
         if (ctx_id != -1):
             self.__context_id = ctx_id
@@ -500,7 +498,7 @@ class AbstractBackend(EventEmitter):
         self.__resume_if_necessary()
 
         if (not self.__playing):
-            self.__position = (0, 0)
+            self.__position = (-1, -1)
             self._play()
 
         self.__playing = True
@@ -572,7 +570,7 @@ class AbstractBackend(EventEmitter):
     
         self.__resume_if_necessary()
         
-        self.__position = (0, 0)
+        self.__position = (-1, -1)
         self._seek(pos)
         self.__playing = True
         self.emit_event(self.EVENT_STATUS_CHANGED,
