@@ -72,6 +72,7 @@ class DeviceDescription(object):
         try:
             self.__parse_description(dom)
         except:
+            import traceback; traceback.print_exc()
             logging.error("invalid UPnP device description:\n%s", str(dom))
         
         

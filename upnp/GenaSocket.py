@@ -108,31 +108,38 @@ class _GenaSocket(object):
         
         
     def __on_new_client(self, sock, condition):
+        """
+        Spawns a new worker when a client connects.
+        """
     
         cnx, addr = sock.accept()
-        
-        event = NewEvent ( cnx, self.__process_event_body, self.__finish_event_processing )
+        event = EventHandler (cnx,
+                          self.__process_event_body,
+                          self.__finish_event_processing)
         
         return True
 
 
-    def __process_event_body (self, event_instance, body, uuid):
+    def __process_event_body(self, event_instance, body, uuid):
 
-        if not uuid in self.__handlers :
-            event_instance.send_answer ( "HTTP/1.1 412 Precondition Failed" )
+        if (not uuid in self.__handlers):
+            event_instance.send_answer("HTTP/1.1 412 Precondition Failed")
             return
 
-        envelope = MiniXML(body).get_dom()
-        resp = envelope.get_child()
-            
-        for entry in resp.get_children():
-            signal_name = "changed::"
-            signal_name += entry.get_name().lower()
+        print "BODY", body
+        prop_set = MiniXML(body).get_dom()
+        prop = prop_set.get_child()
+
+        for change in prop.get_children():
+            signal_name = "changed::" + change.get_name().lower()
+
+            # notify all subscribers
             for cb in self.__handlers[uuid]:
-                try :
-                    signal_value = entry.get_child().get_value()
-                except IndexError :
-                    signal_value = ''
+                try:
+                    signal_value = change.get_child().get_value()
+                except:
+                    import traceback; traceback.print_exc()
+                    signal_value = ""
 
                 try:
                     cb(signal_name, signal_value)
@@ -140,9 +147,9 @@ class _GenaSocket(object):
                     logging.error(logging.stacktrace())
             #end for
 
-            print 'signal emitted', signal_name, signal_value
+            print "signal emitted", signal_name, signal_value
 
-        event_instance.send_answer ("HTTP/1.1 200 OK")
+        event_instance.send_answer("HTTP/1.1 200 OK")
 
         
     def __finish_event_processing (self, success):
@@ -223,9 +230,11 @@ def GenaSocket(): return _singleton
 
 #Adding a header processing callback, this class can be extended to handle asyncronally any type of http incoming connection
 
-class NewEvent (object):
+class EventHandler (object):
     """
-    Class to handle incoming http request that the servers sent to announce events (changes on the values of the variables)
+    Class for handling incoming events (i.e. changes on the values of the
+    server variables)
+
 
     body_processing_callback, is called when the complete body has been recieved, so it can process it and sent the appropiate answer.
         It has three arguments (event_instance, body, uuid):
@@ -238,151 +247,177 @@ class NewEvent (object):
         - success, True if everything went fine, False otherwise
     """
 
-    def __init__ (self, socket, body_processing_callback, final_callback):
+    def __init__ (self, cnx, process_cb, finish_cb):
+        """
+        Creates a new GENA event handler.
+        
+        @param cnx: socket connection to peer
+        @param process_cb: callback handler for processing the event data
+        @param finish_cb: callback handler for finishing processing
+        """
 
-        self.__socket = socket
-        self.__body_processing_callback = body_processing_callback
-        self.__final_callback = final_callback
+        self.__socket = cnx
+        self.__process_cb = process_cb
+        self.__finish_cb = finish_cb
 
-        data = ""
-        self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__check_upnp_event, data)
-        self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+        self.__io_handler = gobject.io_add_watch(cnx, gobject.IO_IN,
+                                                 self.__on_event_io, [""])
+        
+        self.__timeout_handler = gobject.timeout_add(10000, self.__on_timeout)
 
 
-    def __timeout (self):
+    def __on_timeout(self):
+        """
+        Reacts on connection timeout.
+        """
 
-        if ( self.__working_callback_id > 0 ):  gobject.source_remove (self.__timeout_callback_id)
+        self.__timeout_handler = None
+
+        # close connection and finish with an error
         self.__socket.close()
-        self.__working_callback_id = 0
-        self.__timeout_callback_id = 0
-        gobject.idle_add ( self.__execute_final_callback, False )
-        print 'DEBUG: Event http server timeout'
-        return (False)
+        self.__working_callback_id = None
+        gobject.idle_add(self.__do_finish, False)
+        logging.error("GENA server connection timeout")
 
 
-    def __check_upnp_event (self, socket, condition, data):
-
-        data += socket.recv(4096)
-
-        gobject.source_remove ( self.__timeout_callback_id )
-
-        index = data.find ('\r\n\r\n')
-
-        if ( index == -1 ) :  #the headers are not completely recieved yet, and so this callback needs to be called again when more data is available
-            self.__timeout_callback_id = gobject.timeout_add (10000, self.__timeout)
-            self.__working_callback_id = gobject.io_add_watch ( socket, gobject.IO_IN, self.__check_upnp_event, data )
-            return (False)
-
-        lines = data[:index+2].splitlines()
-        method = lines[0].upper()
- 
-        if ( method.startswith("NOTIFY") ):
-
-            values = {}
-            for l in lines[1:]:
-                idx = l.find(":")
-                if not ( idx == -1 ):
-                    key = l[:idx].strip().upper()
-                    value = l[idx + 1:].strip()
-                    values[key] = value
-            #end for
-
-            if (not "NTS" in values):
-                self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, "HTTP/1.1 400 Bad Request", False)
-                self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
-                return (False)
-
-            elif (not values["NTS"] == "upnp:propchange") :  #this socket should only recieve eventing messages but just for checking
-                self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, "HTTP/1.1 412 Precondition Failed", False)
-                self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
-                return (False)
-
-            if ( "SID" in values) :
-                uuid = values["SID"]
-            else:
-                self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, "HTTP/1.1 412 Precondition Failed", False)
-                self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
-                return (False)
-
-            if ( "CONTENT-LENGTH" in values ) :
-                body_length = int(values["CONTENT-LENGTH"])
-            else :
-                self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, "HTTP/1.1 411 Length Required", False)
-                self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
-                return (False)
-
-            #TODO check event key for missing eventing message
-
-            if ( len(data[index+4:]) >= body_length ):
-                self.__working_callback_id = 0  #just for precaution in case the body_processing_callback is not correctly set
-                self.__timeout_callback_id = 0
-
-                self.__body_processing_callback (self, data[index+4:], uuid)
-
-                if self.__working_callback_id == 0 : #if the body_processing_callback has set no action is a programing error
-                    socket.close()
-                    raise NoAnswerSet
-
-                return (False)
-
-            else :
-                self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__get_more_data, data, uuid, body_length, index)
-                self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
-
-            return (False)
-
-        #endif
-
-        #this socket can only handle notify requests.
-        self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, "HTTP/1.1 405 Method Not Allowed", False)
-        self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
-        return (False)
-
-    def __get_more_data (self, socket, condition, data, uuid, body_length, index):
-
-        data += socket.recv(4096)
-
-        gobject.source_remove ( self.__timeout_callback_id )
-
-        if ( len(data[index+4:]) >= body_length ):
-            self.__working_callback_id = 0  #just for precaution in case the body_processing_callback is not correctly set
-            self.__timeout_callback_id = 0
-
-            self.__body_processing_callback (self, data[index+4:], uuid)
-
-            if self.__working_callback_id == 0 : #if the body_processing_callback has set no action is a programing error
-                socket.close()
-                raise NoAnswerSet
-
-            return (False)
-
-        self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
-        self.__working_callback_id = gobject.io_add_watch(socket, gobject.IO_IN, self.__get_more_data, data, uuid, body_length, index)   #still more part of the body to arrive
-        return (False)
-
-    
     def send_answer (self, response):
 
-        self.__working_callback_id = gobject.io_add_watch(self.__socket, gobject.IO_OUT, self.__send_event_response, response, True)  #trigger the callback when the socket can be written without blocking
-        self.__timeout_callback_id = gobject.timeout_add ( 10000, self.__timeout )
+        self.__send_response(response, True)
 
 
-    def __send_event_response (self, socket, condition, response, success):
+    def __send_response(self, response, success):
+        """
+        Sends a HTTP response.
+        """
+    
+        self.__io_handler = gobject.io_add_watch(self.__socket,
+                                                 gobject.IO_OUT,
+                                                 self.__on_response_io,
+                                                 response, success)
+        if (self.__timeout_handler):
+            gobject.source_remove(self.__timeout_handler)
+        self.__timeout_handler = gobject.timeout_add(10000, self.__on_timeout)
 
-        response = response + "\r\n\r\n"
-        socket.send (response)
 
-        gobject.source_remove ( self.__timeout_callback_id )
-        socket.close()
-        self.__working_callback_id = 0
-        self.__timeout_callback_id = 0
-        gobject.idle_add ( self.__execute_final_callback, success )
-        return (False)
+    def __on_event_io(self, cnx, condition, data):
+        """
+        Handles retrieval of event data.
+        """
 
-    def __execute_final_callback (self, success):
+        data[0] += cnx.recv(4096)
 
-        self.__final_callback (success)
-        return (False)
+        if (self.__timeout_handler):
+            gobject.source_remove(self.__timeout_handler)
+            self.__timeout_handler = None
+
+        # find end of header
+        idx = data[0].find("\r\n\r\n")
+
+        if (idx != -1):
+            # header is complete
+            header = data[0][:idx]
+            body = data[0][idx + 4:]
+            
+            lines = header.splitlines()
+            method = lines[0].upper()
+            if (method.startswith("NOTIFY")):
+                # read header values
+                values = {}
+                for line in lines[1:]:
+                    idx = line.find(":")
+                    if (idx != -1):
+                        key = line[:idx].strip().upper()
+                        value = line[idx + 1:].strip()
+                        values[key] = value
+                #end for
+                
+                if (not "NTS" in values):
+                    # NTS is mandatory
+                    self.__send_response("HTTP/1.1 400 Bad Request", False)
+                    return False
+                
+                
+                elif (values["NTS"] != "upnp:propchange") : 
+                    # we only receive eventing messages
+                    self.__send_response("HTTP/1.1 412 Precondition Failed",
+                                         False)
+                    return False
+                
+                if ("SID" in values) :
+                    uuid = values["SID"]
+                else:
+                    # SID is mandatory
+                    self.__send_response("HTTP/1.1 412 Precondition Failed",
+                                         False)
+                    return False
+
+                if ("CONTENT-LENGTH" in values):
+                    body_length = int(values["CONTENT-LENGTH"])
+                else:
+                    self.__send_response("HTTP/1.1 411 Length Required", False)
+                    return False
+                
+                #TODO: check event key for missing eventing message
+
+                # check if body is complete
+                if (len(body) >= body_length):
+                    self.__io_handler = None
+                    self.__process_cb(self, body, uuid)
+                    
+                    if (not self.__io_handler):
+                        # process callback handler hasn't set an action,
+                        # which is a programming error
+                        cnx.close()
+                        raise NoAnswerSet
+                    #end if
+                    
+                    return False
+                    
+                else:
+                    self.__timeout_handler = \
+                                  gobject.timeout_add(10000, self.__on_timeout)
+                    return True
+                #end if       
+
+            else:
+                # we only serve NOTIFY requests
+                self.__send_response("HTTP/1.1 405 Method Not Allowed", False)
+                return False
+
+            #end if - startswith("NOTIFY")                                             
+            
+        else:
+            # we haven't fully received the header yet and need more data
+            self.__timeout_handler = \
+                        gobject.timeout_add(10000, self.__on_timeout)
+            return True
+        #end if - header complete
+
+        return False
+
+
+    def __on_response_io(self, cnx, condition, response, success):
+        """
+        Handles sending of response data.
+        """
+
+        self.__io_handler = None
+        if (self.__timeout_handler):
+            gobject.source_remove(self.__timeout_handler)
+            self.__timeout_handler = None
+
+        response += "\r\n\r\n"
+        cnx.send(response)
+        cnx.close()
+        gobject.idle_add(self.__do_finish, success)
+
+        return False
+
+
+    def __do_finish(self, success):
+
+        self.__finish_cb(success)
+
 
 
 class NoAnswerSet ( Exception ) :

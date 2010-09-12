@@ -108,12 +108,14 @@ class MiniXML(object):
     def __read_text(self, begin, end):
 
         text = self.__data[begin:end]
-        text = text.replace("\n", " ")
+        text = text.replace("\n", " ") \
+                   .replace("\r", "")
         text = text.replace("&lt;", "<") \
                    .replace("&gt;", ">") \
                    .replace("&quot;", "\"") \
                    .replace("&apos;", "'") \
                    .replace("&amp;", "&")
+
         if (text.strip()):
             node = _Node("", {})
             node.set_value(text)
@@ -163,7 +165,7 @@ class MiniXML(object):
 
     def __lookup_namespace(self, ns):
     
-        for i in range(len(self.__ns_stack) - 1, 0, -1):
+        for i in range(len(self.__ns_stack) - 1, -1, -1):
             ns_table = self.__ns_stack[i]
             if (ns in ns_table):
                 return ns_table[ns]
@@ -174,9 +176,9 @@ class MiniXML(object):
 
     def __resolve_namespaces(self, tagname, attrs):
     
-        ns_table = {}
+        ns_table = {} #self.__ns_stack[0].copy()
         self.__ns_stack.append(ns_table)
-        
+                
         # check attrs for new namespace definitions
         for key, value in attrs.items():
             if (key.startswith("xmlns:")):
@@ -185,7 +187,7 @@ class MiniXML(object):
             elif (key == "xmlns"):
                 ns_table[""] = value
         #end for
-        
+
         # check tagname
         if (":" in tagname):
             ns_name, tagname = tagname.split(":")
