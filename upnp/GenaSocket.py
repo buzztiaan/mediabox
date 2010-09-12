@@ -228,23 +228,10 @@ _singleton = _GenaSocket()
 def GenaSocket(): return _singleton
 
 
-#Adding a header processing callback, this class can be extended to handle asyncronally any type of http incoming connection
-
 class EventHandler (object):
     """
     Class for handling incoming events (i.e. changes on the values of the
     server variables)
-
-
-    body_processing_callback, is called when the complete body has been recieved, so it can process it and sent the appropiate answer.
-        It has three arguments (event_instance, body, uuid):
-        - event_instance is this same instance, and is provided so the callback can send an answer to the server
-        - body, is the body of the message
-        - uuid, is the uuid of the subscription (NOT the uuid of the server)
-
-    final_callback is called when there is an error (timeout f.e.) or when the answer to the server has been sent correctly.
-        It has one argument (success)
-        - success, True if everything went fine, False otherwise
     """
 
     def __init__ (self, cnx, process_cb, finish_cb):
@@ -336,7 +323,6 @@ class EventHandler (object):
                     self.__send_response("HTTP/1.1 400 Bad Request", False)
                     return False
                 
-                
                 elif (values["NTS"] != "upnp:propchange") : 
                     # we only receive eventing messages
                     self.__send_response("HTTP/1.1 412 Precondition Failed",
@@ -420,7 +406,7 @@ class EventHandler (object):
 
 
 
-class NoAnswerSet ( Exception ) :
-    pass
+class NoAnswerSet (Exception):
 
+    pass
 
