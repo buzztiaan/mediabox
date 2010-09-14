@@ -42,6 +42,7 @@ class Input(Component):
         @param keycode: key code string
         @param pressed: whether the key has been pressed (C{True}) or released
                         (C{False})
+        @return: whether the key was handled
         """
         
         hwkey = keymap.get(keycode)
@@ -51,7 +52,14 @@ class Input(Component):
             if (event):
                 print "emit key", event
                 self.emit_message(event, pressed)
+                return True
+            #end if
+        #end if
+        
+        return False
+        
+        
                 
-        elif (len(keycode) == 1 and ord(keycode) > 31):      
-            self.emit_message(msgs.HWKEY_EV_KEY, keycode, pressed)
+        #elif (len(keycode) == 1 and ord(keycode) > 31):      
+        #    self.emit_message(msgs.INPUT_EV_KEY, keycode, pressed)
 

@@ -61,6 +61,14 @@ _MODE_NORMAL = 0
 _MODE_SELECT = 1
 
 
+# it's useful to swap the mapping of the increment and decrement keys in
+# portrait mode
+_PORTRAIT_MODE_KEYSWAP = {
+    "F7": "F8",
+    "F8": "F7"
+}
+
+
 class Navigator(Component, Window):
     """
     Navigator dialog for browsing media.
@@ -90,7 +98,7 @@ class Navigator(Component, Window):
         self.__window_size = (0, 0)
         
         self.__is_searching = False
-        self.__search_term = ""
+        self.__filter_term = ""
         
         self.__key_hold_down_timestamp = 0
         self.__skip_letter = False
@@ -266,7 +274,40 @@ class Navigator(Component, Window):
 
     def __on_key_press(self, keycode):
 
-        self.call_service(msgs.INPUT_SVC_SEND_KEY, keycode, True)
+        w, h = self.get_size()
+        if (w < h and
+              mb_config.portrait_swap_volume() and
+              keycode in _PORTRAIT_MODE_KEYSWAP):
+            keycode = _PORTRAIT_MODE_KEYSWAP[keycode]
+
+        handled = self.call_service(msgs.INPUT_SVC_SEND_KEY, keycode, True)
+        if (not handled):
+            if (len(keycode) == 1 and ord(keycode) > 31):
+                self.__filter_term += keycode
+                self.__update_filter()
+            elif (keycode == "BackSpace" and self.__filter_term):
+                self.__filter_term = self.__filter_term[:len(self.__filter_term) - 1]
+                self.__update_filter()
+
+
+    def __update_filter(self):
+
+        def filter_func(item):
+            return self.__filter_term.upper() in item.get_name().upper()
+
+        if (self.__filter_term):
+            self.__browser.set_filter(filter_func)
+            self.__browser.set_message("Filter: %s (%d matches)" \
+                                       % (self.__filter_term,
+                                          self.__browser.count_items()))
+        else:
+            self.__browser.set_filter()
+            self.__browser.set_message("")
+                
+        self.__browser.invalidate()
+        self.__browser.render()
+
+
 
 
     def __on_close_window(self):
@@ -820,31 +861,6 @@ class Navigator(Component, Window):
         folder = self.__browser.get_current_folder()
         if (folder.device_id == dev_id):
             self.__browser.go_root()
-        
-
-
-    def handle_CORE_ACT_SEARCH_ITEM(self, key):
-    
-        if (self.is_active()):
-            #self.__browser.set_message("Search: " + key)
-            if (key != self.__search_term):
-                self.__browser.set_cursor(1)
-            idx = self.__browser.search(key, 1)
-            if (idx != -1):
-                self.__browser.set_cursor(idx)
-                self.__browser.scroll_to_item(idx)
-            self.__is_searching = True
-            self.__search_term = key
-        #end if
-
-
-    def handle_CORE_EV_SEARCH_CLOSED(self):
-    
-        #self.__browser.set_message("")
-        self.__browser.search("", 1)
-        self.__browser.render()
-        self.__is_searching = False
-        self.__search_term = ""
 
 
     def handle_ASR_ACT_ENABLE(self, value):
@@ -896,4 +912,10 @@ class Navigator(Component, Window):
 
         if (self.is_visible()):
             self.__browser.move(0, 80)
+
+
+    def handle_INPUT_EV_KEY(self, key, pressed):
+    
+        if (self.is_visible()):
+            print "GOT KEY", key
 

@@ -13,25 +13,28 @@ import struct
 import gobject
 
 
-# TODO: gupnp-network-light crashes when timeout is omitted and MediaBox
-# causes high CPU load -> investigate!
 _GENA_SUBSCRIBE = "SUBSCRIBE %s HTTP/1.1\r\n" \
                   "HOST: %s\r\n" \
                   "CALLBACK: <%s>\r\n" \
                   "NT: upnp:event\r\n" \
-                  "TIMEOUT: Second-infinite\r\n" \
+                  "TIMEOUT: Second-300\r\n" \
                   "\r\n"
 
 _GENA_RENEW = "SUBSCRIBE: %s HTTP/1.1\r\n" \
               "HOST: %s\r\n" \
               "SID: %s\r\n" \
-              "TIMEOUT: Second-infinite\r\n" \
+              "TIMEOUT: Second-300\r\n" \
               "\r\n"
                   
 _GENA_UNSUBSCRIBE = "UNSUBSCRIBE %s HTTP/1.1\r\n" \
                     "HOST: %s\r\n" \
                     "SID: %s\r\n" \
-                    "\r\n"                  
+                    "\r\n"
+
+_GENA_RENEWAL = "RENEWAL: %s HTTP/1.1\r\n" \
+                "HOST: %s\r\n" \
+                "SID: %s\r\n" \
+                "\r\n"
 
 
 
@@ -71,6 +74,9 @@ class _GenaSocket(object):
     
         # table: SID -> [callbacks]
         self.__handlers = {}
+        
+        # table: SID -> [renewal handler]
+        self.__renewal_handlers = {}
         
         # table: callback -> SID
         self.__cb_to_sid = {}
@@ -113,6 +119,8 @@ class _GenaSocket(object):
         """
     
         cnx, addr = sock.accept()
+        print "new GENA connection", addr
+        
         event = EventHandler (cnx,
                           self.__process_event_body,
                           self.__finish_event_processing)
@@ -126,7 +134,7 @@ class _GenaSocket(object):
             event_instance.send_answer("HTTP/1.1 412 Precondition Failed")
             return
 
-        print "BODY", body
+        #print "BODY", body
         prop_set = MiniXML(body).get_dom()
         prop = prop_set.get_child()
 
@@ -157,23 +165,60 @@ class _GenaSocket(object):
         pass
             
             
-    def __on_receive_confirmation(self, response, ev_url, cb):
+    def __on_receive_confirmation(self, response, ev_url, cb = None):
+        """
+        Handles retrieval of subscription notifications."
+        """
     
         if (response and response.finished()):
-            if ( response.get_status() == 200 ):
+            if (response.get_status() == 200):
                 #print response.get_status()
                 #print response.get_headers()
                 sid = response.get_header("SID")
-                logging.debug("received SID: %s" % sid)
+                timeout = response.get_header("TIMEOUT")
+                logging.debug("received GENA subscription confirmation:\n" \
+                              "SID: %s\n" \
+                              "Timeout: %s" % (sid, timeout))
+
+                try:
+                    timeout_seconds = int(timeout[len("Second-"):])
+                except:
+                    timeout_seconds = 300
 
                 if (not sid in self.__handlers):
                     self.__handlers[sid] = []
-                self.__handlers[sid].append(cb)
-                self.__cb_to_sid[cb] = sid
+    
+                # initial subscription has a callback
+                if (cb):
+                    self.__handlers[sid].append(cb)
+                    self.__cb_to_sid[cb] = sid
+                    
                 self.__url_to_sid[ev_url] = sid
                 self.__sid_to_url[sid] = ev_url
 
-                # TODO: schedule renewal
+                # schedule timely renewal
+                if (not sid in self.__renewal_handlers):
+                    timeout_msecs = max(60, timeout_seconds - 10) * 1000
+                    renewal_handler = gobject.timeout_add(timeout_msecs,
+                                                     self.__renew_subscription,
+                                                     sid)
+                    self.__renewal_handlers[sid] = renewal_handler
+                
+                
+    def __renew_subscription(self, sid):
+        """
+        Timeout handler for renewing a subscription.
+        """
+    
+        del self.__renewal_handlers[sid]
+        ev_url = self.__sid_to_url[sid]
+
+        print "RENEWING SUBSCRIPTION FOR", sid, ev_url
+        host, port, path = parse_addr(ev_url)
+        conn = HTTPConnection(host, port)
+        conn.send_raw(_GENA_RENEW % (path, host, sid),
+                      self.__on_receive_confirmation,
+                      ev_url)
         
         
     def subscribe(self, ev_url, cb):
@@ -191,12 +236,11 @@ class _GenaSocket(object):
             sid = self.__url_to_sid[ev_url]
             self.__handlers[sid].append(cb)
             
-
+        print "SUBSCRIBING TO", ev_url
         host, port, path = parse_addr(ev_url)
         conn = HTTPConnection(host, port)
         conn.send_raw(_GENA_SUBSCRIBE % (path, host, self.__gena_url),
                       self.__on_receive_confirmation, ev_url, cb)
-        
 
 
     def unsubscribe(self, cb):
@@ -220,6 +264,7 @@ class _GenaSocket(object):
                 del self.__sid_to_url[sid]
                 del self.__url_to_sid[ev_url]
 
+            del self.__renewal_handlers[sid]
             del self.__cb_to_sid[cb]
         #end if
 

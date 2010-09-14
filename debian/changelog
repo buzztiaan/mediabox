@@ -1,3 +1,15 @@
+mediabox (2010.09.14) unstable; urgency=low
+
+  Fixed some bugs and compatibility issues with UPnP MediaRenderers
+  
+  Implemented automated event subscription renewal for UPnP GENA
+  
+  Volume keys can now be used on the navigator window, too
+  
+  Implemented filtering of lists in the navigator
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 14 Sep 2010 20:45:00 +0200
+
 mediabox (2010.09.11) unstable; urgency=low
 
   Fixed bug where updating the playing progress got stuck

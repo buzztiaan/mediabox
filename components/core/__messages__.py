@@ -610,10 +610,3 @@ def HWKEY_EV_F12(): pass
 F12 hardware key.
 """
 
-def HWKEY_EV_KEY(key): pass
-"""
-Any letter hardware key.
-
-@param key: key code
-"""
-

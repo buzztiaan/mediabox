@@ -31,6 +31,8 @@ class ItemView(Widget):
         self.__cursor_pos = -1
         self.__hilighted_pos = -1
         
+        # filtering function
+        self.__filter_func = None
     
         Widget.__init__(self)
 
@@ -146,7 +148,7 @@ class ItemView(Widget):
         @return: number of items
         """
         
-        return len(self.__items)
+        return len(self.get_items())
         
        
     def get_items(self):
@@ -156,7 +158,11 @@ class ItemView(Widget):
         @return: list of items
         """
     
-        return self.__items[:]
+        if (self.__filter_func):
+            return [ item for item in self.__items
+                     if self.__filter_func(item) ]
+        else:
+            return self.__items[:]
         
         
     def get_item(self, pos):
@@ -167,7 +173,19 @@ class ItemView(Widget):
         @return: the item at that position
         """
     
-        return self.__items[pos]
+        return self.get_items()[pos]
+
+
+    def set_filter(self, filter_func = None):
+        """
+        Sets a filter function to filter out items.
+        Filter function has signature: filter_func(item)
+        @since: 2010.09.14
+        
+        @param filter_func: filtering function or None for no filter
+        """
+        
+        self.__filter_func = filter_func
 
 
     def set_hilight(self, pos):

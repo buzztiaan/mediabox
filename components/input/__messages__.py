@@ -70,3 +70,5 @@ def INPUT_EV_NAV_RIGHT(): pass
 def INPUT_EV_NAV_ENTER(): pass
 def INPUT_EV_NAV_MENU(): pass
 
+def INPUT_EV_KEY(): pass
+

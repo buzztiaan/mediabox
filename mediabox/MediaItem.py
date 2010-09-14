@@ -47,6 +47,11 @@ class MediaItem(Item):
         return True
 
 
+    def get_name(self):
+    
+        return self.__file.name
+
+
     def get_file(self):
     
         return self.__file

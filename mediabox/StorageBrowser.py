@@ -496,6 +496,9 @@ class StorageBrowser(ThumbableGridView):
                 reload_only = True
         #end if
 
+        if (not reload_only):
+            self.set_filter()
+
         # is a full reload required?
         if (reload_only):
             full_reload = True
