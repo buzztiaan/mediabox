@@ -18,22 +18,6 @@ class DirectoryService(Component):
         Component.__init__(self)
 
 
-    def handle_CORE_SVC_LIST_PATH(self, path):
-
-        if (path.startswith("/")): path = "file://" + path
-        
-        idx = path.find("://")
-        idx = path.find("/", idx + 3)
-        prefix = path[:idx]
-        path = path[idx:]
-        #print "PREFIX", prefix, "PATH", path
-        
-        try:
-            return self.__prefixes[prefix].ls(path)
-        except:
-            return []
-
-
     def handle_CORE_SVC_GET_FILE(self, path):
                 
         #print "GET FILE", path

@@ -789,7 +789,7 @@ class Widget(EventEmitter):
         if (not self.may_render()):
             return
         
-        logging.debug("rendering widget %s", `self`)
+        #logging.debug("rendering widget %s", `self`)
         #if (self.__need_to_check_zones):
         #    self.__check_zones()
 

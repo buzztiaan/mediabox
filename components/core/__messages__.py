@@ -87,11 +87,6 @@ Gets emitted when a folder gets visited by the user.
 @param folder: file object representing the folder
 """
 
-def CORE_SVC_LIST_PATH(path): pass
-"""
-@deprecated: do not use; it will be removed
-"""
-
 def CORE_SVC_GET_FILE(path): pass
 """
 Looks up the file object for the given full path string.
@@ -119,26 +114,6 @@ def CORE_ACT_SET_INFO(info): pass
 Sets the title bar info text.
 
 @param info: info text
-"""
-
-def CORE_ACT_SET_TOOLBAR(toolbar_set): pass
-"""
-Sets the toolbar widgets.
-@deprecated: this is not used anymore
-
-@param toolbar_set: list of widgets
-"""
-
-def CORE_ACT_SEARCH_ITEM(search_term): pass
-"""
-Instructs viewers to search for the given search term.
-
-@param search_term: search term
-"""
-
-def CORE_EV_SEARCH_CLOSED(): pass
-"""
-Gets emitted when the search mode is left.
 """
 
 def CORE_EV_THEME_CHANGED(): pass

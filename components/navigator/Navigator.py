@@ -283,11 +283,20 @@ class Navigator(Component, Window):
         handled = self.call_service(msgs.INPUT_SVC_SEND_KEY, keycode, True)
         if (not handled):
             if (len(keycode) == 1 and ord(keycode) > 31):
-                self.__filter_term += keycode
-                self.__update_filter()
-            elif (keycode == "BackSpace" and self.__filter_term):
-                self.__filter_term = self.__filter_term[:len(self.__filter_term) - 1]
-                self.__update_filter()
+                cnt = 0
+                for item in self.__browser.get_items():
+                    if (item.get_name().upper().startswith(keycode.upper())):
+                        self.__browser.scroll_to_item(cnt)
+                        break
+                    cnt += 1
+                #end for
+                
+            #if (len(keycode) == 1 and ord(keycode) > 31):
+            #    self.__filter_term += keycode
+            #    self.__update_filter()
+            #elif (keycode == "BackSpace" and self.__filter_term):
+            #    self.__filter_term = self.__filter_term[:len(self.__filter_term) - 1]
+            #    self.__update_filter()
 
 
     def __update_filter(self):

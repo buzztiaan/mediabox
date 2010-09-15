@@ -49,6 +49,10 @@ def _get_my_ip():
 
 
 def _parse_time(t):
+    """
+    Takes a time string of the form HH:MM:SS and returns the amount of seconds.
+    Returns 0 if the input was invalid.
+    """
 
     try:
         h, m, s = t.split(":")
