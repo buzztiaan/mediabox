@@ -3,7 +3,9 @@ delayed = True
 def get_classes():
 
     from YouTubeThumbnailer import YouTubeThumbnailer
-    return [YouTubeThumbnailer]
+    from YouTubePrefs import YouTubePrefs
+    return [YouTubeThumbnailer,
+            YouTubePrefs]
 
 
 def get_devices():

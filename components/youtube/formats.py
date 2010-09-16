@@ -1,6 +1,7 @@
 import os
 
 _formats = {}
+_order = []
 
 # read format map
 fmt_file = os.path.join(os.path.dirname(__file__), "formats.dat")
@@ -11,6 +12,7 @@ for line in open(fmt_file, "r").readlines():
     else:
         fmt, container, descr = line.split(",")
         _formats[int(fmt)] = (container.strip(), descr.strip())
+        _order.append(int(fmt))
 #end for
 
 
@@ -42,4 +44,9 @@ def get_formats():
 def get_extensions():
 
     return [ "." + get_container(fmt) for fmt in get_formats() ]
+
+
+def comparator(a, b):
+
+    return cmp(_order.index(a), _order.index(b))
 

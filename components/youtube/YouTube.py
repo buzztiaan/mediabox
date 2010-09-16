@@ -525,39 +525,6 @@ class YouTube(Device):
         else:
             self.__category_search(category, cb, args, idx)
 
-
-    """
-    def __ls_local_videos(self, cb, *args):
-    
-        videos = []
-        for path in [os.path.join(os.path.expanduser("~"), _VIDEO_FOLDER),
-                     os.path.join("/media/mmc1", _VIDEO_FOLDER),
-                     os.path.join("/media/mmc2", _VIDEO_FOLDER)]:
-            if (os.path.exists(path) and os.path.isdir(path)):
-                for filename in os.listdir(path):
-                    if (os.path.splitext(filename.lower())[1] in formats.get_extensions()):
-                        videos.append(os.path.join(path, filename))
-                #end for
-            #end if
-        #end for
-        
-        videos.sort()
-        self.__items = []
-        for video in videos:
-            f = File(self)
-            f.path = "/local" + video
-            f.mimetype = "video/x-flash-video"
-            f.resource = video
-            f.name = urlquote.unquote(os.path.basename(video))
-            #f.info = "%s\nby %s" % (rating, authors)
-            #f.thumbnail = thumbnail
-            
-            cb(f, *args)
-            self.__items.append(f)
-        #end for
-        cb(None, *args)
-    """ 
-
  
     def get_contents(self, folder, begin_at, end_at, cb, *args):
 
@@ -598,7 +565,7 @@ class YouTube(Device):
 
         #if (not 18 in fmts): fmts.append(18)
         f_ids = fmts.keys()
-        f_ids.sort()
+        f_ids.sort(formats.comparator)
 
         # filter out incompatible formats
         if (platforms.MAEMO5):
@@ -670,15 +637,26 @@ class YouTube(Device):
 
     def __ask_for_quality(self, fmts):
 
-        dlg = OptionDialog("Choose Quality Version")
-        for fmt in fmts:
-            dlg.add_option(None, formats.get_description(fmt))
-        resp = dlg.run()
+        # the list of formats comes in sorted already
 
-        if (dlg.get_choice() != -1):
-            return fmts[dlg.get_choice()]
+        quality_mode = config.get_quality()
+
+        if (quality_mode == config.QUALITY_LOW):
+            return fmts[0]
+            
+        elif (quality_mode == config.QUALITY_HIGH):
+            return fmts[-1]
+            
         else:
-            return 5
+            dlg = OptionDialog("Choose Quality Version")
+            for fmt in fmts:
+                dlg.add_option(None, formats.get_description(fmt))
+            resp = dlg.run()
+
+            if (dlg.get_choice() != -1):
+                return fmts[dlg.get_choice()]
+            else:
+                return 5
 
 
     def __on_download(self, folder, f):

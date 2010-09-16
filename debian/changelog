@@ -1,4 +1,4 @@
-mediabox (2010.09.15) unstable; urgency=low
+mediabox (2010.09.16) unstable; urgency=low
 
   Fixed some bugs and compatibility issues with UPnP MediaRenderers
   
@@ -7,8 +7,11 @@ mediabox (2010.09.15) unstable; urgency=low
   Volume keys can now be used on the navigator window, too
   
   Can type letters in the navigator to directly jump to matching entries
+  
+  YouTube player can be configured to automatically play high quality or low
+  quality version
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 15 Sep 2010 18:30:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 16 Sep 2010 18:30:00 +0200
 
 mediabox (2010.09.11) unstable; urgency=low
 

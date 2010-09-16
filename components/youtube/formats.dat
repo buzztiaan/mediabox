@@ -1,16 +1,17 @@
 # CSV-List of known Youtube formats as listed at
 # http://en.wikipedia.org/wiki/YouTube
+# roughly sorted by quality
 # fmt, container, description
- 5, flv, Type 5 - H.263/MP3 - Standard
- 6, flv, Type 6 - H.263/MP3 - High
 13, 3gp, Type 13 - 3GP/AMR - Mobile
 17, 3gp, Type 17 - 3GP/AAC - Mobile
-18, mp4, Type 18 - H.264/AAC - Medium
-22, mp4, Type 22 - H.264/AAC - 720p
+ 5, flv, Type 5 - H.263/MP3 - Standard
 34, flv, Type 34 - H.264/AAC - Standard
+18, mp4, Type 18 - H.264/AAC - Medium
+ 6, flv, Type 6 - H.263/MP3 - High
 35, flv, Type 35 - H.264/AAC - High
-37, mp4, Type 37 - H.264/AAC - 1080p
 38, video, Type 38 - Unknown Format
 43, webm, Type 43 - webm
 45, webm, Type 45 - webm
+22, mp4, Type 22 - H.264/AAC - 720p
+37, mp4, Type 37 - H.264/AAC - 1080p
 

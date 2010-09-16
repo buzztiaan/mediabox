@@ -3,8 +3,14 @@ from utils.Config import Config
 import os
 
 
+QUALITY_ASK = "ask"
+QUALITY_HIGH = "high"
+QUALITY_LOW = "low"
+
+
 _cfg = Config("youtube", [
               ("cache-folder", Config.STRING, "/media/mmc1/.mediabox"),
+              ("quality", Config.STRING, QUALITY_ASK),
               #("hi-quality", Config.BOOL, False),
               ("quality-type", Config.INTEGER, 0)
               ])
@@ -38,4 +44,14 @@ def set_quality_type(t):
 def get_quality_type():
 
     return _cfg["quality-type"]
+
+
+def set_quality(q):
+
+    _cfg["quality"] = q
+    
+
+def get_quality():
+
+    return _cfg["quality"]
 
