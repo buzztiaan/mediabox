@@ -109,6 +109,7 @@ class Navigator(Component, Window):
     
         Component.__init__(self)
         Window.__init__(self, Window.TYPE_TOPLEVEL)
+        self.set_flag(windowflags.CATCH_VOLUME_KEYS, True)
         self.connect_key_pressed(self.__on_key_press)
         self.connect_closed(self.__on_close_window)
 
