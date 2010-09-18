@@ -75,7 +75,7 @@ _LISTING = """
 
 _FILE = """
 <div style="float: left;
-            width: 180px;
+            width: 160px;
             height: 200px;
             text-align: center;">
   <a href="%s" %s>
