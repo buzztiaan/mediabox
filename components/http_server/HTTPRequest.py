@@ -5,6 +5,7 @@ class HTTPRequest(object):
 
     def __init__(self, method, path, protocol, headers, body, responder):
     
+        print method, path, protocol
         self.__method = method
         self.__path = path
         self.__protocol = protocol
@@ -91,4 +92,14 @@ class HTTPRequest(object):
         headers["CONNECTION"] = "close"
         
         self.__responder("HTTP/1.1 " + code, headers, html)
+
+    
+    def send_redirect(self, location):
+    
+        self.__responder("HTTP/1.1 302 Redirect",
+                         {"LOCATION": location},
+                         "<html><body>" \
+                         "  Resource moved: <a href='%s'>%s</a>"\
+                         "</body></html>" \
+                         % (location, location))
 

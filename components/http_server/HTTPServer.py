@@ -212,7 +212,7 @@ class HTTPServer(Component):
     def handle_HTTPSERVER_SVC_BIND(self, owner, addr, port):
     
         if ((addr, port) in self.__listeners):
-            return "in use"
+            return "address already in use"
             
         try:
             sock = socket.socket(socket.AF_INET)
@@ -220,9 +220,9 @@ class HTTPServer(Component):
             sock.bind((addr, port))
             sock.listen(1)
         except:
-            logging.error("error binding HTTP server to %s:%d:", addr, port,
+            logging.error("error binding HTTP server to %s:%d\n%s", addr, port,
                           logging.stacktrace())
-            return "error"
+            return "could not bind to address"
         
         iowatch = gobject.io_add_watch(sock, gobject.IO_IN,
                                        self.__on_new_client,

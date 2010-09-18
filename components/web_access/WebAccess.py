@@ -29,18 +29,45 @@ _LISTING = """
   body {
     background-color: #000;
   }
+  
   p {
-    font-size: 12px;
+    font-size: 10pt;
     font-family: Arial, Helvetica Sans;
     color: #fff;
   }
+  
   img {
     border: none;
+  }
+  
+  div.navbar {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    min-width: 100%%;
+    max-width: 100%%;
+    min-height: 80px;
+    max-height: 80px;
+    background-color: #000;
+    font-size: 16pt;
+    color: #fff;
   }
 </style>
 <body>
 <iframe style="display: none;" name="if"></iframe>
-%s
+<div style="margin-top: 80px;">
+  %s
+</div>
+<div class="navbar">
+  <a href="/?clientid=%s&action=nav-shelf">Shelf</a>
+  <a href="/?clientid=%s&action=nav-up">Up</a>
+  <a href="/?clientid=%s&action=volume-down" target="if">[-]</a>
+  <a href="/?clientid=%s&action=volume-up" target="if">[+]</a>
+  <a href="/?clientid=%s&action=media-previous" target="if">[|&lt;]</a>
+  <a href="/?clientid=%s&action=media-pause" target="if">[||]</a>
+  <a href="/?clientid=%s&action=media-next" target="if">[&gt;|]</a>
+  %s
+</div>
 </body>
 </html>
 """
@@ -68,7 +95,17 @@ class WebAccess(Configurator):
     DESCRIPTION = "Access and remote-control MediaBox"
 
 
+    __client_cnt = 0
+    
+
     def __init__(self):
+    
+        # table: clientid -> path_stack
+        self.__path_stacks = {}
+    
+        self.__current_file = None
+        self.__artist = ""
+        self.__title = ""
     
         Configurator.__init__(self)
   
@@ -94,9 +131,12 @@ class WebAccess(Configurator):
     
         ip = network.get_ip()
         if (value == "on"):
-            self.call_service(msgs.HTTPSERVER_SVC_BIND,
-                              self, ip, _PORT)
-            self.__lbl_info.set_text("WebAccess-URL: http://%s:%d" % (ip, _PORT))
+            error = self.call_service(msgs.HTTPSERVER_SVC_BIND,
+                                      self, ip, _PORT)
+            if (error):
+                self.__lbl_info.set_text("Error: %s" % error)
+            else:
+                self.__lbl_info.set_text("WebAccess-URL: http://%s:%d" % (ip, _PORT))
             self.__list.render()
         else:
             self.call_service(msgs.HTTPSERVER_SVC_UNBIND,
@@ -115,27 +155,59 @@ class WebAccess(Configurator):
             self.__send_contents(request, name, contents)
             
             
-    def __send_contents(self, request, name, contents):
+    def __send_contents(self, request, clientid, name, contents):
     
         data = ""
         for f in contents:
-            tn, is_final = self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, f)
             url = urlquote.quote(f.full_path, "")
+            url += "?clientid=%s" % clientid
 
             if (not f.mimetype.endswith("-folder")):
-                url += "?action=play"
+                url += "&action=play"
                 target = "target='if'"
             else:
                 target = ""
-                
+
+            # look up thumbnail
+            if (not f.icon):
+                tn, is_final = self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, f)
+            else:
+                tn = f.icon
+            
+            # build item
             data += _FILE % (url,
                              target,
-                             urlquote.quote(tn, ""),
+                             urlquote.quote(tn, "") + 
+                             "?clientid=%s&action=load" % clientid,
                              f.name)
-        request.send_html(_LISTING % (name, data))
+                             
+        #end for
+        
+        if (self.__title):
+            title = self.__title
+            if (self.__artist):
+                title += " / " + self.__artist
+        elif (self.__current_file):
+            title = self.__current_file.name + "   " + \
+                    self.__current_file.info
+        else:
+            title = ""
+        request.send_html(_LISTING % (name, data,
+                                      clientid, clientid,
+                                      clientid, clientid,
+                                      clientid, clientid,
+                                      clientid,
+                                      title))
+        
         
         
     def handle_HTTPSERVER_EV_REQUEST(self, owner, request):
+                            
+        def on_child(f, name, contents):
+            if (f):
+                contents.append(f)
+            else:
+                self.__send_contents(request, clientid, name, contents)
                            
         if (owner != self): return
 
@@ -143,34 +215,103 @@ class WebAccess(Configurator):
         if (not path):
             path = "media:///"
 
+        # get parameters
         params = request.get_params()
-        action = params.get("action", [""])[0]
+        action = params.get("action", ["open"])[0]
+        clientid = params.get("clientid", [""])[0]
+        if (not clientid):
+            clientid = str(self.__client_cnt)
+            self.__client_cnt += 1
 
-        print "requesting", path, action
+        # prepare path stack for client
+        if (not clientid in self.__path_stacks):
+            self.__path_stacks[clientid] = []
+        path_stack = self.__path_stacks[clientid]
 
-        f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
-        if (f):
-            if (f.mimetype.endswith("-folder")):
-                f.get_contents(0, 0, self.__on_child, request, f.name, [])
 
-            elif (action == "play"):
+        print "requesting", clientid, path, action
+
+        if (action == "volume-down"):
+            self.emit_message(msgs.INPUT_EV_VOLUME_DOWN, True)
+            request.send_html("<html><body>OK</body></html>")
+
+        elif (action == "volume-up"):
+            self.emit_message(msgs.INPUT_EV_VOLUME_UP, True)
+            request.send_html("<html><body>OK</body></html>")
+
+        elif (action == "media-previous"):
+            self.emit_message(msgs.MEDIA_ACT_PREVIOUS)
+            request.send_html("<html><body>OK</body></html>")
+
+        elif (action == "media-next"):
+            self.emit_message(msgs.MEDIA_ACT_NEXT)
+            request.send_html("<html><body>OK</body></html>")
+
+        elif (action == "media-pause"):
+            self.emit_message(msgs.MEDIA_ACT_PAUSE)
+            request.send_html("<html><body>OK</body></html>")
+
+        elif (action == "nav-up"):
+            if (len(path_stack) > 1):
+                path_stack.pop()
+                f = path_stack.pop()
+            else:
+                f = self.call_service(msgs.CORE_SVC_GET_FILE, "media:///")
+                path_stack[:] = []
+
+            path_stack.append(f)
+            f.get_contents(0, 0, on_child, f.name, [])
+              
+        elif (action == "nav-shelf"):
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, "media:///")
+            path_stack[:] = [f]
+            f.get_contents(0, 0, on_child, f.name, [])
+
+        elif (action == "open"):
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
+            if (f):
+                path_stack.append(f)
+                f.get_contents(0, 0, on_child, f.name, [])
+            else:
+                request.send_error("404 Not Found", _NOT_FOUND)
+            
+        elif (action == "play"):
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
+            if (f):
                 print "loading"
                 self.emit_message(msgs.MEDIA_ACT_LOAD, f)
                 request.send_html("<html><body>OK</body></html>")
-                    
+                
             else:
-                if (f.is_local):
-                    request.send_file(open(f.get_resource(), "r"),
-                                      f.name,
-                                      f.mimetype)
-                else:
-                    request.send("HTTP/1.1 302 Redirect",
-                                 {"LOCATION": f.get_resource()},
-                                 "")
-            #end if
-            
+                request.send_error("404 Not Found", _NOT_FOUND)
+        
         else:
-            request.send_error("404 Not Found", _NOT_FOUND)
-
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
+            if (f and f.is_local):
+                request.send_file(open(f.get_resource(), "r"),
+                                  f.name,
+                                  f.mimetype)
+            
+            elif (f and not f.is_local):
+                request.send_redirect(f.get_resource())
+                
+            else:
+                request.send_error("404 Not Found", _NOT_FOUND)
+            
         #end if
+
+
+    def handle_MEDIA_EV_LOADED(self, player, f):
+    
+        self.__current_file = f
+        self.__artist = ""
+        self.__title = ""
+
+
+    def handle_MEDIA_EV_TAG(self, tag, value):
+    
+        if (tag == "ARTIST"):
+            self.__artist = value
+        elif (tag == "TITLE"):
+            self.__title = value
 
