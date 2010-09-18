@@ -24,6 +24,13 @@ import os
 import shutil
 
 
+"""
+Relevance: youtube.com/results?search_type=videos&search_query=n900&suggested_categories=28&uni=3
+Upload date: youtube.com/results?search_type=videos&search_query=n900&search_sort=video_date_uploaded&suggested_categories=28&uni=3
+View count: youtube.com/results?search_type=videos&search_query=n900&search_sort=video_view_count&suggested_categories=28&uni=3
+Rating: youtube.com/results?search_type=videos&search_query=n900&search_sort=video_avg_rating&suggested_categories=28&uni=3 
+"""
+
 _YT = "http://www.youtube.com"
 
 _VIDEO_SEARCH = "http://gdata.youtube.com/feeds/api/videos/" \

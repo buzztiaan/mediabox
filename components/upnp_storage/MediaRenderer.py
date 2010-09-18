@@ -180,7 +180,10 @@ class MediaRenderer(MediaOutput):
             url = uri
 
         self.__position = 0
+        print "SETTING URL", url
         self.__av_transport.SetAVTransportURI(None, "0", url, "")
+        self.__av_transport.SetNextTransportURI(None, "0", url, "")
+        print "PLAY"
         self.__av_transport.Play(None, "0", "1")
         
         self.__ctx_id = (time.time() * 1000)

@@ -4,6 +4,7 @@ Server socket for listening to GENA notifications.
 
 from io import HTTPConnection, parse_addr
 from utils import logging
+from utils import network
 from utils.MiniXML import MiniXML
 
 import socket
@@ -35,30 +36,6 @@ _GENA_RENEWAL = "RENEWAL: %s HTTP/1.1\r\n" \
                 "HOST: %s\r\n" \
                 "SID: %s\r\n" \
                 "\r\n"
-
-
-
-def _get_my_ip():
-    """
-    Returns the IP of this host on the network.
-    """
-    
-    # find the network interface (look at the default gateway)
-    iface = commands.getoutput("cat /proc/net/route" \
-                               "|cut -f1,2" \
-                               "|grep 00000000" \
-                               "|cut -f1") \
-            or "lo"
-
-    # get the IP of the interface
-    print "IFACE", iface
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    return socket.inet_ntoa(fcntl.ioctl(
-        s.fileno(),
-        0x8915,  # SIOCGIFADDR
-        struct.pack('256s', iface[:15])
-    )[20:24])
-
 
 _PORT = 5555
 
@@ -101,7 +78,7 @@ class _GenaSocket(object):
         Creates an asynchronous socket for listening to GENA events.
         """
         
-        self.__gena_url = "http://%s:%d" % (_get_my_ip(), _PORT)
+        self.__gena_url = "http://%s:%d" % (network.get_ip(), _PORT)
         
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
