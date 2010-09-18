@@ -408,23 +408,22 @@ class VideoPlayer(Player):
             self.__player.stop()
 
 
+    """
     def handle_ASR_EV_LANDSCAPE(self):
 
         self.__screen.set_visible(True)
         self.render()
         
-    """
     def handle_ASR_EV_PORTRAIT(self):
 
         self.__screen.set_visible(False)
         self.render()
-        
+    """
         
     def handle_INPUT_EV_FULLSCREEN(self, pressed):
 
         if (self.is_visible()):
             self.__toggle_fullscreen()
-    """
 
 
     def handle_INPUT_EV_VOLUME_UP(self, pressed):

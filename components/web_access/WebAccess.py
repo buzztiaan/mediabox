@@ -59,13 +59,14 @@ _LISTING = """
   %s
 </div>
 <div class="navbar">
-  <a href="/?clientid=%s&action=nav-shelf">Shelf</a>&nbsp;&nbsp;&nbsp;
-  <a href="/?clientid=%s&action=nav-up">Up</a>&nbsp;&nbsp;&nbsp;
+  <a href="/?clientid=%s&action=nav-shelf">[Shelf]</a>&nbsp;&nbsp;&nbsp;
+  <a href="/?clientid=%s&action=nav-up">[Up]</a>&nbsp;&nbsp;&nbsp;
   <a href="/?clientid=%s&action=volume-down" target="if">[-]</a>&nbsp;&nbsp;&nbsp;
   <a href="/?clientid=%s&action=volume-up" target="if">[+]</a>&nbsp;&nbsp;&nbsp;
   <a href="/?clientid=%s&action=media-previous" target="if">[|&lt;]</a>&nbsp;&nbsp;&nbsp;
   <a href="/?clientid=%s&action=media-pause" target="if">[||]</a>&nbsp;&nbsp;&nbsp;
   <a href="/?clientid=%s&action=media-next" target="if">[&gt;|]</a>&nbsp;&nbsp;&nbsp;
+  <a href="/?clientid=%s&action=ui-fullscreen" target="if">[Fullscreen]</a>&nbsp;&nbsp;&nbsp;
   %s
 </div>
 </body>
@@ -196,7 +197,7 @@ class WebAccess(Configurator):
                                       clientid, clientid,
                                       clientid, clientid,
                                       clientid, clientid,
-                                      clientid,
+                                      clientid, clientid,
                                       title))
         
         
@@ -249,6 +250,10 @@ class WebAccess(Configurator):
 
         elif (action == "media-pause"):
             self.emit_message(msgs.MEDIA_ACT_PAUSE)
+            request.send_html("<html><body>OK</body></html>")
+
+        elif (action == "ui-fullscreen"):
+            self.emit_message(msgs.INPUT_EV_FULLSCREEN, True)
             request.send_html("<html><body>OK</body></html>")
 
         elif (action == "nav-up"):
