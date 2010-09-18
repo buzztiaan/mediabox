@@ -1,4 +1,4 @@
-mediabox (2010.09.16) unstable; urgency=low
+mediabox (2010.09.18) unstable; urgency=low
 
   Fixed some bugs and compatibility issues with UPnP MediaRenderers
   
@@ -11,7 +11,10 @@ mediabox (2010.09.16) unstable; urgency=low
   YouTube player can be configured to automatically play high quality or low
   quality version
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 16 Sep 2010 18:30:00 +0200
+  Experimental WebAccess interface for remote-controlling MediaBox with a
+  web browser
+
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 18 Sep 2010 21:30:00 +0200
 
 mediabox (2010.09.11) unstable; urgency=low
 

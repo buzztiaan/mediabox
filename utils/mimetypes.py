@@ -92,6 +92,19 @@ def mimetype_to_name(mimetype):
     return _MIMETYPE_TO_NAME.get(mimetype, "Unknown")
 
 
+def guess_mimetype(filename):
+    """
+    Guesses the MIME type of the given file.
+    @since: 2010.09.18
+    
+    @param: name of file
+    @return: MIME type
+    """
+
+    ext = os.path.splitext(filename)[1]
+    return ext_to_mimetype(ext)
+
+
 def get_audio_types():
     """
     Returns a list of all audio MIME types.
