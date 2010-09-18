@@ -49,7 +49,7 @@ _LISTING = """
     min-height: 80px;
     max-height: 80px;
     background-color: #000;
-    font-size: 16pt;
+    font-size: 12pt;
     color: #fff;
   }
 </style>
