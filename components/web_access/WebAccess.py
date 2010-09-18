@@ -49,7 +49,7 @@ _LISTING = """
     min-height: 64px;
     max-height: 64px;
     background-color: #000;
-    font-size: 12pt;
+    font-size: 16pt;
     color: #fff;
   }
 </style>
@@ -66,7 +66,8 @@ _LISTING = """
   <a href="/?clientid=%s&action=media-previous" target="if">[|&lt;]</a>&nbsp;&nbsp;&nbsp;
   <a href="/?clientid=%s&action=media-pause" target="if">[||]</a>&nbsp;&nbsp;&nbsp;
   <a href="/?clientid=%s&action=media-next" target="if">[&gt;|]</a>&nbsp;&nbsp;&nbsp;
-  <a href="/?clientid=%s&action=ui-fullscreen" target="if">[Fullscreen]</a>&nbsp;&nbsp;&nbsp;
+  <a href="/?clientid=%s&action=ui-fullscreen" target="if">[Fullscreen]</a>
+  <br>
   %s
 </div>
 </body>
