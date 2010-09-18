@@ -28,11 +28,11 @@ _LISTING = """
 <style>
   body {
     background-color: #000;
+    font-family: Arial, Helvetica, Sans;
   }
   
   p {
     font-size: 10pt;
-    font-family: Arial, Helvetica Sans;
     color: #fff;
   }
   
@@ -46,8 +46,8 @@ _LISTING = """
     left: 0px;
     min-width: 100%%;
     max-width: 100%%;
-    min-height: 80px;
-    max-height: 80px;
+    min-height: 64px;
+    max-height: 64px;
     background-color: #000;
     font-size: 12pt;
     color: #fff;
@@ -55,17 +55,17 @@ _LISTING = """
 </style>
 <body>
 <iframe style="display: none;" name="if"></iframe>
-<div style="margin-top: 80px;">
+<div style="margin-top: 64px;">
   %s
 </div>
 <div class="navbar">
-  <a href="/?clientid=%s&action=nav-shelf">Shelf</a>
-  <a href="/?clientid=%s&action=nav-up">Up</a>
-  <a href="/?clientid=%s&action=volume-down" target="if">[-]</a>
-  <a href="/?clientid=%s&action=volume-up" target="if">[+]</a>
-  <a href="/?clientid=%s&action=media-previous" target="if">[|&lt;]</a>
-  <a href="/?clientid=%s&action=media-pause" target="if">[||]</a>
-  <a href="/?clientid=%s&action=media-next" target="if">[&gt;|]</a>
+  <a href="/?clientid=%s&action=nav-shelf">Shelf</a>&nbsp;&nbsp;&nbsp;
+  <a href="/?clientid=%s&action=nav-up">Up</a>&nbsp;&nbsp;&nbsp;
+  <a href="/?clientid=%s&action=volume-down" target="if">[-]</a>&nbsp;&nbsp;&nbsp;
+  <a href="/?clientid=%s&action=volume-up" target="if">[+]</a>&nbsp;&nbsp;&nbsp;
+  <a href="/?clientid=%s&action=media-previous" target="if">[|&lt;]</a>&nbsp;&nbsp;&nbsp;
+  <a href="/?clientid=%s&action=media-pause" target="if">[||]</a>&nbsp;&nbsp;&nbsp;
+  <a href="/?clientid=%s&action=media-next" target="if">[&gt;|]</a>&nbsp;&nbsp;&nbsp;
   %s
 </div>
 </body>
