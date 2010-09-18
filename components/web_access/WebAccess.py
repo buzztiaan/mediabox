@@ -175,6 +175,8 @@ class WebAccess(Configurator):
             else:
                 tn = f.icon
             
+            if (tn.startswith("data:")): tn = theme.mb_logo.get_path()
+            
             # build item
             data += _FILE % (url,
                              target,
@@ -205,10 +207,13 @@ class WebAccess(Configurator):
     def handle_HTTPSERVER_EV_REQUEST(self, owner, request):
                             
         def on_child(f, name, contents):
+            print "CHILD", f
             if (f):
                 contents.append(f)
             else:
                 self.__send_contents(request, clientid, name, contents)
+
+            return True
                            
         if (owner != self): return
 
@@ -276,6 +281,7 @@ class WebAccess(Configurator):
             f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
             if (f):
                 path_stack.append(f)
+                print "opening", f.name
                 f.get_contents(0, 0, on_child, f.name, [])
             else:
                 request.send_error("404 Not Found", _NOT_FOUND)
