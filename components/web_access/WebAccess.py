@@ -1,4 +1,5 @@
 from com import Configurator, msgs
+import pages
 from ui.itemview import ThumbableGridView
 from ui.itemview import LabelItem
 from ui.itemview import OptionItem
@@ -20,70 +21,6 @@ Oops, the file you're looking for isn't there...
 <address>MediaBox Embedded HTTP Server</address>
 </body>
 </html>
-"""
-
-_LISTING = """
-<html>
-<head><title>%s - MediaBox WebAccess</title></head>
-<style>
-  body {
-    background-color: #000;
-    font-family: Arial, Helvetica, Sans;
-  }
-  
-  p {
-    font-size: 10pt;
-    color: #fff;
-  }
-  
-  img {
-    border: none;
-  }
-  
-  div.navbar {
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    min-width: 100%%;
-    max-width: 100%%;
-    min-height: 64px;
-    max-height: 64px;
-    background-color: #000;
-    font-size: 16pt;
-    color: #fff;
-  }
-</style>
-<body>
-<iframe style="display: none;" name="if"></iframe>
-<div style="margin-top: 64px;">
-  %s
-</div>
-<div class="navbar">
-  <a href="/?clientid=%s&action=nav-shelf">[Shelf]</a>&nbsp;&nbsp;&nbsp;
-  <a href="/?clientid=%s&action=nav-up">[Up]</a>&nbsp;&nbsp;&nbsp;
-  <a href="/?clientid=%s&action=volume-down" target="if">[-]</a>&nbsp;&nbsp;&nbsp;
-  <a href="/?clientid=%s&action=volume-up" target="if">[+]</a>&nbsp;&nbsp;&nbsp;
-  <a href="/?clientid=%s&action=media-previous" target="if">[|&lt;]</a>&nbsp;&nbsp;&nbsp;
-  <a href="/?clientid=%s&action=media-pause" target="if">[||]</a>&nbsp;&nbsp;&nbsp;
-  <a href="/?clientid=%s&action=media-next" target="if">[&gt;|]</a>&nbsp;&nbsp;&nbsp;
-  <a href="/?clientid=%s&action=ui-fullscreen" target="if">[Fullscreen]</a>
-  <br>
-  %s
-</div>
-</body>
-</html>
-"""
-
-_FILE = """
-<div style="float: left;
-            width: 180px;
-            height: 200px;
-            text-align: center;">
-  <a href="%s" %s>
-    <img src="%s" style="width: 160px; height: 160px;"><br>
-  </a>
-  <p>%s</p>
-</div>
 """
 
 
@@ -147,72 +84,36 @@ class WebAccess(Configurator):
 
         self.__list.invalidate()
         self.__list.render()
-      
-        
-    def __on_child(self, f, request, name, contents):
-    
-        if (f):
-            contents.append(f)
-        else:
-            self.__send_contents(request, name, contents)
             
             
-    def __send_contents(self, request, clientid, name, contents):
-    
-        data = ""
-        for f in contents:
-            url = urlquote.quote(f.full_path, "")
-            url += "?clientid=%s" % clientid
+    def __send_contents(self, request, clientid, folder, contents):
 
-            if (not f.mimetype.endswith("-folder")):
-                url += "&action=play"
-                target = "target='if'"
-            else:
-                target = ""
-
-            # look up thumbnail
-            if (not f.icon):
-                tn, is_final = self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, f)
-            else:
-                tn = f.icon
-            
-            if (tn.startswith("data:")): tn = theme.mb_logo.get_path()
-            
-            # build item
-            data += _FILE % (url,
-                             target,
-                             urlquote.quote(tn, "") + 
-                             "?clientid=%s&action=load" % clientid,
-                             f.name)
-                             
-        #end for
-        
         if (self.__title):
-            title = self.__title
+            now_playing = self.__title
             if (self.__artist):
-                title += " / " + self.__artist
+                now_playing += " / " + self.__artist
         elif (self.__current_file):
-            title = self.__current_file.name + "   " + \
-                    self.__current_file.info
+            now_playing = self.__current_file.name + "   " + \
+                          self.__current_file.info
         else:
-            title = ""
-        request.send_html(_LISTING % (name, data,
-                                      clientid, clientid,
-                                      clientid, clientid,
-                                      clientid, clientid,
-                                      clientid, clientid,
-                                      title))
-        
+            now_playing = ""
+    
+        html = pages.render_page_browser(clientid, now_playing, folder, contents)
+        request.send_html(html)        
         
         
     def handle_HTTPSERVER_EV_REQUEST(self, owner, request):
                             
-        def on_child(f, name, contents):
-            print "CHILD", f
+        def on_child(f, folder, contents):
             if (f):
-                contents.append(f)
+                # look up thumbnail
+                if (not f.icon):
+                    icon, is_final = self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, f)
+                else:
+                    icon = f.icon
+                contents.append((f, icon))
             else:
-                self.__send_contents(request, clientid, name, contents)
+                self.__send_contents(request, clientid, folder, contents)
 
             return True
                            
@@ -221,6 +122,9 @@ class WebAccess(Configurator):
         path = urlquote.unquote(request.get_path()[1:])
         if (not path):
             path = "media:///"
+
+        if (path.startswith("theme.")):
+            path = getattr(theme, path[6:]).get_path()
 
         # get parameters
         params = request.get_params()
@@ -271,19 +175,19 @@ class WebAccess(Configurator):
                 path_stack[:] = []
 
             path_stack.append(f)
-            f.get_contents(0, 0, on_child, f.name, [])
+            f.get_contents(0, 0, on_child, f, [])
               
         elif (action == "nav-shelf"):
             f = self.call_service(msgs.CORE_SVC_GET_FILE, "media:///")
             path_stack[:] = [f]
-            f.get_contents(0, 0, on_child, f.name, [])
+            f.get_contents(0, 0, on_child, f, [])
 
         elif (action == "open"):
             f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
             if (f):
                 path_stack.append(f)
                 print "opening", f.name
-                f.get_contents(0, 0, on_child, f.name, [])
+                f.get_contents(0, 0, on_child, f, [])
             else:
                 request.send_error("404 Not Found", _NOT_FOUND)
             
