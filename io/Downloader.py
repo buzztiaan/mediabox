@@ -125,7 +125,7 @@ class Downloader(object):
             if (url.query_string):
                 path += "?" + url.query_string
             #print host, port, path
-            conn.putrequest("GET", url.full_path)
+            conn.putrequest("GET", path)
             conn.putheader("User-Agent", "MediaBox")
             conn.putheader("Connection", "close")
             conn.endheaders()
