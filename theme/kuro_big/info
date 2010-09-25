@@ -1,0 +1,4 @@
+name:        Kuro Big
+description: Kuro theme with bigger fonts
+author:      Martin Grimme
+inherits:    kuro
