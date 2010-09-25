@@ -306,7 +306,7 @@ class Navigator(Component, Window):
     def __update_filter(self):
 
         def filter_func(item):
-            return self.__filter_term.upper() in item.get_name().upper() + \
+            return self.__filter_term.upper() in item.get_name().upper() + "#" + \
                                                  item.get_file().info.upper()
 
         if (self.__filter_term):

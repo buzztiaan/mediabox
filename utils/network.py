@@ -24,9 +24,9 @@ class URL(object):
         parts = urlparse.urlparse(url)
         self.scheme = parts.scheme
         self.host = parts.netloc.split(":")[0]
-        self.port = parts.port
+        self.port = parts.port or 80
         self.netloc = parts.netloc
-        self.path = parts.path or 80
+        self.path = parts.path
         self.query_string = parts.query
         self.__parts = parts
         
