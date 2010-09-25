@@ -519,7 +519,6 @@ class YouTube(Device):
             Downloader(url, self.__on_receive_xml, [""], category, "", True, cb, *args)
         else:
             url = _CATEGORIES[category] % (start_index, _PAGE_SIZE)
-            print url
             Downloader(url, self.__on_receive_xml, [""], category, "", False, cb, *args)
 
 
@@ -527,6 +526,7 @@ class YouTube(Device):
 
         prefix, name, category, query, idx = File.unpack_path(path)
         #print path
+        #print prefix, name, category, query, idx
         if (category == "video"):
             self.__video_search(cb, args, query, idx)
         else:
