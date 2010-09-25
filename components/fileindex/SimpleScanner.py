@@ -34,6 +34,7 @@ class SimpleScanner(Component):
         else:
             self.emit_message(msgs.UI_ACT_SHOW_INFO,
                               "Finished indexing media.")
+            self.emit_message(msgs.FILEINDEX_EV_FINISHED_SCANNING)
             return False
 
 

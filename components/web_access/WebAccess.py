@@ -12,21 +12,29 @@ from theme import theme
 _PORT = 18056
 
 
-_NOT_FOUND = """
-<html>
-<head><title>MediaBox WebAccess</title></head>
-<body>
-Oops, the file you're looking for isn't there...
-<hr>
-<address>MediaBox Embedded HTTP Server</address>
-</body>
-</html>
-"""
-
-
 class WebAccess(Configurator):
     """
     Component for remote-access with a web browser.
+    
+    The web server accepts:
+    
+     - MediaBox media paths (e.g. media:///) in URL-safe form
+     - theme graphics paths (e.g. theme.mb_btn_dir_up_1)
+     
+    The parameter 'clientid' is supplied to associate the client with a path
+    history in the navigator. Stateless requests may omit this parameter.
+    
+    The parameter 'action' specifies how the server should react on a certain
+    path:
+    
+     - open:            opens a directory (this is the default action)
+     - load:            transfers the file's contents to the client
+     - play:            plays media in MediaBox
+     - nav-up:          moves to the parent folder
+     - nav-shelf:       moves to the shelf
+     - media-pause:     play/pause action on MediaBox
+     - media-previous:  goes to the previous track
+     - media-next:      goes to the next track
     """
 
     ICON = theme.mb_logo
@@ -54,10 +62,13 @@ class WebAccess(Configurator):
         lbl = LabelItem("MediaBox WebAccess lets you access your media and " \
                         "remote-control MediaBox with a web browser.")
         self.__list.append_item(lbl)
+
+        lbl = LabelItem("This is still an experimental feature and not " \
+                        "fully working yet!")
+        self.__list.append_item(lbl)
         
         chbox = OptionItem("WebAccess is Off", "off",
                            "WebAccess is On", "on")
-
         chbox.select_by_value("off")
         chbox.connect_changed(self.__on_toggle_webaccess)
         self.__list.append_item(chbox)
@@ -67,6 +78,9 @@ class WebAccess(Configurator):
 
 
     def __on_toggle_webaccess(self, value):
+        """
+        Reacts on toggling the WebAccess in the configurator.
+        """
     
         ip = network.get_ip()
         if (value == "on"):
@@ -87,6 +101,9 @@ class WebAccess(Configurator):
             
             
     def __send_contents(self, request, clientid, folder, contents):
+        """
+        Sends the list of contents to the client.
+        """
 
         if (self.__title):
             now_playing = self.__title
@@ -127,7 +144,7 @@ class WebAccess(Configurator):
             path = getattr(theme, path[6:]).get_path()
 
         # get parameters
-        params = request.get_params()
+        params = request.get_query()
         action = params.get("action", ["open"])[0]
         clientid = params.get("clientid", [""])[0]
         if (not clientid):
@@ -189,17 +206,19 @@ class WebAccess(Configurator):
                 print "opening", f.name
                 f.get_contents(0, 0, on_child, f, [])
             else:
-                request.send_error("404 Not Found", _NOT_FOUND)
+                request.send_not_found("MediaBox WebAccess", path)
             
         elif (action == "play"):
             f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
             if (f):
                 print "loading"
+                parent = path_stack[-1]
                 self.emit_message(msgs.MEDIA_ACT_LOAD, f)
+                self.emit_message(msgs.MEDIA_ACT_CHANGE_PLAY_FOLDER, parent)
                 request.send_html("<html><body>OK</body></html>")
                 
             else:
-                request.send_error("404 Not Found", _NOT_FOUND)
+                request.send_not_found("MediaBox WebAccess", path)
         
         else:
             f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
@@ -212,7 +231,7 @@ class WebAccess(Configurator):
                 request.send_redirect(f.get_resource())
                 
             else:
-                request.send_error("404 Not Found", _NOT_FOUND)
+                request.send_not_found("MediaBox WebAccess", path)
             
         #end if
 

@@ -5,22 +5,43 @@ import socket
 import struct
 
 
-def parse_addr(addr):
+class URL(object):
     """
-    Splits the given address URL into a tuple
-    C{(host, port, path)}.
+    Convenient class for working with URLs.
+    @since: 2010.09.21
+    """
+
+    def __init__(self, url):
     
-    @param addr: address URL
-    @return: C{(host, port, path)}
-    """
+        self.scheme = ""
+        self.netloc = ""
+        self.host = ""
+        self.port = ""
+        self.path = ""
+        self.query = {}
+        self.query_string = ""
         
-    urlparts = urlparse.urlparse(addr)
+        parts = urlparse.urlparse(url)
+        self.scheme = parts.scheme
+        self.host = parts.netloc.split(":")[0]
+        self.port = parts.port
+        self.netloc = parts.netloc
+        self.path = parts.path or 80
+        self.query_string = parts.query
+        self.__parts = parts
+        
+        try:
+            # python 2.6 or later
+            self.query = urlparse.parse_qs(parts.query)
+        except:
+            # python 2.5
+            import cgi
+            self.query = cgi.parse_qs(parts.query)
+        
+        
+    def __str__(self):
     
-    netloc = urlparts.netloc.split(":")[0]
-    path = urlparts.path
-    if (urlparts.query):
-        path += "?" + urlparts.query
-    return (netloc, int(urlparts.port or 0), path)
+        return self.__parts.geturl()
 
 
 def get_ip():

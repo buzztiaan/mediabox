@@ -147,6 +147,15 @@ Instructs the current media player to load the given file.
 @param f: file object to load
 """
 
+def MEDIA_ACT_CHANGE_PLAY_FOLDER(f): pass
+"""
+Instructs the media player to change the play folder to the given folder.
+This must be called after loading media.
+@since: 2010.09.20
+
+@param: folder to change to
+"""
+
 def MEDIA_ACT_PLAY(): pass
 """
 Instructs the current media player to play.

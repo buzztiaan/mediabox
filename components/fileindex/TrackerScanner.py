@@ -56,6 +56,7 @@ class TrackerScanner(Component):
   
         gobject.idle_add(self.emit_message, msgs.UI_ACT_SHOW_INFO,
                         "Scanning for media finished.")
+        gobject.idle_add(self.emit_message, msgs.FILEINDEX_EV_FINISHED_SCANNING)
 
 
     def handle_COM_EV_APP_STARTED(self):

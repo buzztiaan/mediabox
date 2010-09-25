@@ -263,6 +263,7 @@ class Navigator(Component, Window):
         #self.__browser.render()
 
 
+    """
     def _visibility_changed(self):
         
         Window._visibility_changed(self)
@@ -271,6 +272,7 @@ class Navigator(Component, Window):
             
         else:
             self.__tn_scheduler.halt()
+    """
 
 
     def __on_key_press(self, keycode):
@@ -283,6 +285,7 @@ class Navigator(Component, Window):
 
         handled = self.call_service(msgs.INPUT_SVC_SEND_KEY, keycode, True)
         if (not handled):
+            """
             if (len(keycode) == 1 and ord(keycode) > 31):
                 cnt = 0
                 for item in self.__browser.get_items():
@@ -291,19 +294,20 @@ class Navigator(Component, Window):
                         break
                     cnt += 1
                 #end for
-                
-            #if (len(keycode) == 1 and ord(keycode) > 31):
-            #    self.__filter_term += keycode
-            #    self.__update_filter()
-            #elif (keycode == "BackSpace" and self.__filter_term):
-            #    self.__filter_term = self.__filter_term[:len(self.__filter_term) - 1]
-            #    self.__update_filter()
+            """    
+            if (len(keycode) == 1 and ord(keycode) > 31):
+                self.__filter_term += keycode
+                self.__update_filter()
+            elif (keycode == "BackSpace" and self.__filter_term):
+                self.__filter_term = self.__filter_term[:len(self.__filter_term) - 1]
+                self.__update_filter()
 
 
     def __update_filter(self):
 
         def filter_func(item):
-            return self.__filter_term.upper() in item.get_name().upper()
+            return self.__filter_term.upper() in item.get_name().upper() + \
+                                                 item.get_file().info.upper()
 
         if (self.__filter_term):
             self.__browser.set_filter(filter_func)
@@ -418,6 +422,9 @@ class Navigator(Component, Window):
         
         #self.set_title(f.name)
         self.set_flag(windowflags.BUSY, True)
+        
+        self.__browser.set_filter()
+        self.__filter_term = ""
         
         self.__update_layout()
         self.__update_menu()
@@ -900,7 +907,16 @@ class Navigator(Component, Window):
     def handle_MEDIA_ACT_LOAD_URI(self, uri, mimetype):
     
         self.__load_uri(uri, mimetype)
-                    
+
+
+    def handle_MEDIA_ACT_CHANGE_PLAY_FOLDER(self, folder):
+    
+        self.__play_folder = folder
+        self.__play_files = [ fl for fl in self.__browser.get_files()
+                              if not fl.mimetype.endswith("-folder") ]
+        self.__filter_play_files()
+        self.__random_files = []
+   
     
     def handle_MEDIA_ACT_PREVIOUS(self):
     

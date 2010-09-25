@@ -197,3 +197,8 @@ class AudioAlbumStorage(Device):
     
         self.__cache = []
 
+
+    def handle_FILEINDEX_EV_FINISHED_SCANNING(self):
+    
+        self.__cache = []
+

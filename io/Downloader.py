@@ -118,11 +118,11 @@ class Downloader(object):
     
         _connection_queue.put(True)
     
-        host, port, path = network.parse_addr(url)
+        urlobj = network.URL(url)        
         try:
-            conn = httplib.HTTPConnection(host, port or 80)
+            conn = httplib.HTTPConnection(urlobj.host, urlobj.port)
             #print host, port, path
-            conn.putrequest("GET", path)
+            conn.putrequest("GET", urlobj.path)
             conn.putheader("User-Agent", "MediaBox")
             conn.putheader("Connection", "close")
             conn.endheaders()

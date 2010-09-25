@@ -12,3 +12,5 @@ def FILEINDEX_ACT_SCAN(): pass
 
 def FILEINDEX_ACT_SCAN_FOLDER(path): pass
 
+def FILEINDEX_EV_FINISHED_SCANNING(): pass
+

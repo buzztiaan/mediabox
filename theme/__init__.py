@@ -42,30 +42,31 @@ _TYPE_FONT = 2
 def _get_info(themepath):
 
     name, description, author = (os.path.basename(themepath), "", "")
+    info = {
+       "name": os.path.basename(themepath),
+       "description": "",
+       "author": "",
+       "inherits": "default"
+    }
 
     try:
         lines = open(os.path.join(themepath, "info")).readlines()
     except:
         import traceback; traceback.print_exc()
-        return (name, description, author)
+        return info
         
     for line in lines:
         line = line.strip()
         if (not line or line.startswith("#")):
             continue
             
-        elif (line.startswith("name:")):    
-            idx = line.find(":")
-            name = line[idx + 1:].strip()
-        elif (line.startswith("description:")):
-            idx = line.find(":")
-            description = line[idx + 1:].strip()
-        elif (line.startswith("author:")):
-            idx = line.find(":")
-            author = line[idx + 1:].strip()
+        idx = line.find(":")
+        key = line[:idx].strip()
+        value = line[idx + 1:].strip()
+        info[key] = value
     #end for
     
-    return (name, description, author)
+    return info
 
 
 
@@ -80,9 +81,6 @@ class _Theme(object):
 
         # table: name -> (type, definition, obj)
         self.__objects = {}
-
-        # name of the theme just loaded
-        self.__just_loaded = ""
 
 
     def __getattr__(self, name):
@@ -121,8 +119,10 @@ class _Theme(object):
                 path = os.path.join(themes_dir, d)
                 if (os.path.isdir(path) and not d.startswith(".")):
                     preview = os.path.join(path, "PREVIEW.png")
-                    name, description, author = _get_info(path)
-                    themes.append((d, preview, name, description, author))
+                    info = _get_info(path)
+                    themes.append((d, preview, info["name"],
+                                               info["description"],
+                                               info["author"]))
             #end for
         #end for
             
@@ -139,11 +139,7 @@ class _Theme(object):
         @param name: name of new theme
         """
 
-        if (name != "default" and self.__just_loaded != "default"):
-            self.__set_theme("default")
         self.__set_theme(name)
-        self.__just_loaded = name
-
 
 
     def __set_theme(self, name):
@@ -152,9 +148,12 @@ class _Theme(object):
         for themes_dir in [_THEMES_DIR, _USER_THEMES_DIR]:
             theme_dir = os.path.join(themes_dir, name)            
             if (os.path.exists(theme_dir)):
-                name, description, author = _get_info(theme_dir)
                 break
         #end for
+        
+        info = _get_info(theme_dir)
+        if (name != "default"):
+            self.__set_theme(info["inherits"])
         
         self.__load_recursively(theme_dir)
         

@@ -1,4 +1,17 @@
-import urlparse
+from utils import network
+
+
+_NOT_FOUND = """
+<html>
+<head><title>%s</title></head>
+<body>
+<p>Oops, the file you're looking for isn't there...</p>
+<p>Not found: %s</p>
+<hr>
+<address>MediaBox Embedded HTTP Server</address>
+</body>
+</html>
+"""
 
 
 class HTTPRequest(object):
@@ -18,21 +31,15 @@ class HTTPRequest(object):
     
         return self.__method
         
-
+        
     def get_path(self):
 
-        path = self.__path
-        idx = path.rfind("?")
-        if (idx != -1):
-            path = path[:idx]
-    
-        return path
+        return network.URL(self.__path).path
         
-        
-    def get_params(self):
-    
-        parts = urlparse.urlparse(self.__path)
-        return urlparse.parse_qs(parts.query)
+                
+    def get_query(self):
+
+        return network.URL(self.__path).query
         
         
     def get_protocol(self):
@@ -102,4 +109,9 @@ class HTTPRequest(object):
                          "  Resource moved: <a href='%s'>%s</a>"\
                          "</body></html>" \
                          % (location, location))
+
+
+    def send_not_found(self, title, location):
+    
+        self.send_error("404 Not Found", _NOT_FOUND % (title, location))
 

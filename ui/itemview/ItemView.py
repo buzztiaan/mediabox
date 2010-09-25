@@ -33,6 +33,7 @@ class ItemView(Widget):
         
         # filtering function
         self.__filter_func = None
+        self.__filter_cache = []
     
         Widget.__init__(self)
 
@@ -72,6 +73,7 @@ class ItemView(Widget):
         self.__hilighted_pos = new_set.hilight
         
         self.__current_set = set_id
+        self.__filter_cache = []
 
 
     def clear_items(self):
@@ -82,6 +84,7 @@ class ItemView(Widget):
         self.__items = []
         self.__cursor_pos = -1
         self.__hilighted_pos = -1
+        self.__filter_cache = []
                 
         
     def append_item(self, item):
@@ -92,6 +95,7 @@ class ItemView(Widget):
         """
     
         self.__items.append(item)
+        self.__filter_cache = []
         
         
     def insert_item(self, item, before_position):
@@ -115,6 +119,7 @@ class ItemView(Widget):
         """
     
         self.__items[position] = item
+        self.__filter_cache = []
 
 
     def remove_item(self, position):
@@ -125,6 +130,7 @@ class ItemView(Widget):
         """
     
         self.__items.pop(position)
+        self.__filter_cache = []
 
 
     def shift_item(self, pos, amount):
@@ -159,8 +165,10 @@ class ItemView(Widget):
         """
     
         if (self.__filter_func):
-            return [ item for item in self.__items
-                     if self.__filter_func(item) ]
+            if (not self.__filter_cache):
+                self.__filter_cache = [ item for item in self.__items
+                                        if self.__filter_func(item) ]
+            return self.__filter_cache
         else:
             return self.__items[:]
         
@@ -186,6 +194,7 @@ class ItemView(Widget):
         """
         
         self.__filter_func = filter_func
+        self.__filter_cache = []
 
 
     def set_hilight(self, pos):
