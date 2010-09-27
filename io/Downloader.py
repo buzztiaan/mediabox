@@ -121,10 +121,9 @@ class Downloader(object):
         urlobj = network.URL(url)        
         try:
             conn = httplib.HTTPConnection(urlobj.host, urlobj.port)
-            path = url.path
-            if (url.query_string):
-                path += "?" + url.query_string
-            #print host, port, path
+            path = urlobj.path
+            if (urlobj.query_string):
+                path += "?" + urlobj.query_string
             conn.putrequest("GET", path)
             conn.putheader("User-Agent", "MediaBox")
             conn.putheader("Connection", "close")

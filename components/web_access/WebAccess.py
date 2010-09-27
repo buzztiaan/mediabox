@@ -115,8 +115,8 @@ class WebAccess(Configurator):
         else:
             now_playing = ""
     
-        html = pages.render_page_browser(clientid, now_playing, folder, contents)
-        request.send_html(html)        
+        html = pages.render_json_contents(clientid, contents)
+        request.send_html(html)
         
         
     def handle_HTTPSERVER_EV_REQUEST(self, owner, request):
@@ -136,9 +136,9 @@ class WebAccess(Configurator):
                            
         if (owner != self): return
 
-        path = urlquote.unquote(request.get_path()[1:])
-        if (not path):
-            path = "media:///"
+        path = urlquote.unquote(request.get_path())
+        #if (not path):
+        #    path = "media:///"
 
         if (path.startswith("theme.")):
             path = getattr(theme, path[6:]).get_path()
@@ -159,7 +159,62 @@ class WebAccess(Configurator):
 
         print "requesting", clientid, path, action
 
-        if (action == "volume-down"):
+        if (path == "/"):
+            request.send_html(pages.render_page_browser(clientid))
+
+        elif (path == "/nav-home"):
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, "media:///")
+            path_stack[:] = [f]
+            f.get_contents(0, 0, on_child, f, [])
+
+        elif (path == "/nav-up"):
+            if (len(path_stack) > 1):
+                path_stack.pop()
+                f = path_stack.pop()
+            else:
+                f = self.call_service(msgs.CORE_SVC_GET_FILE, "media:///")
+                path_stack[:] = []
+
+            path_stack.append(f)
+            f.get_contents(0, 0, on_child, f, [])
+
+
+        elif (path == "/open"):
+            filepath = urlquote.unquote(params["path"][0])
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, filepath)
+            
+            if (f and f.mimetype.endswith("-folder")):
+                path_stack.append(f)
+                f.get_contents(0, 0, on_child, f, [])
+
+            elif (f):
+                parent = path_stack[-1]
+                self.emit_message(msgs.MEDIA_ACT_LOAD, f)
+                self.emit_message(msgs.MEDIA_ACT_CHANGE_PLAY_FOLDER, parent)
+                request.send_html("<html><body>OK</body></html>")
+
+            else:
+                request.send_not_found("MediaBox WebAccess", filepath)
+                        
+
+        elif (path == "/file"):
+            filepath = urlquote.unquote(params["path"][0])
+            f = self.call_service(msgs.CORE_SVC_GET_FILE, filepath)
+            print "FILE", f, f.is_local
+            if (f and f.is_local):
+                request.send_file(open(f.get_resource(), "r"),
+                                  f.name,
+                                  f.mimetype)
+
+        elif (path == "/theme"):
+            filepath = urlquote.unquote(params["path"][0])
+            pbuf = getattr(theme, filepath)
+            request.send_file(open(pbuf.get_path(), "r"),
+                              filepath,
+                              "image/x-png")            
+
+
+        elif (action == "volume-down"):
             self.emit_message(msgs.INPUT_EV_VOLUME_DOWN, True)
             request.send_html("<html><body>OK</body></html>")
 

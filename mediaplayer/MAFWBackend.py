@@ -109,6 +109,8 @@ class MAFWBackend(AbstractBackend):
         # track duration
         self.__duration = -1
         
+        self.__to_seek = 0
+        
         # sound volume
         self.__volume = 50
         
@@ -231,6 +233,10 @@ class MAFWBackend(AbstractBackend):
         
         if (state == _MAFW_STATE_STOPPED):
             self.__is_eof = True
+            
+        elif (state == _MAFW_STATE_PLAYING and self.__to_seek):
+            self._seek(self.__to_seek)
+            self.__to_seek = 0
 
 
     def __on_change_metadata(self, renderer, name, value):
@@ -273,6 +279,7 @@ class MAFWBackend(AbstractBackend):
 
         if (self.__renderer):
             self.__is_eof = False
+            self.__current_position = -1
             self.__duration = -1
             self.__mafw.mafw_renderer_play_uri(hash(self.__renderer),
                                                uri,
@@ -317,32 +324,37 @@ class MAFWBackend(AbstractBackend):
 
     def _close(self):
     
-        self.__mafw.mafw_renderer_stop(hash(self.__renderer),
-                                       self.__playback_cb,
-                                       None)
+        if (self.__renderer):
+            self.__mafw.mafw_renderer_stop(hash(self.__renderer),
+                                           self.__playback_cb,
+                                           None)
 
 
     def _seek(self, pos):
 
         # resolution is coarse grained by seconds, WTF..?
-        self.__mafw.mafw_renderer_set_position(hash(self.__renderer),
-                                               _MAFW_SEEK_ABSOLUTE,
-                                               int(pos),
-                                               self.__position_cb,
-                                               None)
-        self._play()
+        if (self.__current_state == _MAFW_STATE_PLAYING):
+            self.__mafw.mafw_renderer_set_position(hash(self.__renderer),
+                                                   _MAFW_SEEK_ABSOLUTE,
+                                                   int(pos),
+                                                   self.__position_cb,
+                                                   None)
+        else:
+            self.__to_seek = pos
+            self._play()
 
 
     def _get_position(self):
         
         self.__current_position = -1
+        self.__duration = -1
         self.__mafw.mafw_renderer_get_position(hash(self.__renderer),
                                                self.__position_cb,
                                                None)
 
-        timeout = time.time() + 1
+        timeout = time.time() + 0.25
         while (time.time() < timeout and self.__current_position == -1):
-            gobject.timeout_add(10, lambda :False)
+            #gobject.timeout_add(10, lambda :False)
             gtk.main_iteration(True)
         
         return (self.__current_position, self.__duration)

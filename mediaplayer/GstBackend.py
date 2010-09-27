@@ -24,6 +24,8 @@ class GstBackend(AbstractBackend):
         self.__player = None
         self.__window_id = 0
         
+        self.__to_seek = 0
+        
         # time when MediaBox has last changed the sound volume
         self.__last_volume_change_time = 0
         
@@ -93,7 +95,13 @@ class GstBackend(AbstractBackend):
     
         t = message.type
         #print "Message Type", t
-        if (t == gst.MESSAGE_EOS):        
+        if (t == gst.MESSAGE_STATE_CHANGED):
+            prev, new, pend = message.parse_state_changed()
+            if (new == gst.STATE_PLAYING and self.__to_seek):
+                self._seek(self.__to_seek)
+                self.__to_seek = 0
+        
+        elif (t == gst.MESSAGE_EOS):        
             self.__player.set_state(gst.STATE_NULL)
             self.__is_eof = True
 
@@ -225,15 +233,21 @@ class GstBackend(AbstractBackend):
 
     def _close(self):
     
-        self._stop()
+        if (self.__player):
+            self._stop()
 
 
     def _seek(self, pos):
     
         self.__pos_time = (0, 0, 0)
-        self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
-                                  gst.SEEK_FLAG_FLUSH,
-                                  pos * 1000000000)
+        state = self.__player.get_state()[1]
+        if (state == gst.STATE_PLAYING):
+            self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
+                                      gst.SEEK_FLAG_FLUSH,
+                                      pos * 1000000000)
+        else:
+            self.__player.set_state(gst.STATE_PLAYING)
+            self.__to_seek = pos
 
 
     def _get_position(self):
@@ -247,7 +261,8 @@ class GstBackend(AbstractBackend):
             total /= 1000000000
             
         except:
-            pos, total = (0, 0)
+            # the query may fail
+            pos, total = (-1, -1)
         
         return (pos, total)
 

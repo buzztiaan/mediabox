@@ -36,7 +36,8 @@ if (True): #not platforms.MAEMO4):
         from GstBackend import GstBackend
         _PLAYERS["gst"] = GstBackend()
     except:
-        logging.info("failed to load gstreamer backend")
+        logging.info("failed to load gstreamer backend:\n%s",
+                     logging.stacktrace())
 #end if
 
 if (platforms.MAEMO4):

@@ -1,5 +1,6 @@
 from StreamAnalyzer import StreamAnalyzer
 from utils.EventEmitter import EventEmitter
+from utils.StateMachine import StateMachine, State
 from utils import logging
 
 import gobject
@@ -10,7 +11,18 @@ import urllib
 
 
 # idle timeout in milliseconds
-_IDLE_TIMEOUT = 1000 * 60 * 3
+_IDLE_TIMEOUT = 1000 * 5 #1000 * 60 * 3
+
+_INPUT_LOAD = 0
+_INPUT_PLAY = 1
+_INPUT_SEEK = 2
+_INPUT_PAUSE = 3
+_INPUT_STOP = 4
+_INPUT_EOF = 5
+_INPUT_IDLE = 6
+_INPUT_RESUME = 7
+
+
 
 
 class AbstractBackend(EventEmitter):
@@ -29,11 +41,12 @@ class AbstractBackend(EventEmitter):
     STATUS_EOF = 4
 
     # error codes
-    ERR_INVALID = 0
-    ERR_NOT_FOUND = 1
-    ERR_CONNECTION_TIMEOUT = 2
-    ERR_NOT_SUPPORTED = 3
-    ERR_SERVER_FULL = 4
+    NO_ERROR = 0
+    ERR_INVALID = 1
+    ERR_NOT_FOUND = 2
+    ERR_CONNECTION_TIMEOUT = 3
+    ERR_NOT_SUPPORTED = 4
+    ERR_SERVER_FULL = 5
     
     EVENT_STARTED = "event-started"
     EVENT_KILLED = "event-killed"
@@ -73,38 +86,253 @@ class AbstractBackend(EventEmitter):
         
         # mode: MODE_AUDIO or MODE_VIDEO
         self.__mode = self.MODE_AUDIO
-
-        # ID tags
-        self.__tags = {}
-
-        # URI of the current file
-        self.__uri = ""
         
-        # point to resume from
-        self.__suspension_point = None
-
-        # current position and total length
-        self.__position = (-1, -1)
-        
-        # whether we are at end-of-file
-        self.__eof_reached = False
-
-        # whether the player is currently playing
-        self.__playing = False
-        
-        # current volume level (0..100)
-        #self.__volume = 50
-        
-        self.__context_id = 0
-        
-        
+        # handler for watching the current position
         self.__position_handler = None
+        
+        # handler for detecting idle timeout
         self.__idle_handler = None
         
+        # analyzer for streams to check them before loading
         self.__stream_analyzer = StreamAnalyzer()
         
         
+        # build state machine
+        self.__STATE_UNLOADED = State("unloaded",
+                                      self.__on_enter_unloaded,
+                                      self.__on_leave_unloaded)
+        self.__STATE_LOADED =   State("loaded",
+                                      self.__on_enter_loaded)
+        self.__STATE_PLAYING =  State("playing",
+                                      self.__on_enter_playing,
+                                      self.__on_leave_playing)
+        self.__STATE_PAUSED =   State("paused",
+                                      self.__on_enter_paused,
+                                      self.__on_leave_paused)
+        self.__STATE_EOF =      State("eof",
+                                      self.__on_enter_eof,
+                                      self.__on_leave_eof)
+        self.__STATE_IDLE =     State("idle",
+                                      self.__on_enter_idle)
+        self.__STATE_ERROR =    State("error",
+                                      self.__on_enter_error)
+
+        no_error = lambda sm: sm.get_property("error") == self.NO_ERROR
+        with_error = lambda sm: sm.get_property("error") != self.NO_ERROR
+
+        self.__state_machine = StateMachine(self.__STATE_UNLOADED, [
+        
+            (self.__STATE_UNLOADED,        _INPUT_LOAD,
+             no_error,                     self.__STATE_LOADED),
+
+            (self.__STATE_UNLOADED,        _INPUT_PLAY,
+             no_error,                     self.__STATE_LOADED),
+
+            (self.__STATE_UNLOADED,        _INPUT_PAUSE,
+             no_error,                     self.__STATE_LOADED),
+             
+            (self.__STATE_LOADED,          None,
+             no_error,                     self.__STATE_PLAYING),
+            
+            (self.__STATE_LOADED,          None,
+             with_error,                   self.__STATE_ERROR),
+            
+            (self.__STATE_PLAYING,         _INPUT_PAUSE,
+             no_error,                     self.__STATE_PAUSED),
+
+            (self.__STATE_PLAYING,         _INPUT_STOP,
+             no_error,                     self.__STATE_PAUSED),
+
+            (self.__STATE_PLAYING,         _INPUT_SEEK,
+             no_error,                     self.__STATE_PLAYING),
+
+            (self.__STATE_PLAYING,         _INPUT_LOAD,
+             no_error,                     self.__STATE_LOADED),
+             
+            (self.__STATE_PLAYING,         _INPUT_EOF,
+             no_error,                     self.__STATE_EOF),
+             
+            (self.__STATE_PAUSED,          _INPUT_PAUSE,
+             no_error,                     self.__STATE_PLAYING),
+
+            (self.__STATE_PAUSED,          _INPUT_PLAY,
+             no_error,                     self.__STATE_PLAYING),
+
+            (self.__STATE_PAUSED,          _INPUT_SEEK,
+             no_error,                     self.__STATE_PLAYING),
+
+            (self.__STATE_PAUSED,          _INPUT_LOAD,
+             no_error,                     self.__STATE_LOADED),
+             
+            (self.__STATE_PAUSED,          _INPUT_IDLE,
+             no_error,                     self.__STATE_IDLE),
+             
+            (self.__STATE_IDLE,            None,
+             no_error,                     self.__STATE_UNLOADED),
+
+            (self.__STATE_EOF,             _INPUT_LOAD,
+             no_error,                     self.__STATE_LOADED),
+
+            (self.__STATE_EOF,             _INPUT_IDLE,
+             no_error,                     self.__STATE_UNLOADED),
+
+            (self.__STATE_ERROR,           None,
+             no_error,                     self.__STATE_UNLOADED),
+            
+        ])
+        
+        # current position in seconds (-1 means unknown)
+        self.__state_machine.set_property("position", 0)
+
+        # current length in seconds (-1 means unknown)
+        self.__state_machine.set_property("length", -1)
+        
+        # tags collected by the backend
+        self.__state_machine.set_property("tags", {})
+        
+        # the URI of the current file
+        self.__state_machine.set_property("uri", "")
+        
+        # the current context ID
+        self.__state_machine.set_property("context id", 0)
+
+        # point to resume from: (uri, seconds)
+        self.__state_machine.set_property("suspension point", None)
+        
+        # error code
+        self.__state_machine.set_property("error", self.NO_ERROR)
+        
         EventEmitter.__init__(self)
+        
+        
+    def __guard_error(self, sm):
+    
+        return sm.get_property("error", False)
+        
+        
+    def __on_enter_unloaded(self, sm):
+    
+        # make sure the backend is unloaded
+        self._close()
+        
+        
+    def __on_leave_unloaded(self, sm):
+    
+        # load backend
+        self._ensure_backend()
+        
+        
+    def __on_enter_loaded(self, sm):
+    
+        # clear tags
+        sm.get_property("tags").clear()
+                
+        # resume from suspension point
+        susp = sm.get_property("suspension point")
+        if (susp):
+            uri, pos = susp
+        else:
+            uri = sm.get_property("uri")
+            
+            # new context id is needed
+            sm.set_property("context id", self._new_context_id())
+            logging.debug("new context ID is %s", sm.get_property("context id"))
+
+        # load file
+        self._load(uri)
+        
+        
+    def __on_enter_playing(self, sm):
+    
+        # resume from suspension point and invalidate it
+        susp = sm.get_property("suspension point")
+        if (susp):
+            uri, pos = susp
+            sm.set_property("suspension point", None)
+            print "seek from", pos
+            self._seek(pos)
+        else:
+            self._play()
+    
+        sm.set_property("position", -1)
+    
+        # start playloop
+        if (not self.__position_handler):
+            self.__position_handler = \
+                  gobject.timeout_add(0, self.__update_position, 0, time.time())
+
+        # notify       
+        self.emit_event(self.EVENT_STATUS_CHANGED,
+                        sm.get_property("context id"), self.STATUS_PLAYING)
+
+
+        
+    def __on_leave_playing(self, sm):
+    
+        # stop playloop
+        if (self.__position_handler):
+            gobject.source_remove(self.__position_handler)
+        self.__position_handler = None
+
+
+    def __on_enter_eof(self, sm):
+
+        # start idle timeout
+        if (self.__idle_handler):
+            gobject.source_remove(self.__idle_handler)
+        self.__idle_handler = gobject.timeout_add(_IDLE_TIMEOUT,
+                                                  self.__on_idle_timeout)
+    
+        # notify
+        logging.info("reached end-of-file")
+        self.emit_event(self.EVENT_STATUS_CHANGED,
+                        sm.get_property("context id"), self.STATUS_EOF)
+
+
+    def __on_leave_eof(self, sm):
+    
+        # stop idle timeout
+        if (self.__idle_handler):
+            gobject.source_remove(self.__idle_handler)
+
+
+    def __on_enter_paused(self, sm):
+    
+        self._stop()
+    
+        # start idle timeout
+        if (self.__idle_handler):
+            gobject.source_remove(self.__idle_handler)
+        self.__idle_handler = gobject.timeout_add(_IDLE_TIMEOUT,
+                                                  self.__on_idle_timeout)
+        
+        # notify
+        self.emit_event(self.EVENT_STATUS_CHANGED,
+                        sm.get_property("context id"), self.STATUS_STOPPED)
+
+
+    def __on_leave_paused(self, sm):
+    
+        # stop idle timeout
+        if (self.__idle_handler):
+            gobject.source_remove(self.__idle_handler)
+        
+        
+    def __on_enter_idle(self, sm):
+    
+        # set suspension point
+        pos = sm.get_property("position")
+        total = sm.get_property("length")
+        uri = self.__state_machine.get_property("uri")
+        sm.set_property("suspension point", (uri, pos))
+        
+   
+    def __on_enter_error(self, sm):
+    
+        ctx_id = sm.get_property("context id")
+        err = sm.get_property("error")
+        sm.set_property("error", self.NO_ERROR)
+        self.emit_event(self.EVENT_ERROR, ctx_id, err)
         
         
     def connect_started(self, cb, *args):
@@ -201,69 +429,13 @@ class AbstractBackend(EventEmitter):
         pass
 
 
-    def __on_eof(self):
-        """
-        Reacts on end-of-file.
-        """
-
-        self.__playing = False
-        logging.info("reached end-of-file")
-        self.__eof_reached = True
-        #self.__suspension_point = (self.__uri, 0)
-        self.emit_event(self.EVENT_STATUS_CHANGED,
-                        self.__context_id, self.STATUS_EOF)
-
-
     def __on_idle_timeout(self):
         """
         Reacts on idle timeout and suspends the player.
         """
 
         logging.info("media backend idle timeout")
-        gobject.source_remove(self.__idle_handler)
-        self.__idle_handler = None
-        
-        self.__playing = False
-        pos, total = self.__position
-        self.__suspension_point = (self.__uri, pos)
-        logging.debug("setting suspension point: (%s, %d)", self.__uri, pos)
-        self._close()
-
-
-    def __resume_if_necessary(self):
-    
-        if (self.__suspension_point):
-            uri, pos = self.__suspension_point
-            #self.__suspension_point = None
-
-            self._ensure_backend()
-
-            self._load(uri)
-            #self._set_volume(self.__volume)
-            #gobject.idle_add(self._seek, pos)
-            #self._stop()
-            self.__position = (-1, -1)
-            self.__watch_progress()
-            
-        elif (self.__eof_reached):
-            self.__eof_reached = False
-            
-            self._load(self.__uri)
-            #self._set_volume(self.__volume)
-            self._stop()
-            self.__position = (-1, -1)
-            self.__watch_progress()
-        #end if
-
-
-    def __watch_progress(self):
-        """
-        Starts watching the time position progress.
-        """
-    
-        if (not self.__position_handler):
-            self.__position_handler = \
-                  gobject.timeout_add(0, self.__update_position, 0, time.time())
+        self.__state_machine.send_input(_INPUT_IDLE)
             
 
     def __update_position(self, beginpos, timestamp):
@@ -271,52 +443,37 @@ class AbstractBackend(EventEmitter):
         Regularly updates the position in the file.
         """
 
-        if (self.__playing):
-            pos, total = self.__position
+        ctx_id = self.__state_machine.get_property("context id")
+
+        pos = self.__state_machine.get_property("position")
+        total = self.__state_machine.get_property("length")
  
-            if (self.__suspension_point and pos > 0):
-                # seek to suspension point
-                url, pos = self.__suspension_point
-                self.__suspension_point = None
-                self._seek(pos)
-            #end if
-
-            if (pos < 3):
-                pos, total = self._get_position()
-                timestamp = time.time()
-                beginpos = pos
-            else:
-                # we don't ask the backend for position every time because
-                # this could be inefficient with some backends
-                pos = beginpos + (time.time() - timestamp)
-
-            self.__position = (pos, total)
-            if (pos >= 0):
-                self.emit_event(self.EVENT_POSITION_CHANGED,
-                                self.__context_id, pos, total)
-
-            if (total > 0 and total - pos < 1):
-                delay = max(0, int((total - pos) * 1000))
-            else:
-                delay = 500
-            self.__position_handler = \
-                  gobject.timeout_add(delay, self.__update_position,
-                                      beginpos, timestamp)
-
-            # detect EOF
-            if (pos >= 0 and self._is_eof()):
-                self.__on_eof()
-                
-
+        if (pos < 3):
+            pos, total = self._get_position()
+            timestamp = time.time()
+            beginpos = pos
         else:
-            # stop updating when not playing
-            self.__position_handler = None
+            # we don't ask the backend for position every time because
+            # this could be inefficient with some backends
+            pos = beginpos + (time.time() - timestamp)
 
-        # reset idle timeout
-        if (self.__idle_handler):
-            gobject.source_remove(self.__idle_handler)
-        self.__idle_handler = gobject.timeout_add(_IDLE_TIMEOUT,
-                                                  self.__on_idle_timeout)          
+        self.__state_machine.set_property("position", pos)
+        self.__state_machine.set_property("length", total)
+        if (pos != -1):
+            self.emit_event(self.EVENT_POSITION_CHANGED,
+                            ctx_id, pos, total)
+
+        if (total > 0 and total - pos < 1):
+            delay = max(0, int((total - pos) * 1000))
+        else:
+            delay = 500
+        self.__position_handler = \
+              gobject.timeout_add(delay, self.__update_position,
+                                  beginpos, timestamp)
+
+        # detect EOF
+        if (pos >= 0 and self._is_eof()):
+            self.__state_machine.send_input(_INPUT_EOF)
 
 
     def __parse_playlist(self, url):
@@ -399,29 +556,11 @@ class AbstractBackend(EventEmitter):
             else:
                 uri = ""
 
-        self._ensure_backend()
-        
-        self.__tags.clear()
-        self.__uri = uri
-        self.__playing = False
-        self.__eof_reached = False
-        self.__suspension_point = None
-       
-        self.stop()
+        self.__state_machine.set_property("suspension point", None)
+        self.__state_machine.set_property("uri", uri)
+        self.__state_machine.send_input(_INPUT_LOAD)
 
-        self._load(uri)
-        #self._set_volume(self.__volume)
-        
-        print "PLAYING", uri
-        self.play()
-
-        if (ctx_id != -1):
-            self.__context_id = ctx_id
-        else:
-            self.__context_id = self._new_context_id()
-        logging.debug("new context ID is %s", self.__context_id)
-
-        return self.__context_id
+        return self.__state_machine.get_property("context id")
 
 
     def _report_volume(self, vol):
@@ -442,7 +581,8 @@ class AbstractBackend(EventEmitter):
         @param ratio: the aspect ratio
         """
         
-        self.emit_event(self.EVENT_ASPECT_CHANGED, self.__context_id, ratio)
+        ctx_id = self.__state_machine.get_property("context id")
+        self.emit_event(self.EVENT_ASPECT_CHANGED, ctx_id, ratio)
 
 
     def _report_tag(self, tag, value):
@@ -450,18 +590,20 @@ class AbstractBackend(EventEmitter):
         The subclass calls this to report ID tags.
         """
         
-        self.__tags[tag] = value
+        ctx_id = self.__state_machine.get_property("context id")
+        tags = self.__state_machine.get_property("tags")
+        tags[tag] = value
         self.emit_event(self.EVENT_TAG_DISCOVERED,
-                        self.__context_id, self.__tags)
-    
+                        ctx_id, tags)
     
     def _report_connecting(self):
         """
         The subclass calls this to report connecting to a server.
         """
         
+        ctx_id = self.__state_machine.get_property("context id")
         self.emit_event(self.EVENT_STATUS_CHANGED,
-                        self.__context_id, self.STATUS_CONNECTING)
+                        ctx_id, self.STATUS_CONNECTING)
         
     
     def _report_buffering(self, value):
@@ -469,8 +611,9 @@ class AbstractBackend(EventEmitter):
         The subclass calls this to report stream buffering.
         """
         
+        ctx_id = self.__state_machine.get_property("context id")
         self.emit_event(self.EVENT_STATUS_CHANGED,
-                        self.__context_id, self.STATUS_BUFFERING)
+                        ctx_id, self.STATUS_BUFFERING)
         
         
     def _report_error(self, err, message):
@@ -480,14 +623,14 @@ class AbstractBackend(EventEmitter):
         @param err: error code
         """
         
-        self.stop()
-        self.emit_event(self.EVENT_ERROR, self.__context_id, err)
-        self.__eof_reached = True
+        self.__state_machine.set_property("error", err)
       
       
     def get_position(self):
     
-        return self.__position 
+        pos = self.__state_machine.get_property("position")
+        total = self.__state_machine.get_property("length")
+        return (pos, total)
         
         
     def play(self):
@@ -495,16 +638,7 @@ class AbstractBackend(EventEmitter):
         Starts playback.
         """
         
-        self.__resume_if_necessary()
-
-        if (not self.__playing):
-            self.__position = (-1, -1)
-            self._play()
-
-        self.__playing = True
-        self.emit_event(self.EVENT_STATUS_CHANGED,
-                        self.__context_id, self.STATUS_PLAYING)
-        self.__watch_progress()
+        self.__state_machine.send_input(_INPUT_PLAY)
         
         
     def pause(self):
@@ -512,19 +646,7 @@ class AbstractBackend(EventEmitter):
         Pauses playback or starts it if it was paused.
         """
 
-        self.__resume_if_necessary()
-
-        if (self.__playing):
-            self._stop()
-            self.__playing = False
-            self.emit_event(self.EVENT_STATUS_CHANGED,
-                            self.__context_id, self.STATUS_STOPPED)
-        else:
-            self._play()
-            self.__playing = True
-            self.emit_event(self.EVENT_STATUS_CHANGED,
-                            self.__context_id, self.STATUS_PLAYING)
-            self.__watch_progress()
+        self.__state_machine.send_input(_INPUT_PAUSE)
         
         
     def stop(self):
@@ -532,11 +654,7 @@ class AbstractBackend(EventEmitter):
         Stops playback.
         """
 
-        if (self.__playing):
-            self._stop()
-            self.emit_event(self.EVENT_STATUS_CHANGED,
-                            self.__context_id, self.STATUS_STOPPED)
-        self.__playing = False
+        self.__state_machine.send_input(_INPUT_STOP)
         
         
     def close(self):
@@ -544,9 +662,7 @@ class AbstractBackend(EventEmitter):
         Closes the player.
         """
     
-        self._close()
-        self.__context_id = 0
-        logging.info("%s stopped", `self`)
+        self.__state_machine.send_input(_INPUT_IDLE)
         
         
     def set_volume(self, volume):
@@ -556,8 +672,6 @@ class AbstractBackend(EventEmitter):
         @param volume: volume as a value between 0 and 100
         """
 
-        #self._ensure_backend()
-        #self.__volume = volume
         self._set_volume(volume)    
         
         
@@ -568,14 +682,9 @@ class AbstractBackend(EventEmitter):
         @param pos: position in seconds
         """
     
-        self.__resume_if_necessary()
-        
-        self.__position = (-1, -1)
         self._seek(pos)
-        self.__playing = True
-        self.emit_event(self.EVENT_STATUS_CHANGED,
-                        self.__context_id, self.STATUS_PLAYING)
-        self.__watch_progress()
+        self.__state_machine.set_property("position", -1)
+        self.__state_machine.send_input(_INPUT_SEEK)
         
         
     def seek_percent(self, percent):
@@ -585,7 +694,7 @@ class AbstractBackend(EventEmitter):
         @param percent: position in percents
         """
     
-        nil, total = self.__position
+        total = self.__state_machine.get_property("length")
         pos = total * percent / 100.0
         self.seek(pos)
 
@@ -597,6 +706,9 @@ class AbstractBackend(EventEmitter):
         @since: 0.96.5
         """
         
+        return
+        
+        """
         pos, total = self.__position
         if (pos > 0):
             print pos,
@@ -605,16 +717,20 @@ class AbstractBackend(EventEmitter):
             self.seek(pos)
             self.__position = self._get_position()
             print pos, self.__position
+            ctx_id = self.__state_machine.get_property("context id")
             self.emit_event(self.EVENT_POSITION_CHANGED,
-                            self.__context_id, *self.__position)
-            
+                            ctx_id, *self.__position)
+        """ 
         
     def forward(self):
         """
         Fast forwards the media.
         @since: 0.96.5
         """
+        
+        return
 
+        """
         print "FORWARD"
         pos, total = self.__position
         print pos, total
@@ -625,9 +741,10 @@ class AbstractBackend(EventEmitter):
             self.seek(pos)
             self.__position = self._get_position()
             print pos, self.__position
+            ctx_id = self.__state_machine.get_property("context id")
             self.emit_event(self.EVENT_POSITION_CHANGED,
-                            self.__context_id, *self.__position)
-
+                            ctx_id, *self.__position)
+        """
 
     def _get_icon(self):
         """
@@ -649,6 +766,8 @@ class AbstractBackend(EventEmitter):
     def _close(self):
         """
         To be implemented by the backend.
+        
+        This operation MUST BE a no-op if the backend is not loaded.
         """
         
         raise NotImplementedError
@@ -689,6 +808,8 @@ class AbstractBackend(EventEmitter):
     def _play(self):
         """
         To be implemented by the backend.
+        
+        This operation MUST BE a no-op if already playing.
         """
         
         raise NotImplementedError
@@ -697,6 +818,8 @@ class AbstractBackend(EventEmitter):
     def _stop(self):
         """
         To be implemented by the backend.
+        
+        This operation MUST BE a no-op if already paused.
         """
 
         raise NotImplementedError
@@ -705,6 +828,8 @@ class AbstractBackend(EventEmitter):
     def _seek(self, pos):
         """
         To be implemented by the backend.
+        
+        This operation is expected to resume playing if paused.
         """
     
         raise NotImplementedError
