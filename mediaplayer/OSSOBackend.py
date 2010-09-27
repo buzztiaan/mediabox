@@ -183,11 +183,12 @@ class OSSOBackend(AbstractBackend):
 
     def _close(self):
     
-        self.__current_player.stop()
-        self.__current_player = None
-        self.__mplayer = None
-        self.__vplayer = None
-        #os.system("killall osso-media-server")
+        if (self.__current_player):
+            self.__current_player.stop()
+            self.__current_player = None
+            self.__mplayer = None
+            self.__vplayer = None
+            #os.system("killall osso-media-server")
 
 
     def _seek(self, pos):
