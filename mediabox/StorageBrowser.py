@@ -1,5 +1,6 @@
 from MediaItem import MediaItem
 from ui.itemview.ThumbableGridView import ThumbableGridView
+from ui.Pixmap import Pixmap
 from ui.dialog import OptionDialog
 from ui.Pixmap import text_extents
 from theme import theme
@@ -8,12 +9,14 @@ from utils import logging
 
 import time
 import gobject
+import gtk
 
 
 _STATUS_OK = 0
 _STATUS_INCOMPLETE = 1
 _STATUS_INVALID = 2
 
+_DUMMY_CANVAS = Pixmap(None, 200, 200)
 
 class StorageBrowser(ThumbableGridView):
 
@@ -531,6 +534,7 @@ class StorageBrowser(ThumbableGridView):
         if (full_reload):
             # reload list
             self.clear_items()
+            self.invalidate()
             
         else:
             # don't reload list
@@ -538,12 +542,15 @@ class StorageBrowser(ThumbableGridView):
 
         # animate
         if (direction == self.GO_CHILD):
-            self.fx_slide_left()
+            #self.fx_slide_left()
+            pass
         elif (direction == self.GO_PARENT):
-            self.fx_slide_right()
+            #self.fx_slide_right()
+            pass
         else:
             #self.render()
             pass
+        self.render()
 
         # load remaining items
         loading_status = self.__path_stack[-1][1]
@@ -598,17 +605,18 @@ class StorageBrowser(ThumbableGridView):
             #end if
 
             # give visual feedback while loading the visible part of a folder
-            if (len(entries) <= 12): #not f or len(entries) == 12):
+            if (len(entries) == 12 or not f): #not f or len(entries) == 12):
                 self.invalidate()
                 self.render()
+                while (gtk.events_pending()):
+                    gtk.main_iteration(False)
             #end if
 
             #"""
             # don't block UI while loading non-local folders
-            if (time.time() > open_time + 2):
-                import gtk
+            if (time.time() > open_time + 3):
                 while (gtk.events_pending()):
-                    gtk.main_iteration(False)
+                       gtk.main_iteration(False)
             #"""
 
             if (not f):
@@ -649,10 +657,13 @@ class StorageBrowser(ThumbableGridView):
     
         self.append_item(item)
 
-        idx = len(self.get_items()) - 1
+        l = len(self.get_items())
+        idx = l - 1
 
         # hilight currently selected file
         if (self.__hilighted_file == f):
             self.set_hilight(idx)
         #self.invalidate_item(idx)
+
+        item.render_at(_DUMMY_CANVAS, 0, 0)
 

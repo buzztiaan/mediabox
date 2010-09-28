@@ -106,6 +106,9 @@ class Navigator(Component, Window):
         # scheduler for creating thumbnails one by one
         self.__tn_scheduler = ItemScheduler()
         
+        # whether we are shutting down
+        self.__is_shutdown = False
+        
     
         Component.__init__(self)
         Window.__init__(self, Window.TYPE_TOPLEVEL)
@@ -734,6 +737,18 @@ class Navigator(Component, Window):
         #end if
 
 
+    def __save_state(self):
+
+        # save state for next start
+        path = [ f.full_path for f in self.__browser.get_path_stack() ]
+        play_files = [ f.full_path for f in self.__play_files ]
+        
+        state.save(_STATEFILE, path,
+                               play_files,
+                               self.__play_folder and self.__play_folder.full_path or "",
+                               self.__current_file and self.__current_file.full_path or "")
+
+
     def render_this(self):
     
         w, h = self.get_size()
@@ -745,6 +760,23 @@ class Navigator(Component, Window):
         if (self.__arr.is_visible()):
             Window.render_this(self)
             
+        elif (self.__is_shutdown):
+            x, y = self.get_screen_pos()
+            screen = self.get_screen()
+        
+            screen.fill_area(x, y, w, h, theme.color_mb_background)
+            screen.draw_centered_text(values.NAME + " " + values.VERSION,
+                                      theme.font_mb_headline,
+                                      x, h / 2 - 30, w, 30, theme.color_mb_text)
+            screen.draw_centered_text(values.COPYRIGHT,
+                                      theme.font_mb_plain,
+                                      x, h / 2, w, 30, theme.color_mb_text)
+            screen.draw_centered_text("Exiting...",
+                                      theme.font_mb_plain,
+                                      x, h - 80, w, 20, theme.color_mb_text)
+            screen.fit_pixbuf(theme.mb_logo,
+                              w - 120, h - 120, 120, 120)
+
         else:
             x, y = self.get_screen_pos()
             screen = self.get_screen()
@@ -818,21 +850,17 @@ class Navigator(Component, Window):
             f = self.call_service(msgs.CORE_SVC_GET_FILE,
                                   "adhoc://" + File.pack_path("/", values.uri,
                                                               mimetype))
-            print f
             self.__load_file(f, True)
         #end if
 
     
     def handle_COM_EV_APP_SHUTDOWN(self):
 
-        # save state for next start
-        path = [ f.full_path for f in self.__browser.get_path_stack() ]
-        play_files = [ f.full_path for f in self.__play_files ]
+        self.__is_shutdown = True
+        self.render()
         
-        state.save(_STATEFILE, path,
-                               play_files,
-                               self.__play_folder and self.__play_folder.full_path or "",
-                               self.__current_file and self.__current_file.full_path or "")
+        gobject.idle_add(self.__save_state)
+
 
 
     def handle_CORE_EV_DEVICE_ADDED(self, ident, device):

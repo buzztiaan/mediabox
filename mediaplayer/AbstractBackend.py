@@ -130,6 +130,9 @@ class AbstractBackend(EventEmitter):
 
             (self.__STATE_UNLOADED,        _INPUT_PAUSE,
              no_error,                     self.__STATE_LOADED),
+
+            (self.__STATE_UNLOADED,        None,
+             with_error,                   self.__STATE_ERROR),
              
             (self.__STATE_LOADED,          None,
              no_error,                     self.__STATE_PLAYING),
@@ -151,6 +154,9 @@ class AbstractBackend(EventEmitter):
              
             (self.__STATE_PLAYING,         _INPUT_EOF,
              no_error,                     self.__STATE_EOF),
+
+            (self.__STATE_PLAYING,         None,
+             with_error,                   self.__STATE_ERROR),
              
             (self.__STATE_PAUSED,          _INPUT_PAUSE,
              no_error,                     self.__STATE_PLAYING),
@@ -556,6 +562,7 @@ class AbstractBackend(EventEmitter):
             else:
                 uri = ""
 
+        print "LOAD", uri
         self.__state_machine.set_property("suspension point", None)
         self.__state_machine.set_property("uri", uri)
         self.__state_machine.send_input(_INPUT_LOAD)
@@ -624,6 +631,7 @@ class AbstractBackend(EventEmitter):
         """
         
         self.__state_machine.set_property("error", err)
+        self.__state_machine.send_input(None)
       
       
     def get_position(self):
@@ -685,6 +693,11 @@ class AbstractBackend(EventEmitter):
         self._seek(pos)
         self.__state_machine.set_property("position", -1)
         self.__state_machine.send_input(_INPUT_SEEK)
+        
+        ctx_id = self.__state_machine.get_property("context id")
+        total = self.__state_machine.get_property("length")
+        self.emit_event(self.EVENT_POSITION_CHANGED,
+                        ctx_id, pos, total)
         
         
     def seek_percent(self, percent):

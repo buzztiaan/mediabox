@@ -122,7 +122,7 @@ class GstBackend(AbstractBackend):
             #    print fmt, start, stop, total
 
         elif (t == gst.MESSAGE_ERROR):
-            self.__player.set_state(gst.STATE_NULL)
+            self.__player.set_state(gst.STATE_READY)
             err, debug = message.parse_error()
             logging.error("GStreamer Error:\n%s\n%s", err, debug)
             self._report_error(self.ERR_INVALID, "")
@@ -234,21 +234,24 @@ class GstBackend(AbstractBackend):
     def _close(self):
     
         if (self.__player):
-            self._stop()
+            self.__player.set_state(gst.STATE_NULL)
+            self.__player = None
 
 
     def _seek(self, pos):
     
-        self.__pos_time = (0, 0, 0)
-        state = self.__player.get_state()[1]
-        if (state == gst.STATE_PLAYING):
-            self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
-                                      gst.SEEK_FLAG_FLUSH,
-                                      pos * 1000000000)
-        else:
-            self.__player.set_state(gst.STATE_PLAYING)
-            self.__to_seek = pos
-
+        if (self.__player):
+            self.__pos_time = (0, 0, 0)
+            state = self.__player.get_state()[1]
+            if (state == gst.STATE_PLAYING):
+                self.__player.seek_simple(gst.Format(gst.FORMAT_TIME),
+                                          gst.SEEK_FLAG_FLUSH,
+                                          pos * 1000000000)
+            else:
+                self.__player.set_state(gst.STATE_PLAYING)
+                self.__to_seek = pos
+        #end if
+        
 
     def _get_position(self):
 

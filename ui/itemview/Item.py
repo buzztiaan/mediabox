@@ -3,7 +3,7 @@ from ui.Pixmap import Pixmap
 
 
 # maximum cache size
-_CACHE_SIZE = 50
+_CACHE_SIZE = 180
 
 # list of tuples (item, pixmap)
 _CACHE = []

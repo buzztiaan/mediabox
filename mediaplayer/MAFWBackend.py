@@ -279,7 +279,6 @@ class MAFWBackend(AbstractBackend):
 
         if (self.__renderer):
             self.__is_eof = False
-            self.__current_position = -1
             self.__duration = -1
             self.__mafw.mafw_renderer_play_uri(hash(self.__renderer),
                                                uri,
@@ -347,7 +346,6 @@ class MAFWBackend(AbstractBackend):
     def _get_position(self):
         
         self.__current_position = -1
-        self.__duration = -1
         self.__mafw.mafw_renderer_get_position(hash(self.__renderer),
                                                self.__position_cb,
                                                None)

@@ -142,9 +142,28 @@ class ItemView(Widget):
         @param amount: shifting amount
         """
         
-        item = self.__items.pop(pos)
-        self.__items.insert(pos + amount, item)
-        self.emit_event(self.EVENT_ITEM_SHIFTED, pos, amount)
+        if (self.__filter_func):
+            items = self.get_items()
+            item = items[pos]
+            other_item = items[pos + amount]
+
+            # pos is on filtered list, find origpos
+            orig_pos = self.__items.index(item)
+            orig_amount = self.__items.index(other_item) - orig_pos
+        else:
+            orig_pos = pos
+            orig_amount = amount
+
+        item = self.__items.pop(orig_pos)
+        self.__items.insert(orig_pos + orig_amount, item)
+
+        # manipulate the cache instead of invalidating; this will perform better
+        # with looooong lists
+        if (self.__filter_func and self.__filter_cache):
+            item = self.__filter_cache.pop(pos)
+            self.__filter_cache.insert(pos + amount, item)
+            
+        self.emit_event(self.EVENT_ITEM_SHIFTED, orig_pos, orig_amount)
 
 
     def count_items(self):
@@ -182,6 +201,7 @@ class ItemView(Widget):
         """
     
         return self.get_items()[pos]
+        #return self.__items[pos]
 
 
     def set_filter(self, filter_func = None):
