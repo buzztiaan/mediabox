@@ -2,7 +2,9 @@ from com import Component, FileInspector, msgs
 from utils import mimetypes
 from utils import logging
 from mediabox import values
+
 import os
+import time
 
 
 _INDEX_FILE = os.path.join(values.USER_DIR, "files.idx")
@@ -134,6 +136,8 @@ class FileIndex(Component):
         if (self.__is_dirty):
             self.__save_index()
     
+        now = time.time()
+    
         # normalize argument strings (replace unsafe chars)
         qas = []
         for q in query_args:
@@ -146,7 +150,7 @@ class FileIndex(Component):
         if (qas):
             qs = qs % qas
 
-        print "QUERY:", qs
+        print "FILEINDEX QUERY:", qs
 
         wrapped_qs = [qs]
         filter_props = self.__parse_filter(wrapped_qs)
@@ -159,9 +163,11 @@ class FileIndex(Component):
         #end for
         
         if (len(out) < 100):
-            print "RESULT:", out
+            print "RESULT:", out, "(%d items in %02f seconds)" \
+                  % (len(out), time.time() - now)
         else:
-            print "RESULT: ..."
+            print "RESULT: ... (%d items in %02f seconds)" \
+                  % (len(out), time.time() - now)
             
         return out
         

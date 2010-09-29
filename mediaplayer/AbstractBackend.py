@@ -512,7 +512,7 @@ class AbstractBackend(EventEmitter):
         #end for
 
         return uris
-
+        
         
     def set_window(self, xid):
         """
@@ -541,7 +541,7 @@ class AbstractBackend(EventEmitter):
         return self.__load(uri)
 
         
-    def __load(self, uri, ctx_id = -1):
+    def __load(self, uri):  #, ctx_id = -1):
         """
         Loads and plays the given file.
         

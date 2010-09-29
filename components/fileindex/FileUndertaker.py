@@ -1,7 +1,9 @@
 from com import Component, msgs
+from mediabox import config
 
 import os
 import time
+import threading
 import gobject
 
 
@@ -27,34 +29,35 @@ class FileUndertaker(Component):
 
         corpses = self.call_service(msgs.FILEINDEX_SVC_QUERY,
                                     "File.Path of all")
-        gobject.timeout_add(1500, self.__remove_corpse, corpses)
-        return False
+        
+        t = threading.Thread(target = self.__remove_corpse, args = [corpses])
+        t.setDaemon(True)
+        t.start()    
         
 
     def __remove_corpse(self, corpses):
 
-        now = time.time()
-        while (time.time() < now + 0.003 and corpses):
+        def remove(path, lock):
+            self.call_service(msgs.FILEINDEX_SVC_REMOVE, path)
+            lock.release()
+            
+        lock = threading.Lock()
+        while (corpses):        
             path = corpses.pop()[0]
             if (not self.__exists(path)):
-                self.call_service(msgs.FILEINDEX_SVC_REMOVE, path)
+                lock.acquire()
+                gobject.idle_add(remove, path, lock)
+                time.sleep(0.1)
         #end while
-        
-        if (corpses):
-            return True
-        else:
-            return False
 
 
     def handle_COM_EV_APP_STARTED(self):
 
-        #gobject.timeout_add(1000, self.__remove_corpses)
-        #self.emit_message(msgs.UI_ACT_SHOW_INFO,
-        #                  "not invoking undertaker")
-        pass
-
+        #if (config.scan_at_startup()):
+        self.__remove_corpses()
+            
 
     def handle_FILEINDEX_ACT_BURY(self):
 
-        gobject.idle_add(self.__remove_corpses)
+        self.__remove_corpses()
 

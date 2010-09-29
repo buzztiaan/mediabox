@@ -104,8 +104,9 @@ class MediaItem(Item):
         else:
             pmap = self.__render_normal()
 
-        # copy to the given canvas
-        cnv.copy_buffer(pmap, 0, 0, x, y, w, h)
+        # copy to the given canvas (may be None for just prerendering to cache)
+        if (cnv):
+            cnv.copy_buffer(pmap, 0, 0, x, y, w, h)
     
             
     def __render_compact(self):

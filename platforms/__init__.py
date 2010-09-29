@@ -39,19 +39,19 @@ def _check_maemo5():
 
 def _check_mer():
 
-    v = os.system("dpkg -l | grep maemo-launcher | grep mer >/dev/null")
+    v = os.system("dpkg -l 2>&1 | grep maemo-launcher | grep mer >/dev/null")
     return (v == 0)
     
     
 def _check_meego_netbook():
 
-    v = os.system("cat /etc/meego-release | grep netbook >/dev/null")
+    v = os.system("cat /etc/meego-release 2>&1 | grep netbook >/dev/null")
     return (v == 0)
     
     
 def _check_htpc():
 
-    v = os.system("lsmod | grep appleir >/dev/null")
+    v = os.system("lsmod 2>&1 | grep appleir >/dev/null")
     return (v == 0)
 
 

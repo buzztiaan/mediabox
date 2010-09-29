@@ -16,7 +16,6 @@ _STATUS_OK = 0
 _STATUS_INCOMPLETE = 1
 _STATUS_INVALID = 2
 
-_DUMMY_CANVAS = Pixmap(None, 200, 200)
 
 class StorageBrowser(ThumbableGridView):
 
@@ -39,6 +38,10 @@ class StorageBrowser(ThumbableGridView):
 
         # list of tuples: (path, status)
         self.__path_stack = []
+
+        # queue of items for prerendering
+        self.__items_to_prerender = []
+        self.__prerender_handler = None
 
         # the currently hilighted file
         self.__hilighted_file = None
@@ -137,6 +140,7 @@ class StorageBrowser(ThumbableGridView):
                          theme.color_list_message)
 
 
+    """
     def __render_search_box(self, screen):
 
         if (not self.__search_term): return
@@ -160,17 +164,10 @@ class StorageBrowser(ThumbableGridView):
         
         screen.draw_pixbuf(theme.mb_list_top, 0, 0, w, 32, True)
         screen.draw_pixbuf(theme.mb_list_bottom, 0, h - 32, w, 32, True)
-        
+    """
+     
 
     def __on_item_clicked(self, item):
-    
-        #idx = self.get_items().index(item)
-    
-        #self.set_cursor(idx)
-        #self.set_hilight(idx)
-        #self.invalidate_item(idx)
-        #self.invalidate()
-        #self.render()
 
         f = item.get_file()
         
@@ -216,6 +213,21 @@ class StorageBrowser(ThumbableGridView):
     
         folder = self.get_current_folder()
         folder.shift_file(pos, amount)
+
+
+    def __prerender_item(self):
+        """
+        Takes an item from the queue and prerenders it.
+        """
+        
+        if (self.__items_to_prerender):
+            item = self.__items_to_prerender.pop(0)
+            #print "prerendering", item.get_name()
+            item.render_at(None, 0, 0)
+            return True
+        else:
+            self.__prerender_handler = None
+            return False
 
         
     def set_root_device(self, device):
@@ -525,6 +537,7 @@ class StorageBrowser(ThumbableGridView):
         self.switch_item_set(folder.full_path)
         self.set_cursor(-1)
         self.emit_event(self.EVENT_FOLDER_BEGIN, folder)
+        self.__items_to_prerender = []
         
         if (folder.folder_flags & folder.ITEMS_UNSORTED):
             self.set_letter_enabled(False)
@@ -559,6 +572,9 @@ class StorageBrowser(ThumbableGridView):
             self.complete_current_folder()
         else:
             self.emit_event(self.EVENT_FOLDER_COMPLETE, folder)
+
+        if (not self.__prerender_handler):
+            self.__prerender_handler = gobject.idle_add(self.__prerender_item)
 
         # now is a good time to collect garbage
         #import gc; gc.collect()    
@@ -608,13 +624,14 @@ class StorageBrowser(ThumbableGridView):
             if (len(entries) == 12 or not f): #not f or len(entries) == 12):
                 self.invalidate()
                 self.render()
-                while (gtk.events_pending()):
-                    gtk.main_iteration(False)
+                #while (gtk.events_pending()):
+                #    gtk.main_iteration(False)
             #end if
 
             #"""
             # don't block UI while loading non-local folders
-            if (time.time() > open_time + 3):
+            t = int((time.time() - open_time) * 10)
+            if (t % 2 == 0): #time.time() > open_time + 3):
                 while (gtk.events_pending()):
                        gtk.main_iteration(False)
             #"""
@@ -665,5 +682,10 @@ class StorageBrowser(ThumbableGridView):
             self.set_hilight(idx)
         #self.invalidate_item(idx)
 
-        item.render_at(_DUMMY_CANVAS, 0, 0)
+        # prerender some of the items now, some later; this should
+        # distribute CPU load and disk IO
+        #if (l % 3 == 0):
+        #    item.render_at(None, 0, 0)
+        #else:
+        self.__items_to_prerender.append(item)
 
