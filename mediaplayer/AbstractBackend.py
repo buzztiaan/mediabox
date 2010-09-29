@@ -267,8 +267,8 @@ class AbstractBackend(EventEmitter):
             self.__position_handler = \
                   gobject.timeout_add(0, self.__update_position, 0, time.time())
 
-        # notify       
-        self.emit_event(self.EVENT_STATUS_CHANGED,
+        # notify
+        gobject.timeout_add(0, self.emit_event, self.EVENT_STATUS_CHANGED,
                         sm.get_property("context id"), self.STATUS_PLAYING)
 
 
