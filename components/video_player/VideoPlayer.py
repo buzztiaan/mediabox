@@ -408,17 +408,11 @@ class VideoPlayer(Player):
             self.__player.stop()
 
 
-    """
-    def handle_ASR_EV_LANDSCAPE(self):
+    def handle_MEDIA_ACT_SEEK(self, pos):
+    
+        if (self.__player and self.is_player_active()):
+            self.__player.seek(pos)
 
-        self.__screen.set_visible(True)
-        self.render()
-        
-    def handle_ASR_EV_PORTRAIT(self):
-
-        self.__screen.set_visible(False)
-        self.render()
-    """
         
     def handle_INPUT_EV_FULLSCREEN(self, pressed):
 

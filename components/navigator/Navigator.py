@@ -603,8 +603,6 @@ class Navigator(Component, Window):
 
             # update set of play files
             self.__current_file = f
-            self.__browser.hilight_file(f)
-            self.__browser.render()
 
             folder = self.__browser.get_current_folder()
             if (is_manual and folder != self.__play_folder):
@@ -837,7 +835,8 @@ class Navigator(Component, Window):
                                                     current_file)
             
         except:
-            pass
+            logging.warning("could not restore navigator state:\n%s",
+                            logging.stacktrace())
         
     
         self.__arr.set_visible(True)
@@ -859,7 +858,8 @@ class Navigator(Component, Window):
         self.__is_shutdown = True
         self.render()
         
-        gobject.idle_add(self.__save_state)
+        while (gtk.events_pending()): gtk.main_iteration(True)
+        self.__save_state()
 
 
 
@@ -926,10 +926,13 @@ class Navigator(Component, Window):
 
 
     def handle_MEDIA_EV_LOADED(self, player, f):
-    
+        
         if (not self.__now_playing.is_visible()):
             self.__update_layout()
-            self.render()
+    
+        self.__browser.hilight_file(f)
+        self.__browser.render()
+
                     
 
     def handle_MEDIA_ACT_LOAD_URI(self, uri, mimetype):

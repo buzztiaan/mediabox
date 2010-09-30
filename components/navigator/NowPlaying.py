@@ -29,11 +29,17 @@ class NowPlaying(Widget, Component):
     def __on_click(self):
     
         if (self.__prepared_file):
-            self.emit_message(msgs.MEDIA_ACT_LOAD, self.__prepared_file)
-            self.__prepared_file = None
+            self.__start_prepared()
+            
         elif (self.__title):
             self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "player.PlayerWindow")
 
+
+    def __start_prepared(self):
+
+        self.emit_message(msgs.MEDIA_ACT_LOAD, self.__prepared_file)
+        self.__prepared_file = None
+        self.emit_message(msgs.UI_ACT_SHOW_DIALOG, "player.PlayerWindow")
         
         
     def set_size(self, w, h):
@@ -95,6 +101,11 @@ class NowPlaying(Widget, Component):
         #    self.__buffer.draw_pixbuf(theme.mb_now_playing,
         #                              w - 64, (h - 64) / 2)
 
+
+    def handle_MEDIA_ACT_PLAY(self):
+    
+        if (self.__prepared_file):
+            self.__start_prepared()
 
 
     def handle_MEDIA_ACT_PREPARE(self, f):

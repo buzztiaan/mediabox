@@ -128,6 +128,9 @@ class AbstractBackend(EventEmitter):
             (self.__STATE_UNLOADED,        _INPUT_PLAY,
              no_error,                     self.__STATE_LOADED),
 
+            (self.__STATE_UNLOADED,        _INPUT_SEEK,
+             no_error,                     self.__STATE_LOADED),
+
             (self.__STATE_UNLOADED,        _INPUT_PAUSE,
              no_error,                     self.__STATE_LOADED),
 
@@ -176,10 +179,10 @@ class AbstractBackend(EventEmitter):
             (self.__STATE_IDLE,            None,
              no_error,                     self.__STATE_UNLOADED),
 
-            (self.__STATE_EOF,             _INPUT_LOAD,
-             no_error,                     self.__STATE_LOADED),
+            #(self.__STATE_EOF,             _INPUT_LOAD,
+            # no_error,                     self.__STATE_LOADED),
 
-            (self.__STATE_EOF,             _INPUT_IDLE,
+            (self.__STATE_EOF,             None,
              no_error,                     self.__STATE_UNLOADED),
 
             (self.__STATE_ERROR,           None,
@@ -239,10 +242,6 @@ class AbstractBackend(EventEmitter):
             uri, pos = susp
         else:
             uri = sm.get_property("uri")
-            
-            # new context id is needed
-            sm.set_property("context id", self._new_context_id())
-            logging.debug("new context ID is %s", sm.get_property("context id"))
 
         # load file
         self._load(uri)
@@ -563,6 +562,9 @@ class AbstractBackend(EventEmitter):
                 uri = ""
 
         print "LOAD", uri
+        # new context id is needed
+        self.__state_machine.set_property("context id", self._new_context_id())
+
         self.__state_machine.set_property("suspension point", None)
         self.__state_machine.set_property("uri", uri)
         self.__state_machine.send_input(_INPUT_LOAD)

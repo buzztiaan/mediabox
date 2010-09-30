@@ -168,6 +168,14 @@ class File(object):
         self.child_count = 0
 
 
+    def __eq__(self, other):
+    
+        if (not other):
+            return False
+        else:
+            return self.full_path == other.full_path
+
+
     def __cmp__(self, other):
     
         if (other):
@@ -184,7 +192,7 @@ class File(object):
         @return: readable representation
         """
     
-        return "<" + self.full_path + ">"
+        return "<" + self.name + "> (" + str(hash(self)) + ")"
 
 
     def __get_full_path(self):

@@ -27,7 +27,6 @@ class Resumer(Component):
     
         if (f != self.__current_file):
             self.__current_file = f
-            self.__to_seek = 0
         
         
     def handle_MEDIA_EV_POSITION(self, pos, total):
