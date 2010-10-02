@@ -3,6 +3,7 @@ import commands
 import fcntl
 import socket
 import struct
+import threading
 
 
 class URL(object):
@@ -65,4 +66,15 @@ def get_ip():
         0x8915,  # SIOCGIFADDR
         struct.pack('256s', iface[:15])
     )[20:24])
+
+
+def send_datagram(host, port, data):
+
+    def do_send(host, port, data):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(data, (host, port))
+        
+    t = threading.Thread(target = do_send, args = [host, port, data])
+    t.setDaemon(True)
+    t.start()
 

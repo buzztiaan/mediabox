@@ -9,8 +9,8 @@ import gobject
 import time
 
 
-_METHODS_WITHOUT_PAYLOAD = ["GET", "NOTIFY", "MSEARCH"]
-_SERVER_AGENT = "Embedded HTTP Server/1.0"
+_METHODS_WITHOUT_PAYLOAD = ["GET", "NOTIFY", "M-SEARCH", "SUBSCRIBE"]
+_SERVER_AGENT = "Embedded HTTP Server/1.0.1"
 
 
 class _Listener(object):
@@ -48,14 +48,42 @@ class HTTPServer(Component):
         return True
 
 
+    def __listen_for_dgram(self, addr, port, sock, owner):
+    
+        # table: src_addr -> data
+        datas = {}
+        
+        while ((addr, port) in self.__listeners):
+            data, src_addr = sock.recvfrom(1024)
+
+            print "received datagram from %s" % str(src_addr)
+            #print len(data), data
+
+
+            if (not src_addr in datas):
+                datas[src_addr] = ""
+
+            if (data):
+                datas[src_addr] += data
+                
+            processed = self.__process_data(datas[src_addr])
+            if (processed):
+                method, path, protocol, headers, body = processed            
+                self.__emit_dgram(owner, sock, method, path, protocol, headers, body)
+                del datas[src_addr]
+            #end if
+            
+        #end while
+
+
     def __serve_client(self, owner, cnx):
         
         data = ""
-        method = ""
-        path = ""
-        protocol = ""
-        headers = {}
-        body = ""
+        #method = ""
+        #path = ""
+        #protocol = ""
+        #headers = {}
+        #body = ""
         
         content_length = -1
         
@@ -63,41 +91,52 @@ class HTTPServer(Component):
         while (receiving):
             try:
                 data += cnx.recv(4096)
+                print "DATA", data
             except:
                 receiving = False
             
             if (not data):
                 receiving = False
             
-            # check headers
-            if (not headers and "\r\n\r\n" in data):
-                idx = data.find("\r\n\r\n")
-                hdata = data[:idx]
-                method, path, protocol, headers = self.__parse_headers(hdata)
-
-                content_length = int(headers.get("CONTENT-LENGTH", "-1"))
-                data = data[idx + 4:]
-                print headers
-                
-                # abort if there's no payload to expect
-                if (method in _METHODS_WITHOUT_PAYLOAD or content_length == 0):
-                    receiving = False
-                
-            else:
-                body += data
-                data = ""
-            #end if
-            
-            # check content length of body
-            if (content_length != -1 and len(body) >= content_length):
+            processed = self.__process_data(data)
+            if (processed):
+                method, path, protocol, headers, body = processed
+                self.__emit(owner, cnx, method, path, protocol, headers, body)
                 receiving = False
+            #end if
 
         #end while
 
-        if (headers.get("TRANSFER-ENCODING", "").upper() == "CHUNKED"):
-            body = self.__unchunk(body)
-            
-        self.__emit(owner, cnx, method, path, protocol, headers, body)
+
+    def __process_data(self, data):
+    
+        if (not "\r\n\r\n" in data): return None
+        
+        complete = False
+        
+        idx = data.find("\r\n\r\n")
+        hdata = data[:idx]
+        body = data[idx + 4:]
+        method, path, protocol, headers = self.__parse_headers(hdata)
+
+        content_length = int(headers.get("CONTENT-LENGTH", "-1"))
+        
+        # abort if there's no payload to expect
+        if (method in _METHODS_WITHOUT_PAYLOAD or 
+            method.startswith("HTTP/") or content_length == 0):
+            complete = True
+
+        # check content length of body
+        elif (content_length != -1 and len(body) >= content_length):
+            complete = True
+
+        if (complete):
+            if (headers.get("TRANSFER-ENCODING", "").upper() == "CHUNKED"):
+                body = self.__unchunk(body)
+    
+            return (method, path, protocol, headers, body)
+        else:
+            return None
 
 
     def __send_response(self, cnx, code, headers, body):
@@ -209,6 +248,17 @@ class HTTPServer(Component):
                             owner, request)
 
 
+    def __emit_dgram(self, owner, cnx, method, path, protocol, headers, body):
+    
+        def responder(code, headers, body):
+            raise IOError("cannot send response data on UDP")
+    
+        request = HTTPRequest(method, path, protocol, headers, body, responder)
+        gobject.timeout_add(0, self.emit_message,
+                            msgs.HTTPSERVER_EV_REQUEST,
+                            owner, request)
+
+
     def handle_HTTPSERVER_SVC_BIND(self, owner, addr, port):
     
         if ((addr, port) in self.__listeners):
@@ -230,16 +280,44 @@ class HTTPServer(Component):
                                        
         self.__listeners[(addr, port)] = _Listener(owner, sock, iowatch)
         
-        logging.info("bound HTTP server to %s:%d", addr, port)
+        logging.info("bound HTTP server to TCP %s:%d", addr, port)
         
         return ""
+
+
+    def handle_HTTPSERVER_SVC_BIND_UDP(self, owner, addr, port):
+    
+        if ((addr, port) in self.__listeners):
+            return "address already in use"
+            
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
+                                 socket.IPPROTO_UDP)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind((addr, port))
+        except:
+            logging.error("error binding HTTP server to %s:%d\n%s", addr, port,
+                          logging.stacktrace())
+            return "could not bind to address"
         
+        t = threading.Thread(target = self.__listen_for_dgram, 
+                             args = [addr, port, sock, owner])
+        t.setDaemon(True)
+        t.start()
+                                       
+        self.__listeners[(addr, port)] = _Listener(owner, sock, None)
+        
+        logging.info("bound HTTP server to UDP %s:%d", addr, port)
+        
+        return ""
+      
         
     def handle_HTTPSERVER_SVC_UNBIND(self, owner, addr, port):
     
         listener = self.__listeners.get((addr, port))
         if (listener and owner == listener.owner):
-            gobject.source_remove(listener.iowatch)
+            if (listener.iowatch):
+                gobject.source_remove(listener.iowatch)
             listener.sock.close()
             del self.__listeners[(addr, port)]
 

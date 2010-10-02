@@ -67,6 +67,15 @@ class HTTPRequest(object):
         self.__responder(code, headers, body)
 
 
+    def send_ok(self):
+
+        code = "HTTP/1.1 200 OK"
+        headers = {}
+        headers["CONNECTION"] = "close"
+        
+        self.__responder(code, headers, "")        
+
+
     def send_html(self, html, charset = "utf-8"):
     
         code = "HTTP/1.1 200 OK"
@@ -76,6 +85,17 @@ class HTTPRequest(object):
         headers["CONNECTION"] = "close"
         
         self.__responder(code, headers, html)
+
+
+    def send_xml(self, xml, charset = "utf-8"):
+    
+        code = "HTTP/1.1 200 OK"
+        headers = {}
+        headers["CONTENT-LENGTH"] = str(len(xml))
+        headers["CONTENT-TYPE"] = "text/xml; charset=%s" % charset
+        headers["CONNECTION"] = "close"
+        
+        self.__responder(code, headers, xml)
 
 
     def send_file(self, fd, name, mimetype):
@@ -99,6 +119,16 @@ class HTTPRequest(object):
         headers["CONNECTION"] = "close"
         
         self.__responder("HTTP/1.1 " + code, headers, html)
+
+
+    def send_xml_error(self, code, xml, charset = "utf-8"):
+    
+        headers = {}
+        headers["CONTENT-LENGTH"] = str(len(xml))
+        headers["CONTENT-TYPE"] = "text/xml; charset=%s" % charset
+        headers["CONNECTION"] = "close"
+        
+        self.__responder("HTTP/1.1 " + code, headers, xml)
 
     
     def send_redirect(self, location):

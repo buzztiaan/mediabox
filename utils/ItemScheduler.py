@@ -99,20 +99,21 @@ class ItemScheduler(object):
         self.__items.append((item, args))
 
         
-    def priorize(self, item):
+    def priorize(self, items):
         """
-        Priorizes the given item. The next iteration will handle the given
-        item.
+        Priorizes the given items. The next iteration will start handling these
+        items.
         
-        @param item: object
+        @param items: list of object
         """
         
-        pos = 0
-        for i in self.__items:
-            if (i[0] is item):
-                self.__priorized_pos = pos
-                break
-            else:
-                pos += 1
+        for item in items:
+            pos = 0
+            for i in self.__items:
+                if (i[0] is item):
+                    self.__priorized_pos = pos
+                    return
+                else:
+                    pos += 1
+            #end for
         #end for
-

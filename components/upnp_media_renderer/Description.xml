@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <URLBase>@@URL_BASE@@</URLBase>
+  
+  <device>
+    <deviceType>urn:schemas-upnp-org:device:MediaRenderer:2</deviceType>
+    <friendlyName>@@FRIENDLY_NAME@@</friendlyName>
+    <manufacturer>Martin Grimme</manufacturer>
+    <manufacturerURL>http://www.lintegra.de</manufacturerURL>
+    <modelDescription>UPnP Renderer Device on MediaBox</modelDescription>
+    <modelName>MediaBox UPnP Renderer</modelName>
+    <modelNumber>1</modelNumber>
+    <modelURL></modelURL>
+    <serialNumber>12345</serialNumber>
+    <UDN>@@UUID@@</UDN>
+    <UPC>MediaBox</UPC>
+    
+    <iconList>
+      <icon>
+        <mimetype>image/png</mimetype>
+        <width>64</width>
+        <height>64</height>
+        <depth>24</depth>
+        <url>@@ICON_URL@@</url>
+      </icon>
+    </iconList>
+    
+    <presentationURL></presentationURL>
+  
+    <serviceList>
+  
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:RenderingControl:2</serviceType>
+        <serviceId>RenderingControl</serviceId>
+        <SCPDURL>@@SCPD_URL_RENDERING_CONTROL@@</SCPDURL>
+        <controlURL>/ctrl/RenderingControl</controlURL>
+        <eventSubURL></eventSubURL>
+      </service>
+
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:ConnectionManager:2</serviceType>
+        <serviceId>ConnectionManager</serviceId>
+        <SCPDURL>@@SCPD_URL_CONNECTION_MANAGER@@</SCPDURL>
+        <controlURL>/ctrl/ConnectionManager</controlURL>
+        <eventSubURL></eventSubURL>
+      </service>
+    
+      <service>
+        <Optional/>
+        <serviceType>urn:schemas-upnp-org:service:AVTransport:2</serviceType>
+        <serviceId>AVTransport</serviceId>
+        <SCPDURL>@@SCPD_URL_AV_TRANSPORT@@</SCPDURL>
+        <controlURL>/ctrl/AVTransport</controlURL>
+        <eventSubURL></eventSubURL>
+      </service>
+
+    </serviceList>
+  </device>
+</root>
+

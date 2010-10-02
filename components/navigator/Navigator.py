@@ -481,8 +481,11 @@ class Navigator(Component, Window):
     
         #pass
         item.set_icon(thumbpath)
-        idx = self.__browser.get_items().index(item)
-        self.__browser.invalidate_item(idx)
+        try:
+            idx = self.__browser.get_items().index(item)
+            self.__browser.invalidate_item(idx)
+        except:
+            pass
 
 
     def __on_load_thumbnail(self, item, f):
@@ -492,7 +495,14 @@ class Navigator(Component, Window):
             if (thumbpath):
                 self.__update_thumbnail(item, thumbpath)
             
-            #if (self.is_visible()):
+            # priorize visible items
+            top_idx = self.__browser.get_item_at(0, 0)
+            if (top_idx != -1):
+                items = self.__browser.get_items()
+                if (top_idx < len(items)):
+                    self.__tn_scheduler.priorize(items[top_idx:top_idx + 12])
+            #end if
+            
             self.__tn_scheduler.resume()
             #print "RESUMING SCHEDULER"
     
@@ -711,6 +721,8 @@ class Navigator(Component, Window):
         Filters the list of playfiles to see if there's cover art to remove
         from the list.
         """
+        
+        if (not self.__play_files): return
         
         size = len(self.__play_files)
         img_size = len([f for f in self.__play_files

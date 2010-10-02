@@ -195,13 +195,17 @@ class ItemView(Widget):
     def get_item(self, pos):
         """
         Returns the item at the given position in the current set.
+        Returns None if the position does not exist.
         
         @param pos: position
         @return: the item at that position
         """
     
-        return self.get_items()[pos]
-        #return self.__items[pos]
+        items = self.get_items()
+        if (pos < len(items)):
+            return items[pos]
+        else:
+            return None
 
 
     def set_filter(self, filter_func = None):

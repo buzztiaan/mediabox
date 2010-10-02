@@ -251,11 +251,15 @@ class FileIndex(Component):
                 state = 1
         #end for
 
+        w_qs[0] = qs[pos:]
         if (not is_string):
             value = int(value)
-
-        w_qs[0] = qs[pos:]
-        return set([ p for p in set0 if self.__index[p].get(key) == value ])
+            return set([ p for p in set0
+                         if self.__index[p].get(key) == value ])
+        else:
+            return set([ p for p in set0
+                         if self.__index[p].get(key) and
+                            self.__index[p].get(key).upper() == value.upper() ])
 
 
     def handle_COM_EV_COMPONENT_LOADED(self, comp):
