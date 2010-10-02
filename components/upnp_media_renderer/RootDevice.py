@@ -1,6 +1,7 @@
 from com import Component, msgs
-from RenderingControl import RenderingControl
 from AVTransport import AVTransport
+from ConnectionManager import ConnectionManager
+from RenderingControl import RenderingControl
 from utils import network
 
 import os
@@ -32,8 +33,9 @@ class RootDevice(Component):
 
     def __init__(self):
     
-        self.__rendering_control = RenderingControl((self, 1))
         self.__av_transport = AVTransport((self, 1))
+        self.__connection_manager = ConnectionManager((self, 1))
+        self.__rendering_control = RenderingControl((self, 1))
     
         Component.__init__(self)
         
