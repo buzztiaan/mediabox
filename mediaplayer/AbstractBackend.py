@@ -11,7 +11,7 @@ import urllib
 
 
 # idle timeout in milliseconds
-_IDLE_TIMEOUT = 1000 * 5 #1000 * 60 * 3
+_IDLE_TIMEOUT = 1000 * 60 * 3
 
 _INPUT_LOAD = 0
 _INPUT_PLAY = 1

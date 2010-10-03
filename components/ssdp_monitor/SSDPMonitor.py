@@ -191,6 +191,9 @@ class SSDPMonitor(Component):
         if (method == "M-SEARCH"):
             self.emit_message(msgs.SSDP_EV_MSEARCH, req)
             
+        if (method == "SUBSCRIBE"):
+            self.emit_message(msgs.SSDP_EV_SUBSCRIBE, req)
+                        
         elif (method == "NOTIFY"):
             max_age = ssdp.get_max_age(req.get_header("CACHE-CONTROL"))
             location = ssdp.get_header("LOCATION")

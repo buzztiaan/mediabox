@@ -12,13 +12,11 @@ class UPnPService(Component, SOAPAdaptor):
         self.__owner = owner
         self.__endpoint = endpoint
         
-        print "INITING SERVICE", endpoint
         Component.__init__(self)
         SOAPAdaptor.__init__(self,
                              service_type,
                              scpd_xml)
-        print "OK"
-        
+
         
     def handle_HTTPSERVER_EV_REQUEST(self, owner, request):
     
