@@ -150,7 +150,7 @@ class FileIndex(Component):
         if (qas):
             qs = qs % qas
 
-        print "FILEINDEX QUERY:", qs
+        logging.debug("FILEINDEX QUERY: %s", qs)
 
         wrapped_qs = [qs]
         filter_props = self.__parse_filter(wrapped_qs)
@@ -163,11 +163,11 @@ class FileIndex(Component):
         #end for
         
         if (len(out) < 100):
-            print "RESULT:", out, "(%d items in %02f seconds)" \
-                  % (len(out), time.time() - now)
+            logging.debug("RESULT: %s (%d items in %02f seconds)",
+                          out, len(out), time.time() - now)
         else:
-            print "RESULT: ... (%d items in %02f seconds)" \
-                  % (len(out), time.time() - now)
+            logging.debug("RESULT: ... (%d items in %02f seconds)",
+                          len(out), time.time() - now)
             
         return out
         

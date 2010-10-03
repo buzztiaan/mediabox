@@ -1,6 +1,7 @@
 from com import Component, msgs
 from HTTPRequest import HTTPRequest
 from utils import logging
+from utils import network
 
 from Queue import Queue
 import threading
@@ -9,7 +10,6 @@ import gobject
 import time
 
 
-_METHODS_WITHOUT_PAYLOAD = ["GET", "NOTIFY", "M-SEARCH", "SUBSCRIBE"]
 _SERVER_AGENT = "Embedded HTTP Server/1.0.1"
 
 
@@ -39,7 +39,7 @@ class HTTPServer(Component):
         cnx, addr = sock.accept()
         
         t = threading.Thread(target = self.__serve_client, 
-                             args = [owner, cnx])
+                             args = [owner, cnx, addr])
         t.setDaemon(True)
         t.start()
         
@@ -54,6 +54,7 @@ class HTTPServer(Component):
         datas = {}
         
         while ((addr, port) in self.__listeners):
+            print "listening for datagram"
             data, src_addr = sock.recvfrom(1024)
 
             print "received datagram from %s" % str(src_addr)
@@ -66,17 +67,18 @@ class HTTPServer(Component):
             if (data):
                 datas[src_addr] += data
                 
-            processed = self.__process_data(datas[src_addr])
+            processed = network.parse_http(datas[src_addr])
             if (processed):
                 method, path, protocol, headers, body = processed            
-                self.__emit_dgram(owner, sock, method, path, protocol, headers, body)
+                self.__emit_dgram(owner, sock, src_addr, method, path, protocol,
+                                  headers, body)
                 del datas[src_addr]
             #end if
             
         #end while
 
 
-    def __serve_client(self, owner, cnx):
+    def __serve_client(self, owner, cnx, src_addr):
         
         data = ""
         #method = ""
@@ -98,45 +100,15 @@ class HTTPServer(Component):
             if (not data):
                 receiving = False
             
-            processed = self.__process_data(data)
+            processed = network.parse_http(data)
             if (processed):
                 method, path, protocol, headers, body = processed
-                self.__emit(owner, cnx, method, path, protocol, headers, body)
+                self.__emit(owner, cnx, src_addr, method, path, protocol,
+                            headers, body)
                 receiving = False
             #end if
 
         #end while
-
-
-    def __process_data(self, data):
-    
-        if (not "\r\n\r\n" in data): return None
-        
-        complete = False
-        
-        idx = data.find("\r\n\r\n")
-        hdata = data[:idx]
-        body = data[idx + 4:]
-        method, path, protocol, headers = self.__parse_headers(hdata)
-
-        content_length = int(headers.get("CONTENT-LENGTH", "-1"))
-        
-        # abort if there's no payload to expect
-        if (method in _METHODS_WITHOUT_PAYLOAD or 
-            method.startswith("HTTP/") or content_length == 0):
-            complete = True
-
-        # check content length of body
-        elif (content_length != -1 and len(body) >= content_length):
-            complete = True
-
-        if (complete):
-            if (headers.get("TRANSFER-ENCODING", "").upper() == "CHUNKED"):
-                body = self.__unchunk(body)
-    
-            return (method, path, protocol, headers, body)
-        else:
-            return None
 
 
     def __send_response(self, cnx, code, headers, body):
@@ -182,59 +154,7 @@ class HTTPServer(Component):
         logging.info("sent - %s - [%ds]", code, int(time.time() - t))
 
 
-    def __parse_headers(self, hdata):
-    
-        lines = hdata.splitlines()
-        
-        parts = [ p for p in lines[0].split() if p ]
-        method = parts[0]
-        try:
-            path = parts[1]
-        except:
-            path = ""
-        try:
-            protocol = parts[2]
-        except:
-            protocol = "HTTP/1.0"
-
-        headers = {}            
-        for line in lines[1:]:
-            idx = line.find(":")
-            key = line[:idx].upper().strip()
-            value = line[idx + 1:].strip()
-            headers[key] = value
-        #end for
-        
-        return (method, path, protocol, headers)
-
-
-
-    def __unchunk(self, chunked_body):
-    
-        chunk_size = 0
-        body = ""
-        
-        while (chunked_body):
-            idx = chunked_body.find("\r\n", 1)
-            if (idx != -1):
-                chunk_size = int(chunked_body[:idx], 16)
-                chunked_body = chunked_body[idx + 2:]
-            else:
-                # must not happen
-                pass
-                
-            if (chunk_size == 0):
-                # the final chunk is always of size 0
-                break
-            else:
-                body += chunked_body[:chunk_size]
-                chunked_body = chunked_body[chunk_size:]
-        #end while
-
-        return body    
-
-
-    def __emit(self, owner, cnx, method, path, protocol, headers, body):
+    def __emit(self, owner, cnx, src_addr, method, path, protocol, headers, body):
     
         def responder(code, headers, body):
             t = threading.Thread(target = self.__send_response,
@@ -243,17 +163,19 @@ class HTTPServer(Component):
             t.start()
     
         request = HTTPRequest(method, path, protocol, headers, body, responder)
+        request.set_source(src_addr)
         gobject.timeout_add(0, self.emit_message,
                             msgs.HTTPSERVER_EV_REQUEST,
                             owner, request)
 
 
-    def __emit_dgram(self, owner, cnx, method, path, protocol, headers, body):
+    def __emit_dgram(self, owner, cnx, src_addr, method, path, protocol, headers, body):
     
         def responder(code, headers, body):
             raise IOError("cannot send response data on UDP")
     
         request = HTTPRequest(method, path, protocol, headers, body, responder)
+        request.set_source(src_addr)
         gobject.timeout_add(0, self.emit_message,
                             msgs.HTTPSERVER_EV_REQUEST,
                             owner, request)
@@ -300,12 +222,13 @@ class HTTPServer(Component):
                           logging.stacktrace())
             return "could not bind to address"
         
+        self.__listeners[(addr, port)] = _Listener(owner, sock, None)
+
         t = threading.Thread(target = self.__listen_for_dgram, 
                              args = [addr, port, sock, owner])
         t.setDaemon(True)
         t.start()
                                        
-        self.__listeners[(addr, port)] = _Listener(owner, sock, None)
         
         logging.info("bound HTTP server to UDP %s:%d", addr, port)
         

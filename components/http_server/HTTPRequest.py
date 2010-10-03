@@ -19,12 +19,23 @@ class HTTPRequest(object):
     def __init__(self, method, path, protocol, headers, body, responder):
     
         print method, path, protocol
+        self.__source_address = ("127.0.0.1", 0)
         self.__method = method
         self.__path = path
         self.__protocol = protocol
         self.__headers = headers
         self.__body = body
         self.__responder = responder
+        
+        
+    def set_source(self, src_addr):
+    
+        self.__source_address = src_addr
+        
+        
+    def get_source(self):
+    
+        return self.__source_address
         
         
     def get_method(self):

@@ -239,7 +239,7 @@
 			<sendEventsAttribute>no</sendEventsAttribute>
 			<dataType>string</dataType>
 			<allowedValueList>
-				<allowedValue>TRACK_NR</allowedValue>
+				<allowedValue>SECONDS</allowedValue>
 			</allowedValueList>
 		</stateVariable>
 

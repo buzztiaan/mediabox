@@ -1,3 +1,9 @@
+def SSDP_EV_MSEARCH(req): pass
+"""
+Gets emitted when a M-SEARCH request arrives.
+@since: 2010.10.03
+"""
+
 def SSDP_ACT_SEARCH_DEVICES(): pass
 """
 Instructs the SSDP monitor to search for UPnP devices.

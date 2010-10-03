@@ -4,8 +4,12 @@ from utils.MiniXML import MiniXML
 from io import Downloader
 from upnp.DeviceDescription import DeviceDescription
 from utils import logging
+from utils import network
 
 import gobject
+import threading
+import socket
+import select
 
 
 _NS_DESCR = "urn:schemas-upnp-org:device-1-0"
@@ -27,25 +31,49 @@ class SSDPMonitor(Component):
         # table of the devices currently being processed: UUID -> location
         self.__processing = {}
 
-        self.__monitoring = False
-        self.__discovery_monitor = None
     
         Component.__init__(self)
             
-
-    def __discovery_chain(self, sock, i):
+            
+    def __start_discovery(self):
     
-        if (i == 0):
-            ssdp.discover_devices()
-            gobject.timeout_add(6000, self.__discovery_chain, sock, i + 1)
-        elif (i == 1):
-            ssdp.discover_devices()
-            gobject.timeout_add(6000, self.__discovery_chain, sock, i + 1)
-        elif (i == 2):
-            pass
-            #gobject.source_remove(self.__discovery_monitor)
-            #sock.close()
+        t = threading.Thread(target = self.__discovery_thread)
+        t.setDaemon(True)
+        t.start()
+            
 
+    def __discovery_thread(self):
+    
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
+                             socket.IPPROTO_UDP)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        
+        for i in range(3):
+            ssdp.broadcast_msearch(sock)
+            while (True):
+                r_socks, w_socks, x_socks = select.select([sock], [], [], 6)
+                if (r_socks):
+                    # process response
+                    r_sock = r_socks[0]
+                    data, addr = r_sock.recvfrom(1024)
+                    
+                    processed = network.parse_http(data)
+                    if (not processed): continue
+                    method, path, protocol, headers, body = processed
+                    uuid = headers.get("USN", "")
+                    location = headers.get("LOCATION", "")
+                    max_age = ssdp.get_max_age(headers.get("CACHE-CONTROL", ""))
+                    
+                    gobject.timeout_add(0, self.__handle_ssdp_alive,
+                                        uuid, location, max_age)
+                    
+                else:
+                    # timeout
+                    break
+            #end while
+        #end for
+        print "FINISHED DISCOVERING"
+        
 
     def __on_expire(self, uuid):
         """
@@ -88,6 +116,7 @@ class SSDPMonitor(Component):
         #end if
         
 
+    """
     def __check_ssdp(self, sock, cond):
     
         ssdp_event = ssdp.poll_event(sock)
@@ -108,7 +137,8 @@ class SSDPMonitor(Component):
         #end if
         
         return True
-
+    """
+    
 
     def __handle_ssdp_alive(self, uuid, location, max_age):
     
@@ -146,19 +176,39 @@ class SSDPMonitor(Component):
 
     def handle_COM_EV_APP_STARTED(self):
     
-        self.handle_SSDP_ACT_SEARCH_DEVICES()
+        error = self.emit_message(msgs.HTTPSERVER_SVC_BIND_UDP,
+                                  self, ssdp.SSDP_IP, ssdp.SSDP_PORT)
+        self.__start_discovery()
         
+        
+        
+    def handle_HTTPSERVER_EV_REQUEST(self, owner, req):
+    
+        print "GOT REQUEST", owner#, req.get_method()
+        if (owner != self): return
+        
+        method = req.get_method()
+        if (method == "M-SEARCH"):
+            self.emit_message(msgs.SSDP_EV_MSEARCH, req)
+            
+        elif (method == "NOTIFY"):
+            max_age = ssdp.get_max_age(req.get_header("CACHE-CONTROL"))
+            location = ssdp.get_header("LOCATION")
+            usn = req.get_header("USN")
+            if ("::" in usn):
+                uuid, urn = usn.split("::")
+            else:
+                uuid = usn
+                urn = ""
+
+            if (nts == "ssdp:alive"):
+                self.__handle_ssdp_alive(uuid, location, max_age)
+
+            elif (nts == "ssdp:byebye"):
+                self.__handle_ssdp_byebye(uuid)
+
 
     def handle_SSDP_ACT_SEARCH_DEVICES(self):
     
-        # initialize monitor if needed
-        if (not self.__monitoring):
-            logging.info("SSDP Monitor waking up")
-            nsock, dsock = ssdp.open_sockets()
-            gobject.timeout_add(0, self.__discovery_chain, dsock, 0)
-            gobject.io_add_watch(nsock, gobject.IO_IN, self.__check_ssdp)
-            self.__discovery_monitor = gobject.io_add_watch(dsock, gobject.IO_IN, self.__check_ssdp)            
-            self.__monitoring = True
-        
-        else:
-            ssdp.discover_devices()
+        self.__start_discovery()
+

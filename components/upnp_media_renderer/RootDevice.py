@@ -2,7 +2,9 @@ from com import Component, msgs
 from AVTransport import AVTransport
 from ConnectionManager import ConnectionManager
 from RenderingControl import RenderingControl
+from upnp import ssdp
 from utils import network
+from utils import logging
 
 import os
 import commands
@@ -13,15 +15,28 @@ _SSDP_PORT = 1900
 _SERVICE_PORT = 47806
 
 _UUID = "uuid:e09c6bee-7939-4fff-bf26-8d1f30ca6153"
+_DEVICE_TYPE = "urn:schemas-upnp-org:device:MediaRenderer:2"
 
-_ADVERTISEMENT = """HTTP/1.1 200 OK
+_CAPABILITIES = [
+    ("upnp:rootdevice", _UUID + "::upnp:rootdevice"),
+    (_UUID, _UUID),
+    (_DEVICE_TYPE, _UUID + "::" + _DEVICE_TYPE),
+              
+    (AVTransport.SERVICE_TYPE, _UUID + "::" + AVTransport.SERVICE_TYPE),
+    (ConnectionManager.SERVICE_TYPE, _UUID + "::" + ConnectionManager.SERVICE_TYPE),
+    (RenderingControl.SERVICE_TYPE, _UUID + "::" + RenderingControl.SERVICE_TYPE)
+]
+
+
+_NOTIFY_ALIVE = """NOTIFY * HTTP/1.1
+HOST:239.255.255.250:1900
 CACHE-CONTROL: max-age = 1800
-EXT:
 LOCATION: http://%s:%s/Description.xml
 SERVER: Linux/2.6 UPnP/1.0 MediaBox/1.0
-ST: "upnp:rootdevice"
-USN: %s::upnp:rootdevice
-\r\n\r\n"""
+NT: %s
+USN: %s
+NTS:ssdp:alive\r\n\r\n"""
+
 
 _BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -33,40 +48,34 @@ class RootDevice(Component):
 
     def __init__(self):
     
-        self.__av_transport = AVTransport((self, 1))
-        self.__connection_manager = ConnectionManager((self, 1))
-        self.__rendering_control = RenderingControl((self, 1))
+        self.__av_transport = AVTransport(self)
+        self.__connection_manager = ConnectionManager(self)
+        self.__rendering_control = RenderingControl(self)
     
         Component.__init__(self)
         
-        
-    def handle_COM_EV_APP_STARTED(self):
-    
-        error = self.call_service(msgs.HTTPSERVER_SVC_BIND_UDP,
-                                  (self, 0), _SSDP_IP, _SSDP_PORT)
-        if (error):
-            print "Error binding to SSDP"
-
-        ip = network.get_ip()
-        error = self.call_service(msgs.HTTPSERVER_SVC_BIND,
-                                  (self, 1), ip, _SERVICE_PORT)
-        if (error):
-            print "Error binding to TCP"
-
 
     def __handle_ssdp(self, req):
-            
+
         if (req.get_method() == "M-SEARCH" and
-            req.get_header("MAN") == "\"ssdp:discover\"" and
-            req.get_header("ST") == "upnp:rootdevice"):
-            host, port = req.get_header("HOST").split(":")
+            req.get_header("MAN") == "\"ssdp:discover\""):
+            host, port = req.get_source()
             mx = int(req.get_header("MX"))
         
-            print "sending advertisement"
             ip = network.get_ip()
-            network.send_datagram(host, int(port),
-                                  _ADVERTISEMENT \
-                                  % (ip, _SERVICE_PORT, _UUID))
+            location = "http://%s:%s/Description.xml" % (ip, _SERVICE_PORT)
+            requested_search_target = req.get_header("ST")
+
+            logging.debug("[ssdp] responding to M-SEARCH")
+            for search_target, unique_service_name in _CAPABILITIES:
+                if (requested_search_target in ("ssdp:all", search_target)):
+                    logging.debug("[ssdp] %s, %s", search_target, unique_service_name)     
+                    max_age = ssdp.respond_to_msearch(host, port,
+                                                      location, search_target,
+                                                      unique_service_name)
+                #end if
+            #end for
+        #end if
 
 
     def __handle_http(self, req):
@@ -94,7 +103,7 @@ class RootDevice(Component):
                 iconpath = os.path.join(_BASE_DIR, "icon.png")
                 req.send_file(open(iconpath, "r"), "icon.png", "image/png")
                 
-            print req.get_path()
+            #print req.get_path()
             #print req.get_headers()
 
         elif (req.get_method() == "SUBSCRIBE"):
@@ -122,14 +131,37 @@ class RootDevice(Component):
         
         req.send_xml(descr)
         
-            
+    def handle_COM_EV_APP_STARTED(self):
+
+        ip = network.get_ip()
+        error = self.call_service(msgs.HTTPSERVER_SVC_BIND,
+                                  self, ip, _SERVICE_PORT)
+        if (error):
+            print "Error binding to TCP"
+
+        location = "http://%s:%d/Description.xml" % (ip, _SERVICE_PORT)
+        for notification_type, unique_service_name in _CAPABILITIES:
+            ssdp.broadcast_alive(location, notification_type,
+                                 unique_service_name)
+
+
+    def handle_COM_EV_APP_SHUTDOWN(self):
+    
+        for notification_type, unique_service_name in _CAPABILITIES:
+            ssdp.broadcast_byebye(notification_type, unique_service_name)
+        
+
+                                     
             
     def handle_HTTPSERVER_EV_REQUEST(self, owner, req):
     
-        #print "REQUEST", req
-        if (owner == (self, 0)):
-            self.__handle_ssdp(req)
+        if (owner != self): return
+        print "REQUEST FROM", req.get_source()
             
-        elif (owner == (self, 1)):
-            self.__handle_http(req)
+        self.__handle_http(req)
+
+
+    def handle_SSDP_EV_MSEARCH(self, req):
+    
+        self.__handle_ssdp(req)
 

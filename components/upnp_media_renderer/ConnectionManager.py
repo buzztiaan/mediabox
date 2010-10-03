@@ -22,17 +22,19 @@ _PROTOCOLS = "http-get:*:audio/mpeg:*," \
              "http-get:*:video/x-3ivx:*," \
              "http-get:*:video/x-matroska:*," \
              "http-get:*:video/mpeg:*," \
-             "http-get:*:video/x-ms-asf:*,
+             "http-get:*:video/x-ms-asf:*," \
              "http-get:*:video/x-divx:*," \
              "http-get:*:video/x-ms-wmv:*"
 
 class ConnectionManager(UPnPService):
 
+    SERVICE_TYPE = "urn:schemas-upnp-org:service:ConnectionManager:2"
+
     def __init__(self, owner):
     
         UPnPService.__init__(self, owner,
                              "/ctrl/ConnectionManager",
-                             "urn:schemas-upnp-org:service:ConnectionManager:2",
+                             self.SERVICE_TYPE,
                              open(_SCPD_FILE).read())
                 
 
