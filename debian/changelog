@@ -1,4 +1,4 @@
-mediabox (2010.10.02) unstable; urgency=low
+mediabox (2010.10.03) unstable; urgency=low
 
   Fixed some bugs and compatibility issues with UPnP MediaRenderers
   
@@ -19,7 +19,7 @@ mediabox (2010.10.02) unstable; urgency=low
   
   MediaBox can now be remote-controlled as UPnP Media Renderer device
 
- -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 02 Oct 2010 12:15:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 03 Oct 2010 21:15:00 +0200
 
 mediabox (2010.09.11) unstable; urgency=low
 

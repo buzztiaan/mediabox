@@ -80,7 +80,7 @@ class SOAPAdaptor(object):
             handler = getattr(self, method_name)
             try:
                 values = handler(**args)
-            except errors.UPnPError as e:
+            except errors.UPnPError, e:
                 return (False, self.__make_fault(e.get_error()))
             except:
                 return (False, self.__make_fault(errors.ACTION_FAILED))
