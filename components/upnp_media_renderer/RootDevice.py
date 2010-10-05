@@ -141,7 +141,7 @@ class RootDevice(Component):
         
         descr = open(os.path.join(_BASE_DIR, "Description.xml"), "r").read()
         descr = descr.replace("@@URL_BASE@@", url_base) \
-                     .replace("@@DEVICE_TYPE@@", device_type) \
+                     .replace("@@DEVICE_TYPE@@", self.DEVICE_TYPE) \
                      .replace("@@FRIENDLY_NAME@@", friendly_name) \
                      .replace("@@UUID@@", self.UUID) \
                      .replace("@@ICON_URL@@", "/icon.png") \
