@@ -27,6 +27,7 @@ class Resumer(Component):
     
         if (f != self.__current_file):
             self.__current_file = f
+            self.__to_seek = 0
         
         
     def handle_MEDIA_EV_POSITION(self, pos, total):
@@ -72,6 +73,7 @@ class Resumer(Component):
                 f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
                 if (f):
                     self.emit_message(msgs.MEDIA_ACT_PREPARE, f)
+                    self.__current_file = f
                     self.__to_seek = int(pos)
             except:
                 pass

@@ -16,7 +16,7 @@ import time
 
 _CHUNK_SIZE = 65536
 
-_MAX_CONNECTIONS = 4
+_MAX_CONNECTIONS = 1
 
 
 # every net connection puts a token into this queue and takes on from it when
@@ -66,9 +66,9 @@ class Downloader(object):
             gtk.main_iteration(False)
         #end while
         if (self.__is_finished):
-            print "closed"
+            print "closed", self.__url
         else:
-            print "timeout"
+            print "timeout", self.__url
 
 
     def __open(self, url):

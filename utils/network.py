@@ -71,6 +71,7 @@ def get_ip():
     )[20:24])
 
 
+
 def send_datagram(host, port, data):
 
     def do_send(host, port, data):

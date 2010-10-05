@@ -60,9 +60,13 @@ class SSDPMonitor(Component):
                     processed = network.parse_http(data)
                     if (not processed): continue
                     method, path, protocol, headers, body = processed
+                    
+                    if (headers.get("X-MEDIABOX-IGNORE") == network.get_ip()):
+                        continue
+                    
                     uuid = headers.get("USN", "")
                     location = headers.get("LOCATION", "")
-                    max_age = ssdp.get_max_age(headers.get("CACHE-CONTROL", ""))
+                    max_age = ssdp.parse_max_age(headers.get("CACHE-CONTROL", ""))
                     
                     gobject.timeout_add(0, self.__handle_ssdp_alive,
                                         uuid, location, max_age)
@@ -139,6 +143,15 @@ class SSDPMonitor(Component):
         return True
     """
     
+    
+    def __parse_subscription(self, req):
+
+        callback = req.get_header("CALLBACK")
+        nt = req.get_header("NT")
+        sid = req.get_header("SID")
+        timeout = req.get_header("TIMEOUT") or "Second-1800"
+        
+    
 
     def __handle_ssdp_alive(self, uuid, location, max_age):
     
@@ -184,20 +197,20 @@ class SSDPMonitor(Component):
         
     def handle_HTTPSERVER_EV_REQUEST(self, owner, req):
     
-        print "GOT REQUEST", owner#, req.get_method()
         if (owner != self): return
         
         method = req.get_method()
         if (method == "M-SEARCH"):
             self.emit_message(msgs.SSDP_EV_MSEARCH, req)
-            
-        if (method == "SUBSCRIBE"):
-            self.emit_message(msgs.SSDP_EV_SUBSCRIBE, req)
                         
-        elif (method == "NOTIFY"):
-            max_age = ssdp.get_max_age(req.get_header("CACHE-CONTROL"))
-            location = ssdp.get_header("LOCATION")
+        elif (method == "NOTIFY"):        
+            if (req.get_header("X-MEDIABOX-IGNORE") == network.get_ip()):
+                return
+                
+            max_age = ssdp.parse_max_age(req.get_header("CACHE-CONTROL"))
+            location = req.get_header("LOCATION")
             usn = req.get_header("USN")
+            nts = req.get_header("NTS")
             if ("::" in usn):
                 uuid, urn = usn.split("::")
             else:

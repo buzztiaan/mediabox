@@ -10,15 +10,22 @@ class AVTransport(UPnPService):
 
     SERVICE_TYPE = "urn:schemas-upnp-org:service:AVTransport:2"
 
-    def __init__(self, owner):
+    def __init__(self):
     
         self.__next_uri = ""
     
-        UPnPService.__init__(self, owner,
+        UPnPService.__init__(self,
                              "/ctrl/AVTransport",
+                             "/event/AVTransport",
                              self.SERVICE_TYPE,
                              open(_SCPD_FILE).read())
-                
+
+
+    def _welcome_new_subscriber(self):
+    
+        self._set_variable("LastChange", "")
+        self._notify_subscribers()
+
 
     def SetAVTransportURI(self, InstanceID, CurrentURI, CurrentURIMetaData):
         

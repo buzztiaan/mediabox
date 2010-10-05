@@ -232,6 +232,7 @@ class MAFWBackend(AbstractBackend):
         self.__current_state = state
         
         if (state == _MAFW_STATE_STOPPED):
+            print "GOT STOPPED BY MAFW"
             self.__is_eof = True
             
         elif (state == _MAFW_STATE_PLAYING and self.__to_seek):

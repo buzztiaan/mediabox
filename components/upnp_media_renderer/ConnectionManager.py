@@ -30,10 +30,11 @@ class ConnectionManager(UPnPService):
 
     SERVICE_TYPE = "urn:schemas-upnp-org:service:ConnectionManager:2"
 
-    def __init__(self, owner):
+    def __init__(self):
     
-        UPnPService.__init__(self, owner,
+        UPnPService.__init__(self,
                              "/ctrl/ConnectionManager",
+                             "/event/ConnectionManager",
                              self.SERVICE_TYPE,
                              open(_SCPD_FILE).read())
                 

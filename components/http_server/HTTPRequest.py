@@ -18,7 +18,7 @@ class HTTPRequest(object):
 
     def __init__(self, method, path, protocol, headers, body, responder):
     
-        print method, path, protocol
+        #print method, path, protocol
         self.__source_address = ("127.0.0.1", 0)
         self.__method = method
         self.__path = path
@@ -78,13 +78,17 @@ class HTTPRequest(object):
         self.__responder(code, headers, body)
 
 
-    def send_ok(self):
+    def send_code(self, code):
 
-        code = "HTTP/1.1 200 OK"
         headers = {}
         headers["CONNECTION"] = "close"
-        
-        self.__responder(code, headers, "")        
+    
+        self.__responder(code, headers, "")
+
+
+    def send_ok(self):
+
+        self.send_code("HTTP/1.1 200 OK")
 
 
     def send_html(self, html, charset = "utf-8"):

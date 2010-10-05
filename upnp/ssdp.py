@@ -24,6 +24,7 @@ _SSDP_ALIVE = "NOTIFY * HTTP/1.1\r\n" \
               "NT: %s\r\n" \
               "USN: %s\r\n" \
               "NTS: ssdp:alive\r\n" \
+              "X-MEDIABOX-IGNORE: %s\r\n" \
               "\r\n"
 
 _SSDP_BYEBYE = "NOTIFY * HTTP/1.1\r\n" \
@@ -40,6 +41,7 @@ _M_SEARCH_RESPONSE = "HTTP/1.1 200 OK\r\n" \
                      "SERVER: Linux/2.6 UPnP/1.0 MediaBox/1.0\r\n" \
                      "ST: %s\r\n" \
                      "USN: %s\r\n" \
+                     "X-MEDIABOX-IGNORE: %s\r\n" \
                      "\r\n"
 
 SSDP_ALIVE = 0
@@ -54,7 +56,7 @@ def broadcast_alive(location, notification_type, unique_service_name,
     """
 
     data = _SSDP_ALIVE % (max_age, location, notification_type, 
-                          unique_service_name)
+                          unique_service_name, network.get_ip())
     network.send_datagram(SSDP_IP, SSDP_PORT, data)
     return max_age
 
@@ -88,13 +90,13 @@ def respond_to_msearch(host, port,
     """
 
     data = _M_SEARCH_RESPONSE % (max_age, location, search_target,
-                                 unique_service_name)
+                                 unique_service_name, network.get_ip())
     network.send_datagram(host, port, data)
     return max_age
 
 
 
-def get_max_age(cache_control):
+def parse_max_age(cache_control):
 
     max_age = 1800
     value = cache_control.upper()

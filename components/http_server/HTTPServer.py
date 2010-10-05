@@ -93,7 +93,7 @@ class HTTPServer(Component):
         while (receiving):
             try:
                 data += cnx.recv(4096)
-                print "DATA", data
+                #print "DATA", data
             except:
                 receiving = False
             
@@ -157,6 +157,7 @@ class HTTPServer(Component):
     def __emit(self, owner, cnx, src_addr, method, path, protocol, headers, body):
     
         def responder(code, headers, body):
+            print "RESPONDING", code
             t = threading.Thread(target = self.__send_response,
                                  args = [cnx, code, headers, body])
             t.setDaemon(True)

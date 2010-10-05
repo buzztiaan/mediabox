@@ -6,7 +6,6 @@ from HTTPResponse import HTTPResponse
 from utils import threads
 from utils import logging
 from utils import maemo
-from utils import threads
 
 import gobject
 import socket
