@@ -10,14 +10,15 @@ import gobject
 
 class UPnPService(Component, SOAPAdaptor):
     """
-    Base class for UPnP services.
+    Abstract base class for UPnP services.
     """
 
-    def __init__(self, ctrl_url, event_url, service_type, scpd_xml):
+    PROP_UPNP_SERVICE_TYPE = 0
+    PROP_UPNP_SERVICE_ID = 1
     
-        self.__ctrl_url = ctrl_url
-        self.__event_url = event_url
-        
+
+    def __init__(self, service_type):
+    
         # table: SID -> (callback, seq, expiration_time)
         self.__subscribers = {}
         
@@ -30,7 +31,16 @@ class UPnPService(Component, SOAPAdaptor):
         Component.__init__(self)
         SOAPAdaptor.__init__(self,
                              service_type,
-                             scpd_xml)
+                             self.get_scpd())
+
+
+    def get_scpd(self):
+        """
+        Returns the SCPD XML as string.
+        Derived classes overwrite this method.
+        """
+        
+        raise NotImplementedError("method get_scpd must be implemented")
 
 
     def subscribe(self, callback, sid, timeout):
