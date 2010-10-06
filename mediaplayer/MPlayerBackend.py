@@ -250,6 +250,8 @@ class MPlayerBackend(AbstractBackend):
         
     def _load(self, uri):
 
+        self._ensure_backend()
+
         self.__media_length = 0
         self.__media_position = 0
         self.__id_length = 0

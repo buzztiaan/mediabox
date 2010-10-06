@@ -82,6 +82,10 @@ class Window(Widget):
                 self.__window = hildon.Window()
                 #self.__window.set_menu(self.__menu)
                 self.__window.fullscreen()
+            elif (platforms.MEEGO_WETAB):
+                self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+                self.__window.set_decorated(False)
+                self.__window.maximize()
             elif (platforms.MEEGO_NETBOOK):
                 self.__window = gtk.Window(gtk.WINDOW_TOPLEVEL)
                 self.__window.set_decorated(False)
@@ -103,6 +107,12 @@ class Window(Widget):
                 self.__window.fullscreen()
                 # hide some ugly separator :)
                 #self.__window.vbox.get_children()[0].hide()
+            elif (platforms.MEEGO_WETAB):
+                self.__window = gtk.Dialog()
+                self.__window.set_decorated(False)
+                self.__window.maximize()
+                # hide some ugly separator :)
+                self.__window.vbox.get_children()[0].hide()                
             elif (platforms.MEEGO_NETBOOK):
                 self.__window = gtk.Dialog()
                 self.__window.set_decorated(False)
@@ -446,6 +456,14 @@ class Window(Widget):
                     self.__window.fullscreen()
                 else:
                     self.__window.unfullscreen()
+            elif (platforms.MEEGO_WETAB):
+                if (value):
+                    self.__window.fullscreen()
+                else:
+                    self.__window.unfullscreen()
+                self.__title_bar.set_visible(not value)
+                self.render()
+                
             else:
                 if (self.__title_bar):
                     self.__title_bar.set_visible(not value)
@@ -471,6 +489,12 @@ class Window(Widget):
                     self.__set_portrait_property("_HILDON_PORTRAIT_MODE_REQUEST", 1)
                 else:
                     self.__unset_portrait_property("_HILDON_PORTRAIT_MODE_REQUEST")
+            elif (platforms.MAEMO4):
+                from utils import xrandr
+                if (value):
+                    xrandr.set_orientation(xrandr.RIGHT)
+                else:
+                    xrandr.set_orientation(xrandr.NORMAL)
 
         elif (flag == windowflags.BUSY):
             if (platforms.MAEMO5):

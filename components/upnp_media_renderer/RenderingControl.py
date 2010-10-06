@@ -1,4 +1,5 @@
-from com import UPnPService, msgs
+from upnp.UPnPService import UPnPService
+from com import msgs
 
 import os
 
@@ -13,11 +14,17 @@ class RenderingControl(UPnPService):
     def __init__(self):
     
         UPnPService.__init__(self,
-                             "/ctrl/RenderingControl",
-                             "/event/RenderingControl",
-                             self.SERVICE_TYPE,
-                             open(_SCPD_FILE).read())
-        
+                             "urn:schemas-upnp-org:service:RenderingControl:2")
+
+        self.set_prop(self.PROP_UPNP_SERVICE_TYPE,
+                      "urn:schemas-upnp-org:service:RenderingControl:2")
+        self.set_prop(self.PROP_UPNP_SERVICE_ID,
+                      "RenderingControl")
+                
+
+    def get_scpd(self):
+    
+        return open(_SCPD_FILE, "r").read()        
         
 
     def GetVolume(self, Channel, InstanceID):
@@ -27,3 +34,9 @@ class RenderingControl(UPnPService):
         
         return ("50",)
 
+
+    def SetVolume(self, Channel, InstanceID, DesiredVolume):
+    
+        # not implemented
+        #self.emit_message(msgs.MEDIA_ACT_SET_VOLUME, int(DesiredVolume))
+        return ()

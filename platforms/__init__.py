@@ -7,6 +7,7 @@ MAEMO4 = ""
 MAEMO5 = ""
 MER = ""
 MEEGO_NETBOOK = ""
+MEEGO_WETAB = ""
 COMPUTER = ""
 HTPC = ""
 
@@ -47,6 +48,12 @@ def _check_meego_netbook():
 
     v = os.system("cat /etc/meego-release 2>&1 | grep netbook >/dev/null")
     return (v == 0)
+
+
+def _check_meego_wetab():
+
+    v = os.system("rpm -qa 2>&1 | grep pega-driver-wetab >/dev/null")
+    return (v == 0)
     
     
 def _check_htpc():
@@ -79,6 +86,11 @@ elif _check_meego_netbook():
     from meego_netbook import *
     MEEGO_NETBOOK = "meego_netbook"
     logging.info("using MEEGO_NETBOOK target")
+
+elif _check_meego_wetab():
+    from meego_wetab import *
+    MEEGO_WETAB = "meego_netbook"
+    logging.info("using MEEGO_WETAB target")
 
 elif _check_htpc():
     from htpc import *

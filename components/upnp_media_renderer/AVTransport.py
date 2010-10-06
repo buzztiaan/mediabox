@@ -1,4 +1,5 @@
-from com import UPnPService, msgs
+from upnp.UPnPService import UPnPService
+from com import msgs
 
 import os
 
@@ -8,17 +9,23 @@ _SCPD_FILE = os.path.join(os.path.dirname(__file__), "AVTransport2.xml")
 
 class AVTransport(UPnPService):
 
-    SERVICE_TYPE = "urn:schemas-upnp-org:service:AVTransport:2"
-
     def __init__(self):
     
         self.__next_uri = ""
     
         UPnPService.__init__(self,
-                             "/ctrl/AVTransport",
-                             "/event/AVTransport",
-                             self.SERVICE_TYPE,
-                             open(_SCPD_FILE).read())
+                             "urn:schemas-upnp-org:service:AVTransport:2")
+
+        self.set_prop(self.PROP_UPNP_SERVICE_TYPE,
+                      "urn:schemas-upnp-org:service:AVTransport:2")
+        self.set_prop(self.PROP_UPNP_SERVICE_ID,
+                      "AVTransport")
+                      
+
+
+    def get_scpd(self):
+    
+        return open(_SCPD_FILE, "r").read()
 
 
     def _welcome_new_subscriber(self):
@@ -43,7 +50,7 @@ class AVTransport(UPnPService):
 
     def Play(self, InstanceID, Speed):
     
-        self.emit_message(msgs.MEDIA_ACT_PLAY)
+        self.emit_message(msgs.MEDIA_ACT_PAUSE)
     
 
     def Pause(self, InstanceID):

@@ -182,6 +182,7 @@ class _Theme(object):
         else:
             obj = None
 
+        #obj = None
         self.__objects[name] = (_TYPE_PBUF, path, obj)
         if (obj): obj.set_objdef(path)
 
@@ -195,10 +196,6 @@ class _Theme(object):
                  if l.strip() and not l.startswith("#") ]
             
         for line in lines:
-            #line = line.strip()
-            #if (not line or line.startswith("#")):
-            #    continue
-
             idx = line.find(":")
             name = line[:idx].strip()
 

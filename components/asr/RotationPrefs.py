@@ -4,6 +4,7 @@ from ui.itemview import LabelItem
 from ui.itemview import CheckBoxItem
 from ui.itemview import OptionItem
 from mediabox import config
+import platforms
 from theme import theme
 
 import os
@@ -32,9 +33,14 @@ class RotationPrefs(Configurator):
         #lbl = LabelItem("Orientation:")
         #self.__list.append_item(lbl)
         
-        chbox = OptionItem("Landscape Mode", config.ORIENTATION_LANDSCAPE,
-                           "Portrait Mode", config.ORIENTATION_PORTRAIT,
-                           "Automatic", config.ORIENTATION_AUTOMATIC)
+        if (platforms.MAEMO5):
+            chbox = OptionItem("Landscape Mode", config.ORIENTATION_LANDSCAPE,
+                               "Portrait Mode", config.ORIENTATION_PORTRAIT,
+                               "Automatic", config.ORIENTATION_AUTOMATIC)
+        else:
+            chbox = OptionItem("Landscape Mode", config.ORIENTATION_LANDSCAPE,
+                               "Portrait Mode", config.ORIENTATION_PORTRAIT)
+        
         chbox.connect_changed(self.__on_select_orientation)
         chbox.select_by_value(config.orientation())
         self.__list.append_item(chbox)

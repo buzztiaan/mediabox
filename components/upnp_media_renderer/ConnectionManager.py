@@ -1,4 +1,5 @@
-from com import UPnPService, msgs
+from upnp.UPnPService import UPnPService
+from com import msgs
 
 import os
 
@@ -28,17 +29,21 @@ _PROTOCOLS = "http-get:*:audio/mpeg:*," \
 
 class ConnectionManager(UPnPService):
 
-    SERVICE_TYPE = "urn:schemas-upnp-org:service:ConnectionManager:2"
-
     def __init__(self):
     
         UPnPService.__init__(self,
-                             "/ctrl/ConnectionManager",
-                             "/event/ConnectionManager",
-                             self.SERVICE_TYPE,
-                             open(_SCPD_FILE).read())
+                             "urn:schemas-upnp-org:service:ConnectionManager:2")
+
+        self.set_prop(self.PROP_UPNP_SERVICE_TYPE,
+                      "urn:schemas-upnp-org:service:ConnectionManager:2")
+        self.set_prop(self.PROP_UPNP_SERVICE_ID,
+                      "ConnectionManager")
                 
 
+    def get_scpd(self):
+    
+        return open(_SCPD_FILE, "r").read()
+        
 
     def GetProtocolInfo(self):
         

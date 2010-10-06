@@ -78,5 +78,17 @@ class Component(Mediator):
 
     def __init__(self):
     
+        self.__properties = {}
+    
         Mediator.__init__(self)
+
+        
+    def get_prop(self, key, default = ""):
+    
+        return self.__properties.get(key, default)
+        
+        
+    def set_prop(self, key, value):
+    
+        self.__properties[key] = value
 
