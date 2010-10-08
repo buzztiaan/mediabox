@@ -3,42 +3,18 @@ Asynchronous lowlevel HTTP connection.
 """
 
 from HTTPResponse import HTTPResponse
-from utils import threads
 from utils import logging
-from utils import maemo
 
 import gobject
+import threading
 import socket
-import urlparse
+import select
 
 
 _BUFFER_SIZE = 65536
-_CONNECTION_TIMEOUT = 30000
+_CONNECTION_TIMEOUT = 30
 
-    
-def parse_addr(addr):
-    """
-    Splits the given address URL into a tuple
-    C{(host, port, path)}.
-    
-    @param addr: address URL
-    @return: C{(host, port, path)}
-    """
-        
-    urlparts = urlparse.urlparse(addr)
-    
-    netloc = urlparts.netloc.split(":")[0]
-    path = urlparts.path
-    if (urlparts.query):
-        path += "?" + urlparts.query
-    return (netloc, int(urlparts.port or 0), path)
-
-
-
-_number_of_connections = 0
-_connection_queue = []
-
-_MAX_CONNECTIONS = 12
+_connection_resource = threading.Semaphore(4)
 
 
 class HTTPConnection(object):
@@ -52,7 +28,9 @@ class HTTPConnection(object):
     def __init__(self, host, port = 80):
 
         self.__address = (host, port)
-        self.__finished = False
+
+        # event for signalizing that the connection has terminated
+        self.__finished = threading.Event()
 
         # ID for identifying this connection when debugging
         self.__id = hex(hash(self))[2:]
@@ -61,16 +39,11 @@ class HTTPConnection(object):
         self.__user_args = []
         
         self.__data = ""
-        self.__io_watch = None
-        self.__timeout_handler = None
         self.__close_connection = True
         self.__sock = None
         self.__socket_connected = False
         
         self.__is_aborted = False
-
-        if (not host in ("localhost", "127.0.0.1")):
-            maemo.request_connection()
 
 
 
@@ -97,24 +70,17 @@ class HTTPConnection(object):
 
 
     def __connect(self, host, port):
-
-        def f(sock, host, port):
-            try:
-                # this somehow causes high CPU load when running threaded...
-                # threading with PyGTK is really a mess
-                logging.info("conn [%s]: connecting to %s:%d" \
-                             % (self.__id, host, port or 80))
-                sock.connect((host, port or 80))
-            except:
-                logging.error("conn [%s]: could not resolve hostname:\n%s" \
-                              % (self.__id, logging.stacktrace()))
-                threads.run_unthreaded(self.__abort,
-                                       "Could not resolve hostname")
-                return
-            self.__socket_connected = True
+        """
+        Opens an asynchronous connection to the given host and port.
+        Returns an event object that will signalize when the connection action
+        terminated. Once this event is set, the connection status may be read.
+        """
 
         if (self.__sock):
             self.__sock.close()
+
+        _connection_resource.acquire()
+        self.__finished.clear()
             
         try:
             self.__sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -122,10 +88,14 @@ class HTTPConnection(object):
             import traceback; traceback.print_exc()
             return
 
-        # connecting to a socket is blocking and thus should be run in a
-        # thread
-        self.__socket_connected = False
-        threads.run_threaded(f, self.__sock, host, port)
+        try:
+            self.__sock.connect((host, port or 80))
+        except:
+            import traceback; traceback.print_exc()
+            gobject.timeout_add(0, self.__abort, "Could not resolve hostname")
+            return
+            
+        self.__socket_connected = True
 
 
     def is_aborted(self):
@@ -141,8 +111,8 @@ class HTTPConnection(object):
         Waits until this connection gets closed.
         Returns C{False} in case of a connection timeout.
         """
-        
-        threads.wait_for(lambda :self.__finished)
+
+        self.__finished.wait()        
             
         return self.__is_aborted
 
@@ -190,6 +160,54 @@ class HTTPConnection(object):
         self.__data += "\r\n"
         
         
+    def __send_thread(self, data):
+        """
+        Asynchronous thread for sending data.
+        """
+
+        self.__connect(*self.__address)
+
+        if (not self.__socket_connected): return
+
+        # first send
+        while (data):
+            chunk = data[:4096]
+            data = data[4096:]
+            rfds, wfds, xfds = select.select([], [self.__sock], [],
+                                             _CONNECTION_TIMEOUT)
+            if (wfds):
+                wfds[0].send(chunk)
+            else:
+                # timeout
+                gobject.timeout_add(0, self.__abort, "TIMEOUT")
+                return
+        #end while
+
+        # then receive
+        response = HTTPResponse()
+        while (not response.finished()):
+            rfds, wfds, xfds = select.select([self.__sock], [], [],
+                                             _CONNECTION_TIMEOUT)
+            if (rfds):
+                chunk = rfds[0].recv(4096)
+                response.feed(chunk)
+                gobject.timeout_add(0, self.__callback,
+                                    response, *self.__user_args)
+
+            else:
+                # timeout
+                gobject.timeout_add(0, self.__abort, "TIMEOUT")
+                return
+        #end while
+        
+        # check for connection keep-alive
+        if (response.get_header("CONNECTION").upper() == "KEEP-ALIVE"):
+            logging.debug("conn [%s]: is keep-alive" % self.__id)
+            self.__close_connection = False
+        
+        gobject.timeout_add(0, self.__finish)
+        
+        
     def send(self, body, cb, *user_args):
         """
         Sends the HTTP request and installs the given callback handler for
@@ -207,13 +225,13 @@ class HTTPConnection(object):
         self.__user_args = user_args
         self.__data += body    
 
-        try:
-            self.__send(self.__data)
-        except:
-            import traceback; traceback.print_exc()
+        t = threading.Thread(target = self.__send_thread,
+                             args = [self.__data])
+        t.setDaemon(True)
+        t.start()
+        
 
-
-    def send_raw(self, raw, cb, *args):
+    def send_raw(self, raw, cb, *user_args):
         """
         Sends a raw request ignoring L{putrequest}, L{putheader}, and
         L{endheaders}.
@@ -225,52 +243,17 @@ class HTTPConnection(object):
         @param cb:   callback handler
         @param *user_args: variable list of user arguments to the callback handler        
         """
-    
+
         self.__callback = cb
-        self.__user_args = args
+        self.__user_args = user_args
         self.__data = raw
 
-        self.__send(self.__data)
-
-
-    def __send(self, data):
-        global _number_of_connections, _connection_queue
+        t = threading.Thread(target = self.__send_thread,
+                             args = [self.__data])
+        t.setDaemon(True)
+        t.start()
         
-        if (_number_of_connections >= _MAX_CONNECTIONS):
-            _connection_queue.append((self.__send, data))
-            logging.debug("conn [%s]: queueing for later" % self.__id)
-            
-        else:
-            _number_of_connections += 1
-
-            logging.debug("%d HTTP connections active" % _number_of_connections)
-            self.__connect(*self.__address)
-            self.__reset_timeout()
-            self.__io_watch = gobject.io_add_watch(self.__sock, gobject.IO_OUT,
-                                                   self.__on_send_request,
-                                                   [self.__data])
-        
-
-
-    def __reset_timeout(self):
-        """
-        Resets the timeout handler to signalize that the connection is active.
-        """
-    
-        if (self.__timeout_handler):
-            gobject.source_remove(self.__timeout_handler)
-        self.__timeout_handler = gobject.timeout_add(_CONNECTION_TIMEOUT, self.__on_timeout)
-        
-        
-    def __on_timeout(self):
-        """
-        Reacts on connection timeout.
-        """
-    
-        self.__abort("TIMEOUT")
-        
-        
-        
+                
     def cancel(self):
         """
         Aborts this connection. This is a no-op if the connection is already
@@ -364,85 +347,52 @@ class HTTPConnection(object):
         return False
         
 
-    def __on_receive_body(self, sock, cond, resp):
-
-        self.__reset_timeout()
-
-        s = sock.recv(_BUFFER_SIZE)
-        if (not s):
-            # server closed connection
-            resp.set_finished()
-
-        logging.debug("conn [%s]: receiving body" % self.__id)
-        resp.feed(s)
-
-        if (not resp.finished()):
-            # we're still waiting for data; read on
-            self.__callback(resp, *self.__user_args)
-            return True
-
-        else:
-            # finished downloading
-            self.__callback(resp, *self.__user_args)
-            self.__finish_download(resp)
-            return False
-
-
     def __abort(self, error):
     
         self.__is_aborted = True
-        self.__sock.close()
+        if (self.__sock):
+            self.__sock.close()
         self.__sock = None
-        
-        if (self.__io_watch):
-            gobject.source_remove(self.__io_watch)
-        if (self.__timeout_handler):
-            gobject.source_remove(self.__timeout_handler)
+
+        self.__finished.set()
+        _connection_resource.release()
 
         logging.error("conn [%s]: connection aborted (%s)" \
                       % (self.__id, error))
         self.__callback(None, *self.__user_args)
-        self.__finished = True
-        self.__check_connection_queue()
 
 
-    def __finish_download(self, resp):
+    def __finish(self):
 
         if (self.__close_connection and self.__sock):
             self.__sock.close()
             self.__sock = None
+
+        self.__finished.set()
+        _connection_resource.release()
             
-        if (self.__timeout_handler):
-            gobject.source_remove(self.__timeout_handler)
-
         logging.debug("conn [%s]: finished" % self.__id)
-        self.__finished = True
-        self.__check_connection_queue()
-
-
-    def __check_connection_queue(self):
-        global _number_of_connections, _connection_queue
-
-        _number_of_connections -= 1
-        logging.debug("%d HTTP connections in queue" % _number_of_connections)
-        if (_connection_queue):
-            f, data = _connection_queue.pop(0)
-            f(data)
-
+        
 
 
 if (__name__ == "__main__"):
+    from utils import network
     import gtk
     import sys
+    
+    gtk.gdk.threads_init()
     
     def f(resp):
         if (resp):
             print resp.read()
+        if (resp.finished()):
+            gtk.main_quit()
 
-    host, port, path = parse_addr(sys.argv[1])
-    conn = HTTPConnection(host, port)
-    conn.putrequest("GET", path)
-    conn.putheader("Host", port and "%s:%d" % (host, port) or host)
+    addr = network.URL(sys.argv[1])
+    
+    conn = HTTPConnection(addr.host, addr.port)
+    conn.putrequest("GET", addr.path)
+    conn.putheader("Host", addr.port and "%s:%d" % (addr.host, addr.port) or addr.host)
     conn.endheaders()
     conn.send("", f)
 

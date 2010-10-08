@@ -48,6 +48,56 @@ class URL(object):
         return self.__parts.geturl()
 
 
+class HTTPHeaders(object):
+    """
+    Convenient class for working with HTTP headers.
+    @since: 2010.10.08
+    """
+    
+    TYPE_REQUEST = 0
+    TYPE_RESPONSE = 1
+    TYPE_INVALID = 2
+    
+    def __init__(self, data):
+
+        self.http_type = self.TYPE_INVALID
+        self.status = 0
+        self.description = ""
+        self.method = ""
+        self.path = ""
+        self.protocol = "HTTP/1.0"
+        self.__headers = {}
+
+        lines = data.splitlines()
+        parts = [ p for p in lines[0].split() if p ]
+        
+        if (parts[0].startswith("HTTP")):
+            # it's a response
+            self.http_type = self.TYPE_RESPONSE
+            self.protocol = parts[0]
+            self.status = int(parts[1])
+            self.description = " ".join(parts[2:])
+        
+        else:
+            # it's a request
+            self.http_type = self.TYPE_REQUEST
+            self.method = parts[0]
+            self.path = parts[1]
+            self.protocol = parts[2]
+
+        for line in lines[1:]:
+            idx = line.find(":")
+            key = line[:idx].upper().strip()
+            value = line[idx + 1:].strip()
+            self.__headers[key] = value
+        #end for   
+
+
+    def __getitem__(self, key):
+    
+        return self.__headers.get(key.upper(), "")        
+
+
 def get_ip():
     """
     Returns the IP address of the default interface.
@@ -86,6 +136,35 @@ def send_datagram(host, port, data):
     t.start()
 
 
+def parse_http_response(data):
+    """
+    Parses the given HTTP response text and returns a triple consisting of
+     - status code
+     - description
+     - headers as a dictionary
+     
+    Returns None if the header block wasn't complete.
+    """
+    
+    idx = data.find("\r\n\r\n")
+    if (idx == -1):
+        return None
+        
+    else:
+        status, method, descr, proto, headers = parse_http_headers(data[:idx])
+
+    return (status, descr, headers)
+
+
+def parse_http_request(data):
+    """
+    Parses the given HTTP request text and returns a quadruple consisting of
+     - method
+     - path
+     - protocol
+     - headers as a dictionary
+    """    
+
 
 def parse_http(data):
 
@@ -120,21 +199,37 @@ def parse_http(data):
 
 
 def parse_http_headers(hdata):
+    """
+    Parses the given HTTP headers block. Returns a quadruple of
+     - status (response only)
+     - method (request only)
+     - path (request) or description (response)
+     - protocol
+     - headers
+    """
 
     lines = hdata.splitlines()
     
     parts = [ p for p in lines[0].split() if p ]
-    method = parts[0]
-    try:
-        path = parts[1]
-    except:
-        path = ""
-    try:
+    
+    status = 0
+    method = ""
+    path_or_descr = ""
+    protocol = "HTTP/1.0"
+    
+    if (parts[0].startswith("HTTP")):
+        # it's a response
+        protocol = parts[0]
+        status = int(parts[1])
+        path_or_descr = " ".join(parts[2:])
+        
+    else:
+        # it's a request
+        method = parts[0]
+        path_or_descr = parts[1]
         protocol = parts[2]
-    except:
-        protocol = "HTTP/1.0"
 
-    headers = {}            
+    headers = {}
     for line in lines[1:]:
         idx = line.find(":")
         key = line[:idx].upper().strip()
@@ -142,7 +237,7 @@ def parse_http_headers(hdata):
         headers[key] = value
     #end for
     
-    return (method, path, protocol, headers)
+    return (status, method, path_or_descr, protocol, headers)
 
 
 

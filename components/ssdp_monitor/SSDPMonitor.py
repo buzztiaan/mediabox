@@ -57,16 +57,22 @@ class SSDPMonitor(Component):
                     r_sock = r_socks[0]
                     data, addr = r_sock.recvfrom(1024)
                     
-                    processed = network.parse_http(data)
-                    if (not processed): continue
-                    method, path, protocol, headers, body = processed
-                    
-                    if (headers.get("X-MEDIABOX-IGNORE") == network.get_ip()):
+                    if (not "\r\n\r\n" in data):
                         continue
                     
-                    uuid = headers.get("USN", "")
-                    location = headers.get("LOCATION", "")
-                    max_age = ssdp.parse_max_age(headers.get("CACHE-CONTROL", ""))
+                    headers = network.HTTPHeaders(data)
+                    
+                    if (headers.http_type == headers.TYPE_INVALID or
+                          headers.status != 200):
+                        continue
+                    
+                    # ignore MediaBox from the same IP (i.e. myself)
+                    if (headers["X-MEDIABOX-IGNORE"] == network.get_ip()):
+                        continue
+                    
+                    uuid = headers["USN"]
+                    location = headers["LOCATION"]
+                    max_age = ssdp.parse_max_age(headers["CACHE-CONTROL"])
                     
                     gobject.timeout_add(0, self.__handle_ssdp_alive,
                                         uuid, location, max_age)

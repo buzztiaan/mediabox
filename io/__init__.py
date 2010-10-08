@@ -13,7 +13,7 @@ This package contains classes for asynchronous IO operations.
 
 
 # make it easy to import stuff
-from HTTPConnection import HTTPConnection, parse_addr
+from HTTPConnection import HTTPConnection
 from Downloader import Downloader
 from FileDownloader import FileDownloader
 from FileServer import FileServer

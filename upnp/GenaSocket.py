@@ -2,7 +2,7 @@
 Server socket for listening to GENA notifications.
 """
 
-from io import HTTPConnection, parse_addr
+from io import HTTPConnection
 from utils import logging
 from utils import network
 from utils.MiniXML import MiniXML
@@ -191,9 +191,9 @@ class _GenaSocket(object):
         ev_url = self.__sid_to_url[sid]
 
         print "RENEWING SUBSCRIPTION FOR", sid, ev_url
-        host, port, path = parse_addr(ev_url)
-        conn = HTTPConnection(host, port)
-        conn.send_raw(_GENA_RENEW % (path, host, sid),
+        addr = network.URL(ev_url)
+        conn = HTTPConnection(addr.host, addr.port)
+        conn.send_raw(_GENA_RENEW % (addr.path, addr.host, sid),
                       self.__on_receive_confirmation,
                       ev_url)
         
@@ -214,9 +214,9 @@ class _GenaSocket(object):
             self.__handlers[sid].append(cb)
             
         print "SUBSCRIBING TO", ev_url
-        host, port, path = parse_addr(ev_url)
-        conn = HTTPConnection(host, port)
-        conn.send_raw(_GENA_SUBSCRIBE % (path, host, self.__gena_url),
+        addr = network.URL(ev_url)
+        conn = HTTPConnection(addr.host, addr.port)
+        conn.send_raw(_GENA_SUBSCRIBE % (addr.path, addr.host, self.__gena_url),
                       self.__on_receive_confirmation, ev_url, cb)
 
 
@@ -230,9 +230,9 @@ class _GenaSocket(object):
             sid = self.__cb_to_sid[cb]
             ev_url = self.__sid_to_url[sid]
             
-            host, port, path = parse_addr(ev_url)
-            conn = HTTPConnection(host, port)
-            conn.send_raw(_GENA_UNSUBSCRIBE % (path, host, sid),
+            addr = network.URL(ev_url)
+            conn = HTTPConnection(addr.host, addr.port)
+            conn.send_raw(_GENA_UNSUBSCRIBE % (addr.path, addr.host, sid),
                           lambda a,b:True)
 
             self.__handlers[sid].remove(cb)

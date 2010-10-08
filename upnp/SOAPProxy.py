@@ -2,8 +2,9 @@
 Very lightweight SOAP proxy for UPnP.
 """
 
-from io import HTTPConnection, Downloader, parse_addr
+from io import HTTPConnection, Downloader
 from utils.MiniXML import MiniXML
+from utils import network
 from utils import logging
 
 #import urllib
@@ -189,19 +190,16 @@ class SOAPProxy(object):
         length = len(soap)
         soap_action = "\"" + self.__namespace + "#" + name + "\""
 
-        host, port, path = parse_addr(self.__endpoint)
-        
+        endpoint = network.URL(self.__endpoint)
+        conn = httplib.HTTPConnection(endpoint.host, endpoint.port or 80)
 
-        if (port):
-            conn = httplib.HTTPConnection(host, port)
-        else:
-            conn = httplib.HTTPConnection(host)
-
-        conn.putrequest("POST", path)
-        conn.putheader("Host", port and "%s:%d" % (host, port) or host)
+        conn.putrequest("POST", endpoint.path)
+        conn.putheader("Host",
+                       endpoint.port and "%s:%d" % (endpoint.host, endpoint.port)
+                                     or endpoint.host)
         conn.putheader("User-Agent", "MediaBox")
         conn.putheader("Content-Type", "text/xml; charset=\"utf-8\"")
-        conn.putheader("Content-Length", `length`)
+        conn.putheader("Content-Length", str(length))
         conn.putheader("SOAPAction", soap_action)
         conn.endheaders()
 
@@ -233,13 +231,15 @@ class SOAPProxy(object):
         length = len(soap)
         soap_action = "\"" + self.__namespace + "#" + name + "\""
 
-        host, port, path = parse_addr(self.__endpoint)
-        conn = HTTPConnection(host, port)
-        conn.putrequest("POST", path)
-        conn.putheader("Host", port and "%s:%d" % (host, port) or host)
+        endpoint = network.URL(self.__endpoint)
+        conn = HTTPConnection(endpoint.host, endpoint.port or 80)
+        conn.putrequest("POST", endpoint.path)
+        conn.putheader("Host",
+                       endpoint.port and "%s:%d" % (endpoint.host, endpoint.port)
+                                     or host)
         conn.putheader("User-Agent", "MediaBox")
         conn.putheader("Content-Type", "text/xml; charset=\"utf-8\"")
-        conn.putheader("Content-Length", `length`)
+        conn.putheader("Content-Length", str(length))
         conn.putheader("SOAPAction", soap_action)
         conn.endheaders()
 

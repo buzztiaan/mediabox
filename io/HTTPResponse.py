@@ -2,6 +2,13 @@
 HTTP response object.
 """
 
+from utils import network
+
+_STATE_NEW = 0
+_STATE_HEADERS_DONE = 1
+_STATE_BODY_DONE = 2
+
+
 class HTTPResponse(object):
     """
     Class for representing a HTTP response.
@@ -9,15 +16,20 @@ class HTTPResponse(object):
     for decoding chunked transfers.    
     """
 
-    def __init__(self, status_header, headers):
-        
-        self.__status = int(status_header.split()[1])
-        self.__headers = headers
+    def __init__(self):
+        """
+        Creates an empty HTTP response object waiting to be fed with data.
+        """
+
+        self.__state = _STATE_NEW
+        self.__hdata = ""
+        self.__headers = None
+
         self.__body = ""
         self.__body_length = 0
         
-        self.__transfer_encoding = headers.get("TRANSFER-ENCODING", "").upper()
-        self.__content_length = int(headers.get("CONTENT-LENGTH", "-1"))
+        self.__transfer_encoding = ""
+        self.__content_length = 0
         
         self.__chunk_size_remaining = 0
         self.__incomplete_chunk_header = ""
@@ -37,6 +49,11 @@ class HTTPResponse(object):
         return self.__status
         
         
+    def _get_headers(self):
+    
+        return self.__headers
+        
+        
     def get_header(self, h):
         """
         Returns the value of the given header. Returns an empty string if the
@@ -46,7 +63,10 @@ class HTTPResponse(object):
         @return: value of header
         """
     
-        return self.__headers.get(h, "")
+        if (not self.__headers):
+            return ""
+        else:
+            return self.__headers[h]
         
         
     def set_finished(self):
@@ -74,24 +94,43 @@ class HTTPResponse(object):
         
         @param data: string of data
         """
-
-        if (self.__transfer_encoding == "CHUNKED"):
-            self.__feed_chunked(data)
         
-        else:
-            self.__body += data
-            self.__body_length += len(data)
+        if (self.__state == _STATE_NEW):
+            self.__hdata += data
+            idx = self.__hdata.find("\r\n\r\n")
+            if (idx != -1):
+                self.__headers = network.HTTPHeaders(self.__hdata)
+                
+                self.__transfer_encoding = self.__headers["TRANSFER-ENCODING"].upper()
+                self.__content_length = int(self.__headers["CONTENT-LENGTH"] or "-1")
+                
+                if (self.__transfer_encoding == "CHUNKED"):
+                    self.__feed_chunked(self.__hdata[idx + 4:])
+                else:
+                    self.__body = self.__hdata[idx + 4:]
+                    self.__body_length = len(self.__body)
+                
+                self.__state = _STATE_HEADERS_DONE
+                
+            else:
+                # not finished reading headers yet
+                pass
+            
+        elif (self.__state == _STATE_HEADERS_DONE):
+            if (self.__transfer_encoding == "CHUNKED"):
+                self.__feed_chunked(data)
+            else:
+                self.__body += data
+                self.__body_length += len(data)
 
-            if (self.__content_length > 0):
-                if (self.__body_length >= self.__content_length):
+                if (self.__content_length >= 0 and
+                      self.__body_length >= self.__content_length):
                     self.__finished = True
-            elif (self.__content_length == 0):
-                self.__finished = True
+                
+            if (self.__finished):
+                self.__state = _STATE_BODY_DONE
 
-        #print len(data), self.__body_length
-        #if (not data):
-        #    self.__finished = True
-        #print "FINISHED", self.__finished, self.__content_length, self.__body_length
+        #end if
 
 
     def __feed_chunked(self, data):
@@ -143,6 +182,11 @@ class HTTPResponse(object):
         return (self.__body_length, self.__content_length)
        
        
+    def get_body(self):
+        
+        return self.read()
+       
+       
     def body_length(self):
         """
         Returns the length of the currently downloaded body.
@@ -173,14 +217,4 @@ class HTTPResponse(object):
         """
     
         pass
-        
-        
-    def getheaders(self):
-        """
-        Returns a dictionary of the HTTP response headers.
-        
-        @return: dictionary of headers
-        """
-    
-        return self.__headers
 

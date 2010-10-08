@@ -1,5 +1,5 @@
 from com import Component, msgs
-from HTTPRequest import HTTPRequest
+from io.HTTPRequest import HTTPRequest
 from utils import logging
 from utils import network
 
@@ -54,10 +54,8 @@ class HTTPServer(Component):
         datas = {}
         
         while ((addr, port) in self.__listeners):
-            print "listening for datagram"
             data, src_addr = sock.recvfrom(1024)
 
-            print "received datagram from %s" % str(src_addr)
             #print len(data), data
 
 
@@ -67,11 +65,14 @@ class HTTPServer(Component):
             if (data):
                 datas[src_addr] += data
                 
-            processed = network.parse_http(datas[src_addr])
-            if (processed):
-                method, path, protocol, headers, body = processed            
-                self.__emit_dgram(owner, sock, src_addr, method, path, protocol,
-                                  headers, body)
+            req = HTTPRequest()
+            req.set_source(src_addr)
+            req.feed(data)
+            print "received datagram from %s: %s" % (str(src_addr), req.get_method())
+            
+            if (req.finished()):
+                self.__emit_dgram(owner, sock, req)
+                
                 del datas[src_addr]
             #end if
             
@@ -79,36 +80,25 @@ class HTTPServer(Component):
 
 
     def __serve_client(self, owner, cnx, src_addr):
+                
+        req = HTTPRequest()
+        req.set_source(src_addr)
         
-        data = ""
-        #method = ""
-        #path = ""
-        #protocol = ""
-        #headers = {}
-        #body = ""
-        
-        content_length = -1
-        
-        receiving = True
-        while (receiving):
+        while (not req.finished()):
             try:
-                data += cnx.recv(4096)
+                data = cnx.recv(4096)
                 #print "DATA", data
             except:
-                receiving = False
+                req.set_finished()
             
             if (not data):
-                receiving = False
+                req.set_finished()
             
-            processed = network.parse_http(data)
-            if (processed):
-                method, path, protocol, headers, body = processed
-                self.__emit(owner, cnx, src_addr, method, path, protocol,
-                            headers, body)
-                receiving = False
-            #end if
+            req.feed(data)
 
         #end while
+        
+        self.__emit(owner, cnx, req)
 
 
     def __send_response(self, cnx, code, headers, body):
@@ -154,7 +144,7 @@ class HTTPServer(Component):
         logging.info("sent - %s - [%ds]", code, int(time.time() - t))
 
 
-    def __emit(self, owner, cnx, src_addr, method, path, protocol, headers, body):
+    def __emit(self, owner, cnx, request):
     
         def responder(code, headers, body):
             print "RESPONDING", code
@@ -163,20 +153,17 @@ class HTTPServer(Component):
             t.setDaemon(True)
             t.start()
     
-        request = HTTPRequest(method, path, protocol, headers, body, responder)
-        request.set_source(src_addr)
+        request.set_responder(responder)
         gobject.timeout_add(0, self.emit_message,
                             msgs.HTTPSERVER_EV_REQUEST,
                             owner, request)
 
 
-    def __emit_dgram(self, owner, cnx, src_addr, method, path, protocol, headers, body):
+    def __emit_dgram(self, owner, cnx, request):
     
         def responder(code, headers, body):
             raise IOError("cannot send response data on UDP")
     
-        request = HTTPRequest(method, path, protocol, headers, body, responder)
-        request.set_source(src_addr)
         gobject.timeout_add(0, self.emit_message,
                             msgs.HTTPSERVER_EV_REQUEST,
                             owner, request)

@@ -17,8 +17,6 @@ mediabox (2010.10.03) unstable; urgency=low
   
   The currently visible items have priority for thumbnailing
   
-  MediaBox can now be remote-controlled as UPnP Media Renderer device
-
  -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 03 Oct 2010 21:15:00 +0200
 
 mediabox (2010.09.11) unstable; urgency=low
