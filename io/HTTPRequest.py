@@ -1,3 +1,4 @@
+from HTTPResponse import HTTPResponse
 from utils import network
 
 
@@ -14,17 +15,28 @@ _NOT_FOUND = """
 """
 
 
-class HTTPRequest(object):
+_STATE_NEW = 0
+_STATE_HEADERS_DONE = 1
+_STATE_BODY_DONE = 2
 
-    def __init__(self, method, path, protocol, headers, body, responder):
-    
-        #print method, path, protocol
+
+class HTTPRequest(HTTPResponse):
+
+    def __init__(self):
+
+        HTTPResponse.__init__(self)
+
         self.__source_address = ("127.0.0.1", 0)
-        self.__method = method
-        self.__path = path
-        self.__protocol = protocol
-        self.__headers = headers
-        self.__body = body
+        self.__responder = None
+        
+        
+    def set_responder(self, responder):
+        """
+        Sets a responder function for sending a response.
+        
+        Signature: void responder(int code, dict headers, string body)
+        """
+    
         self.__responder = responder
         
         
@@ -40,37 +52,22 @@ class HTTPRequest(object):
         
     def get_method(self):
     
-        return self.__method
+        return self._get_headers().method
         
         
     def get_path(self):
 
-        return network.URL(self.__path).path
+        return network.URL(self._get_headers().path).path
         
                 
     def get_query(self):
 
-        return network.URL(self.__path).query
+        return network.URL(self._get_headers().path).query
         
         
     def get_protocol(self):
     
-        return self.__protocol
-        
-        
-    def get_headers(self):
-    
-        return self.__headers.keys()
-        
-        
-    def get_header(self, header):
-    
-        return self.__headers.get(header.upper(), "")
-        
-        
-    def get_body(self):
-    
-        return self.__body
+        return self._get_headers().protocol
         
         
     def send(self, code, headers, body):
