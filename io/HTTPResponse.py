@@ -8,6 +8,8 @@ _STATE_NEW = 0
 _STATE_HEADERS_DONE = 1
 _STATE_BODY_DONE = 2
 
+_METHODS_WITHOUT_PAYLOAD = ["GET", "NOTIFY", "M-SEARCH", "SUBSCRIBE"]
+
 
 class HTTPResponse(object):
     """
@@ -110,7 +112,12 @@ class HTTPResponse(object):
                     self.__body = self.__hdata[idx + 4:]
                     self.__body_length = len(self.__body)
                 
-                self.__state = _STATE_HEADERS_DONE
+                
+                if (self.__headers.method in _METHODS_WITHOUT_PAYLOAD):
+                    self.__finished = True
+                    self.__state = _STATE_BODY_DONE
+                else:
+                    self.__state = _STATE_HEADERS_DONE
                 
             else:
                 # not finished reading headers yet
