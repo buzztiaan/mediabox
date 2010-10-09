@@ -290,9 +290,11 @@ class YouTube(Device):
             # finished loading
             #self.__cache_search_result(url, xml[0])
             if (is_toc):
-                self.__parse_toc_xml(xml[0], category, query, cb, *args)
+                gobject.timeout_add(0, self.__parse_toc_xml,
+                                    xml[0], category, query, cb, *args)
             else:
-                self.__parse_page_xml(xml[0], cb, *args)
+                gobject.timeout_add(0, self.__parse_page_xml,
+                                    xml[0], cb, *args)
         else:
             xml[0] += data
             

@@ -2,104 +2,80 @@
 HTTP downloader.
 """
 
+
+from HTTPConnection import HTTPConnection
 from utils import network
 from utils import logging
 
-from Queue import Queue
-import threading
-import httplib
-import os
 import gtk
 import gobject
+import threading
+import os
 import time
 
 
-_CHUNK_SIZE = 65536
-
-_MAX_CONNECTIONS = 1
-
-
-# every net connection puts a token into this queue and takes on from it when
-# done
-# while the queue is full, new connections have to wait for being able to
-# put a token
-# this way we limit the amount of concurrent connections
-_connection_queue = Queue(_MAX_CONNECTIONS)
-
-
-class Downloader(object):
+class Downloader(HTTPConnection):
     """
     Class for handling asynchronous GET operations.
     
     The user callback is invoked repeatedly as data comes in.
     The transmission is finished when data = "" is passed to the callback.
-    The transmission aborted when data = None is passed to the callback.
     """
     
     def __init__(self, url, cb, *args):
     
-        # queue of (data, amount, total) tuples
-        self.__queue = Queue()
-        
-        self.__is_cancelled = False
-        self.__is_finished = False
-        
-        self.__url = url
-        self.__callback = cb
-        self.__args = args
-    
         # location history for avoiding redirect loops
         self.__location_history = []
-
-        self.__open(url)
-
-
-    def cancel(self):
     
-        self.__is_cancelled = True
-
-
-    def wait_until_closed(self):
+        addr = network.URL(url)
+        HTTPConnection.__init__(self, addr.host, addr.port)
         
-        now = time.time()
-        while (time.time() < now + 10 and not self.__is_finished):
-            gtk.main_iteration(False)
-        #end while
-
-
-    def __open(self, url):
-            
+        logging.debug("[downloader] retrieving: %s", url)
+        
         if (url.startswith("/")):
-            # local file
-            t = threading.Thread(target = self.__request_local, args = [url])
+            t = threading.Thread(target = self.__get_local_file,
+                                 args = [url, cb, args])
+            t.setDaemon(True)
+            t.start()
+            
         else:
-            # remote file
-            t = threading.Thread(target = self.__request_data, args = [url])
+            if (addr.query_string):
+                path = addr.path + "?" + addr.query_string
+            else:
+                path = addr.path
+            self.putrequest("GET", path, "HTTP/1.1")
+            self.putheader("Host", "%s:%d" % (addr.host, addr.port))
+            self.putheader("User-Agent", "MediaBox")
+            #self.putheader("Connection", "close")
+            self.endheaders()
+            self.send("", self.__on_receive_data, cb, args)
 
-        t.setDaemon(True)
-        t.start()
-        
-        
-    def __request_local(self, url):
-    
-        logging.debug("[downloader] retrieving local file: %s", url)
-        _connection_queue.put(True)
+
+    def __emit(self, cb, *args):
+
+        def f(*args):
+            ret = cb(*args)
+            
+        gobject.timeout_add(0, f, *args)
+
+
+    def __get_local_file(self, url, cb, args):
         
         try:
             total = os.stat(url).st_size
             fd = open(url, "r")
         except:
-            self.__queue_response(None, 0, 0)
+            self.__emit(cb, None, 0, 0, *args)
             return
             
         amount = 0
         while (True):
-            data = fd.read(_CHUNK_SIZE)
+            data = fd.read(65536)
             if (not data):
                 break
             time.sleep(0.001)
             amount += len(data)
-            self.__queue_response(data, amount, total)
+            self.__emit(cb, data, amount, total, *args)
         #end while
         
         try:
@@ -107,90 +83,57 @@ class Downloader(object):
         except:
             pass
         
-        logging.debug("[downloader] closed, %d bytes read", amount)
-        self.__queue_response("", amount, total)
+        self.__emit(cb, "", amount, total, *args)
 
 
-    def __request_data(self, url):
+    def __on_receive_data(self, resp, cb, args):
     
-        logging.debug("[downloader] retrieving remote file: %s", url)
-        _connection_queue.put(True)
-    
-        urlobj = network.URL(url)        
-        try:
-            conn = httplib.HTTPConnection(urlobj.host, urlobj.port)
-            path = urlobj.path
-            if (urlobj.query_string):
-                path += "?" + urlobj.query_string
-            conn.putrequest("GET", path)
-            conn.putheader("User-Agent", "MediaBox")
-            conn.putheader("Connection", "close")
-            conn.endheaders()
-            resp = conn.getresponse()
-        except:
-            self.__queue_response(None, 0, 0)
+        if (not resp):
+            cb(None, 0, 0, *args)
             return
-
-        status = resp.status
-        logging.debug("[downloader] HTTP status: %d %s", status, resp.reason)
+            
+        status = resp.get_status()
         
         if (status == 200):
-            total = int(resp.getheader("Content-Length", "-1"))
-            amount = 0
+            amount, total = resp.get_amount()
+            data = resp.read()
+            if (data):
+                #print data
+                cb(data, amount, total, *args)
             
-            while (not resp.isclosed()):
-                data = ""
-                while (len(data) < _CHUNK_SIZE):
-                    d = resp.read(1024)
-                    if (not d):
-                        break
-                    else:
-                        data += d
-                    time.sleep(0.001)
-                #end while
-                #data = resp.read(_CHUNK_SIZE)
-                amount += len(data)
-                if (data):
-                    self.__queue_response(data, amount, total)
-                
-                if (not data or self.__is_cancelled):
-                    resp.close()
-                
-            #end while
-            logging.debug("[downloader] closed, %d bytes read", amount)
-            self.__queue_response("", amount, total)
+            if (not data or resp.finished()):
+                cb("", amount, total, *args)
 
         elif (300 <= status < 310):
-            location = resp.getheader("Location")
+            location = resp.get_header("LOCATION")
             if (not location in self.__location_history):
                 self.__location_history.append(location)
-                logging.debug("[downloader] HTTP redirect to %s" % location)
-                gobject.timeout_add(0, self.__open, location)
+                addr = network.URL(location)
+                logging.debug("HTTP redirect to %s" % location)
+                self.redirect(addr.host, addr.port)
+                if (addr.query_string):
+                    path = addr.path + "?" + addr.query_string
+                else:
+                    path = addr.path
+                self.putrequest("GET", path, "HTTP/1.1")
+                self.putheader("Host", "%s:%d" % (addr.host, addr.port))
+                self.putheader("User-Agent", "MediaBox")
+                #self.putheader("Connection", "close")
+                self.endheaders()
+                self.send("", self.__on_receive_data, cb, args)
             else:
                 self.__location_history.append(location)
                 logging.error("[downloader] redirect loop detected:\n%s",
                               "\n-> ".join(self.__location_history))
-                self.__queue_response(None, 0, 0)
+                cb(None, 0, 0, *args)
+                return
     
         elif (400 <= status < 510):
-            self.__queue_response(None, 0, 0)
-            
+            cb(None, 0, 0, *args)
+            return
 
-    def __queue_response(self, data, amount, total):
-    
-        self.__queue.put((data, amount, total))
-        gobject.idle_add(self.__send_response)
-        
-        
-    def __send_response(self):
-    
-        data, amount, total = self.__queue.get_nowait()
-        if (not data and not self.__is_finished):
-            self.__is_finished = True
-            _connection_queue.get()
-
-        try:
-            self.__callback(data, amount, total, *self.__args)
-        except:
-            pass
+        # try to avoid starvation of GTK for high bandwidths
+        #then = time.time() + 0.1
+        #while (gtk.events_pending() and time.time() < then):
+        #    gtk.main_iteration(False)
 

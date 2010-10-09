@@ -84,7 +84,6 @@ def load(path, cb, *args):
                     loader.write(d)
                 except:
                     pass
-            return True
         else:
             try:
                 fd.close()
@@ -92,7 +91,6 @@ def load(path, cb, *args):
                 pass
                 
             finish_loading(loader)
-            return False
 
 
     def on_size_available(loader, width, height):

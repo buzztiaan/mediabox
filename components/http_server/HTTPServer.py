@@ -97,7 +97,6 @@ class HTTPServer(Component):
                 req.set_finished()
             
             req.feed(data)
-
         #end while
         
         self.__emit(owner, cnx, req)

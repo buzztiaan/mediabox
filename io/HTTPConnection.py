@@ -11,9 +11,9 @@ import socket
 import select
 
 
-_BUFFER_SIZE = 65536
+_BUFFER_SIZE = 65536 * 4
 _CONNECTION_TIMEOUT = 10
-_MAX_CONNECTIONS = 1
+_MAX_CONNECTIONS = 8
 
 _connection_resource = threading.Semaphore(_MAX_CONNECTIONS)
 
@@ -47,7 +47,6 @@ class HTTPConnection(object):
         self.__is_aborted = False
 
 
-
     def _get_id(self):
         """
         Returns the unique ID of this connection.
@@ -68,6 +67,20 @@ class HTTPConnection(object):
         """
 
         self.__address = (host, port)
+
+
+    def __emit(self, cb, *args):
+        
+        def f(ready_ev, cb, *args):
+            try:
+                cb(*args)
+            except:
+                pass
+            ready_ev.set()
+        
+        ready_ev = threading.Event()
+        gobject.timeout_add(0, f, ready_ev, cb, *args)
+        ready_ev.wait()
 
 
     def __connect(self, host, port):
@@ -96,7 +109,7 @@ class HTTPConnection(object):
             self.__sock.connect((host, port or 80))
         except:
             import traceback; traceback.print_exc()
-            gobject.timeout_add(0, self.__abort, "Could not resolve hostname")
+            self.__emit(self.__abort, "Could not resolve hostname")
             return
             
         logging.debug("[conn %s] connected", self._get_id())
@@ -118,9 +131,13 @@ class HTTPConnection(object):
         """
 
         logging.debug("[conn %s] waiting until closed", self._get_id())
-        self.__finished.wait()
+        import gtk
+        while (not self.__finished.is_set()):
+            while (gtk.events_pending()):
+                gtk.main_iteration(True)
+        #end for
         logging.debug("[conn %s] finished waiting", self._get_id())
-            
+
         return self.__is_aborted
 
         
@@ -187,7 +204,7 @@ class HTTPConnection(object):
                 wfds[0].send(chunk)
             else:
                 # timeout
-                gobject.timeout_add(0, self.__abort, "TIMEOUT")
+                self.__emit(self.__abort, "TIMEOUT")
                 return
         #end while
 
@@ -199,22 +216,27 @@ class HTTPConnection(object):
                                              _CONNECTION_TIMEOUT)
             if (rfds):
                 chunk = rfds[0].recv(_BUFFER_SIZE)
-                response.feed(chunk)
-                gobject.timeout_add(0, self.__callback,
-                                    response, *self.__user_args)
+                if (len(chunk) == 0):
+                    response.set_finished()
+                    self.__emit(self.__abort, "CONNECTION RESET")
+                    return
+                else:
+                    response.feed(chunk)
+                    self.__emit(self.__callback, response, *self.__user_args)
 
             else:
                 # timeout
-                gobject.timeout_add(0, self.__abort, "TIMEOUT")
+                self.__emit(self.__abort, "TIMEOUT")
                 return
         #end while
+        
         
         # check for connection keep-alive
         if (response.get_header("CONNECTION").upper() == "KEEP-ALIVE"):
             logging.debug("[conn %s] is keep-alive", self._get_id())
             self.__close_connection = False
         
-        gobject.timeout_add(0, self.__finish)
+        self.__emit(self.__finish)
         
         
     def send(self, body, cb, *user_args):
