@@ -1,7 +1,7 @@
 def get_classes():
 
     from SSDPMonitor import SSDPMonitor
-    return []#SSDPMonitor]
+    return [SSDPMonitor]
 
 
 
