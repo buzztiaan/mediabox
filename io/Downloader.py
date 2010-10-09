@@ -65,10 +65,6 @@ class Downloader(object):
         while (time.time() < now + 10 and not self.__is_finished):
             gtk.main_iteration(False)
         #end while
-        if (self.__is_finished):
-            print "closed", self.__url
-        else:
-            print "timeout", self.__url
 
 
     def __open(self, url):
@@ -86,6 +82,7 @@ class Downloader(object):
         
     def __request_local(self, url):
     
+        logging.debug("[downloader] retrieving local file: %s", url)
         _connection_queue.put(True)
         
         try:
@@ -110,12 +107,13 @@ class Downloader(object):
         except:
             pass
         
-        print "CLOSED", self.__url, amount, "read"
+        logging.debug("[downloader] closed, %d bytes read", amount)
         self.__queue_response("", amount, total)
 
 
     def __request_data(self, url):
     
+        logging.debug("[downloader] retrieving remote file: %s", url)
         _connection_queue.put(True)
     
         urlobj = network.URL(url)        
@@ -134,7 +132,7 @@ class Downloader(object):
             return
 
         status = resp.status
-        print self.__url, "STATUS", status, resp.reason
+        logging.debug("[downloader] HTTP status: %d %s", status, resp.reason)
         
         if (status == 200):
             total = int(resp.getheader("Content-Length", "-1"))
@@ -159,18 +157,18 @@ class Downloader(object):
                     resp.close()
                 
             #end while
-            print "CLOSED", self.__url, amount, "read"
+            logging.debug("[downloader] closed, %d bytes read", amount)
             self.__queue_response("", amount, total)
 
         elif (300 <= status < 310):
             location = resp.getheader("Location")
             if (not location in self.__location_history):
                 self.__location_history.append(location)
-                logging.debug("HTTP redirect to %s" % location)
+                logging.debug("[downloader] HTTP redirect to %s" % location)
                 gobject.timeout_add(0, self.__open, location)
             else:
                 self.__location_history.append(location)
-                logging.error("redirect loop detected:\n%s",
+                logging.error("[downloader] redirect loop detected:\n%s",
                               "\n-> ".join(self.__location_history))
                 self.__queue_response(None, 0, 0)
     

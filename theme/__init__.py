@@ -26,6 +26,7 @@ from utils import logging
 import gtk
 import pango
 import os
+import time
 
 
 _THEMES_DIR = os.path.dirname(__file__)
@@ -94,7 +95,7 @@ class _Theme(object):
             return obj
 
         else:
-            logging.error("theme item not found: %s", name)
+            logging.error("[theme] item not found: %s", name)
             raise AttributeError(name)
 
 
@@ -139,7 +140,9 @@ class _Theme(object):
         @param name: name of new theme
         """
 
+        now = time.time()
         self.__set_theme(name)
+        logging.profile(now, "[theme] loaded")
 
 
     def __set_theme(self, name):
@@ -219,7 +222,7 @@ class _Theme(object):
 
     def __load_object(self, objtype, objdef):
     
-        logging.debug("loading theme item: %s", objdef)
+        logging.debug("[theme] loading item: %s", objdef)
         
         if (objtype == _TYPE_PBUF):
             obj = Pixbuf(objdef)

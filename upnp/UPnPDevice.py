@@ -153,11 +153,9 @@ class UPnPDevice(Component):
             requested_search_target = req.get_header("ST")
 
             # announce capabilities
-            logging.debug("[ssdp] responding to M-SEARCH")
             caps = self.__get_capabilities()
             for search_target, unique_service_name in caps:
                 if (requested_search_target in ("ssdp:all", search_target)):
-                    logging.debug("[ssdp] %s, %s", search_target, unique_service_name)     
                     max_age = ssdp.respond_to_msearch(src_host, src_port,
                                                       location, search_target,
                                                       unique_service_name)
@@ -254,8 +252,6 @@ class UPnPDevice(Component):
         port = self.get_prop(self.PROP_UPNP_SERVICE_PORT)
         error = self.call_service(msgs.HTTPSERVER_SVC_BIND,
                                   self, ip, port)
-        if (error):
-            print "Error binding to TCP"
 
         location = "http://%s:%d/Description.xml" % (ip, port)
         caps = self.__get_capabilities()
@@ -268,17 +264,16 @@ class UPnPDevice(Component):
     
         caps = self.__get_capabilities()
         for notification_type, unique_service_name in caps:
-            print notification_type, unique_service_name
             ssdp.broadcast_byebye(notification_type, unique_service_name)
-        print "done shutdown"
+        #end for
                     
             
     def handle_HTTPSERVER_EV_REQUEST(self, owner, req):
     
         if (owner != self): return
         
-        print "TCP REQUEST FROM", req.get_source()
-        print " --", req.get_method(), req.get_path()
+        logging.debug("[upnp device] handling request from: %s\n%s %s",
+                      str(req.get_source()), req.get_method(), req.get_path())
         
         method = req.get_method()
         path = req.get_path()
@@ -290,7 +285,8 @@ class UPnPDevice(Component):
         elif (method == "POST"):
             svc = self.__ctrl_urls.get(path)
             if (svc):
-                print "SOAP REQUEST:", req.get_header("SOAPACTION")
+                logging.debug("[upnp device] handling SOAP request: %s",
+                              req.get_header("SOAPACTION"))
                 ok, response = svc.feed_soap(req.get_body())
                 if (ok):
                     req.send_xml(response)

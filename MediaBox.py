@@ -15,7 +15,7 @@ except:
     
 
 _LOG_LEVELS = [logging.OFF, logging.ERROR, logging.WARNING,
-               logging.INFO, logging.DEBUG]
+               logging.INFO, logging.DEBUG, logging.PROFILE]
 
 
 try:
@@ -47,7 +47,7 @@ if (args):
 else:
     values.uri = ""
 
-logging.set_level(_LOG_LEVELS[min(4, log_count)])
+logging.set_level(_LOG_LEVELS[min(5, log_count)])
 
 
 # check if MediaBox is running already, and load the file given on the command

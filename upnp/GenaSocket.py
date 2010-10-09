@@ -96,7 +96,7 @@ class _GenaSocket(object):
         """
     
         cnx, addr = sock.accept()
-        print "new GENA connection", addr
+        logging.debug("[upnp gena] new connection from: %s", str(addr))
         
         event = EventHandler (cnx,
                           self.__process_event_body,
@@ -132,7 +132,8 @@ class _GenaSocket(object):
                     logging.error(logging.stacktrace())
             #end for
 
-            print "signal emitted", signal_name, signal_value
+            logging.debug("[upnp gena] signal emitted: %s = %s",
+                          signal_name, signal_value)
 
         event_instance.send_answer("HTTP/1.1 200 OK")
 
@@ -153,7 +154,7 @@ class _GenaSocket(object):
                 #print response.get_headers()
                 sid = response.get_header("SID")
                 timeout = response.get_header("TIMEOUT")
-                logging.debug("received GENA subscription confirmation:\n" \
+                logging.debug("[upnp gena] received subscription confirmation:\n" \
                               "SID: %s\n" \
                               "Timeout: %s" % (sid, timeout))
 
@@ -190,7 +191,7 @@ class _GenaSocket(object):
         del self.__renewal_handlers[sid]
         ev_url = self.__sid_to_url[sid]
 
-        print "RENEWING SUBSCRIPTION FOR", sid, ev_url
+        logging.debug("[upnp gena] renewing subscription for: %s", ev_url)
         addr = network.URL(ev_url)
         conn = HTTPConnection(addr.host, addr.port)
         conn.send_raw(_GENA_RENEW % (addr.path, addr.host, sid),
@@ -213,7 +214,7 @@ class _GenaSocket(object):
             sid = self.__url_to_sid[ev_url]
             self.__handlers[sid].append(cb)
             
-        print "SUBSCRIBING TO", ev_url
+        logging.debug("[upnp gena] subscribing to: %s", ev_url)
         addr = network.URL(ev_url)
         conn = HTTPConnection(addr.host, addr.port)
         conn.send_raw(_GENA_SUBSCRIBE % (addr.path, addr.host, self.__gena_url),
@@ -286,7 +287,7 @@ class EventHandler (object):
         self.__socket.close()
         self.__working_callback_id = None
         gobject.idle_add(self.__do_finish, False)
-        logging.error("GENA server connection timeout")
+        logging.error("[upnp gena] server connection timeout")
 
 
     def send_answer (self, response):

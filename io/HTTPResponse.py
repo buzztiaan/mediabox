@@ -48,7 +48,7 @@ class HTTPResponse(object):
         @return: numeric status code
         """
     
-        return self.__status
+        return self.__headers.status
         
         
     def _get_headers(self):
@@ -113,7 +113,8 @@ class HTTPResponse(object):
                     self.__body_length = len(self.__body)
                 
                 
-                if (self.__headers.method in _METHODS_WITHOUT_PAYLOAD):
+                if (self.__headers.method in _METHODS_WITHOUT_PAYLOAD or
+                      self.__content_length == 0):
                     self.__finished = True
                     self.__state = _STATE_BODY_DONE
                 else:

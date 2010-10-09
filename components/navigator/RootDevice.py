@@ -106,7 +106,6 @@ class RootDevice(Device):
         self.__favorites = self.call_service(msgs.BOOKMARK_SVC_LIST, []) or []
         self.__favorites.sort(lambda a,b:cmp((a.device_id, a.name),
                                              (b.device_id, b.name)))
-        #print "shelfed items", self.__favorites
         return self.__favorites
 
 
@@ -191,7 +190,6 @@ class RootDevice(Device):
     
         options = []
         # allow putting storage devices on the shelf
-        #print f.path
         if (f.path == "/" and not f.bookmarked and folder.path != "/"):
             options.append((None, "Add to Shelf",
                            self.__on_add_to_shelf))
@@ -224,7 +222,8 @@ class RootDevice(Device):
             self.__cache = []
 
             if (self.__initialized):
-                print "invalidating", folder, "due to", device
+                logging.debug("[root device] invalidating %s due to %s",
+                              str(folder), str(device))
                 self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
         #end if
 

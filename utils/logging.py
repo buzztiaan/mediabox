@@ -16,6 +16,8 @@ INFO = 3
 """log level: log errors, warnings, and info"""
 DEBUG = 4
 """log level: log errors, warnings, info, and debugging"""
+PROFILE = 5
+"""log level: log errors, warnings, info, debugging, and profiling"""
 
 
 _level = ERROR
@@ -120,6 +122,17 @@ def debug(msg, *args):
         msg = msg % args
 
     _log("DEBUG  ", msg)
+
+
+def profile(t, msg, *args):
+    """
+    @since: 2010.10.09
+    """
+    
+    if (_level < PROFILE): return
+    if (args):
+        msg = msg % args
+    _log("PROFILE (%0.4fs)" % (time.time() - t), msg)
 
 
 def stacktrace():

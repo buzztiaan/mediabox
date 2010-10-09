@@ -17,14 +17,11 @@ class Initialiser(Component):
         Component.__init__(self)
         
         # set theme
-        import time
-        t1 = time.time()
         try:
             theme.set_theme(config.theme())
         except:
             # theme could not be loaded; using default theme
             pass
-        print "setting theme took %f seconds" % (time.time() - t1)
 
         # utterly dirty hack no longer necessary when playing media through MAFW
         """

@@ -43,7 +43,7 @@ class HTTPServer(Component):
         t.setDaemon(True)
         t.start()
         
-        logging.info("HTTP server accepted new client")
+        logging.info("[httpserv] accepted new client: %s", str(addr))
         
         return True
 
@@ -68,7 +68,9 @@ class HTTPServer(Component):
             req = HTTPRequest()
             req.set_source(src_addr)
             req.feed(data)
-            print "received datagram from %s: %s" % (str(src_addr), req.get_method())
+            logging.debug("[httpserv] received %s dgram from: %s",
+                          req.get_method(), str(src_addr))
+            
             
             if (req.finished()):
                 self.__emit_dgram(owner, sock, req)
@@ -147,7 +149,7 @@ class HTTPServer(Component):
     def __emit(self, owner, cnx, request):
     
         def responder(code, headers, body):
-            print "RESPONDING", code
+            logging.debug("[httpserv] responding: %s", code)
             t = threading.Thread(target = self.__send_response,
                                  args = [cnx, code, headers, body])
             t.setDaemon(True)
@@ -180,7 +182,7 @@ class HTTPServer(Component):
             sock.bind((addr, port))
             sock.listen(1)
         except:
-            logging.error("error binding HTTP server to %s:%d\n%s", addr, port,
+            logging.error("[httpserv] error binding to %s:%d\n%s", addr, port,
                           logging.stacktrace())
             return "could not bind to address"
         
@@ -190,7 +192,7 @@ class HTTPServer(Component):
                                        
         self.__listeners[(addr, port)] = _Listener(owner, sock, iowatch)
         
-        logging.info("bound HTTP server to TCP %s:%d", addr, port)
+        logging.info("[httpserv] bound to TCP %s:%d", addr, port)
         
         return ""
 
@@ -206,7 +208,7 @@ class HTTPServer(Component):
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind((addr, port))
         except:
-            logging.error("error binding HTTP server to %s:%d\n%s", addr, port,
+            logging.error("[httpserv] error binding to %s:%d\n%s", addr, port,
                           logging.stacktrace())
             return "could not bind to address"
         
@@ -218,7 +220,7 @@ class HTTPServer(Component):
         t.start()
                                        
         
-        logging.info("bound HTTP server to UDP %s:%d", addr, port)
+        logging.info("[httpserv] bound to UDP %s:%d", addr, port)
         
         return ""
       
@@ -232,10 +234,10 @@ class HTTPServer(Component):
             listener.sock.close()
             del self.__listeners[(addr, port)]
 
-            logging.info("unbound HTTP server from %s:%d", addr, port)
+            logging.info("[httpserv] unbound from %s:%d", addr, port)
             
         else:
-            logging.warning("cannot unbind HTTP server from %s:%d", addr, port)
+            logging.error("[httpserv] cannot unbind from %s:%d", addr, port)
         
         #end if
     

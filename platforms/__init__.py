@@ -77,10 +77,10 @@ elif _check_maemo4():
     MAEMO4 = "maemo4"
     logging.info("using MAEMO4 target")
 
-elif _check_mer():
-    from mer import *
-    MER = "mer"
-    logging.info("using MER target")
+#elif _check_mer():
+#    from mer import *
+#    MER = "mer"
+#    logging.info("using MER target")
 
 elif _check_meego_netbook():
     from meego_netbook import *

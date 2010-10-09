@@ -73,13 +73,13 @@ class DeviceDescription(object):
             self.__parse_description(dom)
         except:
             import traceback; traceback.print_exc()
-            logging.error("invalid UPnP device description:\n%s", str(dom))
+            logging.error("[upnp] invalid device description:\n%s", str(dom))
         
         
         
     def __parse_description(self, dom):
     
-        print "parse descr"
+        logging.debug("[upnp] parsing device description")
        
         self.__url_base = dom.get_pcdata("{%s}URLBase" % _NS_DESCR).strip()
         if (not self.__url_base):
@@ -145,7 +145,6 @@ class DeviceDescription(object):
             #end if        
 
         icons = node.get_children()
-        print "UPnP icons:", icons
         icons.sort(icon_comparator)
 
         if (icons):
@@ -310,6 +309,6 @@ class DeviceDescription(object):
         @since: 0.96
         """
         
-        logging.debug("Device Description [%s]\n%s" \
+        logging.debug("[upnp] Device Description [%s]\n%s" \
                       % (self.__location, self.__dom._dump()))
 

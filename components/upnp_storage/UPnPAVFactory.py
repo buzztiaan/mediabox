@@ -21,7 +21,6 @@ class UPnPAVFactory(Component):
     def handle_SSDP_EV_DEVICE_DISCOVERED(self, uuid, descr):
 
         device_type = descr.get_device_type()
-        print "UPnP device appeared:", uuid, descr.get_friendly_name()
 
         if (device_type in AVDevice.DEVICE_TYPES):
             device = AVDevice(descr)
@@ -46,7 +45,6 @@ class UPnPAVFactory(Component):
     def handle_SSDP_EV_DEVICE_GONE(self, uuid):
 
         dev_id = self.__dev_ids.get(uuid)
-        print "UPnP device disappeared:", uuid
         if (dev_id):
             name = self.__dev_names[uuid]
             self.emit_message(msgs.CORE_EV_DEVICE_REMOVED, dev_id)

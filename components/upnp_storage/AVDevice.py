@@ -96,7 +96,6 @@ class AVDevice(Device):
     def __retrieve_icon(self):
 
         def on_icon(pbuf):
-            print "GOT ICON", pbuf
             if (pbuf):
                 _PBUF.fill(0x00000000)
                 pixbuftools.fit_pbuf(_PBUF, pbuf, 0, 0, 160, 160)
@@ -112,7 +111,6 @@ class AVDevice(Device):
 
     def get_icon(self):
     
-        print "GET ICON", self.__icon
         return self.__icon        
 
 
@@ -172,7 +170,6 @@ class AVDevice(Device):
         f = File(self)
         f.mimetype = mimetype
         f.resource = res or urlparse.urljoin(url_base, ident)
-        print f.resource
         f.name = title
         f.artist = artist
         f.info = artist

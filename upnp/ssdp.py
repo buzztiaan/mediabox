@@ -55,6 +55,7 @@ def broadcast_alive(location, notification_type, unique_service_name,
     @since: 2010.10.03
     """
 
+    logging.debug("[ssdp] broadcasting ALIVE")
     data = _SSDP_ALIVE % (max_age, location, notification_type, 
                           unique_service_name, network.get_ip())
     network.send_datagram(SSDP_IP, SSDP_PORT, data)
@@ -67,6 +68,7 @@ def broadcast_byebye(notification_type, unique_service_name):
     @since: 2010.10.03
     """
 
+    logging.debug("[ssdp] broadcasting BYE-BYE")
     data = _SSDP_BYEBYE % (notification_type, unique_service_name)
     network.send_datagram(SSDP_IP, SSDP_PORT, data)
 
@@ -78,7 +80,7 @@ def broadcast_msearch(sock):
     """
     
     data = _M_SEARCH
-    print "sending M-SEARCH"
+    logging.debug("[ssdp] broadcasting M-SEARCH")
     sock.sendto(data, (SSDP_IP, SSDP_PORT))
 
 
@@ -89,6 +91,7 @@ def respond_to_msearch(host, port,
     Sends a response to the sender of a M-SEARCH message.
     """
 
+    logging.debug("[ssdp] M-SEARCH response to: %s:%d", host, port)
     data = _M_SEARCH_RESPONSE % (max_age, location, search_target,
                                  unique_service_name, network.get_ip())
     network.send_datagram(host, port, data)
