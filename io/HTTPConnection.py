@@ -195,7 +195,6 @@ class HTTPConnection(object):
         logging.debug("[conn %s] receiving HTTP response", self._get_id())
         response = HTTPResponse()
         while (not response.finished()):
-            print "[conn ] A"
             rfds, wfds, xfds = select.select([self.__sock], [], [],
                                              _CONNECTION_TIMEOUT)
             if (rfds):
