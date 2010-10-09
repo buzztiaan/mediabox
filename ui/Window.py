@@ -457,20 +457,20 @@ class Window(Widget):
                 else:
                     self.__window.unfullscreen()
             elif (platforms.MEEGO_WETAB):
-                if (value):
-                    self.__window.fullscreen()
-                else:
-                    self.__window.unfullscreen()
                 self.__title_bar.set_visible(not value)
+                #if (value):
+                #    self.__window.fullscreen()
+                #else:
+                #    self.__window.unfullscreen()
                 self.render()
                 
             else:
                 if (self.__title_bar):
                     self.__title_bar.set_visible(not value)
-                    #if (value):
-                    #    self.__window.fullscreen()
-                    #else:
-                    #    self.__window.unfullscreen()
+                    if (value):
+                        self.__window.fullscreen()
+                    else:
+                        self.__window.unfullscreen()
                     self.render()
             
         
