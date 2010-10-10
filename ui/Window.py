@@ -110,6 +110,7 @@ class Window(Widget):
                 #self.__window.vbox.get_children()[0].hide()
             elif (platforms.MEEGO_WETAB):
                 self.__window = gtk.Window()
+                self.__window.maximize()
                 self.__window.set_decorated(False)
             elif (platforms.MEEGO_NETBOOK):
                 self.__window = gtk.Dialog()
