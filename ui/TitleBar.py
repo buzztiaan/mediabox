@@ -89,7 +89,7 @@ class TitleBar(Widget):
         screen.draw_frame(theme.titlebar_bg, x, y, w, h, True)
 
         if (self.__mode == self.MODE_NORMAL):
-            if (platforms.MEEGO_NETBOOK):
+            if (platforms.MEEGO_NETBOOK or platforms.MEEGO_WETAB):
                 screen.draw_pixbuf(theme.window_menu, x, 7)
                 self.__btn_close.set_geometry(w - 80, 0, 80, 57)
                 self.__btn_switch.set_visible(False)
@@ -119,16 +119,31 @@ class TitleBar(Widget):
                 screen.set_clip_rect()
                 
         elif (self.__mode == self.MODE_SUBWINDOW):
-            screen.draw_pixbuf(theme.window_menu, x + 80, 7)
-            self.__btn_switch.set_geometry(0, 0, 80, 57)
-            self.__btn_back.set_geometry(w - 80, 0, 80, 57)
-            self.__btn_switch.set_visible(True)
-            self.__btn_back.set_visible(True)
-            self.__btn_close.set_visible(False)
+            if (platforms.MEEGO_NETBOOK or platforms.MEEGO_WETAB):
+                screen.draw_pixbuf(theme.window_menu, x, 7)
+                self.__btn_close.set_geometry(w - 80, 0, 80, 57)
+                self.__btn_switch.set_visible(False)
+                self.__btn_back.set_visible(False)
+                self.__btn_close.set_visible(True)
 
-            screen.set_clip_rect(x + 80 + 50, y + 14, w - 80 - 80 - 50, 57)
-            screen.draw_text(self.__title,
-                             theme.font_ui_titlebar,
-                             x + 80 + 50, y + 14,
-                             theme.color_ui_titlebar)
-            screen.set_clip_rect()
+                screen.set_clip_rect(x + 50, y + 14, w - 80 - 50, 57)
+                screen.draw_text(self.__title,
+                                 theme.font_ui_titlebar,
+                                 x + 50, y + 14,
+                                 theme.color_ui_titlebar)
+                screen.set_clip_rect()
+            
+            else:
+                screen.draw_pixbuf(theme.window_menu, x + 80, 7)
+                self.__btn_switch.set_geometry(0, 0, 80, 57)
+                self.__btn_back.set_geometry(w - 80, 0, 80, 57)
+                self.__btn_switch.set_visible(True)
+                self.__btn_back.set_visible(True)
+                self.__btn_close.set_visible(False)
+
+                screen.set_clip_rect(x + 80 + 50, y + 14, w - 80 - 80 - 50, 57)
+                screen.draw_text(self.__title,
+                                 theme.font_ui_titlebar,
+                                 x + 80 + 50, y + 14,
+                                 theme.color_ui_titlebar)
+                screen.set_clip_rect()
