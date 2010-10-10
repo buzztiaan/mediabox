@@ -121,10 +121,10 @@ class TitleBar(Widget):
         elif (self.__mode == self.MODE_SUBWINDOW):
             if (platforms.MEEGO_NETBOOK or platforms.MEEGO_WETAB):
                 screen.draw_pixbuf(theme.window_menu, x, 7)
-                self.__btn_close.set_geometry(w - 80, 0, 80, 57)
+                self.__btn_back.set_geometry(w - 80, 0, 80, 57)
                 self.__btn_switch.set_visible(False)
-                self.__btn_back.set_visible(False)
-                self.__btn_close.set_visible(True)
+                self.__btn_back.set_visible(True)
+                self.__btn_close.set_visible(False)
 
                 screen.set_clip_rect(x + 50, y + 14, w - 80 - 50, 57)
                 screen.draw_text(self.__title,
