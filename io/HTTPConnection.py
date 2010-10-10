@@ -11,7 +11,7 @@ import socket
 import select
 
 
-_BUFFER_SIZE = 65536 * 4
+_BUFFER_SIZE = 65536
 _CONNECTION_TIMEOUT = 10
 _MAX_CONNECTIONS = 8
 
@@ -45,6 +45,7 @@ class HTTPConnection(object):
         self.__socket_connected = False
         
         self.__is_aborted = False
+        self.__redirect_handled = False
 
 
     def _get_id(self):
@@ -66,7 +67,14 @@ class HTTPConnection(object):
         @param port: port number
         """
 
+        if (self.__sock):
+            self.__sock.close()
+        self.__sock = None
+
+        _connection_resource.release()
+
         self.__address = (host, port)
+        self.__redirect_handled = True
 
 
     def __emit(self, cb, *args):
@@ -75,6 +83,7 @@ class HTTPConnection(object):
             try:
                 cb(*args)
             except:
+                import traceback; traceback.print_exc()
                 pass
             ready_ev.set()
         
@@ -184,7 +193,7 @@ class HTTPConnection(object):
         self.__data += "\r\n"
         
         
-    def __send_thread(self, data):
+    def __io_thread(self, data):
         """
         Asynchronous thread for sending data.
         """
@@ -192,10 +201,11 @@ class HTTPConnection(object):
         self.__connect(*self.__address)
 
         if (not self.__socket_connected): return
+        self.__redirect_handled = False
 
         # first send
         logging.debug("[conn %s] sending HTTP request", self._get_id())
-        while (data):
+        while (data and self.__sock):
             chunk = data[:_BUFFER_SIZE]
             data = data[_BUFFER_SIZE:]
             rfds, wfds, xfds = select.select([], [self.__sock], [],
@@ -211,7 +221,8 @@ class HTTPConnection(object):
         # then receive
         logging.debug("[conn %s] receiving HTTP response", self._get_id())
         response = HTTPResponse()
-        while (not response.finished()):
+        while (not response.finished() and self.__sock and
+               not self.__redirect_handled):
             rfds, wfds, xfds = select.select([self.__sock], [], [],
                                              _CONNECTION_TIMEOUT)
             if (rfds):
@@ -256,7 +267,7 @@ class HTTPConnection(object):
         self.__user_args = user_args
         self.__data += body    
 
-        t = threading.Thread(target = self.__send_thread,
+        t = threading.Thread(target = self.__io_thread,
                              args = [self.__data])
         t.setDaemon(True)
         t.start()
@@ -279,7 +290,7 @@ class HTTPConnection(object):
         self.__user_args = user_args
         self.__data = raw
 
-        t = threading.Thread(target = self.__send_thread,
+        t = threading.Thread(target = self.__io_thread,
                              args = [self.__data])
         t.setDaemon(True)
         t.start()
@@ -291,7 +302,7 @@ class HTTPConnection(object):
         closed.
         """
         
-        logging.error("[conn %s] cancelled by user request", self._get_id())
+        logging.error("[conn %s] cancelled", self._get_id())
         if (self.__sock):
             self.__abort("cancelled")
         

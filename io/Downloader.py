@@ -46,7 +46,7 @@ class Downloader(HTTPConnection):
             self.putrequest("GET", path, "HTTP/1.1")
             self.putheader("Host", "%s:%d" % (addr.host, addr.port))
             self.putheader("User-Agent", "MediaBox")
-            #self.putheader("Connection", "close")
+            self.putheader("Connection", "close")
             self.endheaders()
             self.send("", self.__on_receive_data, cb, args)
 
@@ -91,7 +91,7 @@ class Downloader(HTTPConnection):
         if (not resp):
             cb(None, 0, 0, *args)
             return
-            
+                        
         status = resp.get_status()
         
         if (status == 200):
@@ -101,7 +101,7 @@ class Downloader(HTTPConnection):
                 #print data
                 cb(data, amount, total, *args)
             
-            if (not data or resp.finished()):
+            if (resp.finished()):
                 cb("", amount, total, *args)
 
         elif (300 <= status < 310):
@@ -109,16 +109,18 @@ class Downloader(HTTPConnection):
             if (not location in self.__location_history):
                 self.__location_history.append(location)
                 addr = network.URL(location)
-                logging.debug("HTTP redirect to %s" % location)
-                self.redirect(addr.host, addr.port)
+                logging.debug("[downloader] HTTP redirect to: %s" % location)
+
                 if (addr.query_string):
                     path = addr.path + "?" + addr.query_string
                 else:
                     path = addr.path
+
+                self.redirect(addr.host, addr.port)
                 self.putrequest("GET", path, "HTTP/1.1")
                 self.putheader("Host", "%s:%d" % (addr.host, addr.port))
                 self.putheader("User-Agent", "MediaBox")
-                #self.putheader("Connection", "close")
+                self.putheader("Connection", "close")
                 self.endheaders()
                 self.send("", self.__on_receive_data, cb, args)
             else:

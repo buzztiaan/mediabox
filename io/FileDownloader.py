@@ -32,7 +32,8 @@ class FileDownloader(Downloader):
             # write data to file
             try:
                 self.__fd.write(data)
-            except IOError:
+            except:
+                import traceback; traceback.print_exc()
                 self.cancel()
            
         else:
