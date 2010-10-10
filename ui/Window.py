@@ -5,6 +5,7 @@ from ui.TitleBar import TitleBar
 import platforms
 from theme import theme
 
+import time
 try:
     import gtk
 except:
@@ -108,11 +109,8 @@ class Window(Widget):
                 # hide some ugly separator :)
                 #self.__window.vbox.get_children()[0].hide()
             elif (platforms.MEEGO_WETAB):
-                self.__window = gtk.Dialog()
+                self.__window = gtk.Window()
                 self.__window.set_decorated(False)
-                self.__window.maximize()
-                # hide some ugly separator :)
-                self.__window.vbox.get_children()[0].hide()                
             elif (platforms.MEEGO_NETBOOK):
                 self.__window = gtk.Dialog()
                 self.__window.set_decorated(False)
@@ -451,19 +449,17 @@ class Window(Widget):
     def _update_flag(self, flag, value):
 
         if (flag == windowflags.FULLSCREEN):
+            self.__vidscreen.set_size_request(-1, -1)
+            now = time.time()
+            while (gtk.events_pending() and time.time() < now + 1):
+                gtk.main_iteration(False)
+                
             if (platforms.MAEMO5):
                 if (value):
                     self.__window.fullscreen()
                 else:
                     self.__window.unfullscreen()
-            elif (platforms.MEEGO_WETAB):
-                self.__title_bar.set_visible(not value)
-                #if (value):
-                #    self.__window.fullscreen()
-                #else:
-                #    self.__window.unfullscreen()
-                self.render()
-                
+
             else:
                 if (self.__title_bar):
                     self.__title_bar.set_visible(not value)
@@ -472,8 +468,7 @@ class Window(Widget):
                     else:
                         self.__window.unfullscreen()
                     self.render()
-            
-        
+                    
         elif (flag == windowflags.ASR):
             if (platforms.MAEMO5):
                 if (value):

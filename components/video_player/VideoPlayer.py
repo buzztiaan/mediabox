@@ -294,9 +294,9 @@ class VideoPlayer(Player):
             self.__toolbar.set_visible(True)
             self.__btn_star.set_visible(True)
 
-        self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
         self.__update_layout()
-        self.render()
+        self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
+        #self.render()
             
 
     def render_this(self):
