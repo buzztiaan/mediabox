@@ -134,8 +134,3 @@ class Downloader(HTTPConnection):
             cb(None, 0, 0, *args)
             return
 
-        # try to avoid starvation of GTK for high bandwidths
-        #then = time.time() + 0.1
-        #while (gtk.events_pending() and time.time() < then):
-        #    gtk.main_iteration(False)
-

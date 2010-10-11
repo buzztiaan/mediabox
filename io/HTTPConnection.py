@@ -9,6 +9,7 @@ import gobject
 import threading
 import socket
 import select
+import time
 
 
 _BUFFER_SIZE = 65536
@@ -78,6 +79,10 @@ class HTTPConnection(object):
 
 
     def __emit(self, cb, *args):
+        """
+        Notifes callbacks about new data.
+        Waits until the callbacks have finished.
+        """
         
         def f(ready_ev, cb, *args):
             try:
@@ -99,12 +104,13 @@ class HTTPConnection(object):
         terminated. Once this event is set, the connection status may be read.
         """
 
-        logging.debug("[conn %s] new http connection: %s",
+        logging.debug("[conn %s] new HTTP connection: %s",
                       self._get_id(), "http://%s:%d" % (host, port))
 
         if (self.__sock):
             self.__sock.close()
 
+        now = time.time()
         _connection_resource.acquire()
         self.__finished.clear()
             
@@ -121,7 +127,7 @@ class HTTPConnection(object):
             self.__emit(self.__abort, "Could not resolve hostname")
             return
             
-        logging.debug("[conn %s] connected", self._get_id())
+        logging.profile(now, "[conn %s] connected", self._get_id())
         self.__socket_connected = True
 
 
@@ -145,7 +151,7 @@ class HTTPConnection(object):
             while (gtk.events_pending()):
                 gtk.main_iteration(True)
         #end for
-        logging.debug("[conn %s] finished waiting", self._get_id())
+        logging.debug("[conn %s] finished waiting until closed", self._get_id())
 
         return self.__is_aborted
 
@@ -263,6 +269,9 @@ class HTTPConnection(object):
         @param *user_args: variable list of user arguments to the callback handler
         """
 
+        logging.debug("[conn %s] sending HTTP request:\n%s",
+                      self._get_id(), body)
+
         self.__callback = cb
         self.__user_args = user_args
         self.__data += body    
@@ -317,7 +326,7 @@ class HTTPConnection(object):
         self.__finished.set()
         _connection_resource.release()
 
-        logging.error("[conn %s] connection aborted (%s)",
+        logging.error("[conn %s] aborted (%s)",
                       self._get_id(), error)
         self.__callback(None, *self.__user_args)
 
@@ -331,9 +340,9 @@ class HTTPConnection(object):
         self.__finished.set()
         _connection_resource.release()
             
-        logging.debug("[conn %s] connection finished", self._get_id())
+        logging.debug("[conn %s] finished", self._get_id())
         if (not self.__close_connection):
-            logging.debug("[conn %s] connection still alive", self._get_id())
+            logging.debug("[conn %s] still alive", self._get_id())
         
 
 
