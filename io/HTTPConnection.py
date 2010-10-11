@@ -245,6 +245,7 @@ class HTTPConnection(object):
                     
                     if (time.time() - before >= 1.0):
                         size_diff = response.body_length() - prev_body_length
+                        prev_body_length = response.body_length()
                         before = time.time()
                         
                         logging.debug("[conn %s] %0.2f kB/s",
