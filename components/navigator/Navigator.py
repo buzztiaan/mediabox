@@ -621,11 +621,13 @@ class Navigator(Component, Window):
                                       if not fl.mimetype.endswith("-folder") ]
                 self.__filter_play_files()
                 self.__random_files = []
+                logging.debug("[navigator] clearing random items")
 
 
 
     def __go_previous(self):
 
+        now = time.time()
         try:
             idx = self.__play_files.index(self.__current_file)
         except ValueError:
@@ -635,9 +637,13 @@ class Navigator(Component, Window):
             next_item = self.__play_files[idx - 1]
             self.__load_file(next_item, False)
             
+        logging.profile(now, "[navigator] loaded previous item")
+            
             
     def __go_next(self):
 
+        now = time.time()
+        
         repeat_mode = mb_config.repeat_mode()
         shuffle_mode = mb_config.shuffle_mode()
         
@@ -667,6 +673,8 @@ class Navigator(Component, Window):
             elif (shuffle_mode == mb_config.SHUFFLE_MODE_ALL):
                 self.__play_shuffled(True)
             
+        logging.profile(now, "[navigator] loaded next item")
+        
 
     def __play_same(self):
     
@@ -706,11 +714,14 @@ class Navigator(Component, Window):
 
         if (not self.__random_files):
             self.__random_files = self.__play_files[:]
+            logging.debug("[navigator] initialising random items (%d items)",
+                          len(self.__random_files))
 
         idx = random.randint(0, len(self.__random_files) - 1)
         next_item = self.__random_files.pop(idx)
-        print self.__random_files
-        print idx, "->", next_item
+        logging.debug("[navigator] picking random item %d of %d: %s",
+                      idx, len(self.__random_files), str(next_item))
+
         self.__load_file(next_item, False)
         
         return True
@@ -724,6 +735,8 @@ class Navigator(Component, Window):
         
         if (not self.__play_files): return
         
+        now = time.time()
+        
         size = len(self.__play_files)
         img_size = len([f for f in self.__play_files
                         if f.mimetype in mimetypes.get_image_types() ])
@@ -732,6 +745,9 @@ class Navigator(Component, Window):
         if (ratio < 0.5):
             self.__play_files = [ f for f in self.__play_files
                              if not f.mimetype in mimetypes.get_image_types() ]
+
+        logging.profile(now, "[navigator] filtered items to play " \
+                             "(removed cover art)")
 
 
     def __show_dialog(self, name):
@@ -908,9 +924,15 @@ class Navigator(Component, Window):
             self.__filter_play_files()
             # remove from random files what's no longer there and add to random
             # files what's new in play files
+            logging.debug("[navigator] updating random items after folder " \
+                          "invalidation")
+            l = len(self.__random_files)
             self.__random_files = [ f for f in self.__play_files
                                     if f in self.__random_files or
                                        f not in prev_play_files ]
+            logging.debug("[navigator] previously %d random items, now %d",
+                          l, len(self.__random_files))
+           
 
 
     def handle_CORE_EV_DEVICE_REMOVED(self, dev_id):
@@ -958,6 +980,7 @@ class Navigator(Component, Window):
         self.__play_files = [ fl for fl in self.__browser.get_files()
                               if not fl.mimetype.endswith("-folder") ]
         self.__filter_play_files()
+        logging.debug("[navigator] clearing random items")
         self.__random_files = []
    
     

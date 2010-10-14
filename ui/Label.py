@@ -163,7 +163,7 @@ class Label(Widget):
         if (self.may_render()):
             if (self.__render_timer):
                 gobject.source_remove(self.__render_timer)        
-            self.__render_text(0, 1)    
+            self.__render_text(0, 1)
         
         
     def __render_text(self, pos, direction, begin_time = 0):

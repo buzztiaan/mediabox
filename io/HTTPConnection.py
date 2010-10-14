@@ -117,13 +117,13 @@ class HTTPConnection(object):
         try:
             self.__sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except:
-            import traceback; traceback.print_exc()
+            #import traceback; traceback.print_exc()
             return
 
         try:
             self.__sock.connect((host, port or 80))
         except:
-            import traceback; traceback.print_exc()
+            #import traceback; traceback.print_exc()
             self.__emit(self.__abort, "Could not resolve hostname")
             return
             

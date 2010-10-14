@@ -1,4 +1,4 @@
-mediabox (2010.10.03) unstable; urgency=low
+mediabox (2010.10.14) unstable; urgency=low
 
   Fixed some bugs and compatibility issues with UPnP MediaRenderers
   
@@ -17,7 +17,13 @@ mediabox (2010.10.03) unstable; urgency=low
   
   The currently visible items have priority for thumbnailing
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 03 Oct 2010 21:15:00 +0200
+  Optimized HTTP and UDP connection handling
+  
+  Windowing compatibility fixes for running on WeTab MeeGo device
+  
+  Fixed bug where input dialog windows didn't show text labels
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 14 Oct 2010 18:30:00 +0200
 
 mediabox (2010.09.11) unstable; urgency=low
 

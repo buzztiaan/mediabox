@@ -81,7 +81,10 @@ def broadcast_msearch(sock):
     
     data = _M_SEARCH
     logging.debug("[ssdp] broadcasting M-SEARCH")
-    sock.sendto(data, (SSDP_IP, SSDP_PORT))
+    try:
+        sock.sendto(data, (SSDP_IP, SSDP_PORT))
+    except:
+        pass
 
 
 def respond_to_msearch(host, port,

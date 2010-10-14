@@ -124,8 +124,11 @@ def send_datagram(host, port, data):
     def do_send(host, port, data):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
                              socket.IPPROTO_UDP)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.sendto(data, (host, port))
+        try:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.sendto(data, (host, port))
+        except:
+            pass
         sock.close()
         
     t = threading.Thread(target = do_send, args = [host, port, data])

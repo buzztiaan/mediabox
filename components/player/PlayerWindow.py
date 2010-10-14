@@ -154,7 +154,6 @@ class PlayerWindow(Dialog):
     
         def loader():
             self.__current_player.load(f)
-            self.set_title(f.name)
             self.set_flag(windowflags.BUSY, False)
         
     
@@ -184,6 +183,7 @@ class PlayerWindow(Dialog):
             
         #self.set_visible(True)
         self.set_flag(windowflags.BUSY, True)
+        self.set_title(f.name)
         gobject.timeout_add(0, loader)
 
 

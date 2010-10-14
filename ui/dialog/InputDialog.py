@@ -84,7 +84,7 @@ class InputDialog(Window):
         self.__vbox.add(vbox, True)
       
         lbl = Label(label, theme.font_mb_plain, theme.color_mb_text)
-        vbox.add(lbl)
+        vbox.add(lbl, True)
         
         entry = TextInput()
         vbox.add(entry, True)
@@ -108,7 +108,7 @@ class InputDialog(Window):
         lbl = Label(label + " %d" % preset,
                     theme.font_mb_plain,
                     theme.color_mb_text)
-        vbox.add(lbl)
+        vbox.add(lbl, True)
 
         slider = HSlider(theme.mb_slider_gauge)
         slider.connect_value_changed(update_label)
