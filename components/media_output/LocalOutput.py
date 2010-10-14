@@ -30,6 +30,7 @@ class LocalOutput(MediaOutput):
         self.__backend.connect_volume_changed(self.__on_change_volume)
         self.__backend.connect_status_changed(self.__on_change_status)
         self.__backend.connect_position_changed(self.__on_change_position)
+        self.__backend.connect_aspect_changed(self.__on_change_aspect)
         self.__backend.connect_tag_discovered(self.__on_tags)
         self.__backend.connect_error(self.__on_error)
         
@@ -48,6 +49,11 @@ class LocalOutput(MediaOutput):
     
         self.emit_event(self.EVENT_POSITION_CHANGED, ctx_id, pos, total)
 
+
+    def __on_change_aspect(self, ctx_id, ratio):
+    
+        self.emit_event(self.EVENT_ASPECT_CHANGED, ctx_id, ratio)
+        
 
     def __on_tags(self, ctx_id, tags):
     

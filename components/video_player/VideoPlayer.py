@@ -252,6 +252,12 @@ class VideoPlayer(Player):
             self.__volume = v
 
 
+    def __on_change_player_aspect_ratio(self, ctx_id, r):
+    
+        if (ctx_id == self.__context_id and self.__player):
+            self.__screen.set_aspect_ratio(r)
+        
+
     def __on_change_bookmark(self):
     
         media_bookmarks.set_bookmarks(self.__current_file,
@@ -350,6 +356,7 @@ class VideoPlayer(Player):
         self.__player.connect_status_changed(self.__on_status_changed)
         self.__player.connect_position_changed(self.__on_update_position)
         self.__player.connect_volume_changed(self.__on_change_player_volume)
+        self.__player.connect_aspect_changed(self.__on_change_player_aspect_ratio)
         self.__player.connect_error(self.__on_error)
         
         self.__player.set_window(self.__screen.get_xid())

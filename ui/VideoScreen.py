@@ -10,6 +10,7 @@ class VideoScreen(Widget):
     def __init__(self):
     
         self.__xid = 0
+        self.__aspect_ratio = 15/9.0
     
         Widget.__init__(self)
         
@@ -43,9 +44,28 @@ class VideoScreen(Widget):
         #end if
 
 
+    def set_aspect_ratio(self, ratio):
+    
+        print "setting aspect ratio", ratio
+        self.__aspect_ratio = ratio
+        self.render()
+
+
     def render_this(self):
     
         x, y = self.get_screen_pos()
         w, h = self.get_size()
+        
+        aspect = w / h
+        w2 = self.__aspect_ratio * h
+        h2 = w / self.__aspect_ratio
+        
+        if (w2 > w):
+            y += (h - h2) / 2
+            h = h2
+        else:
+            x += (w - w2) / 2
+            w = w2
+        
         self.__xid = self.get_window().show_video_overlay(x, y, w, h)
 
