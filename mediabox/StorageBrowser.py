@@ -215,7 +215,7 @@ class StorageBrowser(ThumbableGridView):
         folder.shift_file(pos, amount)
 
 
-    def __prerender_item(self):
+    def __prerender_item(self, t):
         """
         Takes an item from the queue and prerenders it.
         """
@@ -227,6 +227,7 @@ class StorageBrowser(ThumbableGridView):
             return True
         else:
             self.__prerender_handler = None
+            logging.profile(t, "[browser] finished prerendering items")
             return False
 
         
@@ -573,7 +574,8 @@ class StorageBrowser(ThumbableGridView):
             self.emit_event(self.EVENT_FOLDER_COMPLETE, folder)
 
         if (not self.__prerender_handler):
-            self.__prerender_handler = gobject.idle_add(self.__prerender_item)
+            self.__prerender_handler = gobject.idle_add(self.__prerender_item,
+                                                        time.time())
 
         # now is a good time to collect garbage
         #import gc; gc.collect()    
@@ -589,6 +591,7 @@ class StorageBrowser(ThumbableGridView):
             # abort if the user has changed the directory inbetween
             if (token != self.__token): return False
 
+            profile_now = time.time()
             if (f):
                 #self.set_message("Loading") # (%d items)" % len(self.get_files()))
                 entries.append(f)
@@ -621,23 +624,30 @@ class StorageBrowser(ThumbableGridView):
 
             # give visual feedback while loading the visible part of a folder
             if (len(entries) == 12 or not f): #not f or len(entries) == 12):
+                profile_now3 = time.time()
                 self.invalidate()
                 self.render()
+                logging.profile(profile_now3, "[browser] rendered list view")
                 #while (gtk.events_pending()):
                 #    gtk.main_iteration(True)
             #end if
 
             # don't block UI while loading non-local folders
-            t = int((time.time() - open_time) * 10)
-            if (t % 2 == 0): #time.time() > open_time + 3):
+            #t = int((time.time() - open_time) * 10)
+            if (time.time() > open_time + 3 and len(entries) % 2 == 0):
+                profile_now2 = time.time()
                 while (gtk.events_pending()):
                     gtk.main_iteration(False)
+                logging.profile(profile_now2, "[browser] processed UI events")
 
             if (not f):
                 # last item has been reached
+                logging.profile(open_time, "[browser] loaded folder")
                 return False
             else:
                 # continue loading next item
+                logging.profile(profile_now, "[browser] added %dth item",
+                                len(entries))
                 return True
 
 

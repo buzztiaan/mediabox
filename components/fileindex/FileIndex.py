@@ -166,7 +166,8 @@ class FileIndex(Component):
             logging.debug("[fileindex] result: %d items\n%s", len(out), out)
         else:
             logging.debug("[fileindex] result: %d items", len(out))
-        logging.profile(now, "[fileindex] query: %s", str(qs))
+        logging.profile(now, "[fileindex] query: %s (yields %d items)",
+                        str(qs), len(out))
             
         return out
         

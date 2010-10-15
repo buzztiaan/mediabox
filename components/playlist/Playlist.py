@@ -1,7 +1,9 @@
 import m3u
 from utils import urlquote
+from utils import logging
 
 import os
+import time
 
 
 class Playlist(object):
@@ -102,6 +104,8 @@ class Playlist(object):
         Loads the playlist from the given file.
         """
 
+        now = time.time()
+
         self.__files = []
 
         for location, name in m3u.load(path):
@@ -113,6 +117,8 @@ class Playlist(object):
         self.__name = urlquote.unquote(
                                  os.path.splitext(os.path.basename(path))[0])
         
+        logging.profile(now, "[playlist] loaded playlist: %s", self.__name)
+        
         
     def save_as(self, path):
         """
@@ -121,11 +127,15 @@ class Playlist(object):
     
         if (not self.__is_modified): return
         
+        now = time.time()
+        
         items = [ (f.full_path, f.name) for f in self.__files ]
         m3u.save(path, items)
         
         self.__path = path
         self.__is_modified = False
+        
+        logging.profile(now, "[playlist] saved playlist: %s", self.__name)
 
 
 

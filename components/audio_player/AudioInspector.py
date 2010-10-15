@@ -1,7 +1,9 @@
 from com import FileInspector, msgs
 from mediabox import tagreader
+from utils import logging
 
 import os
+import time
 
 
 class AudioInspector(FileInspector):
@@ -20,6 +22,8 @@ class AudioInspector(FileInspector):
         
         
     def inspect(self, entry):   
+        
+        profile_now = time.time()
         
         path = entry["File.Path"]
         basename = os.path.basename(path)
@@ -41,4 +45,7 @@ class AudioInspector(FileInspector):
         except:
             trackno = 0
         entry["Audio.Tracknumber"] = trackno
+
+        logging.profile(profile_now, "[audioinspector] inspected file: %s",
+                        path)
 

@@ -442,21 +442,27 @@ class Navigator(Component, Window):
         else:
             self.__browser.set_click_behavior(
               self.__browser.CLICK_BEHAVIOR_SINGLE)
-        
+                
 
     def __on_progress_folder(self, f, c):
 
-        if (c.icon): return
+        if (f == self.__play_folder and not c.mimetype.endswith("-folder")):
+            if (not c in self.__play_files):
+                self.__play_files.append(c)
+            if (not c in self.__random_files):
+                self.__random_files.append(c)
 
-        item = self.__browser.get_items()[-1]
-        thumbpath, is_final = \
-          self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
+        if (not c.icon):
+            item = self.__browser.get_items()[-1]
+            thumbpath, is_final = \
+              self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
 
-        item.set_icon(thumbpath)
-        
-        if (not is_final):
-            #print "SCHEDULING THUMBNAIL", c
-            self.__tn_scheduler.add(item, c)
+            item.set_icon(thumbpath)
+            
+            if (not is_final):
+                #print "SCHEDULING THUMBNAIL", c
+                self.__tn_scheduler.add(item, c)
+        #end if
 
 
     def __on_complete_folder(self, f):
@@ -475,7 +481,7 @@ class Navigator(Component, Window):
 
         if (self.is_visible()):
             self.__tn_scheduler.resume()
-
+            
 
     def __update_thumbnail(self, item, thumbpath):
     
@@ -619,7 +625,6 @@ class Navigator(Component, Window):
                 self.__play_folder = folder
                 self.__play_files = [ fl for fl in self.__browser.get_files()
                                       if not fl.mimetype.endswith("-folder") ]
-                self.__filter_play_files()
                 self.__random_files = []
                 logging.debug("[navigator] clearing random items")
 
@@ -628,6 +633,8 @@ class Navigator(Component, Window):
     def __go_previous(self):
 
         now = time.time()
+        self.__filter_play_files()
+        
         try:
             idx = self.__play_files.index(self.__current_file)
         except ValueError:
@@ -643,6 +650,7 @@ class Navigator(Component, Window):
     def __go_next(self):
 
         now = time.time()
+        self.__filter_play_files()
         
         repeat_mode = mb_config.repeat_mode()
         shuffle_mode = mb_config.shuffle_mode()
@@ -746,6 +754,9 @@ class Navigator(Component, Window):
             self.__play_files = [ f for f in self.__play_files
                              if not f.mimetype in mimetypes.get_image_types() ]
 
+            self.__random_files = [ f for f in self.__random_files
+                                    if f in self.__play_files ]
+
         logging.profile(now, "[navigator] filtered items to play " \
                              "(removed cover art)")
 
@@ -840,6 +851,8 @@ class Navigator(Component, Window):
 
     def handle_COM_EV_APP_STARTED(self):
     
+        logging.profile(values.START_TIME, "[app] startup complete")
+    
         # load state
         try:
             path, play_files, play_folder, current_file = state.load(_STATEFILE)
@@ -915,13 +928,15 @@ class Navigator(Component, Window):
 
     def handle_CORE_EV_FOLDER_INVALIDATED(self, folder):
 
+        logging.debug("[navigator] invalidating folder %s", str(folder))
+        
         if (self.is_visible()):
             self.__browser.invalidate_folder(folder)
+            
         if (folder and folder == self.__play_folder):
             prev_play_files = self.__play_files[:]
             self.__play_files = [ fl for fl in folder.get_children()
                                   if not fl.mimetype.endswith("-folder") ]
-            self.__filter_play_files()
             # remove from random files what's no longer there and add to random
             # files what's new in play files
             logging.debug("[navigator] updating random items after folder " \
@@ -979,7 +994,6 @@ class Navigator(Component, Window):
         self.__play_folder = folder
         self.__play_files = [ fl for fl in self.__browser.get_files()
                               if not fl.mimetype.endswith("-folder") ]
-        self.__filter_play_files()
         logging.debug("[navigator] clearing random items")
         self.__random_files = []
    

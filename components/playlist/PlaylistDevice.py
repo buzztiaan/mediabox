@@ -9,6 +9,7 @@ from utils import logging
 from theme import theme
 
 import os
+import time
 
 _PLAYLIST_DIR = os.path.join(values.USER_DIR, "playlists")
 
@@ -142,6 +143,7 @@ class PlaylistDevice(Device):
             except:
                 pass
 
+        now = time.time()
 
         # load playlists
         self.__lists = []
@@ -161,6 +163,8 @@ class PlaylistDevice(Device):
         self.__lists.sort(lambda a,b:cmp(a[0],b[0]))
         self.__current_list = self.__lists[0][1]
         self.__current_folder = None
+        
+        logging.profile(now, "[playlist] loaded playlists")
 
         
     def __save_playlists(self):
@@ -168,8 +172,10 @@ class PlaylistDevice(Device):
         Saves all playlists.
         """
         
+        now = time.time()
         for n, pl in self.__lists:
             pl.save()
+        logging.profile(now, "[playlist] saved playlists")
 
 
     def __lookup_playlist(self, name):
@@ -397,11 +403,17 @@ class PlaylistDevice(Device):
         #end if
 
         if (playlist):
+            now = time.time()
+
             self.emit_message(msgs.UI_ACT_SHOW_INFO,
                           u"Adding %d items to %s" \
                           % (len(files), playlist.get_name()))
+            count = [0]
             for f in files:
-                self.__add_item_to_playlist(playlist, f)
+                self.__add_item_to_playlist(playlist, f, count)
+
+            logging.profile(now, "[playlist] added %d items to %s",
+                            count[0], playlist.get_name())
 
             playlist.save()
             self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED,

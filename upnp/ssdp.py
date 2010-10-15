@@ -55,7 +55,7 @@ def broadcast_alive(location, notification_type, unique_service_name,
     @since: 2010.10.03
     """
 
-    logging.debug("[ssdp] broadcasting ALIVE")
+    logging.debug("[ssdp] broadcasting ALIVE: %s", unique_service_name)
     data = _SSDP_ALIVE % (max_age, location, notification_type, 
                           unique_service_name, network.get_ip())
     network.send_datagram(SSDP_IP, SSDP_PORT, data)
@@ -68,7 +68,7 @@ def broadcast_byebye(notification_type, unique_service_name):
     @since: 2010.10.03
     """
 
-    logging.debug("[ssdp] broadcasting BYE-BYE")
+    logging.debug("[ssdp] broadcasting BYE-BYE: %s", unique_service_name)
     data = _SSDP_BYEBYE % (notification_type, unique_service_name)
     network.send_datagram(SSDP_IP, SSDP_PORT, data)
 

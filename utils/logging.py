@@ -2,6 +2,7 @@
 Lightweight logging module with formatted output. Logs are written to C{stdout}.
 """
 
+import sys
 import time
 import traceback
 
@@ -74,6 +75,7 @@ def _log(ltype, s):
         else:
             print ">   " + line
     #end for
+    sys.stdout.flush()
 
 
 def error(msg, *args):
