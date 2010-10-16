@@ -887,31 +887,21 @@ class Widget(EventEmitter):
         pass
 
 
+    """
     def get_event_sensor(self):
-        """
+        ""
         Returns the event sensor of the widget hierarchy. This is a GTK widget.
         
         @return: event sensor
-        """
+        ""
     
         return self.__event_sensor
-        
-        
     """
-    def set_window(self, win):
-    
-        self.__window = win
-        #try:
-        #win.set_widget_for_events(self)
-        self.__need_to_check_zones = True
-        #except:
-        #    logging.error("window object %s must implement method " \
-        #                  "set_widget_for_events" % win)
-    """ 
+     
         
     def get_window(self):
         """
-        Returns the GTK window of the widget hierarchy.
+        Returns the window of the widget hierarchy.
         
         @return: window
         """

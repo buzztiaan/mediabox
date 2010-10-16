@@ -258,6 +258,17 @@ class Window(Widget):
         self.set_flags(new_flags)
 
 
+    def get_flag(self, flag):
+        """
+        Returns the current value of a window flag.
+        @since: 2010.10.16
+        
+        @param flag: the flag
+        """
+        
+        return (self.__flags & flag)
+
+
     """
     def get_size(self):
     
@@ -468,7 +479,7 @@ class Window(Widget):
                         self.__window.fullscreen()
                     else:
                         self.__window.unfullscreen()
-                    self.render()
+                    #self.render()
                     
         elif (flag == windowflags.ASR):
             if (platforms.MAEMO5):
@@ -705,9 +716,10 @@ class Window(Widget):
 
     def show_video_overlay(self, x, y, w, h):
     
+        self.__vidscreen.hide()
         self.__layout.move(self.__vidscreen, x, y)
         self.__vidscreen.set_size_request(w, h)
-        self.__vidscreen.show()
+        gobject.idle_add(self.__vidscreen.show)
         
         return self.__vidscreen.window.xid
 

@@ -12,8 +12,13 @@ COMPUTER = ""
 HTPC = ""
 
 
+# set environment variable MEDIABOX_PLATFORM to override the platform detection
+ENV_PLATFORM = os.environ.get("MEDIABOX_PLATFORM")
+
+
 def _check_maemo4():
 
+    if (ENV_PLATFORM == "maemo4"): return True
     try:
         import hildon
     except:
@@ -29,6 +34,7 @@ def _check_maemo4():
     
 def _check_maemo5():
 
+    if (ENV_PLATFORM == "maemo5"): return True
     try:
         import hildon
         hildon.Window.set_app_menu
@@ -40,24 +46,28 @@ def _check_maemo5():
 
 def _check_mer():
 
+    if (ENV_PLATFORM == "mer"): return True
     v = os.system("dpkg -l 2>&1 | grep maemo-launcher | grep mer >/dev/null")
     return (v == 0)
     
     
 def _check_meego_netbook():
 
+    if (ENV_PLATFORM == "meego"): return True
     v = os.system("cat /etc/meego-release 2>&1 | grep netbook >/dev/null")
     return (v == 0)
 
 
 def _check_meego_wetab():
 
+    if (ENV_PLATFORM == "wetab"): return True
     v = os.system("rpm -qa 2>&1 | grep pega-driver-wetab >/dev/null")
     return (v == 0)
     
     
 def _check_htpc():
 
+    if (ENV_PLATFORM == "htpc"): return True
     v = os.system("lsmod 2>&1 | grep appleir >/dev/null")
     return (v == 0)
 

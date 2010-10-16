@@ -642,12 +642,13 @@ class StorageBrowser(ThumbableGridView):
 
             if (not f):
                 # last item has been reached
-                logging.profile(open_time, "[browser] loaded folder")
+                logging.profile(open_time, "[browser] loaded %d items",
+                                len(entries))
                 return False
             else:
                 # continue loading next item
-                logging.profile(profile_now, "[browser] added %dth item",
-                                len(entries))
+                #logging.profile(profile_now, "[browser] added %dth item",
+                #                len(entries))
                 return True
 
 

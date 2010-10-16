@@ -4,6 +4,7 @@ Asynchronous lowlevel HTTP connection.
 
 from HTTPResponse import HTTPResponse
 from utils import logging
+import platforms
 
 import gobject
 import threading
@@ -12,9 +13,15 @@ import select
 import time
 
 
-_BUFFER_SIZE = 65536
+if (platforms.MAEMO4 or platforms.MAEMO5):
+    # limit the IO rate
+    _BUFFER_SIZE = 1024
+    _MAX_CONNECTIONS = 4
+else:
+    _BUFFER_SIZE = 65536
+    _MAX_CONNECTIONS = 12
+
 _CONNECTION_TIMEOUT = 10
-_MAX_CONNECTIONS = 8
 
 _connection_resource = threading.Semaphore(_MAX_CONNECTIONS)
 
@@ -127,7 +134,8 @@ class HTTPConnection(object):
             self.__emit(self.__abort, "Could not resolve hostname")
             return
             
-        logging.profile(now, "[conn %s] connected", self._get_id())
+        logging.profile(now, "[conn %s] connected to: %s",
+                        self._get_id(), "http://%s:%d" % (host, port))
         self.__socket_connected = True
 
 
@@ -147,7 +155,7 @@ class HTTPConnection(object):
 
         logging.debug("[conn %s] waiting until closed", self._get_id())
         import gtk
-        while (not self.__finished.is_set()):
+        while (not self.__finished.isSet()):
             while (gtk.events_pending()):
                 gtk.main_iteration(True)
         #end for

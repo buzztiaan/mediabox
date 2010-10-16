@@ -16,3 +16,9 @@ Gets emitted when the orientation changes to portrait.
 @since: 2009.09
 """
 
+
+def ASR_ACT_RESTORE(): pass
+"""
+Restores the orientation to what was configured.
+@since: 2010.10.16
+"""

@@ -4,6 +4,7 @@ from ui.itemview import LabelItem
 from ui.itemview import CheckBoxItem
 from ui.itemview import OptionItem
 from mediabox import config
+from utils import logging
 import platforms
 from theme import theme
 
@@ -87,14 +88,17 @@ class RotationPrefs(Configurator):
         if (value == config.ORIENTATION_LANDSCAPE):
             self.emit_message(msgs.ASR_ACT_ENABLE, False)
             self.emit_message(msgs.ASR_EV_LANDSCAPE)
+            logging.info("[rotation] landscape orientation")
 
         elif (value == config.ORIENTATION_PORTRAIT):
             self.emit_message(msgs.ASR_ACT_ENABLE, False)
             self.emit_message(msgs.ASR_EV_PORTRAIT)
+            logging.info("[rotation] portrait orientation")
 
         else:
             self.emit_message(msgs.ASR_ACT_ENABLE, True)
             self.emit_message(msgs.ASR_EV_LANDSCAPE)
+            logging.info("[rotation] automatic orientation")
 
 
     def __on_check_swap(self, v):
@@ -104,12 +108,23 @@ class RotationPrefs(Configurator):
         self.__list.render()
 
 
+    def __restore_orientation(self):
+
+        o = config.orientation()
+        self.__set_orientation(o)
+        #if (o == config.ORIENTATION_PORTRAIT):
+        #    self.emit_message(msgs.ASR_EV_PORTRAIT)
+        #elif (o == config.ORIENTATION_AUTOMATIC):
+        #    self.emit_message(msgs.ASR_ACT_ENABLE, True)
+        #    self.emit_message(msgs.ASR_EV_LANDSCAPE)
+            
+
     def handle_COM_EV_APP_STARTED(self):
     
-        o = config.orientation()
-        if (o == config.ORIENTATION_PORTRAIT):
-            self.emit_message(msgs.ASR_EV_PORTRAIT)
-        elif (o == config.ORIENTATION_AUTOMATIC):
-            self.emit_message(msgs.ASR_ACT_ENABLE, True)
-            self.emit_message(msgs.ASR_EV_LANDSCAPE)
+        self.__restore_orientation()
+
+
+    def handle_ASR_ACT_RESTORE(self):
+    
+        self.__restore_orientation()
 

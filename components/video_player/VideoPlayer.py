@@ -6,6 +6,7 @@ from ui.ImageButton import ImageButton
 from ui.ProgressBar import ProgressBar
 from ui.Slider import Slider
 from ui.layout import Arrangement
+from ui import windowflags
 from mediabox import media_bookmarks
 import mediaplayer
 import platforms
@@ -136,7 +137,8 @@ class VideoPlayer(Player):
                 self.__btn_star.set_visible(False)
             self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
         else:
-            self.__btn_star.set_visible(True)
+            if (not self.__is_fullscreen):
+                self.__btn_star.set_visible(True)
             self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
 
 
@@ -303,7 +305,22 @@ class VideoPlayer(Player):
         self.__update_layout()
         self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
         #self.render()
+
+
+    def _visibility_changed(self):
+    
+        # force video to landscape mode on Maemo
+        win = self.get_window()
+        if (win and platforms.MAEMO5):
+            if (self.is_visible()):
+                logging.debug("[videoplayer] forcing landscape mode")
+                self.emit_message(msgs.ASR_ACT_ENABLE, False)
+                self.emit_message(msgs.ASR_EV_LANDSCAPE)
             
+            else:
+                self.emit_message(msgs.ASR_ACT_RESTORE)
+        #end if
+
 
     def render_this(self):
     
@@ -321,10 +338,10 @@ class VideoPlayer(Player):
         
         if (w < h):
             self.__screen.set_visible(False)
-            screen.draw_centered_text("Video cannot be displayed in\n" \
-                                      "portrait mode.",
-                                      theme.font_mb_plain,
-                                      0, h / 2 - 80, w, 0, theme.color_mb_text)
+            #screen.draw_centered_text("Video cannot be displayed in\n" \
+            #                          "portrait mode.",
+            #                          theme.font_mb_plain,
+            #                          0, h / 2 - 80, w, 0, theme.color_mb_text)
         else:
             self.__screen.set_visible(True)
 
@@ -389,7 +406,7 @@ class VideoPlayer(Player):
             self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
         except:
             self.__progress.set_message("Error")
-            logging.error("error loading media file: %s\n%s",
+            logging.error("[videoplayer] error loading media file: %s\n%s",
                           f, logging.stacktrace())
 
 
