@@ -1,4 +1,4 @@
-mediabox (2010.10.14) unstable; urgency=low
+mediabox (2010.10.16) unstable; urgency=low
 
   Fixed some bugs and compatibility issues with UPnP MediaRenderers
   
@@ -6,7 +6,7 @@ mediabox (2010.10.14) unstable; urgency=low
   
   Volume keys can now be used on the navigator window on Diablo
   
-  Filtering of lists
+  Filtering of lists by searching with the keyboard
   
   YouTube player can be configured to automatically play high quality or low
   quality version
@@ -21,9 +21,15 @@ mediabox (2010.10.14) unstable; urgency=low
   
   Windowing compatibility fixes for running on WeTab MeeGo device
   
+  Portrait mode support on Maemo4 Diablo with installed portrait mode support
+
+  New logging level PROFILE (start run "MediaBox -vvvv") for profiling output  
+  
   Fixed bug where input dialog windows didn't show text labels
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 14 Oct 2010 18:30:00 +0200
+  Fixed some UI glitches
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 16 Oct 2010 18:45:00 +0200
 
 mediabox (2010.09.11) unstable; urgency=low
 
