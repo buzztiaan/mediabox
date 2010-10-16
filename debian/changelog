@@ -23,6 +23,10 @@ mediabox (2010.10.16) unstable; urgency=low
   
   Portrait mode support on Maemo4 Diablo with installed portrait mode support
 
+  Fixed video aspect ratio with mplayer backend
+  
+  Video player automatically rotates to landscape on N900 if in portrait mode
+
   New logging level PROFILE (start run "MediaBox -vvvv") for profiling output  
   
   Fixed bug where input dialog windows didn't show text labels
