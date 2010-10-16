@@ -73,6 +73,8 @@ class NowPlaying(Widget, Component):
         if (w < h):
             w, h = h, w
             
+        if (w == 0 or h == 0): return
+            
         if (not self.__buffer):
             self.__buffer = Pixmap(None, w, h)
 

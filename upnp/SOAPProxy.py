@@ -113,7 +113,8 @@ class SOAPProxy(object):
     def __parse_scpd(self, scpdurl):
     
         def on_download(data, s, t, xml):
-            xml[0] += data
+            if (data):
+                xml[0] += data
         
         xml = [""]
         dl = Downloader(scpdurl, on_download, xml)
