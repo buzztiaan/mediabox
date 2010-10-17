@@ -114,6 +114,10 @@ class MAFWBackend(AbstractBackend):
         # sound volume
         self.__volume = 50
         
+        # time of loading for profiling
+        self.__load_time = 0
+        
+        
         # time when MediaBox has last changed the sound volume
         self.__last_volume_change_time = 0
 
@@ -203,6 +207,10 @@ class MAFWBackend(AbstractBackend):
         if (err):
             print err[0].message
 
+        if (self.__load_time):
+            logging.profile(self.__load_time, "[mafw] loaded media")
+            self.__load_time = 0
+
 
     def __position_cb(self, renderer, pos, user_data, err):
     
@@ -281,6 +289,7 @@ class MAFWBackend(AbstractBackend):
         if (self.__renderer):
             self.__is_eof = False
             self.__duration = -1
+            self.__load_time = time.time()
             self.__mafw.mafw_renderer_play_uri(hash(self.__renderer),
                                                uri,
                                                self.__playback_cb,
