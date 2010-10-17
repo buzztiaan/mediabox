@@ -6,7 +6,7 @@ def get_classes():
     
     classes = []
     
-    if (True or platforms.MAEMO4 or platforms.MAEMO5):
+    if (platforms.MAEMO4 or platforms.MAEMO5):
         from RotationPrefs import RotationPrefs
         classes.append(RotationPrefs)
 

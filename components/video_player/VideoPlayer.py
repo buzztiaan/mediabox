@@ -338,10 +338,11 @@ class VideoPlayer(Player):
         
         if (w < h):
             self.__screen.set_visible(False)
-            #screen.draw_centered_text("Video cannot be displayed in\n" \
-            #                          "portrait mode.",
-            #                          theme.font_mb_plain,
-            #                          0, h / 2 - 80, w, 0, theme.color_mb_text)
+            if (platforms.MAEMO4):
+                screen.draw_centered_text("Video cannot be displayed in\n" \
+                                          "portrait mode.",
+                                          theme.font_mb_plain,
+                                          0, h / 2 - 80, w, 0, theme.color_mb_text)
         else:
             self.__screen.set_visible(True)
 
