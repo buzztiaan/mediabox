@@ -1,4 +1,4 @@
-mediabox (2010.10.16) unstable; urgency=low
+mediabox (2010.10.17) unstable; urgency=low
 
   Fixed some bugs and compatibility issues with UPnP MediaRenderers
   
@@ -33,7 +33,7 @@ mediabox (2010.10.16) unstable; urgency=low
   
   Fixed some UI glitches
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Sat, 16 Oct 2010 18:45:00 +0200
+ -- Martin Grimme <martin.grimme@lintegra.de>  Sun, 17 Oct 2010 11:55:00 +0200
 
 mediabox (2010.09.11) unstable; urgency=low
 
