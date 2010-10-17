@@ -450,7 +450,7 @@ class Navigator(Component, Window):
             items = self.__browser.get_items()
             item = items[-1]
             
-            if (len(items) < 16):
+            if (len(items) <= 16):
                 thumbpath, is_final = \
                   self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
 
