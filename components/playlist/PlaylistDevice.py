@@ -248,7 +248,8 @@ class PlaylistDevice(Device):
               
             #print "FILES", files  
             for f in files:
-                cb(f, *args)
+                ret = cb(f, *args)
+                if (not ret): return
             cb(None, *args)
 
 

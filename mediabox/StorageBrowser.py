@@ -688,10 +688,5 @@ class StorageBrowser(ThumbableGridView):
             self.set_hilight(idx)
         #self.invalidate_item(idx)
 
-        # prerender some of the items now, some later; this should
-        # distribute CPU load and disk IO
-        #if (l % 3 == 0):
-        #    item.render_at(None, 0, 0)
-        #else:
-        self.__items_to_prerender.append(item)
+        #self.__items_to_prerender.append(item)
 

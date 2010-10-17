@@ -419,8 +419,8 @@ class Navigator(Component, Window):
 
 
     def __on_begin_folder(self, f):
-    
-        self.__tn_scheduler.new_schedule(5, self.__on_load_thumbnail)
+        
+        self.__tn_scheduler.new_schedule(50, self.__on_load_thumbnail)
         self.__tn_scheduler.halt()
         
         #self.set_title(f.name)
@@ -445,15 +445,11 @@ class Navigator(Component, Window):
                 
 
     def __on_progress_folder(self, f, c):
-
-        if (f == self.__play_folder and not c.mimetype.endswith("-folder")):
-            if (not c in self.__play_files):
-                self.__play_files.append(c)
-            if (not c in self.__random_files):
-                self.__random_files.append(c)
-
+    
         if (not c.icon):
             item = self.__browser.get_items()[-1]
+            self.__tn_scheduler.add(item, c, True)
+            """
             thumbpath, is_final = \
               self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
 
@@ -461,7 +457,8 @@ class Navigator(Component, Window):
             
             if (not is_final):
                 #print "SCHEDULING THUMBNAIL", c
-                self.__tn_scheduler.add(item, c)
+                self.__tn_scheduler.add(item, c, False)
+            """
         #end if
 
 
@@ -481,7 +478,7 @@ class Navigator(Component, Window):
 
         if (self.is_visible()):
             self.__tn_scheduler.resume()
-            
+
 
     def __update_thumbnail(self, item, thumbpath):
     
@@ -494,7 +491,7 @@ class Navigator(Component, Window):
             pass
 
 
-    def __on_load_thumbnail(self, item, f):
+    def __on_load_thumbnail(self, item, f, quick):
 
         def on_loaded(thumbpath):
             #print "LOADED THUMBNAIL", thumbpath
@@ -515,7 +512,30 @@ class Navigator(Component, Window):
         # load thumbnail
         self.__tn_scheduler.halt()
         #print "HALTING SCHEDULER"
-        self.call_service(msgs.THUMBNAIL_SVC_LOAD_THUMBNAIL, f, on_loaded)
+        if (quick):
+            thumbpath, is_final = \
+              self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, f)
+
+            item.set_icon(thumbpath)
+            item.render_at(None, 0, 0)
+            idx = self.__browser.get_items().index(item)
+            self.__browser.invalidate_item(idx)
+            
+            # priorize visible items
+            top_idx = self.__browser.get_item_at(0, 0)
+            if (top_idx != -1):
+                items = self.__browser.get_items()
+                if (top_idx < len(items)):
+                    self.__tn_scheduler.priorize(items[top_idx:top_idx + 12])
+            #end if
+            
+            if (not is_final):
+                #print "SCHEDULING THUMBNAIL", c
+                self.__tn_scheduler.add(item, f, False)
+            self.__tn_scheduler.resume()
+
+        else:
+            self.call_service(msgs.THUMBNAIL_SVC_LOAD_THUMBNAIL, f, on_loaded)
         
 
     def __on_btn_home(self):
@@ -623,17 +643,15 @@ class Navigator(Component, Window):
             folder = self.__browser.get_current_folder()
             if (is_manual and folder != self.__play_folder):
                 self.__play_folder = folder
-                self.__play_files = [ fl for fl in self.__browser.get_files()
-                                      if not fl.mimetype.endswith("-folder") ]
                 self.__random_files = []
-                logging.debug("[navigator] clearing random items")
-
+                self.__invalidate_play_files()
 
 
     def __go_previous(self):
 
         now = time.time()
-        #self.__filter_play_files()
+        if (not self.__play_files):
+            self.__invalidate_play_files()
         
         try:
             idx = self.__play_files.index(self.__current_file)
@@ -650,7 +668,8 @@ class Navigator(Component, Window):
     def __go_next(self):
 
         now = time.time()
-        #self.__filter_play_files()
+        if (not self.__play_files):
+            self.__invalidate_play_files()
         
         repeat_mode = mb_config.repeat_mode()
         shuffle_mode = mb_config.shuffle_mode()
@@ -720,10 +739,10 @@ class Navigator(Component, Window):
             # TODO...
             pass
 
-        if (not self.__random_files):
-            self.__random_files = self.__play_files[:]
-            logging.debug("[navigator] initialising random items (%d items)",
-                          len(self.__random_files))
+        #if (not self.__random_files):
+        #    self.__random_files = self.__play_files[:]
+        #    logging.debug("[navigator] initialising random items (%d items)",
+        #                  len(self.__random_files))
 
         idx = random.randint(0, len(self.__random_files) - 1)
         next_item = self.__random_files.pop(idx)
@@ -733,6 +752,35 @@ class Navigator(Component, Window):
         self.__load_file(next_item, False)
         
         return True
+
+
+    def __invalidate_play_files(self):
+        """
+        Invalidates the play files and random files and rebuilds them.
+        """
+
+        profile_now = time.time()
+        
+        prev_play_files = self.__play_files
+        self.__play_files = [ f for f in self.__play_folder.get_children()
+                              if not f.mimetype.endswith("-folder") ]
+
+        size = len(self.__play_files)
+        img_size = len([f for f in self.__play_files
+                        if f.mimetype in mimetypes.get_image_types() ])
+        ratio = img_size / float(size)
+        
+        if (ratio < 0.5):
+            self.__play_files = [ f for f in self.__play_files
+                             if not f.mimetype in mimetypes.get_image_types() ]
+
+        new_files = [ f for f in self.__play_files if not f in prev_play_files ]
+
+        self.__random_files = [ f for f in self.__random_files
+                                if f in self.__play_files ] + new_files
+        
+        logging.profile(profile_now, "[navigator] invalidated list of files " \
+                                     "to play")
 
 
     def __filter_play_files(self):
@@ -867,9 +915,9 @@ class Navigator(Component, Window):
             #end for
             self.__browser.set_path_stack(path_stack)
             
-            self.__play_files = [ self.call_service(msgs.CORE_SVC_GET_FILE, p)
-                                  for p in play_files
-                                  if self.call_service(msgs.CORE_SVC_GET_FILE, p) ]
+            #self.__play_files = [ self.call_service(msgs.CORE_SVC_GET_FILE, p)
+            #                      for p in play_files
+            #                      if self.call_service(msgs.CORE_SVC_GET_FILE, p) ]
             self.__play_folder = self.call_service(msgs.CORE_SVC_GET_FILE,
                                                    play_folder)
             self.__current_file = self.call_service(msgs.CORE_SVC_GET_FILE,
@@ -897,9 +945,9 @@ class Navigator(Component, Window):
     def handle_COM_EV_APP_SHUTDOWN(self):
 
         self.__is_shutdown = True
-        self.render()
+        #self.render()
         
-        while (gtk.events_pending()): gtk.main_iteration(True)
+        #while (gtk.events_pending()): gtk.main_iteration(True)
         self.__save_state()
 
 
@@ -934,6 +982,9 @@ class Navigator(Component, Window):
             self.__browser.invalidate_folder(folder)
             
         if (folder and folder == self.__play_folder):
+            self.__invalidate_play_files()
+        
+            """
             prev_play_files = self.__play_files[:]
             self.__play_files = [ fl for fl in folder.get_children()
                                   if not fl.mimetype.endswith("-folder") ]
@@ -947,7 +998,7 @@ class Navigator(Component, Window):
                                        f not in prev_play_files ]
             logging.debug("[navigator] previously %d random items, now %d",
                           l, len(self.__random_files))
-           
+            """
 
 
     def handle_CORE_EV_DEVICE_REMOVED(self, dev_id):

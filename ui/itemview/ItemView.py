@@ -95,7 +95,7 @@ class ItemView(Widget):
         """
     
         self.__items.append(item)
-        self.__filter_cache = []
+        #self.__filter_cache = []
         
         
     def insert_item(self, item, before_position):
