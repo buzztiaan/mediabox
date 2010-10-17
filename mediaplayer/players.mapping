@@ -20,6 +20,7 @@
 #-----------------------------------------------------
 
 FLAC                           gst
+Matroska-Audio                 gst
 MP2-Audio                      gst
 MP4-Audio                      gst
 MP3-Audio                      gst
@@ -35,6 +36,7 @@ ASF                            gst
 DVD-Image                      xine
 VCD-Image                      xine
 Flash-Video                    gst
+Matroska-Video                 gst
 MP4-Video                      gst
 MPEG                           gst
 Ogg-Theora                     gst

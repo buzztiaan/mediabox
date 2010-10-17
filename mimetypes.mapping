@@ -21,6 +21,7 @@ application/vnd.rn-realmedia          .ram,.ra            Realmedia      A
 application/vorbis                    -                   Ogg-Vorbis     A
 audio/*                               -                   Unknown-Audio  A
 audio/aacp                            .aac                MP4-Audio      A      # used by SHOUTcast
+audio/x-matroska                      .mka                Matroska-Audio A
 audio/mp2                             .mp2                MP2-Audio      A
 audio/mpeg                            .mp3                MP3-Audio      A
 audio/mp4                             .aac,.m4a           MP4-Audio      A
@@ -46,6 +47,7 @@ video/flv                             -                   Flash-Video    V      
 video/x-dvd-image                     .dvd                DVD-Image      V      # non-tablet stuff, nice for HTPC
 video/x-vcd-image                     .vcd,.iso           VCD-Image      V      # non-tablet stuff, nice for HTPC
 video/x-flv                           -                   Flash-Video    V
+video/x-matroska                      .mkv,.mks           Matroska-Video V
 video/x-ms-asf                        .asf                ASF            V
 video/x-msvideo                       .avi                AVI            V
 video/x-ms-wmv                        .wmv                WMV            V

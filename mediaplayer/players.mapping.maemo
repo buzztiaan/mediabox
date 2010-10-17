@@ -20,6 +20,7 @@
 #-----------------------------------------------------
 
 FLAC                           mplayer
+Matroska-Audio                 mplayer
 MP2-Audio                      oms
 MP4-Audio                      oms
 MP3-Audio                      oms
@@ -35,6 +36,7 @@ ASF                            mplayer
 DVD-Image                      dummy
 VCD-Image                      dummy
 Flash-Video                    mplayer
+Matroska-Video                 mplayer
 MP4-Video                      oms
 MPEG                           oms
 Ogg-Theora                     mplayer

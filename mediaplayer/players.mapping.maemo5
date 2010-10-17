@@ -21,6 +21,7 @@
 #-----------------------------------------------------
 
 FLAC                           mafw
+Matroska-Audio                 mafw
 MP2-Audio                      mafw
 MP4-Audio                      mafw
 MP3-Audio                      mafw
@@ -36,6 +37,7 @@ ASF                            mafw
 DVD-Image                      dummy
 VCD-Image                      dummy
 Flash-Video                    mafw
+Matroska-Video                 mafw
 MP4-Video                      mafw
 MPEG                           mafw
 Ogg-Theora                     mafw
