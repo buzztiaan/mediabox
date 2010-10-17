@@ -57,20 +57,14 @@ class RotationPrefs(Configurator):
 
 
     def _visibility_changed(self):
-
-        Configurator._visibility_changed(self)
     
+        Configurator._visibility_changed(self)
+        
         if (not self.is_visible() and self.__have_unapplied_changes):
             self.__have_unapplied_changed = False
             
             orientation = config.orientation()
             self.__set_orientation(orientation)
-
-
-    def render_this(self):
-    
-        w, h = self.get_size()
-        self.__list.set_geometry(0, 0, w, h)
 
 
     def __on_select_orientation(self, value):
