@@ -15,6 +15,7 @@ from utils import logging
 from theme import theme
 
 import gobject
+import time
 
 
 _LANDSCAPE_ARRANGEMENT = """
@@ -273,7 +274,7 @@ class AudioPlayer(Player):
                 self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", artist)
             if (cover):
                 imageloader.load_data(cover, self.__on_loaded_cover,
-                                      self.__context_id)
+                                      self.__context_id, time.time())
         #end if
         
 
@@ -292,7 +293,7 @@ class AudioPlayer(Player):
             self.__volume = v
 
 
-    def __on_loaded_cover(self, pbuf, ctx_id):
+    def __on_loaded_cover(self, pbuf, ctx_id, t):
    
         if (ctx_id == self.__context_id):
             if (pbuf):
@@ -302,29 +303,35 @@ class AudioPlayer(Player):
                 self.__cover_art.unset_cover()
                 self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", None)
         #end if
+        logging.profile(t, "[audioplayer] loaded cover art")
 
 
     def __load_track_info(self, item):
     
+        profile_now = time.time()
         tags = tagreader.get_tags(item)
         title = tags.get("TITLE") or item.name
         artist = tags.get("ARTIST") or "-"
         album = tags.get("ALBUM") or "-"
+        logging.profile(profile_now, "[audioplayer] retrieved audio tags")
 
         self.__lbl_title.set_text(title)
         self.__lbl_artist.set_text(artist)
         self.__lbl_album.set_text(album)
         
+        profile_now = time.time()
         self.emit_message(msgs.MEDIA_EV_TAG, "TITLE", title)
         self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", artist)
         self.emit_message(msgs.MEDIA_EV_TAG, "ALBUM", album)
+        logging.profile(profile_now, "[audioplayer] propagated audio tags")
 
         if (self.__offscreen_buffer):
             self.render_buffered(self.__offscreen_buffer)
 
         # load cover art
         self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
-                          item, self.__on_loaded_cover, self.__context_id)
+                          item, self.__on_loaded_cover, self.__context_id,
+                          time.time())
 
 
     def __render_lyrics(self, words, hi_from, hi_to):
@@ -344,6 +351,7 @@ class AudioPlayer(Player):
         
     def load(self, f):
         
+        self.render()
         self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
         self.__player.connect_status_changed(self.__on_change_player_status)
         self.__player.connect_volume_changed(self.__on_change_player_volume)

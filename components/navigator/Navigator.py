@@ -633,7 +633,7 @@ class Navigator(Component, Window):
     def __go_previous(self):
 
         now = time.time()
-        self.__filter_play_files()
+        #self.__filter_play_files()
         
         try:
             idx = self.__play_files.index(self.__current_file)
@@ -650,7 +650,7 @@ class Navigator(Component, Window):
     def __go_next(self):
 
         now = time.time()
-        self.__filter_play_files()
+        #self.__filter_play_files()
         
         repeat_mode = mb_config.repeat_mode()
         shuffle_mode = mb_config.shuffle_mode()

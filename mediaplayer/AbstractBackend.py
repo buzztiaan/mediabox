@@ -235,7 +235,7 @@ class AbstractBackend(EventEmitter):
     
         # clear tags
         sm.get_property("tags").clear()
-                
+
         # resume from suspension point
         susp = sm.get_property("suspension point")
         if (susp):
@@ -245,6 +245,9 @@ class AbstractBackend(EventEmitter):
 
         # load file
         self._load(uri)
+
+        load_time = sm.get_property("load time")
+        logging.profile(load_time, "[mediaplayer] loaded media")
         
         
     def __on_enter_playing(self, sm):
@@ -567,6 +570,7 @@ class AbstractBackend(EventEmitter):
 
         self.__state_machine.set_property("suspension point", None)
         self.__state_machine.set_property("uri", uri)
+        self.__state_machine.set_property("load time", time.time())
         self.__state_machine.send_input(_INPUT_LOAD)
 
         return self.__state_machine.get_property("context id")

@@ -635,10 +635,8 @@ class StorageBrowser(ThumbableGridView):
             # don't block UI while loading non-local folders
             #t = int((time.time() - open_time) * 10)
             if (time.time() > open_time + 3 and len(entries) % 2 == 0):
-                profile_now2 = time.time()
                 while (gtk.events_pending()):
                     gtk.main_iteration(False)
-                logging.profile(profile_now2, "[browser] processed UI events")
 
             if (not f):
                 # last item has been reached
