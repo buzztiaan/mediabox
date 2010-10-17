@@ -623,7 +623,7 @@ class StorageBrowser(ThumbableGridView):
             #end if
 
             # give visual feedback while loading the visible part of a folder
-            if (len(entries) == 12 or not f): #not f or len(entries) == 12):
+            if (len(entries) == 16 or not f): #not f or len(entries) == 12):
                 profile_now3 = time.time()
                 self.invalidate()
                 self.render()

@@ -420,7 +420,7 @@ class Navigator(Component, Window):
 
     def __on_begin_folder(self, f):
         
-        self.__tn_scheduler.new_schedule(50, self.__on_load_thumbnail)
+        self.__tn_scheduler.new_schedule(25, self.__on_load_thumbnail)
         self.__tn_scheduler.halt()
         
         #self.set_title(f.name)
@@ -447,18 +447,20 @@ class Navigator(Component, Window):
     def __on_progress_folder(self, f, c):
     
         if (not c.icon):
-            item = self.__browser.get_items()[-1]
-            self.__tn_scheduler.add(item, c, True)
-            """
-            thumbpath, is_final = \
-              self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
-
-            item.set_icon(thumbpath)
+            items = self.__browser.get_items()
+            item = items[-1]
             
-            if (not is_final):
-                #print "SCHEDULING THUMBNAIL", c
-                self.__tn_scheduler.add(item, c, False)
-            """
+            if (len(items) < 16):
+                thumbpath, is_final = \
+                  self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
+
+                item.set_icon(thumbpath)
+            
+                if (not is_final):
+                    self.__tn_scheduler.add(item, c, False)
+
+            else:            
+                self.__tn_scheduler.add(item, c, True)
         #end if
 
 
