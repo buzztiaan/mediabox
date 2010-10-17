@@ -202,14 +202,14 @@ class MAFWBackend(AbstractBackend):
 
         
     def __playback_cb(self, renderer, user_data, err):
-    
-        print "MAFW PLAYBACK", renderer, user_data, err
-        if (err):
-            print err[0].message
 
         if (self.__load_time):
             logging.profile(self.__load_time, "[mafw] loaded media")
             self.__load_time = 0
+    
+        print "MAFW PLAYBACK", renderer, user_data, err
+        if (err):
+            print err[0].message
 
 
     def __position_cb(self, renderer, pos, user_data, err):
