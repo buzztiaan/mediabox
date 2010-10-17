@@ -351,7 +351,7 @@ class AudioPlayer(Player):
         
     def load(self, f):
         
-        self.render()
+        #self.render()
         self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
         self.__player.connect_status_changed(self.__on_change_player_status)
         self.__player.connect_volume_changed(self.__on_change_player_volume)
