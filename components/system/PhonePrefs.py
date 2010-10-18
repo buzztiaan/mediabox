@@ -10,7 +10,7 @@ import os
 
 _DESCRIPTIONS = {config.RESUME_AUTOMATIC:
                  "Media interrupted by a phone call resumes playing after the "
-                 "call finished."
+                 "call finished.",
                  config.RESUME_MANUAL:
                  "Media interrupted by a phone call does not resume "
                  "automatically after the call finished."}
