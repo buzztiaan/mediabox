@@ -221,18 +221,22 @@ class AbstractBackend(EventEmitter):
         
     def __on_enter_unloaded(self, sm):
     
+        logging.debug("[mediaplayer] entering state UNLOADED")
         # make sure the backend is unloaded
         self._close()
         
         
     def __on_leave_unloaded(self, sm):
     
+        logging.debug("[mediaplayer] leaving state UNLOADED")
         # load backend
         self._ensure_backend()
         
         
     def __on_enter_loaded(self, sm):
     
+        logging.debug("[mediaplayer] entering state LOADED")
+        
         # clear tags
         sm.get_property("tags").clear()
 
@@ -252,6 +256,8 @@ class AbstractBackend(EventEmitter):
         
     def __on_enter_playing(self, sm):
     
+        logging.debug("[mediaplayer] entering state PLAYING")
+    
         # resume from suspension point and invalidate it
         susp = sm.get_property("suspension point")
         if (susp):
@@ -266,8 +272,11 @@ class AbstractBackend(EventEmitter):
     
         # start playloop
         if (not self.__position_handler):
+            t = time.time()
+            logging.debug("[mediaplayer] starting position handler at %d",
+                          int(t))
             self.__position_handler = \
-                  gobject.timeout_add(0, self.__update_position, 0, time.time())
+                  gobject.timeout_add(0, self.__update_position, 0, t)
 
         # notify
         gobject.timeout_add(0, self.emit_event, self.EVENT_STATUS_CHANGED,
@@ -277,13 +286,18 @@ class AbstractBackend(EventEmitter):
         
     def __on_leave_playing(self, sm):
     
+        logging.debug("[mediaplayer] leaving state PLAYING")
+    
         # stop playloop
         if (self.__position_handler):
             gobject.source_remove(self.__position_handler)
+            logging.debug("[mediaplayer] stopping position handler")
         self.__position_handler = None
 
 
     def __on_enter_eof(self, sm):
+
+        logging.debug("[mediaplayer] entering state EOF")
 
         # start idle timeout
         if (self.__idle_handler):
@@ -299,12 +313,16 @@ class AbstractBackend(EventEmitter):
 
     def __on_leave_eof(self, sm):
     
+        logging.debug("[mediaplayer] leaving state EOF")
+    
         # stop idle timeout
         if (self.__idle_handler):
             gobject.source_remove(self.__idle_handler)
 
 
     def __on_enter_paused(self, sm):
+    
+        logging.debug("[mediaplayer] entering state PAUSED")
     
         self._stop()
     
@@ -321,12 +339,16 @@ class AbstractBackend(EventEmitter):
 
     def __on_leave_paused(self, sm):
     
+        logging.debug("[mediaplayer] leaving state PAUSED")
+    
         # stop idle timeout
         if (self.__idle_handler):
             gobject.source_remove(self.__idle_handler)
         
         
     def __on_enter_idle(self, sm):
+    
+        logging.debug("[mediaplayer] entering state IDLE")
     
         # set suspension point
         pos = sm.get_property("position")
@@ -336,6 +358,8 @@ class AbstractBackend(EventEmitter):
         
    
     def __on_enter_error(self, sm):
+    
+        logging.debug("[mediaplayer] entering state ERROR")
     
         ctx_id = sm.get_property("context id")
         err = sm.get_property("error")
@@ -564,7 +588,6 @@ class AbstractBackend(EventEmitter):
             else:
                 uri = ""
 
-        print "LOAD", uri
         # new context id is needed
         self.__state_machine.set_property("context id", self._new_context_id())
 

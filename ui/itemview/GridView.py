@@ -325,23 +325,32 @@ class GridView(ItemView):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        # render background and items
-        if (self.__is_invalidated):
-            self.__is_invalidated = False
-            self.__render_background(0, 0, w, h)
-            self.__render(0, h)
+        if (not self.get_items()):
+            screen.fill_area(x, y, w, h, theme.color_mb_background)
+            screen.draw_centered_text("Empty",
+                                      theme.font_mb_headline,
+                                      x, y + h / 2 - 30, w, 30,
+                                      theme.color_list_item_subtext)
 
-        TEMPORARY_PIXMAP.copy_buffer(self.__buffer, 0, 0, 0, 0, w, h)
+        else:
+            # render background and items
+            if (self.__is_invalidated):
+                self.__is_invalidated = False
+                self.__render_background(0, 0, w, h)
+                self.__render(0, h)
 
-        # render floating item
-        self.__render_floating_item()
+            TEMPORARY_PIXMAP.copy_buffer(self.__buffer, 0, 0, 0, 0, w, h)
 
-        # render overlays
-        for renderer in self.__overlay_renderers:
-            renderer(self.__buffer)
+            # render floating item
+            self.__render_floating_item()
 
-        screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
-        self.__buffer.copy_buffer(TEMPORARY_PIXMAP, 0, 0, 0, 0, w, h)
+            # render overlays
+            for renderer in self.__overlay_renderers:
+                renderer(self.__buffer)
+
+            screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
+            self.__buffer.copy_buffer(TEMPORARY_PIXMAP, 0, 0, 0, 0, w, h)
+        #end if
 
 
     def add_overlay_renderer(self, renderer):

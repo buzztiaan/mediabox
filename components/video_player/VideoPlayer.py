@@ -379,15 +379,6 @@ class VideoPlayer(Player):
         
         self.__player.set_window(self.__screen.get_xid())
         
-        """
-        uri = item.get_resource()
-        if (not uri.startswith("/") and
-            not "://localhost" in uri and
-            not "://127.0.0.1" in uri):                    
-            maemo.request_connection()
-        #end if
-        """
-
         # loading may fail, so we need to setup a handler that frees the DSP
         # semaphore after some time
         if (self.__load_failed_handler):

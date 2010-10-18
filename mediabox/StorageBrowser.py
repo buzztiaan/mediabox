@@ -288,8 +288,6 @@ class StorageBrowser(ThumbableGridView):
         else:
             return False
             
-        self.__is_bulk_operation = True
-        
         
     def perform_bulk_action(self):
         """
@@ -501,7 +499,7 @@ class StorageBrowser(ThumbableGridView):
 
         @param folder: File object of the folder to load
         @param direction: One of C{GO_NEW}, C{GO_CHILD}, or C{GO_PARENT}
-        @param force_reload: whether to force reloading the folder
+        @param force_reload: whether to force fully reloading the folder
         """
 
         # are we just reloading the same folder?
@@ -576,9 +574,6 @@ class StorageBrowser(ThumbableGridView):
         if (not self.__prerender_handler):
             self.__prerender_handler = gobject.idle_add(self.__prerender_item,
                                                         time.time())
-
-        # now is a good time to collect garbage
-        #import gc; gc.collect()    
       
         
     def complete_current_folder(self):
@@ -606,10 +601,8 @@ class StorageBrowser(ThumbableGridView):
                 message = self.get_current_folder().message
                 if (message):
                     self.set_message(message)
-                elif (len(self.get_files()) > 0):
-                    self.set_message("")
                 else:
-                    self.set_message("Folder contains no media")
+                    self.set_message("")
                 
                 # mark folder as complete
                 self.__path_stack[-1][1] = _STATUS_OK

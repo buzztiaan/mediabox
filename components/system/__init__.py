@@ -19,8 +19,10 @@ def get_classes():
     if (platforms.MAEMO5):
         from PhoneMonitor import PhoneMonitor
         from PhonePolicy import PhonePolicy
+        from PhonePrefs import PhonePrefs
         classes += [PhoneMonitor,
-                    PhonePolicy]
+                    PhonePolicy,
+                    PhonePrefs]
 
     return classes
 

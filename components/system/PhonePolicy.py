@@ -1,4 +1,5 @@
 from com import Component, msgs
+import config
 
 
 class PhonePolicy(Component):
@@ -45,6 +46,7 @@ class PhonePolicy(Component):
 
     def handle_SYSTEM_EV_PHONE_HANGUP(self):
 
-        if (self.__was_playing):
+        if (self.__was_playing and
+              config.get_phonecall_resume() == config.RESUME_AUTOMATIC):
             self.emit_message(msgs.MEDIA_ACT_PLAY)
 

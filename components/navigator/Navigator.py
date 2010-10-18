@@ -423,7 +423,6 @@ class Navigator(Component, Window):
         self.__tn_scheduler.new_schedule(25, self.__on_load_thumbnail)
         self.__tn_scheduler.halt()
         
-        #self.set_title(f.name)
         self.set_flag(windowflags.BUSY, True)
         
         self.__browser.set_filter()
@@ -450,6 +449,8 @@ class Navigator(Component, Window):
             items = self.__browser.get_items()
             item = items[-1]
             
+            # process the first few items at once to give a better impression
+            # of speed
             if (len(items) <= 16):
                 thumbpath, is_final = \
                   self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
@@ -459,7 +460,7 @@ class Navigator(Component, Window):
                 if (not is_final):
                     self.__tn_scheduler.add(item, c, False)
 
-            else:            
+            else:
                 self.__tn_scheduler.add(item, c, True)
         #end if
 
@@ -484,7 +485,6 @@ class Navigator(Component, Window):
 
     def __update_thumbnail(self, item, thumbpath):
     
-        #pass
         item.set_icon(thumbpath)
         try:
             idx = self.__browser.get_items().index(item)
@@ -496,7 +496,6 @@ class Navigator(Component, Window):
     def __on_load_thumbnail(self, item, f, quick):
 
         def on_loaded(thumbpath):
-            #print "LOADED THUMBNAIL", thumbpath
             if (thumbpath):
                 self.__update_thumbnail(item, thumbpath)
             
@@ -509,15 +508,12 @@ class Navigator(Component, Window):
             #end if
             
             self.__tn_scheduler.resume()
-            #print "RESUMING SCHEDULER"
     
         # load thumbnail
         self.__tn_scheduler.halt()
-        #print "HALTING SCHEDULER"
         if (quick):
             thumbpath, is_final = \
               self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, f)
-
             item.set_icon(thumbpath)
             item.render_at(None, 0, 0)
             idx = self.__browser.get_items().index(item)
@@ -741,10 +737,8 @@ class Navigator(Component, Window):
             # TODO...
             pass
 
-        #if (not self.__random_files):
-        #    self.__random_files = self.__play_files[:]
-        #    logging.debug("[navigator] initialising random items (%d items)",
-        #                  len(self.__random_files))
+        if (not self.__random_files):
+            self.__random_files = self.__play_files[:]
 
         idx = random.randint(0, len(self.__random_files) - 1)
         next_item = self.__random_files.pop(idx)

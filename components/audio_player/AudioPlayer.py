@@ -358,15 +358,6 @@ class AudioPlayer(Player):
         self.__player.connect_position_changed(self.__on_update_position)
         self.__player.connect_tag_discovered(self.__on_discovered_tags)
         self.__player.connect_error(self.__on_error)
-
-        """
-        uri = item.get_resource()
-        if (not uri.startswith("/") and
-            not "://localhost" in uri and
-            not "://127.0.0.1" in uri):                    
-            maemo.request_connection()
-        #end if
-        """
         
         try:
             self.__context_id = self.__player.load_audio(f)
