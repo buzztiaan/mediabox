@@ -16,7 +16,7 @@ _SCROLL_DELAY = 1.0 / _FPS
 _DRAG_THRESHOLD = 20
 
 # a click must last at least this long to be recognized as such
-_CLICK_THRESHOLD = 50
+_CLICK_THRESHOLD = 25
 
 # a tap-and-hold action must last at least this long to be recognized as such
 _TAP_AND_HOLD_THRESHOLD = 500

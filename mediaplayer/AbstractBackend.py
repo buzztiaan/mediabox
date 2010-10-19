@@ -179,9 +179,6 @@ class AbstractBackend(EventEmitter):
             (self.__STATE_IDLE,            None,
              no_error,                     self.__STATE_UNLOADED),
 
-            #(self.__STATE_EOF,             _INPUT_LOAD,
-            # no_error,                     self.__STATE_LOADED),
-
             (self.__STATE_EOF,             None,
              no_error,                     self.__STATE_UNLOADED),
 
@@ -306,7 +303,7 @@ class AbstractBackend(EventEmitter):
                                                   self.__on_idle_timeout)
     
         # notify
-        logging.info("reached end-of-file")
+        logging.info("[mediaplayer] reached end-of-file")
         self.emit_event(self.EVENT_STATUS_CHANGED,
                         sm.get_property("context id"), self.STATUS_EOF)
 
@@ -466,7 +463,7 @@ class AbstractBackend(EventEmitter):
         Reacts on idle timeout and suspends the player.
         """
 
-        logging.info("media backend idle timeout")
+        logging.info("[mediaplayer] media backend idle timeout")
         self.__state_machine.send_input(_INPUT_IDLE)
             
 
@@ -515,7 +512,9 @@ class AbstractBackend(EventEmitter):
     
         uris = []
         try:
+            stopwatch = logging.stopwatch()
             fd = urllib.urlopen(url)
+            logging.profile(stopwatch, "[mediaplayer] retrieved playlist")
         except:
             return uris
             
@@ -577,7 +576,9 @@ class AbstractBackend(EventEmitter):
         """
 
         if (uri.startswith("http") and not uri.startswith("http://127.0.0.1")):
+            stopwatch = logging.stopwatch()
             s_type = self.__stream_analyzer.analyze(uri)
+            logging.profile(stopwatch, "[mediaplayer] analyzed stream type")
         else:
             s_type = StreamAnalyzer.STREAM
 
@@ -594,7 +595,7 @@ class AbstractBackend(EventEmitter):
         self.__state_machine.set_property("suspension point", None)
         self.__state_machine.set_property("uri", uri)
         self.__state_machine.set_property("load time", time.time())
-        self.__state_machine.send_input(_INPUT_LOAD)
+        gobject.idle_add(self.__state_machine.send_input, _INPUT_LOAD)
 
         return self.__state_machine.get_property("context id")
 

@@ -293,7 +293,7 @@ class AudioPlayer(Player):
             self.__volume = v
 
 
-    def __on_loaded_cover(self, pbuf, ctx_id, t):
+    def __on_loaded_cover(self, pbuf, ctx_id, stopwatch):
    
         if (ctx_id == self.__context_id):
             if (pbuf):
@@ -303,27 +303,27 @@ class AudioPlayer(Player):
                 self.__cover_art.unset_cover()
                 self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", None)
         #end if
-        logging.profile(t, "[audioplayer] loaded cover art")
+        logging.profile(stopwatch, "[audioplayer] loaded cover art")
 
 
     def __load_track_info(self, item):
     
-        profile_now = time.time()
+        stopwatch = logging.stopwatch()
         tags = tagreader.get_tags(item)
         title = tags.get("TITLE") or item.name
         artist = tags.get("ARTIST") or "-"
         album = tags.get("ALBUM") or "-"
-        logging.profile(profile_now, "[audioplayer] retrieved audio tags")
+        logging.profile(stopwatch, "[audioplayer] retrieved audio tags")
 
         self.__lbl_title.set_text(title)
         self.__lbl_artist.set_text(artist)
         self.__lbl_album.set_text(album)
         
-        profile_now = time.time()
+        stopwatch = logging.stopwatch()
         self.emit_message(msgs.MEDIA_EV_TAG, "TITLE", title)
         self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", artist)
         self.emit_message(msgs.MEDIA_EV_TAG, "ALBUM", album)
-        logging.profile(profile_now, "[audioplayer] propagated audio tags")
+        logging.profile(stopwatch, "[audioplayer] propagated audio tags")
 
         if (self.__offscreen_buffer):
             self.render_buffered(self.__offscreen_buffer)
@@ -331,7 +331,7 @@ class AudioPlayer(Player):
         # load cover art
         self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
                           item, self.__on_loaded_cover, self.__context_id,
-                          time.time())
+                          logging.stopwatch())
 
 
     def __render_lyrics(self, words, hi_from, hi_to):
@@ -350,23 +350,28 @@ class AudioPlayer(Player):
         
         
     def load(self, f):
-        
-        #self.render()
+
+        stopwatch = logging.stopwatch()
         self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
         self.__player.connect_status_changed(self.__on_change_player_status)
         self.__player.connect_volume_changed(self.__on_change_player_volume)
         self.__player.connect_position_changed(self.__on_update_position)
         self.__player.connect_tag_discovered(self.__on_discovered_tags)
         self.__player.connect_error(self.__on_error)
+        logging.profile(stopwatch, "[audioplayer] connected audio output")
         
         try:
+            stopwatch = logging.stopwatch()
             self.__context_id = self.__player.load_audio(f)
+            logging.profile(stopwatch, "[audioplayer] loaded media file: %s", f)
         except:
             logging.error("error loading media file: %s\n%s",
                           f, logging.stacktrace())
 
+        stopwatch = logging.stopwatch()
         self.__current_file = f
         self.__load_track_info(f)
+        logging.profile(stopwatch, "[audioplayer] loaded track info")
 
         # load bookmarks
         self.__progress.set_bookmarks(media_bookmarks.get_bookmarks(f))

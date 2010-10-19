@@ -126,7 +126,7 @@ def debug(msg, *args):
     _log("DEBUG  ", msg)
 
 
-def profile(t, msg, *args):
+def profile(stopwatch, msg, *args):
     """
     @since: 2010.10.09
     """
@@ -134,7 +134,7 @@ def profile(t, msg, *args):
     if (_level < PROFILE): return
     if (args):
         msg = msg % args
-    _log("PROFILE (%0.4fs)" % (time.time() - t), msg)
+    _log("PROFILE (%0.4fs)" % (time.time() - stopwatch), msg)
 
 
 def stacktrace():
@@ -146,4 +146,15 @@ def stacktrace():
     """
 
     return traceback.format_exc()
+
+
+def stopwatch():
+    """
+    Returns a stopwatch for profiling.
+    @since: 2010.10.19
+    
+    @return: a stopwatch object
+    """
+    
+    return time.time()
 

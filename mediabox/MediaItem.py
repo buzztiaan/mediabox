@@ -237,7 +237,7 @@ class MediaItem(Item):
         Trims the cache so that it doesn't grow indefinitely.
         """
 
-        while (len(self.__thumbnail_cache) > 250):
+        while (len(self.__thumbnail_cache) > 100):
             item = self.__thumbnail_cache.keys()[0]
             del self.__thumbnail_cache[item]
         #end while
@@ -248,14 +248,12 @@ class MediaItem(Item):
         Loads the icon pixbuf and its frame, if any.
         """
 
-        """
         # try to retrieve from icon cache
         if (path and path.startswith("/") and path in self.__thumbnail_cache):
             mtime, pbuf = self.__thumbnail_cache[path]
             if (os.path.getmtime(path) <= mtime):
                 return pbuf
         #end if
-        """
 
         if (path):
             try:
@@ -293,11 +291,9 @@ class MediaItem(Item):
         if (frm):
             pixbuftools.draw_pbuf(pbuf, frm, 0, 0)
 
-        """
         self.__trim_cache()
         if (path and path.startswith("/")):
             self.__thumbnail_cache[path] = (os.path.getmtime(path), pbuf)
-        """
 
         return pbuf
 

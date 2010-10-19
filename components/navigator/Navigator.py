@@ -420,7 +420,7 @@ class Navigator(Component, Window):
 
     def __on_begin_folder(self, f):
         
-        self.__tn_scheduler.new_schedule(25, self.__on_load_thumbnail)
+        self.__tn_scheduler.new_schedule(70, self.__on_load_thumbnail)
         self.__tn_scheduler.halt()
         
         self.set_flag(windowflags.BUSY, True)

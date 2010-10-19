@@ -21,7 +21,7 @@ else:
     _BUFFER_SIZE = 65536
     _MAX_CONNECTIONS = 12
 
-_CONNECTION_TIMEOUT = 10
+_CONNECTION_TIMEOUT = 30
 
 _connection_resource = threading.Semaphore(_MAX_CONNECTIONS)
 
@@ -107,8 +107,6 @@ class HTTPConnection(object):
     def __connect(self, host, port):
         """
         Opens an asynchronous connection to the given host and port.
-        Returns an event object that will signalize when the connection action
-        terminated. Once this event is set, the connection status may be read.
         """
 
         logging.debug("[conn %s] new HTTP connection: %s",
@@ -259,9 +257,6 @@ class HTTPConnection(object):
                         logging.debug("[conn %s] %0.2f kB/s",
                                       self._get_id(), size_diff / 1024.0)
                     #end if
-                    
-                    
-                    
 
             else:
                 # timeout
