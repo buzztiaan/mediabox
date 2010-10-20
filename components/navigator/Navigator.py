@@ -128,6 +128,7 @@ class Navigator(Component, Window):
         self.__browser.connect_folder_progress(self.__on_progress_folder)
         self.__browser.connect_folder_complete(self.__on_complete_folder)
         self.__browser.connect_file_opened(self.__on_open_file)
+        self.__browser.connect_item_shifted(self.__on_shift_item)
 
         # toolbar
         self.__toolbar = Toolbar()
@@ -481,6 +482,13 @@ class Navigator(Component, Window):
 
         if (self.is_visible()):
             self.__tn_scheduler.resume()
+
+
+    def __on_shift_item(self, pos, amount):
+    
+        if (self.get_current_folder() == self.__play_folder):
+            # force invalidation of play files
+            self.__play_files = []
 
 
     def __update_thumbnail(self, item, thumbpath):

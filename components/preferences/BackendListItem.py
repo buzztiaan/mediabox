@@ -7,7 +7,8 @@ _READABLE_NAMES = {
     "gst": "GStreamer",
     "mafw": "MAFW",
     "oms": "OSSO Media Server",
-    "mplayer": "MPlayer"
+    "mplayer": "MPlayer",
+    "simulated": "Simulator (just for testing)"
 }
 
 

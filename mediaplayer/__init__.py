@@ -57,6 +57,10 @@ if (platforms.MAEMO5):
         logging.info("failed to load mafw backend")
 #end if
 
+from SimulatedBackend import SimulatedBackend
+_PLAYERS["simulated"] = SimulatedBackend()
+
+
 if (platforms.MER):
     _SUFFIX = ".mer"
 
