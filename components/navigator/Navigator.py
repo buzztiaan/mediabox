@@ -379,7 +379,7 @@ class Navigator(Component, Window):
         
         if (dlg.run() == dlg.RETURN_OK):
             url = dlg.get_values()[0]
-            self.__load_url(url)
+            self.__load_uri(url, "")
         #end if
         
 
