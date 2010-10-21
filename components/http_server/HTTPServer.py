@@ -54,7 +54,7 @@ class HTTPServer(Component):
         datas = {}
         
         while ((addr, port) in self.__listeners):
-            data, src_addr = sock.recvfrom(1024)
+            data, src_addr = sock.recvfrom(4096)
 
             #print len(data), data
 
@@ -165,6 +165,7 @@ class HTTPServer(Component):
         def responder(code, headers, body):
             raise IOError("cannot send response data on UDP")
     
+        request.set_responder(responder)
         gobject.timeout_add(0, self.emit_message,
                             msgs.HTTPSERVER_EV_REQUEST,
                             owner, request)
@@ -242,3 +243,13 @@ class HTTPServer(Component):
     
         return ""
 
+
+    def handle_COM_EV_APP_SHUTDOWN(self):
+    
+        logging.debug("[httpserv] closing sockets")
+        for listener in self.__listeners.values():
+            if (listener.iowatch):
+                gobject.source_remove(listener.iowatch)
+            listener.sock.close()
+        #end for
+            
