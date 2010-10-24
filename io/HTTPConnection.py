@@ -237,8 +237,7 @@ class HTTPConnection(object):
         before = time.time()
         while (not response.finished() and self.__sock and
                not self.__redirect_handled):
-            rfds, wfds, xfds = select.select([self.__sock], [], [],
-                                             _CONNECTION_TIMEOUT)
+            rfds, wfds, xfds = select.select([self.__sock], [], [])
             if (rfds):
                 chunk = rfds[0].recv(_BUFFER_SIZE)
                 if (len(chunk) == 0):
@@ -262,6 +261,7 @@ class HTTPConnection(object):
                 # timeout
                 self.__emit(self.__abort, "TIMEOUT")
                 return
+            time.sleep(0.01)
         #end while
         
         

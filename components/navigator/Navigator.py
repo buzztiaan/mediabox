@@ -631,6 +631,8 @@ class Navigator(Component, Window):
         #    applet_id = f.resource
         #    self.call_service(msgs.CORE_SVC_LAUNCH_APPLET, applet_id)
 
+        stopwatch = logging.stopwatch()
+        
         if (f.mimetype == f.CONFIGURATOR):
             cfg_name = f.resource
             self.emit_message(msgs.UI_ACT_SHOW_DIALOG, cfg_name)
@@ -651,6 +653,8 @@ class Navigator(Component, Window):
                 self.__play_folder = folder
                 self.__random_files = []
                 self.__invalidate_play_files()
+        
+        logging.profile(stopwatch, "[navigator] loaded file")
 
 
     def __go_previous(self):
@@ -673,7 +677,7 @@ class Navigator(Component, Window):
             
     def __go_next(self):
 
-        now = time.time()
+        stopwatch = logging.stopwatch()
         if (not self.__play_files):
             self.__invalidate_play_files()
         
@@ -706,7 +710,7 @@ class Navigator(Component, Window):
             elif (shuffle_mode == mb_config.SHUFFLE_MODE_ALL):
                 self.__play_shuffled(True)
             
-        logging.profile(now, "[navigator] loaded next item")
+        logging.profile(stopwatch, "[navigator] loaded next item")
         
 
     def __play_same(self):

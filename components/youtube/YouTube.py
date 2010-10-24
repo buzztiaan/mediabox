@@ -192,9 +192,6 @@ class YouTube(Device):
         
     def get_file(self, path):
 
-        parts = [ p for p in path.split("/") if p ]
-        len_parts = len(parts)
-        
         f = None
         if (path == "/"):
             f = File(self)

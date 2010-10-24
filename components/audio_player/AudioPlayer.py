@@ -1,44 +1,37 @@
 from com import Player, msgs
-from CoverArt import CoverArt
+from InfoBox import InfoBox
 from ui.ImageButton import ImageButton
-from ui.ProgressBar import ProgressBar
+from ui.MediaProgressBar import MediaProgressBar
 from ui.Slider import Slider
-from ui.Label import Label
 from ui.Toolbar import Toolbar
 from ui.layout import Arrangement
-from ui.layout import HBox, VBox
 from ui.Pixmap import Pixmap
 from mediabox import media_bookmarks
 from mediabox import tagreader
 from mediabox import imageloader
 from utils import logging
+from utils import textutils
 from theme import theme
 
 import gobject
+import gtk
 import time
 
 
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
-    <widget name="progress" x1="80" y1="-50" x2="-90" y2="-10"/>
-    <widget name="btn_star" x1="10" y1="-64" x2="74" y2="100%"/>
-    <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
-    <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
-    
-    <widget name="cover" x1="50" y1="10" x2="48%" y2="-64"/>
-    <widget name="trackinfo" x1="50%" y1="20" x2="-90" y2="120"/>
+    <widget name="toolbar" x1="-100" y1="0" x2="100%" y2="100%"/>
+    <widget name="trackinfo" x1="0" y1="-100" x2="-100" y2="100%"/>
+    <widget name="progress" x1="0" y1="-172" x2="-100" y2="-100"/>
   </arrangement>
 """
 
 
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
-    <widget name="progress" x1="50" y1="-170" x2="-50" y2="-130"/>
-    <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
-    <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
-    
-    <widget name="cover" x1="50" y1="50" x2="-50" y2="400"/>
-    <widget name="trackinfo" x1="50" y1="440" x2="-50" y2="540"/>
+    <widget name="toolbar" x1="0" y1="-100" x2="100%" y2="100%"/>
+    <widget name="trackinfo" x1="0" y1="-200" x2="100%" y2="-100"/>
+    <widget name="progress" x1="0" y1="-272" x2="100%" y2="-200"/>
   </arrangement>
 """
 
@@ -50,6 +43,13 @@ class AudioPlayer(Player):
     """
 
     def __init__(self):
+    
+        # background pixbuf
+        self.__cover = None
+        self.__cover_scaled = None
+        
+        # hilighted lyrics text
+        self.__lyrics = ""
     
         self.__player = None
         self.__context_id = 0
@@ -67,30 +67,7 @@ class AudioPlayer(Player):
         Player.__init__(self)
         self.set_visible(False)
         
-        # cover art
-        self.__cover_art = CoverArt()
-        self.__cover_art.connect_clicked(self.__on_btn_play)
-        
-        self.__trackinfo = VBox()
-        
-        # title label
-        self.__lbl_title = Label("-", theme.font_mb_headline,
-                                 theme.color_audio_player_trackinfo_title)
-        #self.__lbl_title.set_alignment(Label.CENTERED)
-        self.__trackinfo.add(self.__lbl_title, True)
-
-
-        # artist and album labels
-        self.__lbl_album = Label("-", theme.font_mb_plain,
-                                 theme.color_audio_player_trackinfo_album)
-        #self.__lbl_album.set_alignment(Label.CENTERED)
-        self.__trackinfo.add(self.__lbl_album, True)
-
-        self.__lbl_artist = Label("-", theme.font_mb_plain,
-                                  theme.color_audio_player_trackinfo_artist)
-        #self.__lbl_artist.set_alignment(Label.CENTERED)
-        self.__trackinfo.add(self.__lbl_artist, True)
-        
+        self.__trackinfo = InfoBox()        
         
         # volume slider
         self.__volume_slider = Slider(theme.mb_list_slider)
@@ -98,7 +75,7 @@ class AudioPlayer(Player):
         self.__volume_slider.connect_value_changed(self.__on_change_volume)
 
         # progress bar
-        self.__progress = ProgressBar()
+        self.__progress = MediaProgressBar()
         self.__progress.connect_changed(self.__on_seek)
         self.__progress.connect_bookmark_changed(self.__on_change_bookmark)
 
@@ -132,10 +109,8 @@ class AudioPlayer(Player):
         self.__arr.connect_resized(self.__update_layout)
         self.__arr.add(self.__toolbar, "toolbar")
         self.__arr.add(self.__progress, "progress")
-        self.__arr.add(self.__btn_star, "btn_star")
-        self.__arr.add(self.__volume_slider, "slider")
-        self.__arr.add(self.__cover_art, "cover")
-        #self.__arr.add(self.__lbl_title, "lbl_title")
+        #self.__arr.add(self.__btn_star, "btn_star")
+        #self.__arr.add(self.__volume_slider, "slider")
         self.__arr.add(self.__trackinfo, "trackinfo")
         self.add(self.__arr)
 
@@ -149,6 +124,7 @@ class AudioPlayer(Player):
 
         if ((w, h) != self.get_size()):
             self.__offscreen_buffer = Pixmap(None, w, h)
+            self.__cover_scaled = None
             
         Player.set_size(self, w, h)
         
@@ -157,18 +133,30 @@ class AudioPlayer(Player):
     
         w, h = self.get_size()
         if (w < h):
-            self.__btn_star.set_visible(False)
+            #self.__btn_star.set_visible(False)
             self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
-            self.__lbl_title.set_alignment(Label.CENTERED)
-            self.__lbl_album.set_alignment(Label.CENTERED)
-            self.__lbl_artist.set_alignment(Label.CENTERED)
 
         else:
-            self.__btn_star.set_visible(True)
+            #self.__btn_star.set_visible(True)
             self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
-            self.__lbl_title.set_alignment(Label.LEFT)
-            self.__lbl_album.set_alignment(Label.LEFT)
-            self.__lbl_artist.set_alignment(Label.LEFT)
+
+
+    def __set_cover(self, pbuf):
+    
+        self.__cover = pbuf    
+        self.__cover_scaled = None    
+
+
+    def __set_lyrics(self, words, hi_from, hi_to):
+    
+        if (hi_from > 0 or hi_to < len(words) - 1):
+            self.__lyrics = "%s<span color='red'>%s</span>%s" \
+                            % (textutils.escape_xml(words[:hi_from]),
+                            textutils.escape_xml(words[hi_from:hi_to]),
+                            textutils.escape_xml(words[hi_to:]))
+        else:
+            self.__lyrics = textutils.escape_xml(words)
+
 
         
     def get_mime_types(self):
@@ -264,13 +252,13 @@ class AudioPlayer(Player):
             cover = tags.get("PICTURE")
             
             if (title):
-                self.__lbl_title.set_text(title)
+                self.__trackinfo.set_title(title)
                 self.emit_message(msgs.MEDIA_EV_TAG, "TITLE", title)
             if (album):
-                self.__lbl_album.set_text(album)
+                self.__trackinfo.set_album(album)
                 self.emit_message(msgs.MEDIA_EV_TAG, "ALBUM", album)
             if (artist):
-                self.__lbl_artist.set_text(artist)
+                self.__trackinfo.set_artist(artist)
                 self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", artist)
             if (cover):
                 imageloader.load_data(cover, self.__on_loaded_cover,
@@ -297,11 +285,13 @@ class AudioPlayer(Player):
    
         if (ctx_id == self.__context_id):
             if (pbuf):
-                self.__cover_art.set_cover(pbuf)
+                self.__set_cover(pbuf)
                 self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", pbuf)
             else:
-                self.__cover_art.unset_cover()
+                self.__cover = None
+                self.__cover_scaled = None
                 self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", None)
+            self.render()
         #end if
         logging.profile(stopwatch, "[audioplayer] loaded cover art")
 
@@ -315,9 +305,10 @@ class AudioPlayer(Player):
         album = tags.get("ALBUM") or "-"
         logging.profile(stopwatch, "[audioplayer] retrieved audio tags")
 
-        self.__lbl_title.set_text(title)
-        self.__lbl_artist.set_text(artist)
-        self.__lbl_album.set_text(album)
+        self.__trackinfo.set_title(title)
+        self.__trackinfo.set_album(album)
+        self.__trackinfo.set_artist(artist)
+        #self.__trackinfo.render()
         
         stopwatch = logging.stopwatch()
         self.emit_message(msgs.MEDIA_EV_TAG, "TITLE", title)
@@ -334,9 +325,76 @@ class AudioPlayer(Player):
                           logging.stopwatch())
 
 
-    def __render_lyrics(self, words, hi_from, hi_to):
+    def __scale_cover(self):
+
+        w, h = self.get_size()
+        if (w < h):
+            h -= (100 + 100)
+        else:
+            w -= 100
+            h -= 100
+            
+        p_w = self.__cover.get_width()
+        p_h = self.__cover.get_height()
+        
+        factor1 = w / float(p_w)
+        factor2 = h / float(p_h)
+        print (p_w, p_h), (w, h), factor1, factor2
+        
+        if (p_h * factor1 < h):
+            factor = factor2
+        else:
+            factor = factor1
+        
+        s_w = int(w / factor)
+        s_h = int(h / factor)
+        
+        crop_x = (p_w - s_w) / 2
+        crop_y = (p_h - s_h) / 3
+        crop_w = s_w
+        crop_h = s_h
+        print "CROP", (crop_x, crop_y), (crop_w, crop_h), "->", (w, h)
+
+        self.__cover_scaled = self.__cover.subpixbuf(crop_x, crop_y,
+                                                     crop_w, crop_h) \
+                                          .scale_simple(w, h,
+                                                        gtk.gdk.INTERP_BILINEAR)
+        self.__progress.set_background(
+                               self.__cover_scaled.subpixbuf(0, h - 72, w, 72))
+
+
+
+    def __render_lyrics(self):
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
+
+        if (self.__lyrics):
+            #self.__buffer.draw_frame(theme.mb_lyrics_box, bx, by, bw, bh, True)
+            screen.fill_area(x + 8, y + 8, w - 16, 200, "#000000a0")
+            screen.draw_formatted_text(self.__lyrics, theme.font_mb_headline,
+                                       x + 8, y + 8, w - 16, 200,
+                                       theme.color_audio_player_lyrics,
+                                       screen.LEFT,
+                                       True)
+
+
+    def __render_background(self):
+
+        x, y = self.get_screen_pos()
+        w, h = self.get_size()
+        screen = self.get_screen()
     
-        self.__cover_art.set_lyrics(words, hi_from, hi_to)
+        if (self.__cover):
+            if (not self.__cover_scaled):
+                self.__scale_cover()
+
+            screen.draw_pixbuf(self.__cover_scaled, x, y)
+            #screen.fill_area(x, y, w, h, "#000000a0")
+
+        else:
+            screen.fill_area(x, y, w, h, theme.color_mb_background)
 
 
     def render_this(self):
@@ -345,8 +403,13 @@ class AudioPlayer(Player):
         w, h = self.get_size()
         screen = self.get_screen()
 
-        screen.fill_area(x, y, w, h, theme.color_mb_background)
+        self.__render_background()      
+        self.__render_lyrics()      
+            
         self.__arr.set_geometry(0, 0, w, h)
+        #x, y = self.__progress.get_screen_pos()
+        #w, h = self.__progress.get_size()
+        #self.__progress.set_background(screen.subpixmap(x, y, w, h))
         
         
     def load(self, f):
@@ -384,7 +447,8 @@ class AudioPlayer(Player):
 
     def handle_MEDIA_EV_LYRICS(self, words, hi_from, hi_to):
     
-        self.__render_lyrics(words, hi_from, hi_to)
+        self.__set_lyrics(words, hi_from, hi_to)
+        self.render()
 
 
     def handle_MEDIA_ACT_PLAY(self):

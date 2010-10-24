@@ -73,9 +73,9 @@ class Downloader(HTTPConnection):
             data = fd.read(65536)
             if (not data):
                 break
-            time.sleep(0.001)
             amount += len(data)
             self.__emit(cb, data, amount, total, *args)
+            time.sleep(0.01)
         #end while
         
         try:

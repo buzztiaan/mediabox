@@ -50,10 +50,12 @@ class CoverArt(Widget):
         if (not self.__buffer): return
         
         b_w, b_h = self.__buffer.get_size()
-        self.__buffer.fill_area(0, 0, b_w, b_h, theme.color_mb_background)
         if (self.__cover_pbuf):
+            #self.__buffer.fit_pixbuf(self.__cover_pbuf, 0, 0, b_w, b_h)
             self.__buffer.fit_pixbuf(self.__cover_pbuf, 0, 0, b_w, b_h)
+            self.__buffer.fill_area(0, 0, b_w, b_h, "#000000a0")
         else:
+            self.__buffer.fill_area(0, 0, b_w, b_h, theme.color_mb_background)
             self.__buffer.fit_pixbuf(theme.mb_unknown_album, 0, 0, b_w, b_h)
 
 
@@ -85,6 +87,7 @@ class CoverArt(Widget):
                                           theme.color_audio_player_lyrics,
                                           self.__buffer.LEFT,
                                           True)        
+        
 
         
     def set_cover(self, pbuf):
