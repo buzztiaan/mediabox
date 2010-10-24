@@ -42,9 +42,9 @@ class InfoBox(Widget):
         #screen.fill_area(x, y, w, h, "#000000")
         #screen.draw_frame(theme.mb_selection_frame, x, y, w, h, True)
         
-        self.__lbl_title.set_geometry(8, 4, w - 16, 30)
-        self.__lbl_album.set_geometry(8, 44, w - 16, 20)
-        self.__lbl_artist.set_geometry(8, 74, w - 16, 20)
+        self.__lbl_title.set_geometry(0, 4, w, 30)
+        self.__lbl_album.set_geometry(0, 44, w, 20)
+        self.__lbl_artist.set_geometry(0, 74, w, 20)
         
         
     def set_cover(self, pbuf):
