@@ -16,10 +16,12 @@ from theme import theme
 import gobject
 import gtk
 import time
+import threading
 
 
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
+
     <widget name="toolbar" x1="-100" y1="0" x2="100%" y2="100%"/>
     <widget name="trackinfo" x1="0" y1="-100" x2="-100" y2="100%"/>
     <widget name="progress" x1="0" y1="-172" x2="-100" y2="-100"/>
@@ -44,21 +46,17 @@ class AudioPlayer(Player):
 
     def __init__(self):
     
-        # background pixbuf
+        # cover pixbuf
         self.__cover = None
         self.__cover_scaled = None
         
-        # hilighted lyrics text
+        # lyrics text with hilights formatting
         self.__lyrics = ""
     
         self.__player = None
         self.__context_id = 0
         self.__volume = 0
         
-        self.__need_slide_in = False
-              
-        self.__sliding_direction = self.SLIDE_LEFT
-
         self.__offscreen_buffer = None
         
         # the currently playing file object (e.g. used for bookmarking)
@@ -143,8 +141,9 @@ class AudioPlayer(Player):
 
     def __set_cover(self, pbuf):
     
-        self.__cover = pbuf    
-        self.__cover_scaled = None    
+        if (not self.__cover):
+            self.__cover = pbuf
+            self.__cover_scaled = None
 
 
     def __set_lyrics(self, words, hi_from, hi_to):
@@ -172,7 +171,6 @@ class AudioPlayer(Player):
 
     def __on_btn_previous(self):
         
-        self.__sliding_direction = self.SLIDE_RIGHT
         self.emit_message(msgs.MEDIA_ACT_PREVIOUS)
 
 
@@ -184,7 +182,6 @@ class AudioPlayer(Player):
 
     def __on_btn_next(self):
         
-        self.__sliding_direction = self.SLIDE_LEFT
         self.emit_message(msgs.MEDIA_ACT_NEXT)
               
             
@@ -300,22 +297,21 @@ class AudioPlayer(Player):
     
         stopwatch = logging.stopwatch()
         tags = tagreader.get_tags(item)
+        logging.profile(stopwatch, "[audioplayer] retrieved audio tags")
+
+        gobject.timeout_add(0, self.__on_track_info, item, tags)
+
+
+    def __on_track_info(self, item, tags):
+
         title = tags.get("TITLE") or item.name
         artist = tags.get("ARTIST") or "-"
         album = tags.get("ALBUM") or "-"
-        logging.profile(stopwatch, "[audioplayer] retrieved audio tags")
 
         self.__trackinfo.set_title(title)
         self.__trackinfo.set_album(album)
         self.__trackinfo.set_artist(artist)
-        #self.__trackinfo.render()
         
-        stopwatch = logging.stopwatch()
-        self.emit_message(msgs.MEDIA_EV_TAG, "TITLE", title)
-        self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", artist)
-        self.emit_message(msgs.MEDIA_EV_TAG, "ALBUM", album)
-        logging.profile(stopwatch, "[audioplayer] propagated audio tags")
-
         if (self.__offscreen_buffer):
             self.render_buffered(self.__offscreen_buffer)
 
@@ -323,6 +319,13 @@ class AudioPlayer(Player):
         self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
                           item, self.__on_loaded_cover, self.__context_id,
                           logging.stopwatch())
+
+        stopwatch = logging.stopwatch()
+        self.emit_message(msgs.MEDIA_EV_TAG, "TITLE", title)
+        self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", artist)
+        self.emit_message(msgs.MEDIA_EV_TAG, "ALBUM", album)
+        logging.profile(stopwatch, "[audioplayer] propagated audio tags")
+
 
 
     def __scale_cover(self):
@@ -359,9 +362,6 @@ class AudioPlayer(Player):
                                                      crop_w, crop_h) \
                                           .scale_simple(w, h,
                                                         gtk.gdk.INTERP_BILINEAR)
-        self.__progress.set_background(
-                               self.__cover_scaled.subpixbuf(0, h - 72, w, 72))
-
 
 
     def __render_lyrics(self):
@@ -385,6 +385,12 @@ class AudioPlayer(Player):
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
+
+        if (w < h):
+            h -= (100 + 100)
+        else:
+            w -= 100
+            h -= 100
     
         if (self.__cover):
             if (not self.__cover_scaled):
@@ -393,8 +399,17 @@ class AudioPlayer(Player):
             screen.draw_pixbuf(self.__cover_scaled, x, y)
             #screen.fill_area(x, y, w, h, "#000000a0")
 
+            self.__progress.set_background(
+                               self.__cover_scaled.subpixbuf(0, h - 72, w, 72))
+
         else:
             screen.fill_area(x, y, w, h, theme.color_mb_background)
+            p_w = theme.mb_unknown_album.get_width()
+            p_h = theme.mb_unknown_album.get_height()
+            screen.draw_pixbuf(theme.mb_unknown_album,
+                               x + (w - p_w) / 2,
+                               y + (h - p_h) / 2)
+            self.__progress.set_background(None)
 
 
     def render_this(self):
@@ -433,7 +448,6 @@ class AudioPlayer(Player):
 
         stopwatch = logging.stopwatch()
         self.__current_file = f
-        self.__load_track_info(f)
         logging.profile(stopwatch, "[audioplayer] loaded track info")
 
         # load bookmarks
@@ -441,8 +455,11 @@ class AudioPlayer(Player):
 
         self.emit_message(msgs.MEDIA_EV_LOADED, self, f)
 
-        #self.__need_slide_in = True
-        #gobject.timeout_add(100, self.__slide_in)
+        t = threading.Thread(target = self.__load_track_info, args = [f])
+        t.setDaemon(True)
+        t.start()
+        
+        self.render()
 
 
     def handle_MEDIA_EV_LYRICS(self, words, hi_from, hi_to):

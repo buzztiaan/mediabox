@@ -18,6 +18,9 @@ class MediaProgressBar(Widget):
 
         # background pbuf
         self.__background = None
+        
+        # offscreen buffer
+        self.__buffer = None
 
         # list of bookmarks. a bookmark is a position between 0.0 and 1.0
         self.__bookmarks = []
@@ -58,6 +61,7 @@ class MediaProgressBar(Widget):
     def set_size(self, w, h):
     
         Widget.set_size(self, w, h)
+        self.__buffer = None
 
 
     def connect_changed(self, cb, *args):
@@ -164,35 +168,40 @@ class MediaProgressBar(Widget):
         w, h = self.get_size()
         screen = self.get_screen()
 
+        if (not self.__buffer):
+            self.__buffer = Pixmap(None, w, h)
+
         if (self.__background):
-            screen.draw_pixbuf(self.__background, x, y)
+            self.__buffer.draw_pixbuf(self.__background, 0, 0)
         else:
-            screen.fill_area(x, y, w, h, "#000000")
+            self.__buffer.fill_area(0, 0, w, h, theme.color_mb_background)
         
         #screen.fill_area(x, y + h - 24, w, 24, "#000000a0")
-        screen.fill_area(x, y, w, 48, "#00000060")
-        screen.fill_area(x, y + 48, w, 24, "#000000")
+        self.__buffer.fill_area(0, 0, w, 48, "#00000060")
+        self.__buffer.fill_area(0, 48, w, 24, "#000000")
 
         # render bookmarks
         for bm in self.__bookmarks:
             if (bm > 0):
                 bm_pos = 16 + int((w - 32) * bm)
-                screen.draw_pixbuf(theme.mb_progress_bookmark,
-                        x + bm_pos - theme.mb_progress_bookmark.get_width() / 2,
-                        y + 16)
+                self.__buffer.draw_pixbuf(theme.mb_progress_bookmark,
+                        bm_pos - theme.mb_progress_bookmark.get_width() / 2,
+                        16)
         #end for        
 
         # render position marker
         #screen.fill_area(x, y, w, 32, "#00000080")
         pos = int((w - 48) * self.__progress)
-        screen.draw_pixbuf(theme.mb_progress_position_down, x + pos, y)
+        self.__buffer.draw_pixbuf(theme.mb_progress_position_down, pos, 0)
         
         # render message
         if (self.__current_message):
             t_w, t_h = text_extents(self.__current_message, theme.font_mb_plain)
-            screen.draw_text(self.__current_message, theme.font_mb_plain,
-                             x + (w - t_w), y + (h - t_h) + 2,
+            self.__buffer.draw_text(self.__current_message, theme.font_mb_plain,
+                             (w - t_w), (h - t_h) + 2,
                              theme.color_mb_gauge)
+
+        screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
 
 
     def set_background(self, pbuf):

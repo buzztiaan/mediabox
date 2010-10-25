@@ -183,10 +183,6 @@ class NowPlaying(Widget, Component):
         elif (tag == "PICTURE"):
             self.__cover = value
             
-        return
-        self.__render()
-        self.render()
-        
         
     def __load_pixbuf(self, f, path):
         """
