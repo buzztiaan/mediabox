@@ -21,7 +21,7 @@ import threading
 
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
-
+    <widget name="slider" x1="0" y1="0" x2="40" y2="-172"/>
     <widget name="toolbar" x1="-100" y1="0" x2="100%" y2="100%"/>
     <widget name="trackinfo" x1="0" y1="-100" x2="-100" y2="100%"/>
     <widget name="progress" x1="0" y1="-172" x2="-100" y2="-100"/>
@@ -31,6 +31,7 @@ _LANDSCAPE_ARRANGEMENT = """
 
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
+    <widget name="slider" x1="0" y1="0" x2="40" y2="-272"/>
     <widget name="toolbar" x1="0" y1="-100" x2="100%" y2="100%"/>
     <widget name="trackinfo" x1="0" y1="-200" x2="100%" y2="-100"/>
     <widget name="progress" x1="0" y1="-272" x2="100%" y2="-200"/>
@@ -73,7 +74,7 @@ class AudioPlayer(Player):
         self.__volume_slider.connect_value_changed(self.__on_change_volume)
 
         # progress bar
-        self.__progress = MediaProgressBar()
+        self.__progress = MediaProgressBar(MediaProgressBar.DOWN)
         self.__progress.connect_changed(self.__on_seek)
         self.__progress.connect_bookmark_changed(self.__on_change_bookmark)
 
@@ -108,7 +109,7 @@ class AudioPlayer(Player):
         self.__arr.add(self.__toolbar, "toolbar")
         self.__arr.add(self.__progress, "progress")
         #self.__arr.add(self.__btn_star, "btn_star")
-        #self.__arr.add(self.__volume_slider, "slider")
+        self.__arr.add(self.__volume_slider, "slider")
         self.__arr.add(self.__trackinfo, "trackinfo")
         self.add(self.__arr)
 
@@ -399,8 +400,11 @@ class AudioPlayer(Player):
             screen.draw_pixbuf(self.__cover_scaled, x, y)
             #screen.fill_area(x, y, w, h, "#000000a0")
 
+            self.__volume_slider.set_background(
+                               self.__cover_scaled.subpixbuf(0, 0, 40, h - 72))
             self.__progress.set_background(
                                self.__cover_scaled.subpixbuf(0, h - 72, w, 72))
+
 
         else:
             screen.fill_area(x, y, w, h, theme.color_mb_background)
@@ -409,6 +413,7 @@ class AudioPlayer(Player):
             screen.draw_pixbuf(theme.mb_unknown_album,
                                x + (w - p_w) / 2,
                                y + (h - p_h) / 2)
+            self.__volume_slider.set_background(None)
             self.__progress.set_background(None)
 
 

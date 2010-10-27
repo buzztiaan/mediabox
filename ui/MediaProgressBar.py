@@ -13,8 +13,13 @@ class MediaProgressBar(Widget):
     EVENT_CHANGED = "event-changed"
     EVENT_BOOKMARK_CHANGED = "event-bookmark-changed"
     
+    UP = 0
+    DOWN = 1
     
-    def __init__(self):
+    
+    def __init__(self, orientation = DOWN):
+
+        self.__orientation = orientation
 
         # background pbuf
         self.__background = None
@@ -177,8 +182,12 @@ class MediaProgressBar(Widget):
             self.__buffer.fill_area(0, 0, w, h, theme.color_mb_background)
         
         #screen.fill_area(x, y + h - 24, w, 24, "#000000a0")
-        self.__buffer.fill_area(0, 0, w, 48, "#00000060")
-        self.__buffer.fill_area(0, 48, w, 24, "#000000")
+        if (self.__orientation == self.DOWN):
+            self.__buffer.fill_area(0, 0, w, 48, "#00000060")
+            self.__buffer.fill_area(0, 48, w, 24, "#000000")
+        else:
+            self.__buffer.fill_area(0, 0, w, 48, "#000000")
+            self.__buffer.fill_area(0, 48, w, 24, "#00000060")
 
         # render bookmarks
         for bm in self.__bookmarks:
@@ -192,14 +201,24 @@ class MediaProgressBar(Widget):
         # render position marker
         #screen.fill_area(x, y, w, 32, "#00000080")
         pos = int((w - 48) * self.__progress)
-        self.__buffer.draw_pixbuf(theme.mb_progress_position_down, pos, 0)
-        
+        if (self.__orientation == self.DOWN):
+            self.__buffer.draw_pixbuf(theme.mb_progress_position_down, pos, 0)
+        else:
+            self.__buffer.draw_pixbuf(theme.mb_progress_position_up, pos, 24)
+            
         # render message
         if (self.__current_message):
             t_w, t_h = text_extents(self.__current_message, theme.font_mb_plain)
-            self.__buffer.draw_text(self.__current_message, theme.font_mb_plain,
-                             (w - t_w), (h - t_h) + 2,
-                             theme.color_mb_gauge)
+            if (self.__orientation == self.DOWN):
+                self.__buffer.draw_text(self.__current_message,
+                                 theme.font_mb_plain,
+                                 (w - t_w), (h - t_h) + 2,
+                                 theme.color_mb_gauge)
+            else:
+                self.__buffer.draw_text(self.__current_message,
+                                 theme.font_mb_plain,
+                                 (w - t_w), 2,
+                                 theme.color_mb_gauge)
 
         screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
 
@@ -208,6 +227,11 @@ class MediaProgressBar(Widget):
     
         self.__background = pbuf
 
+
+    def set_orientation(self, orientation):
+    
+        self.__orientation = orientation
+        
 
     def add_bookmark(self):
         """

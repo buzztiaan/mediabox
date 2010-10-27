@@ -21,9 +21,12 @@ class Slider(Widget):
         
         @param button_pbuf: pixbuf for the slider
         """
+        
+        # background pbuf
+        self.__background = None
 
+        # offscreen buffer
         self.__buffer = None
-        self.__bg_color = theme.color_mb_background
 
         self.__mode = self.HORIZONTAL
         self.__value = 0.0
@@ -53,9 +56,7 @@ class Slider(Widget):
     def _reload(self):
     
         w, h = self.get_size()
-        if (self.__buffer):
-            self.__buffer.fill_area(0, 0, w, h,
-                                    self.__bg_color)
+        self.__buffer = None
 
 
     def set_active(self, value):
@@ -71,10 +72,9 @@ class Slider(Widget):
         self.render()
 
 
-    def set_background_color(self, color):
+    def set_background(self, pbuf):
     
-        self.__bg_color = color
-        self.render()
+        self.__background = pbuf
 
 
     def set_size(self, w, h):
@@ -83,9 +83,8 @@ class Slider(Widget):
         
         if (w == 0 or h == 0): return
 
-        if (not self.__buffer or (w, h) != self.__buffer.get_size()):
-            self.__buffer = Pixmap(None, w, h)
-            self.__buffer.fill_area(0, 0, w, h, self.__bg_color)
+        if (self.__buffer and (w, h) != self.__buffer.get_size()):
+            self.__buffer = None
         
         
     def set_mode(self, mode):
@@ -126,16 +125,21 @@ class Slider(Widget):
         
     def render_this(self):
 
-        if (not self.__buffer): return
-    
         x, y = self.get_screen_pos()
         w, h = self.get_size()
         screen = self.get_screen()
 
+        if (not self.__buffer):
+            self.__buffer = Pixmap(None, w, h)
+
+        if (self.__background):
+            self.__buffer.draw_pixbuf(self.__background, 0, 0)
+        else:
+            self.__buffer.fill_area(0, 0, w, h, theme.color_mb_background)
+
         sw = self.__button_pbuf.get_width()
         sh = self.__button_pbuf.get_height()
         
-        self.__buffer.fill_area(0, 0, w, h, self.__bg_color)
         if (self.__is_active):
             if (self.__mode == self.HORIZONTAL):
                 pos = int((w - sw) * self.__value)
@@ -173,11 +177,13 @@ class Slider(Widget):
         if (self.__mode == self.HORIZONTAL):
             self.__buffer.move_area(pos, 0, btn_w, btn_h, delta, 0)
             if (delta > 0):
-                self.__buffer.fill_area(min_pos, 0, abs(delta), btn_h,
-                                        self.__bg_color)
+                self.__render_background(self.__buffer,
+                                         min_pos, 0,
+                                         abs(delta), btn_h)
             else:
-                self.__buffer.fill_area(min_pos + btn_w, 0, abs(delta), btn_h,
-                                        self.__bg_color)
+                self.__render_background(self.__buffer,
+                                         min_pos + btn_w, 0,
+                                         abs(delta), btn_h)
             
             if (self.may_render()):
                 screen.copy_buffer(self.__buffer,
@@ -187,20 +193,29 @@ class Slider(Widget):
         else:
             self.__buffer.move_area(0, pos, btn_w, btn_h, 0, delta)
             if (delta > 0):
-                self.__buffer.fill_area(0, min_pos, btn_w, abs(delta),
-                                        self.__bg_color)
+                self.__render_background(self.__buffer,
+                                         0, min_pos,
+                                         btn_w, abs(delta))
             else:
-                self.__buffer.fill_area(0, min_pos + btn_h, btn_w, abs(delta),
-                                        self.__bg_color)
+                self.__render_background(self.__buffer,
+                                         0, min_pos + btn_h,
+                                         btn_w, abs(delta))
 
             if (self.may_render()):
                 screen.copy_buffer(self.__buffer,
                                    0, min_pos, x, y + min_pos,
                                    btn_w, btn_h + abs(delta))
 
-        #if (self.may_render()):
-        #    screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
         self.__previous_pos = new_pos
+        
+        
+    def __render_background(self, buf, x, y, w, h):
+    
+        if (self.__background):
+            buf.draw_subpixbuf(self.__background, x, y, x, y, w, h)
+        else:
+            buf.fill_area(x, y, w, h, theme.color_mb_background)
+        
         
         
     def __on_press(self, px, py):

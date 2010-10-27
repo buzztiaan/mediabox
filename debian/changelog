@@ -1,8 +1,10 @@
-mediabox (2010.10.19) unstable; urgency=low
+mediabox (2010.10.27) unstable; urgency=low
 
   Performance improvements regarding very long playlists
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Tue, 19 Oct 2010 18:30:00 +0200
+  Larger display of cover art
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 27 Oct 2010 18:30:00 +0200
  
 mediabox (2010.10.17) unstable; urgency=low
 

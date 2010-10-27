@@ -3,7 +3,7 @@ from ui.decorators import Gestures
 from ui.VideoScreen import VideoScreen
 from ui.Toolbar import Toolbar
 from ui.ImageButton import ImageButton
-from ui.ProgressBar import ProgressBar
+from ui.MediaProgressBar import MediaProgressBar
 from ui.Slider import Slider
 from ui.layout import Arrangement
 from ui import windowflags
@@ -20,12 +20,11 @@ import gtk
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
     <if-visible name="toolbar">
-      <widget name="toolbar" x1="-80" y1="0" x2="100%" y2="100%"/>
-
-      <widget name="screen" x1="40" y1="4" x2="-84" y2="-64"/>
-      <widget name="progress" x1="80" y1="-50" x2="-90" y2="-10"/>
-      <widget name="btn_star" x1="10" y1="-64" x2="74" y2="100%"/>
-      <widget name="slider" x1="0" y1="0" x2="40" y2="-64"/>
+      <widget name="toolbar" x1="-100" y1="0" x2="100%" y2="100%"/>
+      <widget name="screen" x1="40" y1="4" x2="-100" y2="-72"/>
+      <widget name="progress" x1="0" y1="-72" x2="-100" y2="100%"/>
+      <!-- <widget name="btn_star" x1="10" y1="-64" x2="74" y2="100%"/> -->
+      <widget name="slider" x1="0" y1="0" x2="40" y2="-72"/>
     </if-visible>
     
     <!-- fullscreen mode -->
@@ -40,11 +39,10 @@ _LANDSCAPE_ARRANGEMENT = """
 # we simply hide the video screen while in portrait mode and play sound only
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
-    <widget name="toolbar" x1="0" y1="-80" x2="100%" y2="100%"/>
-
-    <widget name="screen" x1="40" y1="0" x2="100%" y2="-80"/>
-    <widget name="progress" x1="50" y1="-170" x2="-50" y2="-130"/>
-    <widget name="slider" x1="0" y1="0" x2="40" y2="-80"/>
+    <widget name="toolbar" x1="0" y1="-100" x2="100%" y2="100%"/>
+    <widget name="screen" x1="40" y1="0" x2="100%" y2="-172"/>
+    <widget name="progress" x1="0" y1="-172" x2="100%" y2="-100"/>
+    <widget name="slider" x1="0" y1="0" x2="40" y2="-172"/>
   </arrangement>
 """
 
@@ -87,7 +85,7 @@ class VideoPlayer(Player):
 
 
         # progress bar
-        self.__progress = ProgressBar()
+        self.__progress = MediaProgressBar(MediaProgressBar.UP)
         self.__progress.connect_changed(self.__on_seek)
         self.__progress.connect_bookmark_changed(self.__on_change_bookmark)
 
@@ -124,7 +122,7 @@ class VideoPlayer(Player):
         self.__arr.add(self.__screen, "screen")
         self.__arr.add(self.__toolbar, "toolbar")
         self.__arr.add(self.__progress, "progress")
-        self.__arr.add(self.__btn_star, "btn_star")
+        #self.__arr.add(self.__btn_star, "btn_star")
         self.__arr.add(self.__volume_slider, "slider")
         self.add(self.__arr)
 
@@ -133,12 +131,12 @@ class VideoPlayer(Player):
     
         w, h = self.get_size()
         if (w < h):
-            if (not self.__is_fullscreen):
-                self.__btn_star.set_visible(False)
+            #if (not self.__is_fullscreen):
+            #    self.__btn_star.set_visible(False)
             self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
         else:
-            if (not self.__is_fullscreen):
-                self.__btn_star.set_visible(True)
+            #if (not self.__is_fullscreen):
+            #    self.__btn_star.set_visible(True)
             self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
 
 
