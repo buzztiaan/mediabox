@@ -1,6 +1,7 @@
 from com import Configurator, msgs
 from ui.itemview import ThumbableGridView
 from ui.dialog import InfoDialog
+from ui import Pixmap
 from ThemeListItem import ThemeListItem
 from mediabox import config
 from theme import theme
@@ -80,7 +81,11 @@ class ConfigTheme(Configurator):
         #config.set_thumbnails_epoch(int(time.time()))
         theme.set_theme(t)
         self.propagate_theme_change()
-        self.render()
+        
+        w, h = self.get_size()
+        buf = Pixmap(None, w, h)
+        self.render_at(buf)
+        self.fx_slide_vertical(buf, 0, 0, w, h, self.SLIDE_DOWN)
 
         self.emit_message(msgs.CORE_EV_THEME_CHANGED)
 

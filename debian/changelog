@@ -1,10 +1,12 @@
-mediabox (2010.10.27) unstable; urgency=low
+mediabox (2010.10.28) unstable; urgency=low
 
   Performance improvements regarding very long playlists
   
   Larger display of cover art
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 27 Oct 2010 18:30:00 +0200
+  SHOUTcast stations can be added to the list of internet radios
+  
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 28 Oct 2010 19:30:00 +0200
  
 mediabox (2010.10.17) unstable; urgency=low
 

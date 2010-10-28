@@ -50,6 +50,19 @@ class ShoutcastDirectory(Device):
         return theme.shoutcast_folder
 
 
+    def __on_add_radio(self, folder, f):
+    
+        self.emit_message(msgs.IRADIO_ACT_ADD_STATION, f.name, f.resource)
+
+
+    def get_file_actions(self, folder, f):
+    
+        options = Device.get_file_actions(self, folder, f)
+        options.append((None, "Add to my Internet Radios", self.__on_add_radio))
+
+        return options
+
+
     def __make_genre(self, genre):
 
         f = File(self)    

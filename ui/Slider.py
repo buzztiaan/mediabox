@@ -170,11 +170,21 @@ class Slider(Widget):
         
         pos = self.__previous_pos
         min_pos = min(new_pos, pos)
+        max_pos = max(new_pos, pos)
         delta = new_pos - pos
         
         if (delta == 0): return
         
+        self.render()
+        self.__previous_pos = new_pos
+        return
+        
         if (self.__mode == self.HORIZONTAL):
+            #self.__render_background(self.__buffer,
+            #                         min_pos, 0,
+            #                         max_pos - min_pos + btn_w, btn_h)
+            self.__buffer.draw_pixbuf(self.__button_pbuf, pos, 0)
+            """
             self.__buffer.move_area(pos, 0, btn_w, btn_h, delta, 0)
             if (delta > 0):
                 self.__render_background(self.__buffer,
@@ -185,12 +195,17 @@ class Slider(Widget):
                                          min_pos + btn_w, 0,
                                          abs(delta), btn_h)
             
+            """
             if (self.may_render()):
                 screen.copy_buffer(self.__buffer,
                                    min_pos, 0, x + min_pos, y,
                                    btn_w + abs(delta), btn_h)
-            
         else:
+            #self.__render_background(self.__buffer,
+            #                         0, min_pos,
+            #                         btn_w, max_pos - min_pos + btn_h)
+            self.__buffer.draw_pixbuf(self.__button_pbuf, 0, pos)
+            """
             self.__buffer.move_area(0, pos, btn_w, btn_h, 0, delta)
             if (delta > 0):
                 self.__render_background(self.__buffer,
@@ -201,12 +216,12 @@ class Slider(Widget):
                                          0, min_pos + btn_h,
                                          btn_w, abs(delta))
 
+            """
             if (self.may_render()):
                 screen.copy_buffer(self.__buffer,
                                    0, min_pos, x, y + min_pos,
                                    btn_w, btn_h + abs(delta))
 
-        self.__previous_pos = new_pos
         
         
     def __render_background(self, buf, x, y, w, h):

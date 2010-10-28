@@ -10,6 +10,9 @@ class Toolbar(Widget):
 
     def __init__(self):
     
+        # offscreen buffer
+        self.__buffer = None
+    
         self.__bg_pmap = None
     
         self.__current_set = []
@@ -39,6 +42,7 @@ class Toolbar(Widget):
             edges = Pixmap.TOP
 
         if (not self.__bg_pmap or (w, h) != self.get_size()):
+            self.__buffer = None
             self.__bg_pmap = Pixmap(None, w, h)
             self.__bg_pmap.fill_area(0, 0, w, h, theme.color_mb_background)
             self.__bg_pmap.draw_frame(theme.mb_panel, 0, 0, w, h, True,
@@ -83,4 +87,11 @@ class Toolbar(Widget):
             self.__box.add(c, False)
             c.set_visible(True)
 
-        self.render()
+        if (not self.__buffer):
+            w, h = self.get_size()
+            if (w > 0 and h > 0):
+                self.__buffer = Pixmap(None, w, h)    
+
+        if (self.__buffer):
+            self.render_buffered(self.__buffer)
+

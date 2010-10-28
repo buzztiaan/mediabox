@@ -289,7 +289,9 @@ class AudioPlayer(Player):
                 self.__cover = None
                 self.__cover_scaled = None
                 self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", None)
-            self.render()
+
+            if (self.__offscreen_buffer):
+                self.render_buffered(self.__offscreen_buffer)
         #end if
         logging.profile(stopwatch, "[audioplayer] loaded cover art")
 
@@ -305,6 +307,7 @@ class AudioPlayer(Player):
 
     def __on_track_info(self, item, tags):
 
+        logging.debug("[audioplayer] processing track info")
         title = tags.get("TITLE") or item.name
         artist = tags.get("ARTIST") or "-"
         album = tags.get("ALBUM") or "-"
@@ -464,13 +467,15 @@ class AudioPlayer(Player):
         t.setDaemon(True)
         t.start()
         
-        self.render()
+        if (self.__offscreen_buffer):
+            self.render_buffered(self.__offscreen_buffer)
 
 
     def handle_MEDIA_EV_LYRICS(self, words, hi_from, hi_to):
     
         self.__set_lyrics(words, hi_from, hi_to)
-        self.render()
+        if (self.__offscreen_buffer):
+            self.render_buffered(self.__offscreen_buffer)
 
 
     def handle_MEDIA_ACT_PLAY(self):

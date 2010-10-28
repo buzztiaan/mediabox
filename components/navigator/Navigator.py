@@ -431,7 +431,7 @@ class Navigator(Component, Window):
         
         self.__update_layout()
         self.__update_menu()
-        self.render()
+        self.__browser.render()
         
         self.__update_items_per_row(f)
 
@@ -739,7 +739,14 @@ class Navigator(Component, Window):
             return True
             
         else:
-            return False
+            self.__play_folder = self.get_current_folder()
+            self.__invalidate_play_files()
+            if (self.__play_files):
+                next_item = self.__play_files[0]
+                self.__load_file(next_item, False)
+                return True
+            else:
+                return False
 
         
         
@@ -937,7 +944,7 @@ class Navigator(Component, Window):
         
     
         self.__arr.set_visible(True)
-        self.render()
+        #self.render()
         
         if (values.uri and (values.uri.startswith("http://") or
                             os.path.exists(values.uri))):
@@ -975,11 +982,6 @@ class Navigator(Component, Window):
     def handle_UI_ACT_SHOW_DIALOG(self, name):
     
         self.__show_dialog(name)
-
-
-    def handle_CORE_EV_THEME_CHANGED(self):
-    
-        self.render()
       
 
     def handle_CORE_EV_FOLDER_INVALIDATED(self, folder):

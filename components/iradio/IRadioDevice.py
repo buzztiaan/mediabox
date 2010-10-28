@@ -105,11 +105,17 @@ class IRadioDevice(Device):
         
         if (dlg.run() == dlg.RETURN_OK):
             name, url = dlg.get_values()
-            self.__stations.append((url, name))
-            inetstations.save_stations(self.__stations)
-            
-            self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, folder)
-        #end if
+            self.__create_new_station(name, url)
+
+
+    def __create_new_station(self, name, url):
+
+        self.__stations.append((url, name))
+        inetstations.save_stations(self.__stations)
+        
+        self.emit_message(msgs.CORE_EV_FOLDER_INVALIDATED, self.get_root())
+    
+
 
 
     def __on_delete_item(self, folder, *files):
@@ -147,4 +153,9 @@ class IRadioDevice(Device):
         options.append((None, "Delete Stations", self.__on_delete_item))
 
         return options
+
+
+    def handle_IRADIO_ACT_ADD_STATION(self, name, url):
+    
+        self.__create_new_station(name, url)
 
