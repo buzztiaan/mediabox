@@ -256,10 +256,14 @@ class Navigator(Component, Window):
         w, h = self.get_size()
         
         if (folder and folder.folder_flags & folder.ITEMS_COMPACT):
-            if (w < h):
-                self.__browser.set_items_per_row(3)
+            if (w > 0):
+                per_row = w / 160
             else:
-                self.__browser.set_items_per_row(4)
+                per_row = 3
+            #if (w < h):
+            self.__browser.set_items_per_row(per_row)
+            #else:
+            #    self.__browser.set_items_per_row(4)
         else:
             self.__browser.set_items_per_row(1)
             
@@ -431,9 +435,9 @@ class Navigator(Component, Window):
         
         self.__update_layout()
         self.__update_menu()
-        self.__browser.render()
         
         self.__update_items_per_row(f)
+        self.__browser.render()
 
         # set platform-specific click behavior
         if (platforms.MAEMO4):
