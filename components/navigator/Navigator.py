@@ -944,7 +944,7 @@ class Navigator(Component, Window):
         
     
         self.__arr.set_visible(True)
-        #self.render()
+        self.render()
         
         if (values.uri and (values.uri.startswith("http://") or
                             os.path.exists(values.uri))):

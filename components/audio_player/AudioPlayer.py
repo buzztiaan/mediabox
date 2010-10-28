@@ -282,6 +282,7 @@ class AudioPlayer(Player):
     def __on_loaded_cover(self, pbuf, ctx_id, stopwatch):
    
         if (ctx_id == self.__context_id):
+            self.__cover = None
             if (pbuf):
                 self.__set_cover(pbuf)
                 self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", pbuf)
