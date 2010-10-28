@@ -256,7 +256,7 @@ class Navigator(Component, Window):
         w, h = self.get_size()
         if (w > h):
             w -= 180
-        
+
         if (folder and folder.folder_flags & folder.ITEMS_COMPACT):
             if (w > 0):
                 per_row = w / 160
