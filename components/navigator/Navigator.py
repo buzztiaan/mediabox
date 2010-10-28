@@ -31,13 +31,13 @@ import os
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
     <widget name="toolbar"
-            x1="-80" y1="0" x2="100%" y2="100%"/>
+            x1="-100" y1="0" x2="100%" y2="100%"/>
 
     <widget name="now-playing"
-            x1="-160" y1="0" x2="-80" y2="100%"/>
+            x1="-180" y1="0" x2="-100" y2="100%"/>
 
     <widget name="browser"
-            x1="0" y1="0" x2="-160" y2="100%"/>
+            x1="0" y1="0" x2="-180" y2="100%"/>
   </arrangement>
 """
 
@@ -45,13 +45,13 @@ _LANDSCAPE_ARRANGEMENT = """
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
     <widget name="toolbar"
-            x1="0" y1="-80" x2="100%" y2="100%"/>
+            x1="0" y1="-100" x2="100%" y2="100%"/>
 
     <widget name="now-playing"
             x1="0" y1="0" x2="100%" y2="80"/>
 
     <widget name="browser"
-            x1="0" y1="80" x2="100%" y2="-80"/>
+            x1="0" y1="80" x2="100%" y2="-100"/>
   </arrangement>
 """
 
@@ -254,6 +254,8 @@ class Navigator(Component, Window):
     def __update_items_per_row(self, folder):
 
         w, h = self.get_size()
+        if (w > h):
+            w -= 180
         
         if (folder and folder.folder_flags & folder.ITEMS_COMPACT):
             if (w > 0):
@@ -856,11 +858,11 @@ class Navigator(Component, Window):
     def render_this(self):
     
         w, h = self.get_size()
-        
-        if ((w, h) != self.__window_size):
+
+        if ((w, h) != self.__window_size):            
             self.__update_items_per_row(self.__browser.get_current_folder())
-            self.__window_size = (w, h)
-    
+            self.__window_size = (w, h)    
+
         if (self.__arr.is_visible()):
             Window.render_this(self)
             
