@@ -14,6 +14,8 @@ class ImageButton(Widget):
         self.__img1 = img1
         self.__img2 = img2
     
+        self.__overlays = []
+    
         Widget.__init__(self)
         self.set_size(64, 64)
         
@@ -25,6 +27,11 @@ class ImageButton(Widget):
     def _reload(self):
     
         self.set_images(self.__img1, self.__img2)
+    
+    
+    def add_overlay(self, overlay):
+    
+        self.__overlays.append(overlay)
     
     
     def set_size(self, w, h):
@@ -57,13 +64,6 @@ class ImageButton(Widget):
         else:
             self.__state = 0
         self.__render_button()
-            
-        
-        
-    def _render_content(self, cnv):
-        
-        pass
-    
 
 
     def __render_button(self):
@@ -90,7 +90,10 @@ class ImageButton(Widget):
         else:
             self.__buffer.draw_pixbuf(img, 0, 0)
         
-        self._render_content(self.__buffer)
+        #self._render_content(self.__buffer)
+        
+        for overlay in self.__overlays:
+            overlay(self.__buffer)
         
         screen.copy_pixmap(self.__buffer, 0, 0, x, y, w, h)
 

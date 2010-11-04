@@ -20,7 +20,7 @@ class Toolbar(Widget):
 
         Widget.__init__(self)
         self.__box = Box()
-        self.__box.set_spacing(72)
+        self.__box.set_spacing(2)
         self.__box.set_halign(self.__box.HALIGN_CENTER)
         self.__box.set_valign(self.__box.VALIGN_CENTER)
         self.add(self.__box)        
@@ -84,7 +84,7 @@ class Toolbar(Widget):
             self.__box.remove(c)
         
         for c in tbset:
-            self.__box.add(c, False)
+            self.__box.add(c, True)
             c.set_visible(True)
 
         if (not self.__buffer):
