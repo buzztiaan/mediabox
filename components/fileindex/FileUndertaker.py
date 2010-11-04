@@ -54,7 +54,7 @@ class FileUndertaker(Component):
     def handle_COM_EV_APP_STARTED(self):
 
         #if (config.scan_at_startup()):
-        self.__remove_corpses()
+        pass #self.__remove_corpses()
             
 
     def handle_FILEINDEX_ACT_BURY(self):
