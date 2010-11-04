@@ -133,32 +133,25 @@ class Navigator(Component, Window):
         # toolbar
         self.__toolbar = Toolbar()
 
-        self.__btn_home = ImageButton(theme.mb_btn_home_1,
-                                      theme.mb_btn_home_2)
+        self.__btn_home = Button("", theme.mb_btn_home_1)
         self.__btn_home.connect_clicked(self.__on_btn_home)
         
-        self.__btn_history = ImageButton(theme.mb_btn_history_1,
-                                         theme.mb_btn_history_2)
+        self.__btn_history = Button("", theme.mb_btn_history_1)
         self.__btn_history.connect_clicked(self.__on_btn_history)
 
-        self.__btn_bookmarks = ImageButton(theme.mb_btn_bookmark_1,
-                                           theme.mb_btn_bookmark_2)
+        self.__btn_bookmarks = Button("", theme.mb_btn_bookmark_1)
         self.__btn_bookmarks.connect_clicked(self.__on_btn_bookmarks)
 
-        self.__btn_back = ImageButton(theme.mb_btn_dir_up_1,
-                                      theme.mb_btn_dir_up_2)
+        self.__btn_back = Button("", theme.mb_btn_dir_up_1)
         self.__btn_back.connect_clicked(self.__on_btn_back)
 
-        self.__btn_select_all = ImageButton(theme.mb_btn_select_all_1,
-                                            theme.mb_btn_select_all_2)
+        self.__btn_select_all = Button("", theme.mb_btn_select_all_1)
         self.__btn_select_all.connect_clicked(self.__on_btn_select_all)
 
-        self.__btn_select_none = ImageButton(theme.mb_btn_select_none_1,
-                                             theme.mb_btn_select_none_2)
+        self.__btn_select_none = Button("", theme.mb_btn_select_none_1)
         self.__btn_select_none.connect_clicked(self.__on_btn_select_none)
 
-        self.__btn_select_done = ImageButton(theme.mb_btn_select_done_1,
-                                             theme.mb_btn_select_done_2)
+        self.__btn_select_done = Button("", theme.mb_btn_select_done_1)
         self.__btn_select_done.connect_clicked(self.__on_btn_select_done)
 
 
@@ -456,19 +449,13 @@ class Navigator(Component, Window):
             items = self.__browser.get_items()
             item = items[-1]
             
-            # process the first few items at once to give a better impression
-            # of speed
-            if (len(items) <= 16):
-                thumbpath, is_final = \
-                  self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
+            thumbpath, is_final = \
+              self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, c)
 
-                item.set_icon(thumbpath)
+            item.set_icon(thumbpath)
             
-                if (not is_final):
-                    self.__tn_scheduler.add(item, c, False)
-
-            else:
-                self.__tn_scheduler.add(item, c, True)
+            if (not is_final):
+                self.__tn_scheduler.add(item, c, False)
         #end if
 
 
@@ -508,6 +495,9 @@ class Navigator(Component, Window):
 
 
     def __on_load_thumbnail(self, item, f, quick):
+        """
+        Scheduler callback handler for loading the next thumbnail.
+        """
 
         def on_loaded(thumbpath):
             if (thumbpath):
@@ -520,7 +510,6 @@ class Navigator(Component, Window):
                 if (top_idx < len(items)):
                     self.__tn_scheduler.priorize(items[top_idx:top_idx + 12])
             #end if
-            
             self.__tn_scheduler.resume()
     
         # load thumbnail
@@ -528,19 +517,8 @@ class Navigator(Component, Window):
         if (quick):
             thumbpath, is_final = \
               self.call_service(msgs.THUMBNAIL_SVC_LOOKUP_THUMBNAIL, f)
-            item.set_icon(thumbpath)
-            item.render_at(None, 0, 0)
-            idx = self.__browser.get_items().index(item)
-            self.__browser.invalidate_item(idx)
-            
-            # priorize visible items
-            top_idx = self.__browser.get_item_at(0, 0)
-            if (top_idx != -1):
-                items = self.__browser.get_items()
-                if (top_idx < len(items)):
-                    self.__tn_scheduler.priorize(items[top_idx:top_idx + 12])
-            #end if
-            
+            on_loaded(thumbpath)
+                        
             if (not is_final):
                 #print "SCHEDULING THUMBNAIL", c
                 self.__tn_scheduler.add(item, f, False)
@@ -745,7 +723,9 @@ class Navigator(Component, Window):
             return True
             
         else:
-            self.__play_folder = self.get_current_folder()
+            return False
+            """
+            self.__play_folder = self.__browser.get_current_folder()
             self.__invalidate_play_files()
             if (self.__play_files):
                 next_item = self.__play_files[0]
@@ -753,7 +733,7 @@ class Navigator(Component, Window):
                 return True
             else:
                 return False
-
+            """
         
         
     def __play_shuffled(self, from_all):

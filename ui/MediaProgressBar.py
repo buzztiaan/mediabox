@@ -182,12 +182,13 @@ class MediaProgressBar(Widget):
             self.__buffer.fill_area(0, 0, w, h, theme.color_mb_background)
         
         #screen.fill_area(x, y + h - 24, w, 24, "#000000a0")
-        if (self.__orientation == self.DOWN):
-            self.__buffer.fill_area(0, 0, w, 48, "#00000060")
-            self.__buffer.fill_area(0, 48, w, 24, "#000000")
-        else:
-            self.__buffer.fill_area(0, 0, w, 48, "#000000")
-            self.__buffer.fill_area(0, 48, w, 24, "#00000060")
+        self.__buffer.draw_frame(theme.mb_progress_background, 0, 0, w, h, True)
+        #if (self.__orientation == self.DOWN):
+        #    self.__buffer.fill_area(0, 0, w, 48, "#00000060")
+        #    self.__buffer.fill_area(0, 48, w, 24, "#000000")
+        #else:
+        #    self.__buffer.fill_area(0, 0, w, 48, "#000000")
+        #    self.__buffer.fill_area(0, 48, w, 24, "#00000060")
 
         # render bookmarks
         for bm in self.__bookmarks:

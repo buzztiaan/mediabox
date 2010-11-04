@@ -3,7 +3,11 @@ from mediabox import tagreader
 from mediabox import imageloader
 from theme import theme
 
+import gobject
 import os
+import threading
+import time
+from Queue import Queue
 
 
 class CoverStore(Component):
@@ -13,42 +17,67 @@ class CoverStore(Component):
 
     def __init__(self):
     
+        self.__queue = Queue()
+    
         Component.__init__(self)
-        
+
+        t = threading.Thread(target = self.__cover_thread)
+        t.setDaemon(True)
+        t.start()
+
         
     def handle_COVERSTORE_SVC_GET_COVER(self, f, cb, *args):
         
-        if (f.resource.startswith("/") and os.path.exists(f.resource)):
-            # it's a local file
-            if (f.mimetype.endswith("-folder")):
-                # it's a directory
-                cover = self.__find_cover_file(f.resource)
-                if (cover):
-                    imageloader.load(cover, cb, *args)
-                else:
-                    cb(None, *args)
-                    
-            else:
-                # it's a regular file
-                cover = self.__find_cover_of_file(f)
-                if (cover):
-                    imageloader.load(cover, cb, *args)
-                else:
-                    embedded = self.__find_embedded_cover(f)
-                    if (embedded):
-                        imageloader.load_data(embedded, cb, *args)
-                    else:
-                        cb(None, *args)
+        #self.__queue.put((f, cb, args))
+        cb(None, *args)
 
-                #end if   
-
-        else:
-            # it's a remote file
-            cb(None, *args)
-        
-    
         # tell the message bus that we handled this service call
         return 0      
+        
+        
+    def __emit(self, cb, cover_file, cover_data, *args):
+    
+        if (cover_file):
+            gobject.timeout_add(0, imageloader.load, cover_file, cb, *args)
+        elif (cover_data):
+            gobject.timeout_add(0, imageloader.load_data, cover_data, cb, *args)
+        else:
+            gobject.timeout_add(0, cb, None, *args)
+        
+        
+    def __cover_thread(self):
+    
+        while (True):
+            time.sleep(0.1)
+            f, cb, args = self.__queue.get()
+        
+            if (f.resource.startswith("/") and os.path.exists(f.resource)):
+                # it's a local file
+                if (f.mimetype.endswith("-folder")):
+                    # it's a directory
+                    cover_file = self.__find_cover_file(f.resource)
+                    self.__emit(cb, cover_file, None, *args)
+                    
+                else:
+                    # it's a regular file
+                    cover_file = self.__find_cover_of_file(f)
+                    if (cover_file):
+                        self.__emit(cb, cover_file, None, *args)
+                    else:
+                        embedded = self.__find_embedded_cover(f)
+                        if (embedded):
+                            self.__emit(cb, None, embedded, *args)
+                        else:
+                            self.__emit(cb, None, None, *args)
+
+                    #end if   
+
+            else:
+                # it's a remote file
+                self.__emit(cb, None, None, *args)
+                
+        #end while
+    
               
         
     def __find_cover_file(self, uri):

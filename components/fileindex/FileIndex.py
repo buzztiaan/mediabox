@@ -11,7 +11,7 @@ _INDEX_FILE = os.path.join(values.USER_DIR, "files.idx")
 
 # when the index format becomes incompatible, raise the magic number to force
 # rejection of old index
-_MAGIC = 0xbeef0007
+_MAGIC = 0xbeef0008
 
 
 class FileIndex(Component):
@@ -21,9 +21,24 @@ class FileIndex(Component):
     """
 
     def __init__(self):
+
+        # the current ID to be used for the identifying the next entry
+        self.__current_id = 0
     
-        # table: path -> table: key -> value
-        self.__index = {}
+        # table: ID -> entry
+        # an entry is a key-value dict
+        self.__entries = {}
+    
+        # indices used for several properties
+        self.__indices = {
+            "File.Path": {},
+            "Audio.Album": {}
+        }
+
+        # list of properties that are to be compared case-insensitive
+        self.__case_insensitive = [ "Audio.Album",
+                                    "Audio.Artist",
+                                    "Audio.Title" ]
         
         # whether the index has unsaved changes
         self.__is_dirty = False
@@ -36,7 +51,19 @@ class FileIndex(Component):
         self.__load_index()
 
 
+    def __next_id(self):
+        """
+        Provides the next unique entry ID.
+        """
+    
+        self.__current_id += 1
+        return self.__current_id
+
+
     def __load_index(self):
+        """
+        Deserializes the index from file.
+        """
 
         try:
             import cPickle
@@ -54,11 +81,14 @@ class FileIndex(Component):
 
         # ignore the file if it isn't compatible
         if (magic == _MAGIC):
-            self.__index = data
+            self.__current_id, self.__entries, self.__indices = data
             self.__is_dirty = False
 
 
     def __save_index(self):
+        """
+        Serializes the index to file.
+        """
     
         self.__is_dirty = False
         try:
@@ -68,7 +98,8 @@ class FileIndex(Component):
             return
             
         try:
-            cPickle.dump((_MAGIC, self.__index), fd, 2)
+            data = (self.__current_id, self.__entries, self.__indices)
+            cPickle.dump((_MAGIC, data), fd, 2)
         except:
             pass
         finally:
@@ -76,14 +107,18 @@ class FileIndex(Component):
 
         
     def __guess_mimetype(self, path):
+        """
+        Helper method for guessing a file's MIME type based on its extension.
+        """
         
         ext = os.path.splitext(path)[1]
         return mimetypes.ext_to_mimetype(ext)
 
 
-    def __inspect(self, path):
-    
-        entry = self.__index[path]
+    def __inspect(self, path, entry):
+        """
+        Invokes MIME type-specific inspectors for inspecting a file.
+        """
     
         mimetype = entry["File.Format"]
         insp = self.__inspectors.get(mimetype)
@@ -100,23 +135,28 @@ class FileIndex(Component):
 
 
     def discover(self, path, mtime):
-    
+        """
+        Discovers the given local file, inspects it, and updates the index
+        """
+
+        eids = self.__lookup("File.Path", path)
+
         # case 1: file is new
-        if (not path in self.__index):
+        if (not eids):
             entry = {"File.Path": path,
                      "File.Modified": mtime,
                      "File.Format": self.__guess_mimetype(path)}
-            self.__index[path] = entry
-            self.__inspect(path)
+            self.__inspect(path, entry)
+            self.__add(entry)
             self.__is_dirty = True
             
         # case 2: file is updated
-        elif (mtime > self.__index[path]["File.Modified"]):
+        elif (mtime > self.__entries[eids[0]]["File.Modified"]):
             entry = {"File.Path": path,
                      "File.Modified": mtime,
                      "File.Format": self.__guess_mimetype(path)}
-            self.__index[path] = entry
-            self.__inspect(path)
+            self.__inspect(path, entry)
+            self.__add(entry)
             self.__is_dirty = True
 
         # case 3: file already in index
@@ -126,17 +166,94 @@ class FileIndex(Component):
 
 
     def remove(self, path):
+        """
+        Removes an entry from the index.
+        """
     
-        del self.__index[path]
+        # look up entry by path
+        entry_ids = self.__lookup("File.Path", path)
+        for eid in entry_ids:
+            entry = self.__entries[eid]
+            del self.__entries[eid]
+            
+            # remove from particular indices
+            for k, v in entry:
+                idx = self.__indices.get(k)
+                if (idx != None):
+                    l = self.__indices.get(v, [])
+                    l.remove(eid)
+                #end if
+            #end for
+            
+        #end for
+    
         self.__is_dirty = True
 
 
+    def __add(self, entry):
+        """
+        Stores a new entry.
+        """
+    
+        # store the entry itself
+        entry_id = self.__next_id()
+        self.__entries[entry_id] = entry
+    
+        # look for properties to be indexed
+        for key, value in entry.items():
+            # put into property index
+            idx = self.__indices.get(key)
+            if (idx != None):
+                if (key in self.__case_insensitive): value = value.upper()
+                if (not value in idx):
+                    idx[value] = []
+                idx[value].append(entry_id)
+            #end if
+        #end for
+
+
+    def __lookup(self, key, value, set0 = None):
+        """
+        Looks up a key-value pair. Returns the set of matching entry IDs.
+        The given set narrows the search space.
+        """
+    
+        if (set0 == None): set0 = set(self.__entries.keys())
+    
+        entry_ids = set()
+        if (key in self.__case_insensitive): value = value.upper()
+    
+        idx = self.__indices.get(key)
+        if (idx != None):
+            # indexed lookup
+            new_eids = set0.intersection(idx.get(value, []))
+            entry_ids = entry_ids.union(new_eids)
+        else:
+            # non-indexed slow lookup by searching all entries
+            for entry_id, entry in self.__entries.items():
+                if (not entry_id in set0): continue
+                
+                entry_value = entry.get(key, "")
+                if (key in self.__case_insensitive):
+                    entry_value = entry_value.upper()
+                if (entry_value == value):
+                    entry_ids.add(entry_id)
+            #end for
+        #end if
+        
+        return entry_ids
+
+
     def query(self, qs, *query_args):
+        """
+        Parses and performs a given query. The query uses prefix notation to
+        avoid brackets. Returns a set of value-tuples.
+        """
     
         if (self.__is_dirty):
             self.__save_index()
     
-        now = time.time()
+        stopwatch = logging.stopwatch()
     
         # normalize argument strings (replace unsafe chars)
         qas = []
@@ -154,11 +271,13 @@ class FileIndex(Component):
 
         wrapped_qs = [qs]
         filter_props = self.__parse_filter(wrapped_qs)
-        items = self.__parse_condition(wrapped_qs, set(self.__index.keys()))
+        all_eids = set(self.__entries.keys())
+        entry_ids = self.__parse_condition(wrapped_qs, all_eids)
         
         out = set()
-        for item in items:
-            values = ( self.__index[item].get(key, "") for key in filter_props )
+        for eid in entry_ids:
+            entry = self.__entries[eid]
+            values = ( entry.get(key, "") for key in filter_props )
             out.add(tuple(values))
         #end for
         
@@ -166,13 +285,16 @@ class FileIndex(Component):
             logging.debug("[fileindex] result: %d items\n%s", len(out), out)
         else:
             logging.debug("[fileindex] result: %d items", len(out))
-        logging.profile(now, "[fileindex] query: %s (yields %d items)",
+        logging.profile(stopwatch, "[fileindex] query: %s (yields %d items)",
                         str(qs), len(out))
             
         return out
         
         
     def __parse_filter(self, w_qs):
+        """
+        Parses a filtering expression. A filter is a list of properties.
+        """
     
         qs = w_qs[0].strip()
         #print "parse filter:", qs
@@ -187,13 +309,19 @@ class FileIndex(Component):
         
         
     def __parse_condition(self, w_qs, set0):
-    
+        """
+        Parses a query condition. A condition is a complex compound of
+        query expressions. Returns a set of matching entry IDs.
+        The given set of entry IDs narrows the search space.
+        """
+
         qs = w_qs[0].strip() + " "
         #print "parse condition:", qs
         idx = qs.find(" ")
         operator = qs[:idx]
         
         if (operator == "all"):
+            # 'all' evaluates to the set of all entry IDs
             return set0
         
         elif (operator == "and"):
@@ -217,12 +345,17 @@ class FileIndex(Component):
 
 
     def __parse_expr(self, w_qs, set0):
+        """
+        Parses a query expression. Returns a set of matching entry IDs.
+        The given set of entry IDs narrows the search space.
+        """
     
         qs = w_qs[0].strip()
         #print "parse expr:", qs
         idx = qs.find("=")
         key = qs[:idx]
         
+        # quick parser for value strings
         value = ""
         state = 0
         pos = idx + 1
@@ -254,12 +387,9 @@ class FileIndex(Component):
         w_qs[0] = qs[pos:]
         if (not is_string):
             value = int(value)
-            return set([ p for p in set0
-                         if self.__index[p].get(key) == value ])
+            return self.__lookup(key, value, set0)
         else:
-            return set([ p for p in set0
-                         if self.__index[p].get(key) and
-                            self.__index[p].get(key).upper() == value.upper() ])
+            return self.__lookup(key, value, set0)
 
 
     def handle_COM_EV_COMPONENT_LOADED(self, comp):
@@ -298,7 +428,11 @@ class FileIndex(Component):
 
     def handle_FILEINDEX_SVC_CLEAR(self):
 
-        self.__index = {}
+        self.__current_id = 0
+        self.__entries.clear()
+        for idx in self.__indices.values():
+            idx.clear()
+
         self.__save_index()
         
         return 0

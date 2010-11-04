@@ -28,28 +28,27 @@ class AudioThumbnailer(Thumbnailer):
         #else:
         #    f.frame = (theme.mb_file_audio, 0, 40, 80, 80)
 
+        is_final = not f.is_local
+        return (theme.mb_default_cover.get_path(), is_final)
+
+        """
         thumb = self._get_thumbnail(f)
         if (thumb):
             return (thumb, True)
         else:
-            is_final = not f.is_local            
+            is_final = not f.is_local
             return (theme.mb_default_cover.get_path(), is_final)
-
+        """
+        
 
     def make_thumbnail(self, f, cb, *args):
-    
-        def on_child(c, children):
-        
-            if (c):
-                children.append(c)
-                if (len(children) == 1):
-                    self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
-                                      c, on_loaded, f.mimetype)
-    
+
+        def on_child(c):
+            if (c and not c.mimetype.endswith("-folder")):
+                self.make_thumbnail(c, cb, *args)
             else:
-                if (not children):
-                    cb("", *args)
-    
+                cb("", *args)
+
         def on_loaded(pbuf, mimetype):
             if (pbuf):
                 path = self._set_thumbnail(f, pbuf)
@@ -61,9 +60,15 @@ class AudioThumbnailer(Thumbnailer):
 
 
         if (f.mimetype == "application/x-music-folder"):
-            f.get_contents(0, 0, on_child, [])
-                
-        else:
-            self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
-                              f, on_loaded, f.mimetype)
+            f.get_contents(0, 1, on_child)
 
+        else:
+            thumb = self._get_thumbnail(f)
+            
+            if (thumb):
+                cb(thumb, *args)
+
+            else:
+                self.call_service(msgs.COVERSTORE_SVC_GET_COVER,
+                                  f, on_loaded, f.mimetype)
+        #end if

@@ -15,7 +15,7 @@ import time
 
 if (platforms.MAEMO4 or platforms.MAEMO5):
     # limit the IO rate
-    _BUFFER_SIZE = 1024
+    _BUFFER_SIZE = 65536
     _MAX_CONNECTIONS = 4
 else:
     _BUFFER_SIZE = 65536
@@ -261,7 +261,7 @@ class HTTPConnection(object):
                 # timeout
                 self.__emit(self.__abort, "TIMEOUT")
                 return
-            time.sleep(0.01)
+            time.sleep(0.1)
         #end while
         
         

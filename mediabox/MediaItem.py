@@ -7,6 +7,8 @@ import gtk
 import os
 
 
+_ICON_PBUF = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 160)
+
 
 class MediaItem(Item):
 
@@ -278,6 +280,7 @@ class MediaItem(Item):
         else:
             icon = None
 
+        #pbuf = _ICON_PBUF #gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 160)
         pbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 160, 160)
         pbuf.fill(0x00000000)
         
