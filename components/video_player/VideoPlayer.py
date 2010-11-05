@@ -186,8 +186,7 @@ class VideoPlayer(Player):
     
         if (ctx_id == self.__context_id):
             if (status == self.__player.STATUS_PLAYING):
-                self.__btn_play.set_images(theme.mb_btn_pause_1,
-                                           theme.mb_btn_pause_2)
+                self.__btn_play.set_icon(theme.mb_btn_pause_1)
                 
                 if (self.__load_failed_handler):
                     gobject.source_remove(self.__load_failed_handler)
@@ -204,15 +203,13 @@ class VideoPlayer(Player):
                 #end if
                                            
             elif (status == self.__player.STATUS_STOPPED):
-                self.__btn_play.set_images(theme.mb_btn_play_1,
-                                           theme.mb_btn_play_2)
+                self.__btn_play.set_icon(theme.mb_btn_play_1)
                 self.__is_playing = False
                 self.call_service(msgs.VIDEOPLAYER_SVC_RELEASE_DSP)
                 self.emit_message(msgs.MEDIA_EV_PAUSE)
 
             elif (status == self.__player.STATUS_EOF):
-                self.__btn_play.set_images(theme.mb_btn_play_1,
-                                           theme.mb_btn_play_2)
+                self.__btn_play.set_icon(theme.mb_btn_play_1)
                 self.__is_playing = False
                 self.call_service(msgs.VIDEOPLAYER_SVC_RELEASE_DSP)
                 self.emit_message(msgs.MEDIA_EV_EOF)

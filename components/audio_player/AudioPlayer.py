@@ -253,7 +253,7 @@ class AudioPlayer(Player):
             if (artist):
                 self.__trackinfo.set_artist(artist)
                 self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", artist)
-            if (cover):
+            if (cover and not self.__cover):
                 imageloader.load_data(cover, self.__on_loaded_cover,
                                       self.__context_id, time.time())
         #end if
