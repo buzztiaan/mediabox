@@ -3,7 +3,7 @@ from Image import Image
 from ui.decorators import Gestures
 from ui.KineticScroller import KineticScroller
 from ui.Toolbar import Toolbar
-from ui.ImageButton import ImageButton
+from ui.ToolbarButton import ToolbarButton
 from ui.EventBox import EventBox
 from ui.layout import Arrangement
 from ui.dialog import InputDialog
@@ -82,16 +82,13 @@ class ImageViewer(Player):
         gestures.connect_swipe(self.__on_swipe)
         
         # toolbar
-        self.__btn_play = ImageButton(theme.mb_btn_play_1,
-                                      theme.mb_btn_play_2)
+        self.__btn_play = ToolbarButton(theme.mb_btn_play_1)
         self.__btn_play.connect_clicked(self.__on_btn_play)
 
-        btn_previous = ImageButton(theme.mb_btn_previous_1,
-                                   theme.mb_btn_previous_2)
+        btn_previous = ToolbarButton(theme.mb_btn_previous_1)
         btn_previous.connect_clicked(self.__on_btn_previous)
 
-        btn_next = ImageButton(theme.mb_btn_next_1,
-                               theme.mb_btn_next_2)
+        btn_next = ToolbarButton(theme.mb_btn_next_1)
         btn_next.connect_clicked(self.__on_btn_next)
 
         self.__toolbar = Toolbar()
@@ -128,8 +125,7 @@ class ImageViewer(Player):
             return True
             
         else:
-            self.__btn_play.set_images(theme.mb_btn_play_1,
-                                       theme.mb_btn_play_2)
+            self.__btn_play.set_icon(theme.mb_btn_play_1)
             self.__slideshow_handler = None
             self.__is_playing = False
             self.emit_message(msgs.MEDIA_EV_PAUSE)
@@ -151,8 +147,7 @@ class ImageViewer(Player):
             secs = dlg.get_values()[0]
             self.__slideshow_timeout = int(secs * 1000)
 
-            self.__btn_play.set_images(theme.mb_btn_pause_1,
-                                       theme.mb_btn_pause_2)
+            self.__btn_play.set_icon(theme.mb_btn_pause_1)
             
             self.emit_message(msgs.MEDIA_EV_PLAY)
 
@@ -163,8 +158,7 @@ class ImageViewer(Player):
                                                       self.__slideshow_timer)
 
         else:
-            self.__btn_play.set_images(theme.mb_btn_play_1,
-                                       theme.mb_btn_play_2)
+            self.__btn_play.set_icon(theme.mb_btn_play_1)
 
 
     def __on_btn_previous(self):

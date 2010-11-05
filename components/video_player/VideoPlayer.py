@@ -2,6 +2,7 @@ from com import Player, msgs
 from ui.decorators import Gestures
 from ui.VideoScreen import VideoScreen
 from ui.Toolbar import Toolbar
+from ui.ToolbarButton import ToolbarButton
 from ui.ImageButton import ImageButton
 from ui.MediaProgressBar import MediaProgressBar
 from ui.Slider import Slider
@@ -97,16 +98,13 @@ class VideoPlayer(Player):
 
         
         # toolbar elements
-        self.__btn_play = ImageButton(theme.mb_btn_play_1,
-                                      theme.mb_btn_play_2)
+        self.__btn_play = ToolbarButton(theme.mb_btn_play_1)
         self.__btn_play.connect_clicked(self.__on_btn_play)
 
-        btn_previous = ImageButton(theme.mb_btn_previous_1,
-                                   theme.mb_btn_previous_2)
+        btn_previous = ToolbarButton(theme.mb_btn_previous_1)
         btn_previous.connect_clicked(self.__on_btn_previous)
 
-        btn_next = ImageButton(theme.mb_btn_next_1,
-                               theme.mb_btn_next_2)
+        btn_next = ToolbarButton(theme.mb_btn_next_1)
         btn_next.connect_clicked(self.__on_btn_next)
         
         # toolbar

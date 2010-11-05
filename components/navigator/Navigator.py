@@ -2,7 +2,7 @@ from com import Component, Dialog, Widget, msgs
 from NowPlaying import NowPlaying
 from RootDevice import RootDevice
 from mediabox.StorageBrowser import StorageBrowser
-from ui.Button import Button
+from ui.ToolbarButton import ToolbarButton
 from ui.ImageButton import ImageButton
 from ui.Toolbar import Toolbar
 from ui.dialog import InputDialog
@@ -133,25 +133,25 @@ class Navigator(Component, Window):
         # toolbar
         self.__toolbar = Toolbar()
 
-        self.__btn_home = Button("", theme.mb_btn_home_1)
+        self.__btn_home = ToolbarButton(theme.mb_btn_home_1)
         self.__btn_home.connect_clicked(self.__on_btn_home)
         
-        self.__btn_history = Button("", theme.mb_btn_history_1)
+        self.__btn_history = ToolbarButton(theme.mb_btn_history_1)
         self.__btn_history.connect_clicked(self.__on_btn_history)
 
-        self.__btn_bookmarks = Button("", theme.mb_btn_bookmark_1)
+        self.__btn_bookmarks = ToolbarButton(theme.mb_btn_bookmark_1)
         self.__btn_bookmarks.connect_clicked(self.__on_btn_bookmarks)
 
-        self.__btn_back = Button("", theme.mb_btn_dir_up_1)
+        self.__btn_back = ToolbarButton(theme.mb_btn_dir_up_1)
         self.__btn_back.connect_clicked(self.__on_btn_back)
 
-        self.__btn_select_all = Button("", theme.mb_btn_select_all_1)
+        self.__btn_select_all = ToolbarButton(theme.mb_btn_select_all_1)
         self.__btn_select_all.connect_clicked(self.__on_btn_select_all)
 
-        self.__btn_select_none = Button("", theme.mb_btn_select_none_1)
+        self.__btn_select_none = ToolbarButton(theme.mb_btn_select_none_1)
         self.__btn_select_none.connect_clicked(self.__on_btn_select_none)
 
-        self.__btn_select_done = Button("", theme.mb_btn_select_done_1)
+        self.__btn_select_done = ToolbarButton(theme.mb_btn_select_done_1)
         self.__btn_select_done.connect_clicked(self.__on_btn_select_done)
 
 

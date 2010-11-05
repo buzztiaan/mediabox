@@ -1,5 +1,6 @@
 from com import Player, msgs
 from InfoBox import InfoBox
+from ui.ToolbarButton import ToolbarButton
 from ui.ImageButton import ImageButton
 from ui.MediaProgressBar import MediaProgressBar
 from ui.Slider import Slider
@@ -85,16 +86,13 @@ class AudioPlayer(Player):
 
 
         # toolbar elements
-        self.__btn_play = ImageButton(theme.mb_btn_play_1,
-                                      theme.mb_btn_play_2)
+        self.__btn_play = ToolbarButton(theme.mb_btn_play_1)
         self.__btn_play.connect_clicked(self.__on_btn_play)
 
-        btn_previous = ImageButton(theme.mb_btn_previous_1,
-                                   theme.mb_btn_previous_2)
+        btn_previous = ToolbarButton(theme.mb_btn_previous_1)
         btn_previous.connect_clicked(self.__on_btn_previous)
 
-        btn_next = ImageButton(theme.mb_btn_next_1,
-                               theme.mb_btn_next_2)
+        btn_next = ToolbarButton(theme.mb_btn_next_1)
         btn_next.connect_clicked(self.__on_btn_next)
         
         # toolbar
@@ -190,18 +188,15 @@ class AudioPlayer(Player):
     
         if (ctx_id == self.__context_id):
             if (status == self.__player.STATUS_PLAYING):
-                self.__btn_play.set_images(theme.mb_btn_pause_1,
-                                           theme.mb_btn_pause_2)
+                self.__btn_play.set_icon(theme.mb_btn_pause_1)
                 self.emit_message(msgs.MEDIA_EV_PLAY)
 
             elif (status == self.__player.STATUS_STOPPED):
-                self.__btn_play.set_images(theme.mb_btn_play_1,
-                                           theme.mb_btn_play_2)
+                self.__btn_play.set_icon(theme.mb_btn_play_1)
                 self.emit_message(msgs.MEDIA_EV_PAUSE)
 
             elif (status == self.__player.STATUS_EOF):
-                self.__btn_play.set_images(theme.mb_btn_play_1,
-                                           theme.mb_btn_play_2)
+                self.__btn_play.set_icon(theme.mb_btn_play_1)
                 self.emit_message(msgs.MEDIA_EV_EOF)
                 self.emit_message(msgs.MEDIA_ACT_NEXT)
                 

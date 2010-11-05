@@ -31,13 +31,21 @@ class Button(ImageButton):
 
         if (self.__label):
             w, h = self.get_size()
+            if (self.__icon):
+                i_h = self.__icon.get_height()
+                y = ((h - i_h) / 2) + i_h
+            else:
+                y = 0
             screen.draw_centered_text(self.__label, theme.font_mb_plain,
-                                      0, 0, w, h, theme.color_mb_button_text)
-                               
+                                      0, y, w, h - y, theme.color_mb_button_text)
+
 
     def set_text(self, text):
         """
+        Changes the button label.
         @since: 0.96.5
+        
+        @param text: label text
         """
     
         self.__label = text
@@ -45,6 +53,13 @@ class Button(ImageButton):
 
 
     def set_icon(self, icon):
+        """
+        Changes the button icon. Pass C{None} to disable the icon.
+        @since: 2010.11.04
+        
+        @param icon: icon pixbuf
+        """
     
         self.__icon = icon
+        self.render()
 
