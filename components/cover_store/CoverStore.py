@@ -28,8 +28,8 @@ class CoverStore(Component):
         
     def handle_COVERSTORE_SVC_GET_COVER(self, f, cb, *args):
         
-        #self.__queue.put((f, cb, args))
-        cb(None, *args)
+        self.__queue.put((f, cb, args))
+        #cb(None, *args)
 
         # tell the message bus that we handled this service call
         return 0      
