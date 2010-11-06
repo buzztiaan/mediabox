@@ -147,6 +147,10 @@ class AudioPlayer(Player):
 
     def __set_lyrics(self, words, hi_from, hi_to):
     
+        # reset cover buffer because we'll draw it tinted now
+        if (not self.__lyrics):
+            self.__cover_scaled = None
+    
         if (hi_from > 0 or hi_to < len(words) - 1):
             self.__lyrics = "%s<span color='red'>%s</span>%s" \
                             % (textutils.escape_xml(words[:hi_from]),
@@ -328,7 +332,7 @@ class AudioPlayer(Player):
 
 
 
-    def __scale_cover(self):
+    def __scale_cover(self, is_tinted):
 
         w, h = self.get_size()
         if (w < h):
@@ -342,7 +346,7 @@ class AudioPlayer(Player):
         
         factor1 = w / float(p_w)
         factor2 = h / float(p_h)
-        print (p_w, p_h), (w, h), factor1, factor2
+        #print (p_w, p_h), (w, h), factor1, factor2
         
         if (p_h * factor1 < h):
             factor = factor2
@@ -356,12 +360,16 @@ class AudioPlayer(Player):
         crop_y = (p_h - s_h) / 3
         crop_w = s_w
         crop_h = s_h
-        print "CROP", (crop_x, crop_y), (crop_w, crop_h), "->", (w, h)
+        #print "CROP", (crop_x, crop_y), (crop_w, crop_h), "->", (w, h)
 
         self.__cover_scaled = self.__cover.subpixbuf(crop_x, crop_y,
                                                      crop_w, crop_h) \
                                           .scale_simple(w, h,
                                                         gtk.gdk.INTERP_BILINEAR)
+        if (is_tinted):
+            self.__cover_scaled = self.__cover_scaled.composite_color_simple(
+                w, h, gtk.gdk.INTERP_NEAREST, 0x60,
+                w, 0, 0)
 
 
     def __render_lyrics(self):
@@ -372,9 +380,9 @@ class AudioPlayer(Player):
 
         if (self.__lyrics):
             #self.__buffer.draw_frame(theme.mb_lyrics_box, bx, by, bw, bh, True)
-            screen.fill_area(x + 8, y + 8, w - 16, 200, "#000000a0")
+            #screen.fill_area(x + 8, y + 8, w - 16, 200, "#000000a0")
             screen.draw_formatted_text(self.__lyrics, theme.font_mb_headline,
-                                       x + 8, y + 8, w - 16, 200,
+                                       x + 50, y + 8, w - 100, 200,
                                        theme.color_audio_player_lyrics,
                                        screen.LEFT,
                                        True)
@@ -394,7 +402,7 @@ class AudioPlayer(Player):
     
         if (self.__cover):
             if (not self.__cover_scaled):
-                self.__scale_cover()
+                self.__scale_cover((self.__lyrics != ""))
 
             screen.draw_pixbuf(self.__cover_scaled, x, y)
             #screen.fill_area(x, y, w, h, "#000000a0")
@@ -433,6 +441,7 @@ class AudioPlayer(Player):
         
     def load(self, f):
 
+        self.__lyrics = ""
         stopwatch = logging.stopwatch()
         self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
         self.__player.connect_status_changed(self.__on_change_player_status)
