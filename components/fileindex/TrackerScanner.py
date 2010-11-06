@@ -64,7 +64,7 @@ class TrackerScanner(Component):
         if (config.scan_at_startup()):
             t = threading.Thread(target = self.__get_tracker_list)
             t.setDaemon(True)
-            t.start()    
+            t.start()
 
             #self.emit_message(msgs.UI_ACT_SHOW_INFO,
             #              "not querying tracker")

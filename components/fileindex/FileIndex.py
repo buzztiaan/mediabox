@@ -11,7 +11,7 @@ _INDEX_FILE = os.path.join(values.USER_DIR, "files.idx")
 
 # when the index format becomes incompatible, raise the magic number to force
 # rejection of old index
-_MAGIC = 0xbeef0008
+_MAGIC = 0xbeef0009
 
 
 class FileIndex(Component):
@@ -32,7 +32,8 @@ class FileIndex(Component):
         # indices used for several properties
         self.__indices = {
             "File.Path": {},
-            "Audio.Album": {}
+            "Audio.Album": {},
+            "Image.Month": {}
         }
 
         # list of properties that are to be compared case-insensitive

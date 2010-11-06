@@ -21,7 +21,7 @@ class PhonePrefs(Configurator):
     Configurator for setting the phone behavior.
     """
 
-    ICON = theme.prefs_icon_displaylight
+    ICON = theme.prefs_icon_phone
     TITLE = "Phone Behavior"
     DESCRIPTION = "Configure the phone behavior"
 

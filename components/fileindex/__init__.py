@@ -15,6 +15,9 @@ def get_classes():
         from TrackerScanner import TrackerScanner
         classes.append(TrackerScanner)
 
+        from DCIMScanner import DCIMScanner
+        classes.append(DCIMScanner)
+
     if (platforms.MAEMO4):
         from MetalayerScanner import MetalayerScanner
         classes.append(MetalayerScanner)

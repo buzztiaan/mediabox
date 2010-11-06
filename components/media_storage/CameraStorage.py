@@ -7,8 +7,20 @@ from theme import theme
 import os
 
 
-_DCIM_PATHS = ["/home/user/MyDocs/DCIM",
-               "/media/mmc1/DCIM"]
+_MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+]
 
 
 class CameraStorage(Device):
@@ -40,15 +52,16 @@ class CameraStorage(Device):
         return theme.mb_folder_dcim
 
 
-    def __make_folder(self, folder_name):
+    def __make_folder(self, month, year):
 
         f = File(self)
         f.is_local = True
-        f.path = "/" + urlquote.quote(folder_name, "")
-        f.mimetype = f.DIRECTORY
+        f.path = File.pack_path("/months", str(month), str(year))
+        f.mimetype = "application/x-image-folder"
         f.resource = ""
-        f.name = folder_name
+        f.name = "%s %d" % (_MONTHS[month - 1], year)
         f.acoustic_name = "Folder: " + f.name
+        f.comparable = 0 - ((year * 100) + month)
         #f.info = "%d items" % len(self.__folders.get(folder_name, []))
         f.folder_flags = f.ITEMS_ENQUEUEABLE | \
                             f.ITEMS_COMPACT
@@ -56,13 +69,14 @@ class CameraStorage(Device):
         return f
 
 
+
     def get_file(self, path):
     
-        parts = [ p for p in path.split("/") if p ]
-        len_parts = len(parts)
-        
+        parts = File.unpack_path(path)
+        prefix = parts[0]
+            
         f = None
-        if (len_parts == 0):
+        if (prefix == "/"):
             f = File(self)
             f.is_local = True
             f.path = "/"
@@ -71,64 +85,49 @@ class CameraStorage(Device):
             f.name = self.get_name()
             f.info = "Browse your camera pictures"
             f.icon = self.get_icon().get_path()
-            f.folder_flags = f.ITEMS_ENQUEUEABLE
+            f.folder_flags = f.ITEMS_ENQUEUEABLE | f.ITEMS_COMPACT
             
-        elif (len_parts == 1):
-            folder_name = urlquote.unquote(parts[0])
-            f = self.__make_folder(folder_name)
+        elif (prefix == "/months"):
+            month, year = parts[1:]
+            month = int(month)
+            year = int(year)
+            f = self.__make_folder(month, year)
 
         return f
 
 
     def get_contents(self, folder, begin_at, end_at, cb, *args):
 
-        def folder_cmp(a, b):
-            if (a == "All Pictures"):
-                return -1
-            if (b == "All Pictures"):
-                return 1
-            else:
-                return cmp(a, b)
-
-
-        parts = [ p for p in folder.path.split("/") if p ]
-        len_parts = len(parts)
+        parts = File.unpack_path(folder.path)
+        prefix = parts[0]
                
         items = []
-        if (len_parts == 0):
-            # list folders
-            for folder_name in ["All Pictures",
-                                "By Date",
-                                "By Tags",
-                                "By Location",
-                                "Today",
-                                "This Week",
-                                "This Month",
-                                "This Year"]:
-                f = self.__make_folder(folder_name)
+        if (prefix == "/"):
+            # list months
+            query = "Image.Month, Image.Year of File.Type='image'"
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY, query)
+            #res.sort()
+            
+            print res
+            for month, year in res:
+                f = self.__make_folder(month, year)
                 if (f): items.append(f)
             #end for
-            
-        elif (len_parts == 1):
-            # list images
-            folder_name = urlquote.unquote(parts[0])
-            if (folder_name == "All Pictures"):
-                query = "File.Path of File.Type='image'"
-                query_args = ()
-            else:
-                query = "File.Path of and File.Type='image' File.Folder='%s'"
-                query_args = (folder_name,)
-                
-            res = self.call_service(msgs.FILEINDEX_SVC_QUERY,
-                                    query, *query_args)
+        
+        elif (prefix == "/months"):
+            month, year = parts[1:]
+            month = int(month)
+            year = int(year)
+            query = "File.Path of and and File.Type='image' Image.Month=%d Image.Year=%d" \
+                    % (month, year)
+            res = self.call_service(msgs.FILEINDEX_SVC_QUERY, query)
             for path, in res:
                 f = self.call_service(msgs.CORE_SVC_GET_FILE, path)
                 if (f):
                     items.append(f)
             #end if
-        #end if
-
-        #items.sort()
+        
+        items.sort()
         
         cnt = -1
         for item in items:
@@ -137,5 +136,5 @@ class CameraStorage(Device):
             if (end_at and cnt > end_at): break
             cb(item, *args)
         #end for
-        cb(None, *args)         
+        cb(None, *args)
 
