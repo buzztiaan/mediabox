@@ -4,8 +4,6 @@ from utils import urlquote
 from utils import logging
 from theme import theme
 
-import os
-
 
 _MONTHS = [
   "January",
@@ -44,7 +42,7 @@ class CameraStorage(Device):
         
     def get_name(self):
     
-        return "Camera Pictures"
+        return "Camera"
 
 
     def get_icon(self):
@@ -104,11 +102,11 @@ class CameraStorage(Device):
         items = []
         if (prefix == "/"):
             # list months
-            query = "Image.Month, Image.Year of File.Type='image'"
+            query = "Image.Month, Image.Year of and " \
+                    "File.Folder='DCIM' " \
+                    "File.Type='image'"
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY, query)
-            #res.sort()
             
-            print res
             for month, year in res:
                 f = self.__make_folder(month, year)
                 if (f): items.append(f)
@@ -118,7 +116,9 @@ class CameraStorage(Device):
             month, year = parts[1:]
             month = int(month)
             year = int(year)
-            query = "File.Path of and and File.Type='image' Image.Month=%d Image.Year=%d" \
+            query = "File.Path of and " \
+                    "File.Type='image' " \
+                    "and Image.Month=%d Image.Year=%d" \
                     % (month, year)
             res = self.call_service(msgs.FILEINDEX_SVC_QUERY, query)
             for path, in res:
