@@ -116,7 +116,8 @@ class CameraStorage(Device):
             month, year = parts[1:]
             month = int(month)
             year = int(year)
-            query = "File.Path of and " \
+            query = "File.Path of and and " \
+                    "File.Folder='DCIM' " \
                     "File.Type='image' " \
                     "and Image.Month=%d Image.Year=%d" \
                     % (month, year)
