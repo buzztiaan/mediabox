@@ -55,7 +55,12 @@ class ImageButton(Widget):
         self.__bg.copy_buffer(screen, x, y, 0, 0, w, h)
 
         self.__render_button()
-                     
+
+
+    def _redraw(self):
+    
+        self.__render_button()
+           
         
     def __on_click(self, px, py, clicked):
     
@@ -90,8 +95,6 @@ class ImageButton(Widget):
         else:
             self.__buffer.draw_pixbuf(img, 0, 0)
         
-        #self._render_content(self.__buffer)
-        
         for overlay in self.__overlays:
             overlay(self.__buffer)
         
@@ -103,7 +106,7 @@ class ImageButton(Widget):
     
         self.__img1 = img1
         self.__img2 = img2
-        self.__render_button()
+        self._redraw()
 
 
     def set_active(self, active):
@@ -112,5 +115,5 @@ class ImageButton(Widget):
             self.__state = 1
         else:
             self.__state = 0
-        self.__render_button()
+        self._redraw()
 

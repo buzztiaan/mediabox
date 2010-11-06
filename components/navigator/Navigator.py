@@ -952,6 +952,10 @@ class Navigator(Component, Window):
         self.__save_state()
 
 
+    def handle_CORE_EV_THEME_CHANGED(self):
+    
+        self.render()
+
 
     def handle_CORE_EV_DEVICE_ADDED(self, ident, device):
             

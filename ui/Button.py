@@ -49,7 +49,7 @@ class Button(ImageButton):
         """
     
         self.__label = text
-        self.render()
+        self._redraw()
 
 
     def set_icon(self, icon):
@@ -61,5 +61,5 @@ class Button(ImageButton):
         """
     
         self.__icon = icon
-        self.render()
+        self._redraw()
 
