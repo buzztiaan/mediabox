@@ -74,8 +74,8 @@ class ConfigTheme(Configurator):
                        
         #self.set_visible(False)
         
-        dlg = InfoDialog(u"Using theme \xbb%s\xab" % title, self)
-        dlg.run()
+        #dlg = InfoDialog(u"Using theme \xbb%s\xab" % title, self)
+        #dlg.run()
         
         config.set_theme(t)
         #config.set_thumbnails_epoch(int(time.time()))

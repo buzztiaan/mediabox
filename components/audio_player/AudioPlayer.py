@@ -22,20 +22,20 @@ import threading
 
 _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
-    <widget name="slider" x1="0" y1="0" x2="40" y2="-172"/>
+    <widget name="slider" x1="0" y1="0" x2="40" y2="-148"/>
     <widget name="toolbar" x1="-100" y1="0" x2="100%" y2="100%"/>
     <widget name="trackinfo" x1="0" y1="-100" x2="-100" y2="100%"/>
-    <widget name="progress" x1="0" y1="-172" x2="-100" y2="-100"/>
+    <widget name="progress" x1="0" y1="-148" x2="-100" y2="-100"/>
   </arrangement>
 """
 
 
 _PORTRAIT_ARRANGEMENT = """
   <arrangement>
-    <widget name="slider" x1="0" y1="0" x2="40" y2="-272"/>
+    <widget name="slider" x1="0" y1="0" x2="40" y2="-248"/>
     <widget name="toolbar" x1="0" y1="-100" x2="100%" y2="100%"/>
     <widget name="trackinfo" x1="0" y1="-200" x2="100%" y2="-100"/>
-    <widget name="progress" x1="0" y1="-272" x2="100%" y2="-200"/>
+    <widget name="progress" x1="0" y1="-248" x2="100%" y2="-200"/>
   </arrangement>
 """
 
@@ -408,9 +408,9 @@ class AudioPlayer(Player):
             #screen.fill_area(x, y, w, h, "#000000a0")
 
             self.__volume_slider.set_background(
-                               self.__cover_scaled.subpixbuf(0, 0, 40, h - 72))
+                               self.__cover_scaled.subpixbuf(0, 0, 40, h - 48))
             self.__progress.set_background(
-                               self.__cover_scaled.subpixbuf(0, h - 72, w, 72))
+                               self.__cover_scaled.subpixbuf(0, h - 48, w, 48))
 
 
         else:

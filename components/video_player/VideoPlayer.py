@@ -22,10 +22,10 @@ _LANDSCAPE_ARRANGEMENT = """
   <arrangement>
     <if-visible name="toolbar">
       <widget name="toolbar" x1="-100" y1="0" x2="100%" y2="100%"/>
-      <widget name="screen" x1="40" y1="4" x2="-100" y2="-72"/>
-      <widget name="progress" x1="0" y1="-72" x2="-100" y2="100%"/>
+      <widget name="screen" x1="40" y1="4" x2="-100" y2="-48"/>
+      <widget name="progress" x1="0" y1="-48" x2="-100" y2="100%"/>
       <!-- <widget name="btn_star" x1="10" y1="-64" x2="74" y2="100%"/> -->
-      <widget name="slider" x1="0" y1="0" x2="40" y2="-72"/>
+      <widget name="slider" x1="0" y1="0" x2="40" y2="-48"/>
     </if-visible>
     
     <!-- fullscreen mode -->

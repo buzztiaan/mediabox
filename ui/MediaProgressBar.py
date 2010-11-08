@@ -196,30 +196,26 @@ class MediaProgressBar(Widget):
                 bm_pos = 16 + int((w - 32) * bm)
                 self.__buffer.draw_pixbuf(theme.mb_progress_bookmark,
                         bm_pos - theme.mb_progress_bookmark.get_width() / 2,
-                        16)
+                        0)
         #end for        
 
         # render position marker
         #screen.fill_area(x, y, w, 32, "#00000080")
         pos = int((w - 48) * self.__progress)
-        if (self.__orientation == self.DOWN):
-            self.__buffer.draw_pixbuf(theme.mb_progress_position_down, pos, 0)
-        else:
-            self.__buffer.draw_pixbuf(theme.mb_progress_position_up, pos, 24)
-            
+        self.__buffer.draw_pixbuf(theme.mb_progress_position_down, pos, 0)
+
         # render message
         if (self.__current_message):
             t_w, t_h = text_extents(self.__current_message, theme.font_mb_plain)
-            if (self.__orientation == self.DOWN):
-                self.__buffer.draw_text(self.__current_message,
-                                 theme.font_mb_plain,
-                                 (w - t_w), (h - t_h) + 2,
-                                 theme.color_mb_gauge)
+            if (self.__progress < 0.5):
+                t_x = w - t_w
             else:
-                self.__buffer.draw_text(self.__current_message,
-                                 theme.font_mb_plain,
-                                 (w - t_w), 2,
-                                 theme.color_mb_gauge)
+                t_x = 0
+            t_y = (h - t_h) + 2
+            self.__buffer.draw_text(self.__current_message,
+                                    theme.font_mb_plain,
+                                    t_x, t_y,
+                                    theme.color_mb_gauge)
 
         screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
 

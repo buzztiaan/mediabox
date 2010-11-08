@@ -479,7 +479,7 @@ class Navigator(Component, Window):
 
     def __on_shift_item(self, pos, amount):
     
-        if (self.get_current_folder() == self.__play_folder):
+        if (self.__browser.get_current_folder() == self.__play_folder):
             # force invalidation of play files
             self.__play_files = []
 
