@@ -729,8 +729,9 @@ class Window(Widget):
 
 
     def hide_video_overlay(self):
-    
-        self.__vidscreen.hide()
+
+        #self.__vidscreen.hide()
+        gobject.idle_add(self.__vidscreen.hide)
 
 
     def run(self):

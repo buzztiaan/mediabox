@@ -26,6 +26,7 @@ _LANDSCAPE_ARRANGEMENT = """
     <widget name="toolbar" x1="-100" y1="0" x2="100%" y2="100%"/>
     <widget name="trackinfo" x1="0" y1="-100" x2="-100" y2="100%"/>
     <widget name="progress" x1="0" y1="-148" x2="-100" y2="-100"/>
+    <!-- <widget name="btn_star" x1="0" y1="-148" x2="48" y2="-100"/> -->
   </arrangement>
 """
 
@@ -36,6 +37,7 @@ _PORTRAIT_ARRANGEMENT = """
     <widget name="toolbar" x1="0" y1="-100" x2="100%" y2="100%"/>
     <widget name="trackinfo" x1="0" y1="-200" x2="100%" y2="-100"/>
     <widget name="progress" x1="0" y1="-248" x2="100%" y2="-200"/>
+    <!-- <widget name="btn_star" x1="0" y1="-248" x2="48" y2="-200"/> -->
   </arrangement>
 """
 
@@ -67,7 +69,7 @@ class AudioPlayer(Player):
         Player.__init__(self)
         self.set_visible(False)
         
-        self.__trackinfo = InfoBox()        
+        self.__trackinfo = InfoBox()
         
         # volume slider
         self.__volume_slider = Slider(theme.mb_list_slider)
@@ -80,9 +82,9 @@ class AudioPlayer(Player):
         self.__progress.connect_bookmark_changed(self.__on_change_bookmark)
 
         # star button for bookmarks
-        self.__btn_star = ImageButton(theme.mb_btn_bookmark_1,
-                                      theme.mb_btn_bookmark_2)
-        self.__btn_star.connect_clicked(self.__on_btn_star)
+        #self.__btn_star = ImageButton(theme.mb_btn_bookmark_1,
+        #                              theme.mb_btn_bookmark_2)
+        #self.__btn_star.connect_clicked(self.__on_btn_star)
 
 
         # toolbar elements
@@ -131,7 +133,7 @@ class AudioPlayer(Player):
         w, h = self.get_size()
         if (w < h):
             #self.__btn_star.set_visible(False)
-            self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
+            self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)
 
         else:
             #self.__btn_star.set_visible(True)
@@ -175,12 +177,6 @@ class AudioPlayer(Player):
     def __on_btn_previous(self):
         
         self.emit_message(msgs.MEDIA_ACT_PREVIOUS)
-
-
-    def __on_btn_star(self):
-    
-        print "ADDING BOOKMARK"
-        self.__progress.add_bookmark()
 
 
     def __on_btn_next(self):
@@ -280,7 +276,7 @@ class AudioPlayer(Player):
 
     def __on_loaded_cover(self, pbuf, ctx_id, stopwatch):
    
-        if (ctx_id == self.__context_id):
+        if (ctx_id == self.__context_id and not self.__cover):
             self.__cover = None
             if (pbuf):
                 self.__set_cover(pbuf)
@@ -470,10 +466,15 @@ class AudioPlayer(Player):
 
         t = threading.Thread(target = self.__load_track_info, args = [f])
         t.setDaemon(True)
-        t.start()
+        gobject.idle_add(lambda *x:t.start() and False)
         
         if (self.__offscreen_buffer):
             self.render_buffered(self.__offscreen_buffer)
+
+
+    def set_bookmark(self):
+    
+        self.__progress.add_bookmark()
 
 
     def handle_MEDIA_EV_LYRICS(self, words, hi_from, hi_to):

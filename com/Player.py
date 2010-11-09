@@ -76,6 +76,15 @@ class Player(Component, Widget):
         pass
         
         
+    def set_bookmark(self):
+        """
+        Sets a bookmark for the current position. Override this method in your
+        player implementation.
+        """
+        
+        pass
+        
+        
     def handle_MEDIA_ACT_LOAD(self, f):
     
         pass

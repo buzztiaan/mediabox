@@ -24,7 +24,7 @@ _LANDSCAPE_ARRANGEMENT = """
       <widget name="toolbar" x1="-100" y1="0" x2="100%" y2="100%"/>
       <widget name="screen" x1="40" y1="4" x2="-100" y2="-48"/>
       <widget name="progress" x1="0" y1="-48" x2="-100" y2="100%"/>
-      <!-- <widget name="btn_star" x1="10" y1="-64" x2="74" y2="100%"/> -->
+      <!-- <widget name="btn_star" x1="0" y1="-48" x2="48" y2="100%"/> -->
       <widget name="slider" x1="0" y1="0" x2="40" y2="-48"/>
     </if-visible>
     
@@ -42,7 +42,8 @@ _PORTRAIT_ARRANGEMENT = """
   <arrangement>
     <widget name="toolbar" x1="0" y1="-100" x2="100%" y2="100%"/>
     <widget name="screen" x1="40" y1="0" x2="100%" y2="-172"/>
-    <widget name="progress" x1="0" y1="-172" x2="100%" y2="-100"/>
+    <widget name="progress" x1="48" y1="-172" x2="100%" y2="-100"/>
+    <!-- <widget name="btn_star" x1="0" y1="-172" x2="48" y2="-100"/> -->
     <widget name="slider" x1="0" y1="0" x2="40" y2="-172"/>
   </arrangement>
 """
@@ -92,9 +93,9 @@ class VideoPlayer(Player):
 
 
         # star button for bookmarks
-        self.__btn_star = ImageButton(theme.mb_btn_bookmark_1,
-                                      theme.mb_btn_bookmark_2)
-        self.__btn_star.connect_clicked(self.__on_btn_star)
+        #self.__btn_star = ImageButton(theme.mb_btn_bookmark_1,
+        #                              theme.mb_btn_bookmark_2)
+        #self.__btn_star.connect_clicked(self.__on_btn_star)
 
         
         # toolbar elements
@@ -128,13 +129,14 @@ class VideoPlayer(Player):
     def __update_layout(self):
     
         w, h = self.get_size()
+        #if (self.__is_fullscreen):
+        #    self.__btn_star.set_visible(False)
+        #else:
+        #    self.__btn_star.set_visible(True)
+        
         if (w < h):
-            #if (not self.__is_fullscreen):
-            #    self.__btn_star.set_visible(False)
             self.__arr.set_xml(_PORTRAIT_ARRANGEMENT)           
         else:
-            #if (not self.__is_fullscreen):
-            #    self.__btn_star.set_visible(True)
             self.__arr.set_xml(_LANDSCAPE_ARRANGEMENT)
 
 
@@ -149,12 +151,6 @@ class VideoPlayer(Player):
     def __on_btn_previous(self):
         
         self.emit_message(msgs.MEDIA_ACT_PREVIOUS)
-
-
-    def __on_btn_star(self):
-    
-        print "ADDING BOOKMARK"
-        self.__progress.add_bookmark()
 
 
     def __on_btn_next(self):
@@ -288,12 +284,12 @@ class VideoPlayer(Player):
             self.__progress.set_visible(False)
             self.__volume_slider.set_visible(False)
             self.__toolbar.set_visible(False)
-            self.__btn_star.set_visible(False)
+            #self.__btn_star.set_visible(False)
         else:
             self.__progress.set_visible(True)
             self.__volume_slider.set_visible(True)
             self.__toolbar.set_visible(True)
-            self.__btn_star.set_visible(True)
+            #self.__btn_star.set_visible(True)
 
         self.__update_layout()
         self.emit_message(msgs.UI_ACT_FULLSCREEN, self.__is_fullscreen)
@@ -304,15 +300,19 @@ class VideoPlayer(Player):
     
         # force video to landscape mode on Maemo
         win = self.get_window()
-        if (win and platforms.MAEMO5):
+        if (win): # and platforms.MAEMO5):
             if (self.is_visible()):
+                print "show video"
                 logging.debug("[videoplayer] forcing landscape mode")
                 self.emit_message(msgs.ASR_ACT_ENABLE, False)
                 self.emit_message(msgs.ASR_EV_LANDSCAPE)
             
             else:
+                print "hide video"
                 self.emit_message(msgs.ASR_ACT_RESTORE)
         #end if
+        
+        self.__screen.render() #set_visible(self.is_visible())
 
 
     def render_this(self):
@@ -393,6 +393,11 @@ class VideoPlayer(Player):
             self.__progress.set_message("Error")
             logging.error("[videoplayer] error loading media file: %s\n%s",
                           f, logging.stacktrace())
+
+
+    def set_bookmark(self):
+    
+        self.__progress.add_bookmark()
 
 
     def handle_MEDIA_ACT_PLAY(self):

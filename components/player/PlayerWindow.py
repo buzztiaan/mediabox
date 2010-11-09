@@ -64,6 +64,9 @@ class PlayerWindow(Dialog):
                              shuffle_selected, True,
                              self.__on_menu_shuffle)
 
+        self.set_menu_item("add-bookmark", "Bookmark Current Position", True,
+                           self.__on_menu_add_bookmark)
+
         self.set_menu_item("select-output", "Media Renderers", True,
                            self.__on_menu_select_output)
         if (platforms.MAEMO5):
@@ -90,6 +93,12 @@ class PlayerWindow(Dialog):
         elif (choice == 1):
             mb_config.set_shuffle_mode(mb_config.SHUFFLE_MODE_ONE)
 
+
+    def __on_menu_add_bookmark(self):
+    
+        if (self.__current_player):
+            self.__current_player.set_bookmark()
+            
 
     def __on_menu_select_output(self):
     
