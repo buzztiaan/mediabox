@@ -86,10 +86,12 @@ class MediaProgressBar(Widget):
         
         # check if the click is next to a bookmark
         w, h = self.get_size()
+        px = min(w - 24, max(24, px))
         cnt = 0
         for bm in self.__bookmarks:
-            distance = abs(w * bm - px)
-            if (distance < 20):
+            bm_pos = int((w - 48) * bm) + 24
+            distance = abs(bm_pos - px)
+            if (distance < 24):
                 self.__dragged_bookmark = cnt
                 self.__dragged_bookmark_pos = bm
                 break
@@ -138,9 +140,10 @@ class MediaProgressBar(Widget):
     def __on_motion(self, px, py):
             
         if (self.__is_dragging):
+            i_w_2 = theme.mb_progress_position_down.get_width() / 2
             w, h = self.get_size()
-            px = min(w, max(0, px))
-            pos = px / float(w)
+            px = min(w - i_w_2, max(i_w_2, px))
+            pos = (px - i_w_2) / float(w - 2 * i_w_2)
             
             if (self.__dragged_bookmark != -1):
                 bm_pos = px
@@ -181,28 +184,19 @@ class MediaProgressBar(Widget):
         else:
             self.__buffer.fill_area(0, 0, w, h, theme.color_mb_background)
         
-        #screen.fill_area(x, y + h - 24, w, 24, "#000000a0")
         self.__buffer.draw_frame(theme.mb_progress_background, 0, 0, w, h, True)
-        #if (self.__orientation == self.DOWN):
-        #    self.__buffer.fill_area(0, 0, w, 48, "#00000060")
-        #    self.__buffer.fill_area(0, 48, w, 24, "#000000")
-        #else:
-        #    self.__buffer.fill_area(0, 0, w, 48, "#000000")
-        #    self.__buffer.fill_area(0, 48, w, 24, "#00000060")
+
+        # render position marker
+        pos = int((w - 48) * self.__progress)
+        self.__buffer.draw_pixbuf(theme.mb_progress_position_down, pos, 0)
 
         # render bookmarks
         for bm in self.__bookmarks:
             if (bm > 0):
-                bm_pos = 16 + int((w - 32) * bm)
+                bm_pos = int((w - 48) * bm)
                 self.__buffer.draw_pixbuf(theme.mb_progress_bookmark,
-                        bm_pos - theme.mb_progress_bookmark.get_width() / 2,
-                        0)
+                        bm_pos, 0)
         #end for        
-
-        # render position marker
-        #screen.fill_area(x, y, w, 32, "#00000080")
-        pos = int((w - 48) * self.__progress)
-        self.__buffer.draw_pixbuf(theme.mb_progress_position_down, pos, 0)
 
         # render message
         if (self.__current_message):
@@ -216,6 +210,7 @@ class MediaProgressBar(Widget):
                                     theme.font_mb_plain,
                                     t_x, t_y,
                                     theme.color_mb_gauge)
+        #end if
 
         screen.copy_buffer(self.__buffer, 0, 0, x, y, w, h)
 
@@ -276,7 +271,7 @@ class MediaProgressBar(Widget):
         if (not self.may_render()): return
         if (total == 0): return
 
-        new_progress = pos/float(total)
+        new_progress = pos / float(total)
         if (abs(self.__progress - new_progress) > 0.001):            
             self.__progress = min(new_progress, 1.0)
             self.render()

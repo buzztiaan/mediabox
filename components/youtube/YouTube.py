@@ -277,7 +277,7 @@ class YouTube(Device):
 
     def __on_receive_xml(self, data, amount, total, xml, category, query, is_toc, cb, *args):
     
-        if (data == None):
+        if (data == None and not xml):
             # error
             logging.error("error downloading XML data")
             self.__current_folder.message = "content not available"

@@ -64,14 +64,15 @@ class PlayerWindow(Dialog):
                              shuffle_selected, True,
                              self.__on_menu_shuffle)
 
-        self.set_menu_item("add-bookmark", "Bookmark Current Position", True,
-                           self.__on_menu_add_bookmark)
-
         self.set_menu_item("select-output", "Media Renderers", True,
                            self.__on_menu_select_output)
         if (platforms.MAEMO5):
             self.set_menu_item("fmtx", "FM Transmitter", True,
                                self.__on_menu_fmtx)
+
+        self.set_menu_item("add-bookmark", "Mark Current Position", True,
+                           self.__on_menu_add_bookmark)
+
         #self.set_menu_item("info", "About", True,
         #                   self.__on_menu_info)
 
