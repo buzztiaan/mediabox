@@ -1,4 +1,4 @@
-mediabox (2010.11.10) unstable; urgency=low
+mediabox (2010.11.11) unstable; urgency=low
 
   Performance improvements regarding very long playlists
   
@@ -12,7 +12,7 @@ mediabox (2010.11.10) unstable; urgency=low
   
   Using more indices for faster lookup of entries in the file index
   
- -- Martin Grimme <martin.grimme@lintegra.de>  Wed, 10 Nov 2010 18:30:00 +0100
+ -- Martin Grimme <martin.grimme@lintegra.de>  Thu, 11 Nov 2010 18:15:00 +0100
  
 mediabox (2010.10.17) unstable; urgency=low
 

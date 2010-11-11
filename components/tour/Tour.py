@@ -1,6 +1,6 @@
 from com import Configurator, msgs
 from ui.layout import Arrangement
-from ui import ImageButton
+from ui import ToolbarButton
 from ui import Toolbar
 from ui import Pixmap
 from ui import Widget
@@ -55,22 +55,19 @@ class Tour(Configurator):
         self.__tour_box = Widget()
 
         # toolbar elements
-        self.__btn_toc = ImageButton(theme.mb_btn_toc_1,
-                                     theme.mb_btn_toc_2)
-        self.__btn_toc.connect_clicked(self.__on_btn_toc)
+        btn_toc = ToolbarButton(theme.mb_btn_toc_1)
+        btn_toc.connect_clicked(self.__on_btn_toc)
 
-        btn_previous = ImageButton(theme.mb_btn_previous_1,
-                                   theme.mb_btn_previous_2)
+        btn_previous = ToolbarButton(theme.mb_btn_previous_1)
         btn_previous.connect_clicked(self.__on_btn_previous)
 
-        btn_next = ImageButton(theme.mb_btn_next_1,
-                               theme.mb_btn_next_2)
+        btn_next = ToolbarButton(theme.mb_btn_next_1)
         btn_next.connect_clicked(self.__on_btn_next)
         
         # toolbar
         self.__toolbar = Toolbar()
         self.__toolbar.set_toolbar(btn_previous,
-                                   self.__btn_toc,
+                                   btn_toc,
                                    btn_next)
 
         # arrangement

@@ -53,6 +53,7 @@ class AudioPlayer(Player):
         # cover pixbuf
         self.__cover = None
         self.__cover_scaled = None
+        self.__have_cover = False
         
         # lyrics text with hilights formatting
         self.__lyrics = ""
@@ -253,9 +254,10 @@ class AudioPlayer(Player):
             if (artist):
                 self.__trackinfo.set_artist(artist)
                 self.emit_message(msgs.MEDIA_EV_TAG, "ARTIST", artist)
-            if (cover and not self.__cover):
+            if (cover and not self.__have_cover):
                 imageloader.load_data(cover, self.__on_loaded_cover,
                                       self.__context_id, time.time())
+                self.__have_cover = True
         #end if
         
 
@@ -276,11 +278,12 @@ class AudioPlayer(Player):
 
     def __on_loaded_cover(self, pbuf, ctx_id, stopwatch):
    
-        if (ctx_id == self.__context_id and not self.__cover):
+        if (ctx_id == self.__context_id and not self.__have_cover):
             self.__cover = None
             if (pbuf):
                 self.__set_cover(pbuf)
                 self.emit_message(msgs.MEDIA_EV_TAG, "PICTURE", pbuf)
+                self.__have_cover = True
             else:
                 self.__cover = None
                 self.__cover_scaled = None
@@ -438,6 +441,8 @@ class AudioPlayer(Player):
     def load(self, f):
 
         self.__lyrics = ""
+        self.__have_cover = False
+        
         stopwatch = logging.stopwatch()
         self.__player = self.call_service(msgs.MEDIA_SVC_GET_OUTPUT)
         self.__player.connect_status_changed(self.__on_change_player_status)
