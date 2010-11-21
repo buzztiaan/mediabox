@@ -53,7 +53,7 @@ def _check_mer():
     
 def _check_meego_netbook():
 
-    if (ENV_PLATFORM == "meego"): return True
+    if (ENV_PLATFORM == "meego-netbook"): return True
     v = os.system("cat /etc/meego-release 2>&1 | grep netbook >/dev/null")
     return (v == 0)
 
