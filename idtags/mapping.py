@@ -19,6 +19,12 @@ MAPPING = { "APIC": "PICTURE",
             "TYE":  "YEAR",
             "TCO":  "GENRE",
             
+            # inofficial way for embedding cover art in Ogg comments
+            "COVERART": "PICTURE",
+            
+            # more official way
+            "METADATA_BLOCK_PICTURE": "PICTURE",
+            
             # Tracker mapping
             "Audio:Title": "TITLE",
             "Audio:Artist": "ARTIST",

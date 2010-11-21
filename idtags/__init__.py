@@ -118,6 +118,6 @@ if (__name__ == "__main__"):
         if (len(v) < 80):
             print "%s:\t%s" % (k, v)
         else:
-            print "%s:\t[...]" % k
+            print "%s:\t[...] (%d chars)" % (k, len(v))
     print "took %0.5f seconds" % (time.time() - now)
 

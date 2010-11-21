@@ -114,7 +114,13 @@ def _read_frame(soup, pos, params):
     # strip off unwanted characters
     if (size < 512):
         value = "".join([ c for c in list(value) if ord(c) >= 0x20 ])
-        
+
+    if (key.upper() == "PICTURE"):
+        idx = value.find("\x00", 1)
+        idx = value.find("\x00", idx + 1)
+        while (value[idx] == "\x00"): idx += 1
+        value = value[idx:]
+
     return (key, value, pos + size)
     
     

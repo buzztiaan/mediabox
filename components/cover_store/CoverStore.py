@@ -124,13 +124,13 @@ class CoverStore(Component):
 
         tags = tagreader.get_tags(f)
         if ("PICTURE" in tags):
-            return self.__load_apic(tags["PICTURE"])
+            return tags["PICTURE"] #self.__load_apic(tags["PICTURE"])
         else:
             return None
 
 
     def __load_apic(self, data):
-
+        
         idx = data.find("\x00", 1)
         idx = data.find("\x00", idx + 1)
         while (data[idx] == "\x00"): idx += 1
