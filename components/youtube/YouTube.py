@@ -170,7 +170,7 @@ class YouTube(Device):
             key = parts[0]
             for p in parts[1:]:
                 idx = p.rfind(",")
-                value = p[:idx].replace("\\/", "/")
+                value = p[:idx].replace("\\/", "/").replace("\\u0026", "&")
                 formats[int(key)] = value
                 key = p[idx + 1:]
             #end for
