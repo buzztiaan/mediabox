@@ -3,14 +3,15 @@ from com import msgs
 from io import Downloader
 from utils import logging
 from utils import urlquote
+from utils.BeautifulSoup import BeautifulSoup
 from theme import theme
 
 from xml.etree import ElementTree
 from cStringIO import StringIO
 
 
-#_SHOUTCAST_BASE = "http://www.shoutcast.com"
-_SHOUTCAST_BASE = "http://yp.shoutcast.com"
+_SHOUTCAST_BASE = "http://www.shoutcast.com"
+#_SHOUTCAST_BASE = "http://yp.shoutcast.com"
 
 
 
@@ -175,7 +176,7 @@ class ShoutcastDirectory(Device):
         if (len_parts == 0):
             # list genres
             if (not self.__genres):
-                dl = Downloader(_SHOUTCAST_BASE + "/sbin/newxml.phtml",
+                dl = Downloader(_SHOUTCAST_BASE + "/",
                                 on_load_genres, [""])
             else:
                 list_genres()
@@ -183,28 +184,29 @@ class ShoutcastDirectory(Device):
         elif (len_parts == 1):
             # list stations
             genre = parts[0]
-            dl = Downloader(_SHOUTCAST_BASE + "/sbin/newxml.phtml?genre=%s" % genre,
+            dl = Downloader(_SHOUTCAST_BASE + "/radio/%s" % genre,
                             on_load_stations, [""], genre)
         
 
 
     def __parse_genres(self, data):
         """
-        Parses the XML list of genres.
+        Parses the list of genres.
         """
-
+        
         genres = []
-        try:
-            dtree = ElementTree.parse(StringIO(data))
-            for i in dtree.getiterator():
-                if i.tag == "genre":
-                    for j,n in i.items():
-                        if j == "name":
-                            genres.append(n)
-        except:
-            #self.call_service(msgs.UI_ACT_SHOW_INFO,
-            #                  "An error occured while loading the list of genres.\n" \
-            #                  "Check your internet connection and try again.")
+        soup = BeautifulSoup(data)
+        radiopicker = soup.find("div", {"id": "radiopicker"})
+        #print radiopicker
+        if (radiopicker):
+            for genre_tag in radiopicker.findAll("li", {"class": "prigen"}):
+                #print genre_tag
+                name = genre_tag.a.contents[0]
+                genres.append(name)
+            #end for
+        #end if
+    
+        if (not genres):
             self.__current_folder.message = "genre list not available"
             logging.error("SHOUTcast genre listing download failed:\n%s",
                           logging.stacktrace())
@@ -215,46 +217,51 @@ class ShoutcastDirectory(Device):
 
     def __parse_stations(self, data, genre):
         """
-        Parses the XML list of stations.
+        Parses the list of stations.
         """
 
         stations = []
-        try:
-            dtree = ElementTree.parse(StringIO(data))
-            for i in dtree.getiterator():
-                if i.tag == "station":
-                    # build station object
-                    station = File(self)
-                    bitrate = "-"
-                    now_playing = "-"
-                    
-                    for j,n in i.items():
-                        if j == "name":
-                            station.name = n
-                        elif j == "ct":
-                            now_playing = n
-                        elif j == "id":
-                            station.resource = _SHOUTCAST_BASE + "/sbin/shoutcast-playlist.pls?rn=%s&file=filename.pls" % n
-                        elif j == "br":
-                            bitrate = n
-                        elif j == "mt":
-                            station.mimetype = n
+        soup = BeautifulSoup(data)
+        resulttable = soup.find("div", {"id": "resulttable"})
+        if (resulttable):
+            for entry in resulttable.findAll("div", {"class": "dirlist"}):
+                #print entry
+                station = File(self)
+                a_tag = entry.find("a", {"class": "playbutton playimage"})
+                playing_tag = entry.find("div", {"class": "playingtext"})
+                bitrate_tag = entry.find("div", {"class": "dirbitrate"})
+                type_tag = entry.find("div", {"class": "dirtype"})
+                
+                if (not a_tag or
+                    not playing_tag or
+                    not bitrate_tag or
+                    not type_tag): continue
+                
+                station.resource = a_tag["href"]
+                station.name = a_tag["title"]
+                now_playing = playing_tag["title"]
+                bitrate = bitrate_tag.contents[0].strip()
 
-                    station.path = "/" + genre + "/" + \
-                                   self.__encode_station(station.name,
-                                                         bitrate,
-                                                         station.mimetype,
-                                                         station.resource,
-                                                         genre)
-                    station.info = "Bitrate: %s kb\n" \
-                                   "Now playing: %s" % (bitrate, now_playing)
-                    station.icon = theme.shoutcast_station.get_path()
-                    stations.append(station)
-
-        except:
-            #self.call_service(msgs.UI_ACT_SHOW_INFO,
-            #                  "An error occured while loading the list of stations.\n" \
-            #                  "Check your internet connection and try again.")
+                typename = type_tag.contents[0].strip()
+                if (typename == "MP3"):
+                    station.mimetype = "audio/mpeg"
+                else:
+                    station.mimetype = "audio/x-unknown"
+                
+                station.path = "/" + genre + "/" + \
+                    self.__encode_station(station.name,
+                                          bitrate,
+                                          station.mimetype,
+                                          station.resource,
+                                          genre)
+                station.info = "Bitrate: %s kb\n" \
+                               "Now playing: %s" % (bitrate, now_playing)
+                station.icon = theme.shoutcast_station.get_path()
+                stations.append(station)
+            #end for
+        #end if
+        
+        if (not stations):
             self.__current_folder.message = "station list not available"
             logging.error("SHOUTcast station listing download failed\n%s",
                           logging.stacktrace())
@@ -275,3 +282,4 @@ class ShoutcastDirectory(Device):
         data = urlquote.unquote(s)
         name, bitrate, mimetype, resource, genre = data.split("\t\t\t")
         return (name, bitrate, mimetype, resource, genre)
+        
