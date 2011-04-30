@@ -194,6 +194,11 @@ class ShoutcastDirectory(Device):
         Parses the list of genres.
         """
         
+        self.call_service(msgs.UI_ACT_SHOW_INFO,
+                          "SHOUTcast made it illegal for free software to access\n" \
+                          "their full directory.\n" \
+                          "You will only get the Top 10 stations listed per genre.")
+        
         genres = []
         soup = BeautifulSoup(data)
         radiopicker = soup.find("div", {"id": "radiopicker"})
@@ -245,6 +250,8 @@ class ShoutcastDirectory(Device):
                 typename = type_tag.contents[0].strip()
                 if (typename == "MP3"):
                     station.mimetype = "audio/mpeg"
+                elif (typename == "AAC+"):
+                    station.mimetype = "audio/mp4"
                 else:
                     station.mimetype = "audio/x-unknown"
                 
