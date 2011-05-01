@@ -6,9 +6,6 @@ from utils import urlquote
 from utils.BeautifulSoup import BeautifulSoup
 from theme import theme
 
-from xml.etree import ElementTree
-from cStringIO import StringIO
-
 
 _SHOUTCAST_BASE = "http://www.shoutcast.com"
 #_SHOUTCAST_BASE = "http://yp.shoutcast.com"
@@ -67,7 +64,7 @@ class ShoutcastDirectory(Device):
     def __make_genre(self, genre):
 
         f = File(self)    
-        f.name = genre
+        f.name = genre.replace("&amp;", "&")
         f.path = "/" + urlquote.quote(genre, "")
         f.mimetype = f.DIRECTORY
         f.icon = theme.shoutcast_folder.get_path()
