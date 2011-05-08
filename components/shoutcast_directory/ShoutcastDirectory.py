@@ -69,6 +69,7 @@ class ShoutcastDirectory(Device):
         f.mimetype = f.DIRECTORY
         f.icon = theme.shoutcast_folder.get_path()
         f.folder_flags = f.ITEMS_ENQUEUEABLE
+        print f.name, f.path
 
         return f
 
@@ -76,7 +77,7 @@ class ShoutcastDirectory(Device):
     def __make_station(self, s):
     
         try:
-            name, bitrate, mimetype, location, genre = self.__decode_station(s)
+            prefix, name, bitrate, mimetype, location, genre = File.unpack_path(s)
         except:
             logging.error("error decoding iradio path: %s\n%s",
                             path, logging.stacktrace())
@@ -86,7 +87,7 @@ class ShoutcastDirectory(Device):
         f.name = name
         f.info = "Bitrate: %s kb" % bitrate
         f.resource = location
-        f.path = "/" + urlquote.quote(genre, "") + "/" + s
+        f.path = s
         f.mimetype = mimetype
         f.icon = theme.shoutcast_station.get_path()
         
@@ -97,7 +98,7 @@ class ShoutcastDirectory(Device):
 
         parts = [ p for p in path.split("/") if p ]
         len_parts = len(parts)
-        
+
         f = None
         if (len_parts == 0):
             # root folder
@@ -112,6 +113,7 @@ class ShoutcastDirectory(Device):
     
         elif (len_parts == 1):
             genre = urlquote.unquote(parts[0])
+            print "GENRE", genre
             f = self.__make_genre(genre)
     
         elif (len_parts == 2):
@@ -180,8 +182,8 @@ class ShoutcastDirectory(Device):
 
         elif (len_parts == 1):
             # list stations
-            genre = parts[0]
-            dl = Downloader(_SHOUTCAST_BASE + "/radio/%s" % genre,
+            genre = urlquote.unquote(parts[0])
+            dl = Downloader(_SHOUTCAST_BASE + "/radio/" + genre,
                             on_load_stations, [""], genre)
         
 
@@ -204,6 +206,7 @@ class ShoutcastDirectory(Device):
             for genre_tag in radiopicker.findAll("li", {"class": "prigen"}):
                 #print genre_tag
                 name = genre_tag.a.contents[0]
+                name = name.replace("&amp;", "&")
                 genres.append(name)
             #end for
         #end if
@@ -252,12 +255,12 @@ class ShoutcastDirectory(Device):
                 else:
                     station.mimetype = "audio/x-unknown"
                 
-                station.path = "/" + genre + "/" + \
-                    self.__encode_station(station.name,
-                                          bitrate,
-                                          station.mimetype,
-                                          station.resource,
-                                          genre)
+                station.path = File.pack_path("/" + urlquote.quote(genre, ""),
+                                              station.name,
+                                              bitrate,
+                                              station.mimetype,
+                                              station.resource,
+                                              genre)
                 station.info = "Bitrate: %s kb\n" \
                                "Now playing: %s" % (bitrate, now_playing)
                 station.icon = theme.shoutcast_station.get_path()
@@ -273,17 +276,3 @@ class ShoutcastDirectory(Device):
         stations.sort()
         return stations
 
-
-
-    def __encode_station(self, name, bitrate, mimetype, resource, genre):
-    
-        s = "\t\t\t".join([name, bitrate, mimetype, resource, genre])
-        return urlquote.quote(s, "")
-
-
-    def __decode_station(self, s):
-    
-        data = urlquote.unquote(s)
-        name, bitrate, mimetype, resource, genre = data.split("\t\t\t")
-        return (name, bitrate, mimetype, resource, genre)
-        
